@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
-import com.gitlab.ykrasik.gamedex.javafx.theme.JFXStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import tornadofx.App
 import tornadofx.launch
 
@@ -26,7 +26,7 @@ import tornadofx.launch
  * Date: 08/10/2016
  * Time: 21:40
  */
-class Main : App(JavaFxPreloaderView::class, JFXStyle::class) {
+class Main : App(JavaFxPreloaderView::class, GameDexStyle::class) {
     companion object {
         val startTime = System.currentTimeMillis()
 

@@ -64,7 +64,7 @@ class GameContextMenu : InstallableContextMenu<Game>(),
     }
 
     override val root = vbox {
-        addClass(CommonStyle.popoverMenu)
+        addClass(CommonStyle.popOverMenu)
         item("View", Icons.view) { action(showGameDetailsActions) { data } }
         verticalGap()
         item("Edit", Icons.edit) { action { editGame(GameDataType.Name) } }

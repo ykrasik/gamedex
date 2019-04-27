@@ -20,14 +20,18 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.javafx.binding
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
+import com.jfoenix.controls.JFXButton
 import javafx.beans.property.Property
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.VBox
-import org.controlsfx.control.PopOver
-import tornadofx.*
+import tornadofx.action
+import tornadofx.replaceChildren
+import tornadofx.stringBinding
+import tornadofx.useMaxWidth
+import kotlin.toString
 
 /**
  * User: ykrasik
@@ -37,12 +41,18 @@ import tornadofx.*
 inline fun <T> EventTarget.popoverComboMenu(
     possibleItems: List<T>,
     selectedItemProperty: Property<out T?>,
-    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node?)? = null,
     menuOp: PopOverContent.(T) -> Unit = {}
-) = buttonWithPopover(arrowLocation = arrowLocation) {
+) = buttonWithPopover {
     possibleItems.forEach { item ->
+//        customListView(possibleItems.observable()) {
+//            customListCell { item ->
+//                this.text = if (text != null) text(item) else null
+//                this.graphic = if (graphic != null) graphic(item) else null
+//            }
+//            selectionModel.selectedItemProperty().onChange { selectedItemProperty.value = it }
+//        }
         jfxButton(text?.invoke(item), graphic?.invoke(item), alignment = Pos.CENTER_LEFT) {
             useMaxWidth = true
             action { selectedItemProperty.value = item }
@@ -57,19 +67,18 @@ inline fun <T> EventTarget.popoverComboMenu(
 inline fun <T> EventTarget.popoverComboMenu(
     possibleItems: ObservableList<T>,
     selectedItemProperty: Property<T>,
-    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    itemStyleClass: CssRule? = null,
     noinline text: ((T) -> String)? = null,
     noinline graphic: ((T) -> Node?)? = null,
+    crossinline itemOp: JFXButton.() -> Unit = {},
     crossinline menuOp: VBox.(T) -> Unit = {}
-) = buttonWithPopover(arrowLocation = arrowLocation) {
+) = buttonWithPopover {
     possibleItems.perform { items ->
         replaceChildren {
             items.forEach { item ->
                 jfxButton(text?.invoke(item), graphic?.invoke(item), alignment = Pos.CENTER_LEFT) {
-                    if (itemStyleClass != null) addClass(itemStyleClass)
                     useMaxWidth = true
                     action { selectedItemProperty.value = item }
+                    itemOp()
                 }
                 menuOp(item)
             }
@@ -82,14 +91,12 @@ inline fun <T> EventTarget.popoverComboMenu(
 
 inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
     selectedItemProperty: Property<out T?>,
-    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node)? = null,
     menuOp: PopOverContent.(T) -> Unit = {}
 ) = popoverComboMenu(
     possibleItems = T::class.java.enumConstants.asList(),
     selectedItemProperty = selectedItemProperty,
-    arrowLocation = arrowLocation,
     text = text,
     graphic = graphic,
     menuOp = menuOp

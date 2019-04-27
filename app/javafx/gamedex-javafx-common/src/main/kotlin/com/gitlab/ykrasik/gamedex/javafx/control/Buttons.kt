@@ -21,7 +21,6 @@ import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
-import org.controlsfx.control.PopOver
 import tornadofx.action
 import tornadofx.addClass
 import tornadofx.opcr
@@ -49,10 +48,9 @@ inline fun EventTarget.jfxButton(
 inline fun EventTarget.buttonWithPopover(
     text: String? = null,
     graphic: Node? = null,
-    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    onClickBehavior: PopOverOnClickBehavior = PopOverOnClickBehavior.Close(),
+    closeOnAction: Boolean = true,
     op: PopOverContent.() -> Unit = {}
 ) = jfxButton(text = text, graphic = graphic, alignment = Pos.CENTER_LEFT) {
-    val popover = popOver(arrowLocation, onClickBehavior, op)
+    val popover = popOver(closeOnAction = closeOnAction, op = op)
     action { popover.determineArrowLocation(this).toggle(this) }
 }

@@ -34,7 +34,6 @@ import javafx.event.EventTarget
 import javafx.scene.control.ScrollPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
-import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -67,13 +66,13 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
                     jfxCheckBox(librariesAndGames.shouldDelete.property)
 
                     viewButton(staleDataProperty.stringBinding { "${it!!.libraries.size} Libraries" }) {
-                        jfxListView(staleDataProperty.mapToList { it.libraries.map { it.path } })
+                        prettyListView(staleDataProperty.mapToList { it.libraries.map { it.path } })
                     }.apply {
                         showWhen { staleDataProperty.booleanBinding { it!!.libraries.isNotEmpty() } }
                     }
 
                     viewButton(staleDataProperty.stringBinding { "${it!!.games.size} Games" }) {
-                        jfxListView(staleDataProperty.mapToList { it.games.map { it.path } })
+                        prettyListView(staleDataProperty.mapToList { it.games.map { it.path } })
                     }.apply {
                         showWhen { staleDataProperty.booleanBinding { it!!.games.isNotEmpty() } }
                     }
@@ -95,7 +94,7 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
     }
 
     private inline fun EventTarget.viewButton(textProperty: ObservableValue<String>, crossinline op: VBox.() -> Unit = {}) =
-        buttonWithPopover("", Icons.details, PopOver.ArrowLocation.LEFT_CENTER) {
+        buttonWithPopover("", Icons.details) {
             (popOver.contentNode as ScrollPane).minWidth = 600.0
             op()
         }.apply {

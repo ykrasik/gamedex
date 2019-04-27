@@ -24,7 +24,7 @@ import tornadofx.*
  * Date: 06/11/2018
  * Time: 14:35
  */
-class JFXStyle : Stylesheet() {
+class GameDexStyle : Stylesheet() {
     companion object {
         val jfxButton by cssclass()
         val jfxProgressBar by csselement("JFXProgressBar")
@@ -83,10 +83,37 @@ class JFXStyle : Stylesheet() {
         }
 
         scrollPane {
+            backgroundColor = multi(Color.WHITE)
             viewport {
                 backgroundColor = multi(Color.TRANSPARENT)
             }
-            backgroundColor = multi(Color.WHITE)
+//            listView {
+//                scrollBar {
+//                    // Suppress the default ListView ScrollBar, when the ListView is wrapped in a ScrollPane.
+//                    prefWidth = 0.px
+//                }
+//            }
+        }
+
+        scrollBar {
+            padding = box(0.px)
+            backgroundColor = multi(Color.TRANSPARENT)
+            prefWidth = 1.em
+            prefHeight = 1.em
+            s(incrementArrow, incrementButton, incrementArrowButton, decrementArrow, decrementButton, decrementArrowButton) {
+                prefWidth = 0.px
+                prefHeight = 0.px
+            }
+            thumb {
+                backgroundColor = multi(c(0, 0, 0, 0.5))
+                backgroundRadius = multi(box(10.px))
+                and(hover) {
+                    backgroundColor = multi(c(0, 0, 0, 0.55))
+                }
+                and(pressed) {
+                    backgroundColor = multi(c(0, 0, 0, 0.6))
+                }
+            }
         }
     }
 }

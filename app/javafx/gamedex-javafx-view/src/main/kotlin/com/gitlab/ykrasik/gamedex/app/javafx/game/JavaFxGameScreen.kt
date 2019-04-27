@@ -82,8 +82,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         possibleItems = availablePlatforms,
         selectedItemProperty = currentPlatform.property,
         text = Platform::displayName,
-        graphic = { it.logo },
-        arrowLocation = PopOver.ArrowLocation.TOP_RIGHT
+        graphic = { it.logo }
     ).apply {
         addClass(CommonStyle.toolbarButton, Style.platformButton)
         contentDisplay = ContentDisplay.RIGHT
@@ -91,11 +90,11 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
     }
 
-    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, onClickBehavior = PopOverOnClickBehavior.Ignore) {
+    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, closeOnAction = false) {
         defaultHbox {
             paddingAll = 5
             popoverComboMenu(
-                possibleItems = SortBy.values().toList().observable(),
+                possibleItems = SortBy.values().toList(),
                 selectedItemProperty = sortBy.property,
                 text = SortBy::displayName,
                 graphic = { it.icon }
@@ -116,7 +115,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         tooltip("Sort")
     }
 
-    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, onClickBehavior = PopOverOnClickBehavior.Ignore) {
+    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnAction = false) {
         addComponent(filterView)
     }.apply {
         tooltip("Filter")
@@ -129,7 +128,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             suggestions.setAll(it)
         }
         popOver(PopOver.ArrowLocation.LEFT_TOP) {
-            customListView(suggestions) {
+            prettyListView(suggestions) {
                 maxHeight = 6 * 23.0
                 prefWidth = 400.0
                 selectionModel.selectedItemProperty().onChange {

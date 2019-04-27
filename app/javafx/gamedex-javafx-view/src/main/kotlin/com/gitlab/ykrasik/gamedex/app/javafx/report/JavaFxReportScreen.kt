@@ -81,11 +81,11 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     override val result = state(ReportResult.Null)
     private val games = result.property.mapToList { it.games }
 
-    private val gamesView = customListView(games) {
+    private val gamesView = prettyListView(games) {
         vgrow = Priority.ALWAYS
         useMaxSize = true
 
-        customListCell { game ->
+        prettyListCell { game ->
             text = null
             maxWidth = 600.0
             graphic = GameDetailsPaneBuilder(

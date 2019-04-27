@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.scene.Node
-import org.controlsfx.control.PopOver
 import tornadofx.addClass
 import tornadofx.removeClass
 import tornadofx.tooltip
@@ -125,10 +124,7 @@ inline fun EventTarget.editButton(text: String? = null, crossinline op: JFXButto
     toolbarButton(text, Icons.edit, op)
 
 inline fun EventTarget.extraMenu(op: PopOverContent.() -> Unit = {}) =
-    buttonWithPopover(
-        graphic = Icons.dots,
-        arrowLocation = PopOver.ArrowLocation.TOP_RIGHT
-    ) {
-        popOver.isAutoFix = false
+    buttonWithPopover(graphic = Icons.dots) {
+//        popOver.isAutoFix = false
         op()
     }

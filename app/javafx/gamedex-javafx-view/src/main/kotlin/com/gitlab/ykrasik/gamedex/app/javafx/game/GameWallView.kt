@@ -28,9 +28,9 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.control.PopOverOnClickBehavior
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
 import com.gitlab.ykrasik.gamedex.javafx.control.popOver
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyGridView
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toPredicate
@@ -78,7 +78,7 @@ class GameWallView : PresentableView("Game Wall"),
 
     private val gameProperty = SimpleObjectProperty<Game>(Game.Null)
 
-    private val popOver = popOver(onClickBehavior = PopOverOnClickBehavior.Ignore).apply {
+    private val popOver = popOver(closeOnAction = false).apply {
         contentNode = stackpane {
             addClass(Style.quickDetails)
             gameProperty.typeSafeOnChange { game ->
@@ -101,7 +101,7 @@ class GameWallView : PresentableView("Game Wall"),
         register()
     }
 
-    override val root = GridView(games).apply {
+    override val root = prettyGridView(games) {
         cellHeightProperty().bind(gameWallDisplaySettings.height.property)
         cellWidthProperty().bind(gameWallDisplaySettings.width.property)
         horizontalCellSpacingProperty().bind(gameWallDisplaySettings.horizontalSpacing.property)

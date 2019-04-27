@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
@@ -61,7 +60,7 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
 
     init {
         titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report" })
-        iconProperty.bind(reportProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
+//        iconProperty.bind(reportProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
         excludedGames.onChange { resizeToContent() }
         filterView.filter.onChange { resizeToContent() }
         register()

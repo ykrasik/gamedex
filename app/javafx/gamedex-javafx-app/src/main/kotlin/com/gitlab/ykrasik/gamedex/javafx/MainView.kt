@@ -112,14 +112,14 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
 
     private fun TabPane.tab(screen: PresentableScreen) = tab(screen) { userData = screen }
 
-    private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu) {
+    private val mainNavigationButton = popOverMenu(graphic = Icons.menu) {
         navigationButton(gameScreen)
 
         verticalGap(size = 15)
 
         subMenu(libraryMenu)
         subMenu(reportMenu)
-        subMenu(maintenanceMenu)
+        subMenu(maintenanceMenu) { maintenanceMenu.init(this) }
 
         verticalGap(size = 15)
 
@@ -203,7 +203,10 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
             op()
         }
 
-    private fun PopOverContent.subMenu(view: PresentableView): HBox = subMenu(view.title, view.icon) { children += view.root }
+    private inline fun PopOverMenu.subMenu(
+        view: PresentableView,
+        crossinline op: PopOverMenu.() -> Unit = { children += view.root }
+    ): HBox = popOverSubMenu(view.title, view.icon, op = op)
 
     fun showGameDetails(game: Game): JavaFxGameDetailsScreen = selectScreen(gameDetailsScreen) {
         this.game.valueFromView = game

@@ -49,11 +49,10 @@ class CommonStyle : Stylesheet() {
         val dangerButton by cssclass()
         val infoButton by cssclass()
 
-        val subMenu by cssclass()
+        val popOverMenu by cssclass()
+        val popOverSubMenu by cssclass()
 
         val extraMenu by cssclass()
-
-        val popoverMenu by cssclass()
 
         val headerLabel by cssclass()
         val subHeaderLabel by cssclass()
@@ -64,8 +63,13 @@ class CommonStyle : Stylesheet() {
 
         val customHoverable by cssclass()
 
-        val customList by cssclass()
-        val customListCellContent by cssclass()
+        val prettyList by cssclass()
+        val prettyListCellContent by cssclass()
+
+        val prettyScrollPane by cssclass()
+        val prettyScrollBar by cssclass()
+
+        val prettyGridView by cssclass()
 
         init {
             importStylesheetSafe(CommonStyle::class)
@@ -73,6 +77,17 @@ class CommonStyle : Stylesheet() {
     }
 
     init {
+        val disableNativeScrollBarMixin = mixin {
+            scrollBar {
+                s(incrementArrow, incrementButton, incrementArrowButton, decrementArrow, decrementButton, decrementArrowButton) {
+                    prefWidth = 0.px
+                    prefHeight = 0.px
+                }
+                prefWidth = 0.px
+                prefHeight = 0.px
+            }
+        }
+
         hiddenTabPaneHeader {
             tabMaxHeight = 0.px
 
@@ -142,7 +157,13 @@ class CommonStyle : Stylesheet() {
             }
         }
 
-        subMenu {
+        popOverMenu {
+            backgroundColor = multi(Colors.cloudyKnoxville)
+            spacing = 5.px
+            padding = box(5.px)
+        }
+
+        popOverSubMenu {
             padding = box(4.px, 8.px, 4.px, 8.px)
             borderRadius = multi(box(3.px))
             backgroundRadius = multi(box(3.px))
@@ -153,11 +174,6 @@ class CommonStyle : Stylesheet() {
             contentDisplay = ContentDisplay.RIGHT
             alignment = Pos.CENTER_RIGHT
             graphicTextGap = 6.px
-        }
-
-        popoverMenu {
-            spacing = 5.px
-            padding = box(5.px)
         }
 
         headerLabel {
@@ -203,7 +219,7 @@ class CommonStyle : Stylesheet() {
             }
         }
 
-        customList {
+        prettyList {
             padding = box(0.px)
             backgroundInsets = multi(box(0.px))
             backgroundColor = multi(Color.TRANSPARENT) // removes default white background
@@ -223,10 +239,20 @@ class CommonStyle : Stylesheet() {
                     }
                 }
             }
+
+            virtualFlow {
+                +disableNativeScrollBarMixin
+            }
         }
 
-        customListCellContent {
+        prettyListCellContent {
             padding = box(8.px, 5.px)
+        }
+
+        prettyGridView {
+            virtualFlow {
+                +disableNativeScrollBarMixin
+            }
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

@@ -156,7 +156,7 @@ fun Node.makeDraggable() {
     }
 }
 
-val Node.verticalScrollbar: ScrollBar?
+val Node.verticalScrollBar: ScrollBar?
     get() = lookupAll(".scroll-bar")
         .asSequence()
         .map { it as ScrollBar }
@@ -167,3 +167,7 @@ val Color.hex: String get() = JFXNodeUtils.colorToHex(this)
 val String.color: Color get() = Color.valueOf(this)
 
 val Node.boundsInScreen: Bounds get() = localToScreen(boundsInLocal)
+
+fun Bounds.containsDelta(x: Double, y: Double, delta: Double): Boolean {
+    return !isEmpty && x in (minX - delta)..(maxX + delta) && y in (minY - delta)..(maxY + delta)
+}

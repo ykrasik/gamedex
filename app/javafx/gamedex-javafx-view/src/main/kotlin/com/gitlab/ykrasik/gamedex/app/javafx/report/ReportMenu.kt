@@ -57,14 +57,12 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
     }
 
     override val root = vbox(spacing = 5) {
-        hbox {
-            spacer()
-            addButton {
-                alignment = Pos.CENTER
-                removeClass(CommonStyle.toolbarButton)
-                tooltip("Add a new report")
-                action(addReportActions)
-            }
+        addButton {
+            alignment = Pos.CENTER
+            useMaxWidth = true
+            removeClass(CommonStyle.toolbarButton)
+            tooltip("Add a new report")
+            action(addReportActions)
         }
         verticalGap()
         vbox {
@@ -73,6 +71,7 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
                     gridpane {
                         hgap = 5.0
                         vgap = 3.0
+                        usePrefWidth = true
                         reports.forEach { report ->
                             row {
                                 infoButton(report.name, Icons.chart) {

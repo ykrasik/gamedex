@@ -66,13 +66,13 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val choiceActions = channel<ProviderSearchChoice>()
     override val changeProviderActions = channel<ProviderId>()
 
-    private val resultsView = customListView(searchResults) {
+    private val resultsView = prettyListView(searchResults) {
 //        useMaxWidth = true
 //        hgrow = Priority.ALWAYS
         vgrow = Priority.ALWAYS
         enableWhen(canChangeState, wrapInErrorTooltip = false)
 //        maxWidth = screenBounds.width / 2
-        customListCell { result ->
+        prettyListCell { result ->
             maxWidth = 800.0
             text = null
             graphic = GameDetailsPaneBuilder(

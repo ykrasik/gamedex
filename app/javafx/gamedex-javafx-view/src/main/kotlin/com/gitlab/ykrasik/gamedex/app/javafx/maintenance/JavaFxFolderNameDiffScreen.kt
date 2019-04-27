@@ -86,11 +86,11 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
         }
     }
 
-    private val gamesView = customListView(diffs) {
+    private val gamesView = prettyListView(diffs) {
         vgrow = Priority.ALWAYS
         useMaxSize = true
 
-        customListCell { diff ->
+        prettyListCell { diff ->
             val game = diff.game
             text = null
             maxWidth = 600.0
@@ -119,10 +119,10 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     private val selectedDiff = gamesView.selectionModel.selectedItemProperty()
     private val diffsOfSelectedGame = selectedDiff.mapToList { it?.diffs ?: emptyList() }
 
-    private val diffsView = customListView(diffsOfSelectedGame) {
+    private val diffsView = prettyListView(diffsOfSelectedGame) {
         vgrow = Priority.ALWAYS
 
-        customListCell { diff ->
+        prettyListCell { diff ->
             text = null
             graphic = HBox().apply {
                 spacing = 20.0

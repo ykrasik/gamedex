@@ -23,10 +23,10 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxProviderSearchView
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.control.customListCell
-import com.gitlab.ykrasik.gamedex.javafx.control.customListView
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyListCell
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyListView
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.dangerButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -69,12 +69,12 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
         register()
     }
 
-    private val paths = customListView(state) {
+    private val paths = prettyListView(state) {
         useMaxWidth = true
         hgrow = Priority.ALWAYS
         addClass(Style.pathsList)
 
-        customListCell { state ->
+        prettyListCell { state ->
             text = state.libraryPath.path.toString()
             graphic = StackPane().apply {
                 jfxButton {

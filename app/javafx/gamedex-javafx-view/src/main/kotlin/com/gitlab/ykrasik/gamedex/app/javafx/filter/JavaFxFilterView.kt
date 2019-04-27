@@ -161,7 +161,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     }
 
     private fun EventTarget.renderCompoundFilter(metaFilter: Filter.Compound, parentFilter: Filter, op: VBox.() -> Unit) = vbox(spacing = 2) {
-        renderBasicRule(metaFilter, parentFilter, possible = listOf(Filter.And::class, Filter.Or::class))
+        renderBasicRule(metaFilter, parentFilter, possibleFilters = listOf(Filter.And::class, Filter.Or::class))
 
         indent += 1
         op(this)
@@ -171,7 +171,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     private fun EventTarget.renderBasicRule(
         filter: Filter,
         parentFilter: Filter,
-        possible: List<KClass<out Filter>>,
+        possibleFilters: List<KClass<out Filter>>,
         op: HBox.() -> Unit = {}
     ) = defaultHbox {
         useMaxWidth = true
@@ -179,7 +179,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         gap(size = indent * 20.0)
 
         val descriptor = filter.descriptor
-        buttonWithPopover(descriptor.selectedName, descriptor.selectedIcon().size(26), onClickBehavior = PopOverOnClickBehavior.Ignore) {
+        popOverMenu(descriptor.selectedName, descriptor.selectedIcon().size(26), closeOnAction = false) {
             // TODO: As an optimization, can share this popover across all menus.
             fun EventTarget.filterButton(descriptor: FilterDisplayDescriptor) =
                 jfxButton(descriptor.name, descriptor.icon().size(26), alignment = Pos.CENTER_LEFT) {
@@ -190,15 +190,15 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                     }
                 }
 
-            val subMenus = mutableMapOf<FilterDisplaySubMenu, VBox>()
-            fun subMenu(descriptor: FilterDisplaySubMenu, f: VBox.() -> Unit) = f(subMenus.getOrPut(descriptor) {
-                lateinit var vbox: VBox
-                subMenu(descriptor.text, descriptor.icon().size(26)) { vbox = this }
-                vbox
+            val subMenus = mutableMapOf<FilterDisplaySubMenu, PopOverMenu>()
+            fun subMenu(descriptor: FilterDisplaySubMenu, f: PopOverMenu.() -> Unit) = f(subMenus.getOrPut(descriptor) {
+                lateinit var menu: PopOverMenu
+                popOverSubMenu(descriptor.text, descriptor.icon().size(26)) { menu = this }
+                menu
             })
 
             var needGap = false
-            possible.forEach {
+            possibleFilters.forEach {
                 if (needGap) {
                     verticalGap(size = 20)
                 }
@@ -269,8 +269,8 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         popoverComboMenu(
             possibleItems = possibleProviderIds,
             selectedItemProperty = provider,
-            text = { it },
-            graphic = { commonOps.providerLogo(it).toImageView(height = 28) }
+            graphic = { commonOps.providerLogo(it).toImageView(height = 28) },
+            itemOp = { alignment = Pos.CENTER }
         )
     }
 

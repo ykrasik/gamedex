@@ -65,11 +65,11 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
-    private val gamesView = customListView(duplicates) {
+    private val gamesView = prettyListView(duplicates) {
         vgrow = Priority.ALWAYS
         useMaxSize = true
 
-        customListCell { duplicate ->
+        prettyListCell { duplicate ->
             val game = duplicate.game
             text = null
             maxWidth = 600.0
@@ -98,10 +98,10 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     private val selectedDuplicate = gamesView.selectionModel.selectedItemProperty()
     private val duplicatesOfSelectedGame = selectedDuplicate.mapToList { it?.duplicates ?: emptyList() }
 
-    private val duplicatesView = customListView(duplicatesOfSelectedGame) {
+    private val duplicatesView = prettyListView(duplicatesOfSelectedGame) {
         vgrow = Priority.ALWAYS
 
-        customListCell { duplicate ->
+        prettyListCell { duplicate ->
             text = null
             graphic = HBox().apply {
                 spacing = 20.0

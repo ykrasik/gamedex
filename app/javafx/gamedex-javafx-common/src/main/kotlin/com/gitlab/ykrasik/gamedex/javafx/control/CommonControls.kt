@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.asPercent
 import com.jfoenix.controls.*
@@ -130,11 +129,17 @@ fun JavaFxState<IsValid, SimpleObjectProperty<IsValid>>.errorText(): ObservableV
 
 fun IsValid.errorText(): String? = errorOrNull?.message
 
-inline fun Parent.gap(size: Number = 20, f: Region.() -> Unit = {}) =
-    region { minWidth = size.toDouble() }.also(f)
+inline fun Parent.gap(size: Number = 20, crossinline f: Region.() -> Unit = {}) = region {
+    minWidth = size.toDouble()
+    properties[PopOverMenu.popOverIgnore] = true
+    f()
+}
 
-inline fun Parent.verticalGap(size: Number = 10, f: Region.() -> Unit = {}) =
-    region { minHeight = size.toDouble() }.also(f)
+inline fun Parent.verticalGap(size: Number = 10, crossinline f: Region.() -> Unit = {}) = region {
+    minHeight = size.toDouble()
+    properties[PopOverMenu.popOverIgnore] = true
+    f()
+}
 
 fun EventTarget.defaultHbox(spacing: Number = 5, alignment: Pos = Pos.CENTER_LEFT, op: HBox.() -> Unit = {}) =
     hbox(spacing, alignment, op)
@@ -160,27 +165,6 @@ inline fun <T> EventTarget.jfxListView(values: ObservableList<T>, op: JFXListVie
         }
         op()
     }
-
-inline fun <T> EventTarget.customListView(values: ObservableList<T>, crossinline op: ListView<T>.() -> Unit = {}) =
-    listview(values) {
-        addClass(CommonStyle.customList)
-        keepSelectionInView()
-        op()
-    }
-
-// TODO: Making this inline makes the kotlin compiler throw warnings
-fun <T> ListView<T>.customListCell(f: JFXListCell<T>.(T) -> Unit) {
-    setCellFactory {
-        object : JFXListCell<T>() {
-            override fun updateItem(item: T?, empty: Boolean) {
-                super.updateItem(item, empty)
-                if (item == null) return
-                f(item)
-                graphic?.addClass(CommonStyle.customListCellContent)
-            }
-        }
-    }
-}
 
 inline fun EventTarget.jfxProgressBar(op: JFXProgressBar.() -> Unit = {}): JFXProgressBar =
     opcr(this, JFXProgressBar(), op)

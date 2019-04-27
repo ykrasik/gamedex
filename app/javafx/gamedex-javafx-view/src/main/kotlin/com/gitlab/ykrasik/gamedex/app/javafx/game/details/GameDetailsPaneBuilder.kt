@@ -40,7 +40,6 @@ import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.channels.Channel
-import org.controlsfx.control.PopOver
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import java.io.File
@@ -225,8 +224,7 @@ class GameDetailsPaneBuilder(
                             buttonWithPopover(
                                 text = fileTree.size.humanReadable,
                                 graphic = Icons.fileTree.size(18),
-                                arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                                onClickBehavior = PopOverOnClickBehavior.Ignore
+                                closeOnAction = false
                             ) {
                                 fileTreeView(fileTree) {
                                     addClass(Style.fileTree)

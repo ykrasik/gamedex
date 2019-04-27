@@ -22,9 +22,11 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import javafx.beans.property.Property
+import javafx.event.EventHandler
+import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.ContentDisplay
+import javafx.scene.control.ButtonBase
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -39,37 +41,42 @@ import tornadofx.*
  * Date: 09/12/2018
  * Time: 13:34
  */
-class PopOverContent(val popOver: PopOver) : VBox() {
-    fun close() = popOver.hide()
+open class PopOverContent(val popOver: PopOver) : VBox() {
+    fun hide() = popOver.hide()
+}
+
+inline fun popOverWith(op: PopOver.() -> Unit = {}): PopOver = PopOver().apply {
+    isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
+    isDetachable = false
+    isAutoFix = true
+    op()
 }
 
 inline fun popOver(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    onClickBehavior: PopOverOnClickBehavior = PopOverOnClickBehavior.Close(),
+    closeOnAction: Boolean = true,
     op: PopOverContent.() -> Unit = {}
-): PopOver = PopOver().apply {
+): PopOver = popOverWith {
     val popover = this
     this.arrowLocation = arrowLocation
-    isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
-    isDetachable = false
-    isAutoFix = true
 
-    contentNode = ScrollPane()
-    with(contentNode as ScrollPane) {
-        maxHeight = screenBounds.height * 3 / 4
+    contentNode = PrettyScrollPane()
+    with(contentNode as PrettyScrollPane) {
+        maxHeight = screenBounds.height / 2
         isFitToWidth = true
         isFitToHeight = true
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-        if (onClickBehavior is PopOverOnClickBehavior.Close) {
-            addEventFilter(MouseEvent.MOUSE_CLICKED) {
-                onClickBehavior.listener?.invoke()
-                popover.hide()
+        if (closeOnAction) {
+            addEventFilter(MouseEvent.MOUSE_CLICKED) { e ->
+                if (e.target.let { it is ButtonBase && !it.isIgnore }) {
+                    popover.hide()
+                }
             }
         }
         addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) popover.hide() }
 
         content = PopOverContent(popover).apply {
-            addClass(CommonStyle.popoverMenu)
+            addClass(CommonStyle.popOverMenu)
             op()
 
 //            if (closeOnClick) {
@@ -152,10 +159,10 @@ fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
 
 inline fun Node.popoverContextMenu(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    onClickBehavior: PopOverOnClickBehavior = PopOverOnClickBehavior.Close(),
+    closeOnAction: Boolean = true,
     op: PopOverContent.() -> Unit = {}
 ): PopOver {
-    val popover = popOver(arrowLocation, onClickBehavior) {
+    val popover = popOver(arrowLocation, closeOnAction) {
         popOver.isAutoFix = false
         popOver.isAutoHide = true
         op()
@@ -166,11 +173,11 @@ inline fun Node.popoverContextMenu(
 
 inline fun Node.dropDownMenu(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    onClickBehavior: PopOverOnClickBehavior = PopOverOnClickBehavior.Close(),
+    closeOnAction: Boolean = true,
     op: PopOverContent.() -> Unit = {}
 ): PopOver {
-    val popover = popOver(arrowLocation, onClickBehavior) {
-        setOnMouseExited { close() }
+    val popover = popOver(arrowLocation, closeOnAction) {
+        setOnMouseExited { hide() }
         op(this)
     }
 
@@ -187,37 +194,117 @@ inline fun Node.dropDownMenu(
     return popover
 }
 
-inline fun PopOverContent.subMenu(
+inline fun EventTarget.popOverMenu(
     text: String? = null,
     graphic: Node? = null,
-    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-    contentDisplay: ContentDisplay = ContentDisplay.LEFT,
-    onClickBehavior: PopOverOnClickBehavior = PopOverOnClickBehavior.Close(),
-    crossinline op: PopOverContent.() -> Unit = {}
+    closeOnAction: Boolean = true,
+    op: PopOverMenu.() -> Unit = {}
+) = jfxButton(text = text, graphic = graphic, alignment = Pos.CENTER_LEFT) {
+    val popOver = popOverWith {
+        contentNode = PrettyScrollPane().apply {
+            maxHeight = screenBounds.height * 2
+            content = createPopOverMenu(closeOnAction, owner = this@jfxButton, parentMenu = null, op = op)
+        }
+    }
+    action { popOver.determineArrowLocation(this).toggle(this) }
+}
+
+inline fun PopOverMenu.popOverSubMenu(
+    text: String? = null,
+    graphic: Node? = null,
+    closeOnAction: Boolean = true,
+    crossinline op: PopOverMenu.() -> Unit = {}
 ) = hbox(alignment = Pos.CENTER_LEFT) {
-    addClass(CommonStyle.subMenu, CommonStyle.jfxHoverable)
+    addClass(CommonStyle.popOverSubMenu, CommonStyle.jfxHoverable)
     label(text ?: "", graphic) {
         useMaxWidth = true
         hgrow = Priority.ALWAYS
-        this.contentDisplay = contentDisplay
     }
     add(Icons.chevronRight.size(14))
 
-    val onClick = if (onClickBehavior is PopOverOnClickBehavior.Close) {
-        onClickBehavior.also { this@subMenu.close() }
-    } else {
-        onClickBehavior
+    val popOver = popOverWith {
+        contentNode = PrettyScrollPane().apply {
+            maxHeight = screenBounds.height / 2
+            content = createPopOverMenu(closeOnAction, owner = this@hbox, parentMenu = this@popOverSubMenu, op = op)
+        }
     }
-    dropDownMenu(arrowLocation, onClick, op)
+    properties[PopOverMenu.subMenuMarker] = (popOver.contentNode as ScrollPane).content
 }
 
-sealed class PopOverOnClickBehavior {
-    class Close(val listener: (() -> Unit)? = null) : PopOverOnClickBehavior() {
-        fun also(listener: () -> Unit): Close = Close {
-            this.listener?.invoke()
-            listener()
+inline fun PopOver.createPopOverMenu(closeOnAction: Boolean, owner: Node, parentMenu: PopOverMenu?, op: PopOverMenu.() -> Unit = {}): PopOverMenu =
+    PopOverMenu(popOver = this, owner = owner, parentMenu = parentMenu, closeOnAction = closeOnAction).apply {
+        addClass(CommonStyle.popOverMenu)
+        op()
+    }
+
+/**
+ * A popOver based menu that may have sub-menus which show on hover and hide automatically when another member of the menu is hovered.
+ */
+class PopOverMenu(popOver: PopOver, val owner: Node, val parentMenu: PopOverMenu?, closeOnAction: Boolean) : PopOverContent(popOver) {
+    private var unregisterEventHandlers = emptyList<() -> Unit>()
+
+    init {
+        addClass(CommonStyle.popOverMenu)
+        children.onChange {
+            unregisterEventHandlers.forEach { it() }
+            unregisterEventHandlers = children.map { node ->
+                val mouseEnteredHandler = EventHandler<MouseEvent> {
+                    val subMenu = node.subMenu
+                    if (subMenu != null) {
+                        // We're hovering over a subMenu.
+                        // If this is the currently showing subMenu, do nothing.
+                        // If there is no subMenu currently showing, show this one.
+                        // Otherwise, hide the currently showing subMenu and show this one.
+                        val currentlyShowingSubMenu = this.currentlyShowingSubMenu
+                        if (subMenu != currentlyShowingSubMenu) {
+                            subMenu.show()
+                            currentlyShowingSubMenu?.hide()
+                        }
+                    } else {
+                        // We're hovering over a regular control.
+                        // Hide the currently showing subMenu, if there is one.
+                        if (!node.isIgnore) {
+                            currentlyShowingSubMenu?.hide()
+                        }
+                    }
+                }
+                node.addEventHandler(MouseEvent.MOUSE_ENTERED, mouseEnteredHandler)
+
+                val mouseClickedHandler =
+                    if (closeOnAction) EventHandler<MouseEvent> { e ->
+                        if (e.target is ButtonBase && !node.isIgnore) {
+                            hideHierarchy()
+                        }
+                    }
+                    else null
+                if (mouseClickedHandler != null) {
+                    node.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseClickedHandler)
+                }
+
+                return@map {
+                    node.removeEventHandler(MouseEvent.MOUSE_ENTERED, mouseEnteredHandler)
+                    if (mouseClickedHandler != null) {
+                        node.removeEventFilter(MouseEvent.MOUSE_CLICKED, mouseClickedHandler)
+                    }
+                }
+            }
         }
     }
 
-    object Ignore : PopOverOnClickBehavior()
+    private val currentlyShowingSubMenu: PopOverMenu?
+        get() = children.asSequence().mapNotNull { it.subMenu }.find { it.popOver.isShowing }
+
+    private fun show() = popOver.show(owner)
+    private fun hideHierarchy() {
+        hide()
+        parentMenu?.hideHierarchy()
+    }
+
+    companion object {
+        const val popOverIgnore = "popOverIgnore"
+        const val subMenuMarker = "popOverSubMenu"
+    }
 }
+
+private val Node.subMenu: PopOverMenu? get() = properties[PopOverMenu.subMenuMarker] as? PopOverMenu
+val Node.isIgnore: Boolean get() = properties[PopOverMenu.popOverIgnore] as? Boolean ?: false

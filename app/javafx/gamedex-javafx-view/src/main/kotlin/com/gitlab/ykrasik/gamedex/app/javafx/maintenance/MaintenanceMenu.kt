@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.javafx.control.PopOverMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
+import com.gitlab.ykrasik.gamedex.javafx.control.popOverSubMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
@@ -66,45 +68,59 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
         register()
     }
 
-    override val root = vbox(spacing = 5) {
-        confirmButton("Export Database", Icons.export) {
-            useMaxWidth = true
-            alignment = Pos.CENTER_LEFT
-            action(exportDatabaseActions)
-        }
-        warningButton("Import Database", Icons.import) {
-            useMaxWidth = true
-            alignment = Pos.CENTER_LEFT
-            action(importDatabaseActions)
+    override val root = hbox()
+
+    fun init(menu: PopOverMenu) = with(menu) {
+        popOverSubMenu("Database", Icons.database) {
+            confirmButton("Export", Icons.export) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                action(exportDatabaseActions)
+            }
+            warningButton("Import", Icons.import) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                action(importDatabaseActions)
+            }
+
+            verticalGap()
+
+            deleteButton("Cleanup") {
+                useMaxWidth = true
+                graphic = Icons.databaseCleanup
+                alignment = Pos.CENTER_LEFT
+                tooltip("Cleanup stale data, like games linked to paths that no longer exist, unused images & file tree cache for deleted games.")
+                action(cleanupDatabaseActions)
+            }
         }
 
-        verticalGap()
-
-        infoButton("Duplicates Report", Icons.copy) {
-            useMaxWidth = true
-            alignment = Pos.CENTER_LEFT
-            tooltip("Show a report of different game that share the same provider data.")
-            action(showDuplicatesReportActions)
+        popOverSubMenu("Games", Icons.games) {
+            infoButton("Re-Fetch", Icons.download) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                action(refetchGamesActions)
+            }
+            infoButton("Re-Sync", Icons.sync) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                enableWhen(canResyncGames)
+                action(resyncGamesActions)
+            }
         }
-        infoButton("Folder Name Diff Report", Icons.diff) {
-            useMaxWidth = true
-            alignment = Pos.CENTER_LEFT
-            tooltip("Show a report of games whose folder names do not match the game name according to provider data.")
-            action(showFolderNameDiffReportActions)
-        }
 
-        verticalGap()
-
-        infoButton("Re-Fetch Games", Icons.download) {
-            useMaxWidth = true
-            alignment = Pos.CENTER_LEFT
-            action(refetchGamesActions)
-        }
-        infoButton("Re-Sync Games", Icons.sync) {
-            useMaxWidth = true
-            alignment = Pos.CENTER_LEFT
-            enableWhen(canResyncGames)
-            action(resyncGamesActions)
+        popOverSubMenu("Reports", Icons.chart) {
+            infoButton("Duplicates", Icons.copy) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                tooltip("Show a report of different game that share the same provider data.")
+                action(showDuplicatesReportActions)
+            }
+            infoButton("Folder Name Diff", Icons.diff) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                tooltip("Show a report of games whose folder names do not match the game name according to provider data.")
+                action(showFolderNameDiffReportActions)
+            }
         }
 
         verticalGap()
@@ -115,13 +131,6 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             alignment = Pos.CENTER_LEFT
             tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
             action(clearUserDataActions)
-        }
-        deleteButton("Cleanup Database") {
-            useMaxWidth = true
-            graphic = Icons.databaseCleanup
-            alignment = Pos.CENTER_LEFT
-            tooltip("Cleanup stale data, like games linked to paths that no longer exist, unused images & file tree cache for deleted games.")
-            action(cleanupDatabaseActions)
         }
     }
 
