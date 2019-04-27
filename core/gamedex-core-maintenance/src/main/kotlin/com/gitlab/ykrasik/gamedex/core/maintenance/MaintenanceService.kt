@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.maintenance.PortableDb.toPortable
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
@@ -78,7 +79,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
     override fun importDatabase(file: File) = task("Importing Database...") {
         message = "Reading $file..."
-        val portableDb: PortableDb = objectMapper.readValue(file, PortableDb::class.java)
+        val portableDb: PortableDb.Db = objectMapper.readValue(file, PortableDb.Db::class.java)
 
         message = "Deleting existing database..."
         persistenceService.dropDb()   // TODO: Is it possible to hide all access to persistenceService somehow?
@@ -99,7 +100,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         message = "Writing $file..."
         file.create()
-        val portableDb = PortableDb(libraries, games)
+        val portableDb = PortableDb.Db(libraries, games)
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, portableDb)
 
         successMessage = { "Database exported: ${file.absolutePath}" }
