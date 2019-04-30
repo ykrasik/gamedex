@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.util.Extractor
+import com.gitlab.ykrasik.gamedex.util.replace
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -285,6 +286,30 @@ inline fun <K, V> ListObservable<V>.toMap(crossinline keyExtractor: Extractor<V,
             is ListEvent.ItemsRemoved -> map -= e.items.map(keyExtractor)
             is ListEvent.ItemSet -> map += keyExtractor(e.item) to e.item
             is ListEvent.ItemsSet -> map += e.items.map { keyExtractor(it) to it }
+            else -> error("Unexpected event: $e")
+        }
+    }
+    return map
+}
+
+// This assumes that related values are always associated to the same key.
+// If a value is replaced by another value, there is an implicit assumption that both values map to the same key.
+inline fun <K, V> ListObservable<V>.toMultiMap(crossinline keyExtractor: Extractor<V, K>): MutableMap<K, MutableList<V>> {
+    val map = groupByTo(LinkedHashMap(), keyExtractor)
+    val listFor = { item: V -> map.getOrPut(keyExtractor(item)) { mutableListOf() } }
+
+    changesChannel.subscribe { e ->
+        when (e) {
+            is ListEvent.ItemAdded -> listFor(e.item) += e.item
+            is ListEvent.ItemsAdded -> e.items.forEach { listFor(it) += it }
+            is ListEvent.ItemRemoved -> listFor(e.item) -= e.item
+            is ListEvent.ItemsRemoved -> e.items.forEach { listFor(it) -= it }
+            is ListEvent.ItemSet -> listFor(e.item).replace(e.prevItem, e.item)
+            is ListEvent.ItemsSet -> {
+                // Screw it. This event is only called as a replace-all-content event.
+                map.clear()
+                e.items.groupByTo(map, keyExtractor)
+            }
             else -> error("Unexpected event: $e")
         }
     }

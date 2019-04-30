@@ -28,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.*
 import com.jfoenix.controls.JFXButton
-import javafx.animation.Interpolator
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Insets
@@ -297,29 +296,12 @@ class GameDetailsPaneBuilder(
         minWidth = 60.0
         clipRectangle(arc = 10)
 
-        val backgroundFill = if (score != null) (score.score / 100).ratingColor else Colors.prettyLightGray
-        background = Background(BackgroundFill(backgroundFill, CornerRadii.EMPTY, Insets.EMPTY))
-
+        background = Background(BackgroundFill(score.ratingColor, CornerRadii.EMPTY, Insets.EMPTY))
         label(score?.score?.toString(decimalDigits = 1) ?: "N/A") { setId(scoreStyleClass) }
         label("${score?.numReviews ?: 0} ${name}s") { setId(reviewsStyleClass) }
         tooltip("$name Score")
         op?.invoke(this)
     }
-
-    private val Double.ratingColor: Color
-        get() = when {
-            this < 0.3 -> Color.rgb(255, 0, 0)
-            this < 0.5 -> {
-                val normalized = (this - 0.3) / 0.2
-                Color.rgb(255, normalized.interpolate(0, 150), 0)
-            }
-            else -> {
-                val normalized = (this - 0.5) / 0.5
-                Color.rgb(normalized.interpolate(255, 0), normalized.interpolate(150, 200), 0)
-            }
-        }
-
-    private fun Double.interpolate(start: Int, end: Int) = Interpolator.LINEAR.interpolate(start, end, this)
 
     companion object {
         inline operator fun invoke(game: Game, commonOps: JavaFxCommonOps, op: GameDetailsPaneBuilder.() -> Unit) = GameDetailsPaneBuilder(

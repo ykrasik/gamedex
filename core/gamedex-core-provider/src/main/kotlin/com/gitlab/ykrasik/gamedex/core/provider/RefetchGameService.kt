@@ -53,7 +53,7 @@ class RefetchGameServiceImpl @Inject constructor(
     }
 
     private fun refetchGames(games: List<Game>) = task("Re-Fetching ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}", isCancellable = true) {
-        gameProviderService.checkAtLeastOneProviderEnabled()
+        gameProviderService.assertHasEnabledProvider()
 
         successOrCancelledMessage { success ->
             "${if (success) "Done" else "Cancelled"}: Re-Fetched ${if (games.size == 1) "'${games.firstOrNull()?.name}'." else "$processedItems / $totalItems Games."}"

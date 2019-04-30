@@ -23,6 +23,9 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.provider.supports
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.time
+import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,11 +38,19 @@ import javax.inject.Singleton
 class FilterServiceImpl @Inject constructor(
     private val gameProviderService: GameProviderService
 ) : FilterService {
+    private val log = logger()
+
     override fun createContext(): Filter.Context = FilterContextImpl()
 
     override fun filter(games: List<Game>, filter: Filter): List<Game> {
-        val context = createContext()
-        return games.filter { filter.evaluate(it, context) }
+        return if (filter is Filter.True) {
+            games
+        } else {
+            val context = createContext()
+            log.time("Filtering ${games.size} games...", { timeTaken, results -> "${results.size} results in $timeTaken" }, Logger::trace) {
+                games.filter { filter.evaluate(it, context) }
+            }
+        }
     }
 
     private inner class FilterContextImpl : Filter.Context {

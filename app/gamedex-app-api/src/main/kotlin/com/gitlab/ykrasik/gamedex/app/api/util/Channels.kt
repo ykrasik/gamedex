@@ -234,8 +234,8 @@ fun <T> ReceiveChannel<T>.bufferUntilTimeout(millis: Long = 200): ReceiveChannel
     }
 }
 
-fun <T> ReceiveChannel<T>.debounce(millis: Long = 200): ReceiveChannel<T> = Channel<T>(Channel.CONFLATED).also { channel ->
-    GlobalScope.launch {
+fun <T> ReceiveChannel<T>.debounce(millis: Long = 200, scope: CoroutineScope = GlobalScope): ReceiveChannel<T> = Channel<T>(Channel.CONFLATED).also { channel ->
+    scope.launch {
         var value = receive()
         whileSelect {
             onTimeout(millis) {

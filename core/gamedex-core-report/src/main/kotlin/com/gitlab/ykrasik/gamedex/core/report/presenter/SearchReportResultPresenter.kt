@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReportResult
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
@@ -33,12 +32,13 @@ import javax.inject.Singleton
 class SearchReportResultPresenter @Inject constructor() : Presenter<ViewCanSearchReportResult> {
     override fun present(view: ViewCanSearchReportResult) = object : ViewSession() {
         init {
-            view.searchText.changes.debounce().forEach { onSearchTextChanged(it) }
+            view.searchText.debounce().forEach { onSearchTextChanged(it) }
         }
 
         private fun onSearchTextChanged(searchText: String) {
-            if (searchText.isEmpty()) return
-            view.matchingGame *= view.result.value.games.firstOrNull { it.matchesSearchQuery(searchText) }
+            if (searchText.isNotBlank()) {
+                view.matchingGame *= view.result.value.games.firstOrNull { it.matchesSearchQuery(searchText) }
+            }
         }
 
         // TODO: Do I need the better search capabilities of searchService?

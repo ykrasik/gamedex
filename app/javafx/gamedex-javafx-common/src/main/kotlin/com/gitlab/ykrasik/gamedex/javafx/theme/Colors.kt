@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.theme
 
+import com.gitlab.ykrasik.gamedex.Score
+import javafx.animation.Interpolator
 import javafx.scene.paint.Color
 import javafx.scene.paint.CycleMethod
 import javafx.scene.paint.LinearGradient
@@ -110,3 +112,21 @@ enum class GradientDirection {
     DownRight,
     DownLeft
 }
+
+val Score?.ratingColor: Color
+    get() = if (this != null) (score / 100).ratingColor else Colors.prettyLightGray
+
+val Double.ratingColor: Color
+    get() = when {
+        this < 0.3 -> Color.rgb(255, 0, 0)
+        this < 0.5 -> {
+            val normalized = (this - 0.3) / 0.2
+            Color.rgb(255, normalized.interpolate(0, 150), 0)
+        }
+        else -> {
+            val normalized = (this - 0.5) / 0.5
+            Color.rgb(normalized.interpolate(255, 0), normalized.interpolate(150, 200), 0)
+        }
+    }
+
+fun Double.interpolate(start: Int, end: Int) = Interpolator.LINEAR.interpolate(start, end, this)

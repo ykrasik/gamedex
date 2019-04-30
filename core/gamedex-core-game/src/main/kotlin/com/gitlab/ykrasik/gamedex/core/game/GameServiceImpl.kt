@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
@@ -51,6 +52,7 @@ class GameServiceImpl @Inject constructor(
     }
 
     private val gamesById = games.toMap(Game::id)
+    private val gamesByPlatform = games.toMultiMap(Game::platform)
 
     init {
         games.broadcastTo(eventBus, Game::id, ::GamesAddedEvent, ::GamesDeletedEvent, ::GamesUpdatedEvent)
@@ -124,6 +126,8 @@ class GameServiceImpl @Inject constructor(
     override fun get(id: GameId): Game = gamesById.getOrElse(id) {
         throw NoSuchElementException("Game doesn't exist: id=$id")
     }
+
+    override fun get(platform: Platform): List<Game> = gamesByPlatform.getValue(platform)
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 }

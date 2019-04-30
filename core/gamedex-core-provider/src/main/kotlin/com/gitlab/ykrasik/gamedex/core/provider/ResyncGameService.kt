@@ -58,7 +58,7 @@ class ResyncGameServiceImpl @Inject constructor(
     }
 
     private fun resyncGames(games: List<Game>) {
-        gameProviderService.checkAtLeastOneProviderEnabled()
+        gameProviderService.assertHasEnabledProvider()
 
         val paths = games.map { game ->
             LibraryPath(game.library, game.path) to game

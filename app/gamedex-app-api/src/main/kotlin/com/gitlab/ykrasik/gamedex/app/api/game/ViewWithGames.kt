@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -26,6 +27,11 @@ import com.gitlab.ykrasik.gamedex.app.api.State
  */
 interface ViewWithGames {
     val games: MutableList<Game>
+
+    val searchText: UserMutableState<String>
+
+    val searchSuggestions: MutableList<Game>
+    val isShowSearchSuggestions: State<Boolean>
 
     // FIXME: There is an assumption that the view's platform has a more efficient way of representing sort & filter
     // FIXME: than our primitive approach. This is so-so, find a way to handle this on the presenter side.

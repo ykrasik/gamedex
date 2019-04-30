@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
+import com.google.inject.ImplementedBy
 import com.miguelfonseca.completely.AutocompleteEngine
 import com.miguelfonseca.completely.IndexAdapter
 import com.miguelfonseca.completely.data.Indexable
@@ -38,6 +39,11 @@ import javax.inject.Singleton
  * Date: 10/10/2018
  * Time: 22:04
  */
+@ImplementedBy(GameSearchServiceImpl::class)
+interface GameSearchService {
+    fun search(query: String, platform: Platform): List<Game>
+}
+
 @Singleton
 class GameSearchServiceImpl @Inject constructor(private val gameService: GameService) : GameSearchService {
     private val log = logger()
@@ -92,18 +98,12 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
 
     override fun search(query: String, platform: Platform) =
         if (query.isBlank()) {
-            gameService.games
+            gameService[platform]
         } else {
-            log.time("Searching '$query'...", { timeTaken, results -> "${results.size} matches in $timeTaken" }, Logger::trace) {
-                platform.engine.search(query).map { it.game }
+            log.time("[$platform] Searching '$query'...", { timeTaken, results -> "${results.size} results in $timeTaken" }, Logger::trace) {
+                val results = platform.engine.search(query)
+                results.map { it.game }
             }
-        }
-
-    override fun suggest(query: String, platform: Platform, maxResults: Int) =
-        if (query.isBlank()) {
-            emptyList()
-        } else {
-            platform.engine.search(query, maxResults).mapNotNull { it.game.takeIf { it.platform == platform }?.name }
         }
 
     private val Platform.engine get() = platformEngines.getValue(this)

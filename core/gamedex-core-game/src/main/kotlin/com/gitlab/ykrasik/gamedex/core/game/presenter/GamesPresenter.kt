@@ -17,15 +17,20 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.util.setAll
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import javax.inject.Inject
@@ -48,40 +53,62 @@ class GamesPresenter @Inject constructor(
     private val userScoreComparator = compareBy(Game::userScore)
 
     override fun present(view: ViewWithGames) = object : ViewSession() {
+        private val searchText = BroadcastEventChannel.conflated("")
+
         init {
             commonData.platformGames.bind(view.games)
 
-            settingsService.game.sortByChannel.combineLatest(settingsService.game.sortOrderChannel).forEach { (sortBy, sortOrder) ->
-                val comparator = when (sortBy) {
-                    SortBy.Name -> nameComparator
-                    SortBy.CriticScore -> criticScoreComparator.then(nameComparator)
-                    SortBy.UserScore -> userScoreComparator.then(nameComparator)
-                    SortBy.MinScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                    SortBy.MaxScore -> compareBy<Game> { it.maxScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                    SortBy.AvgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                    SortBy.Size -> compareBy<Game> { it.fileTree.value?.size }.then(nameComparator)
-                    SortBy.ReleaseDate -> compareBy(Game::releaseDate).then(nameComparator)
-                    SortBy.CreateDate -> compareBy(Game::createDate)
-                    SortBy.UpdateDate -> compareBy(Game::updateDate)
-                }
+            view.searchText.debounce().forEach { onSearchTextChanged(it) }
 
-                view.sort *= if (sortOrder == SortOrder.Asc) {
-                    comparator
-                } else {
-                    comparator.reversed()
-                }
+            settingsService.game.sortByChannel.combineLatest(settingsService.game.sortOrderChannel).forEach { (sortBy, sortOrder) ->
+                setSort(sortBy, sortOrder)
             }
 
             var platformFilterJob: Job? = null
             settingsService.currentPlatformSettingsChannel.forEach { settings ->
                 platformFilterJob?.cancelAndJoin()
-                platformFilterJob = settings.filterChannel.combineLatest(settings.searchChannel).forEach { (filter, search) ->
-                    val context = filterService.createContext()
-                    val matches = gameSearchService.search(search, settings.platform).mapTo(HashSet()) { it.id }
-                    view.filter *= { game: Game ->
-                        (search.isBlank() || matches.contains(game.id)) && filter.evaluate(game, context)
-                    }
+                platformFilterJob = searchText.combineLatest(settings.filterChannel).forEach { (search, filter) ->
+                    setSearchAndFilter(search, filter, settings.platform)
                 }
+            }
+        }
+
+        private fun onSearchTextChanged(searchText: String) {
+            this.searchText.offer(searchText)
+        }
+
+        private fun setSort(sortBy: SortBy, sortOrder: SortOrder) {
+            val comparator = when (sortBy) {
+                SortBy.Name -> nameComparator
+                SortBy.CriticScore -> criticScoreComparator.then(nameComparator)
+                SortBy.UserScore -> userScoreComparator.then(nameComparator)
+                SortBy.MinScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                SortBy.MaxScore -> compareBy<Game> { it.maxScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                SortBy.AvgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                SortBy.Size -> compareBy<Game> { it.fileTree.value?.size }.then(nameComparator)
+                SortBy.ReleaseDate -> compareBy(Game::releaseDate).then(nameComparator)
+                SortBy.CreateDate -> compareBy(Game::createDate)
+                SortBy.UpdateDate -> compareBy(Game::updateDate)
+            }
+
+            view.sort *= if (sortOrder == SortOrder.Asc) {
+                comparator
+            } else {
+                comparator.reversed()
+            }
+        }
+
+        private fun setSearchAndFilter(search: String, filter: Filter, platform: Platform) {
+            val searchedGames = gameSearchService.search(search, platform)
+            val matchingGames = filterService.filter(searchedGames, filter)
+
+            val suggestions = if (search.isNotBlank()) matchingGames.take(12) else emptyList()
+            view.searchSuggestions.setAll(suggestions)
+            view.isShowSearchSuggestions *= suggestions.isNotEmpty()
+
+            val matchingGameIds = matchingGames.mapTo(mutableSetOf()) { it.id }
+            view.filter *= { game: Game ->
+                filter.isEmpty && search.isBlank() || matchingGameIds.contains(game.id)
             }
         }
     }

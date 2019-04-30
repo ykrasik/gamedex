@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -52,7 +51,7 @@ class FolderNameDiffReportPresenter @Inject constructor(
             eventBus.forEach<GamesDeletedEvent> { isDirty = true }
             eventBus.forEach<GamesUpdatedEvent> { isDirty = true }
 
-            view.searchText.changes.debounce().forEach { onSearchTextChanged(it) }
+            view.searchText.debounce().forEach { onSearchTextChanged(it) }
             view.hideViewActions.forEach { finished() }
 
             isDirtyChannel.forEach { isDirty ->
@@ -74,8 +73,9 @@ class FolderNameDiffReportPresenter @Inject constructor(
         }
 
         private fun onSearchTextChanged(searchText: String) {
-            if (searchText.isEmpty()) return
-            view.matchingGame *= view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+            if (searchText.isNotBlank()) {
+                view.matchingGame *= view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+            }
         }
 
         // TODO: Do I need the better search capabilities of searchService?

@@ -16,19 +16,31 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
+import com.gitlab.ykrasik.gamedex.javafx.theme.ratingColor
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import com.gitlab.ykrasik.gamedex.util.toPredicate
+import com.gitlab.ykrasik.gamedex.util.toString
+import com.jfoenix.controls.JFXListCell
 import javafx.event.EventTarget
+import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
+import javafx.scene.layout.Background
+import javafx.scene.layout.BackgroundFill
+import javafx.scene.layout.CornerRadii
 import javafx.scene.layout.HBox
 import javafx.scene.text.FontWeight
 import org.controlsfx.control.PopOver
@@ -40,30 +52,43 @@ import tornadofx.*
  * Time: 22:14
  */
 class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
+    ViewWithGames,
     ViewCanSelectPlatform,
-    ViewCanSearchGames,
     ViewCanChangeGameSort,
-    ViewWithCurrentPlatformFilter {
+    ViewWithCurrentPlatformFilter,
+    ViewCanShowGameDetails {
 
-    private val gameWallView: GameWallView by inject()
-    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = true)
+    private val commonOps: JavaFxCommonOps by di()
+
+    override val games = mutableListOf<Game>().sortedFiltered()
+
+    override val sort = state(Comparator.comparing(Game::name))
+    override val filter = state { _: Game -> true }
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 
     override val currentPlatform = userMutableState(Platform.Windows)
 
     override val searchText = userMutableState("")
-    override val autoCompleteSuggestions = state<List<String>>(emptyList())
-    override val isShowAutoCompleteSuggestions = state(false)
+    override val searchSuggestions = mutableListOf<Game>().observable()
+    override val isShowSearchSuggestions = state(false)
 
     override val sortBy = userMutableState(SortBy.Name)
     override val sortOrder = userMutableState(SortOrder.Asc)
 
+    private val gameWallView = GameWallView(games)
+    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = true)
+
     override val currentPlatformFilter = filterView.externalMutations
     override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
 
+    override val showGameDetailsActions = channel<Game>()
+
     init {
         register()
+
+        games.sortedItems.comparatorProperty().bind(sort.property)
+        games.filteredItems.predicateProperty().bind(filter.property.binding { it.toPredicate() })
     }
 
     override fun HBox.buildToolbar() {
@@ -86,7 +111,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     ).apply {
         addClass(GameDexStyle.toolbarButton, Style.platformButton)
         contentDisplay = ContentDisplay.RIGHT
-        textProperty().cleanBind(gameWallView.games.sizeProperty.stringBinding { "Games: ${"%4d".format(it)}" })
+        textProperty().cleanBind(games.sizeProperty.stringBinding { "Games: ${"%4d".format(it)}" })
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
     }
 
@@ -123,36 +148,90 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     private fun EventTarget.searchField() = searchTextField(this@JavaFxGameScreen, searchText.property) {
         val textField = this
-        val suggestions = mutableListOf<String>().observable()
-        autoCompleteSuggestions.onChange {
-            suggestions.setAll(it)
-        }
-        popOver(PopOver.ArrowLocation.LEFT_TOP) {
-            prettyListView(suggestions) {
-                maxHeight = 6 * 23.0
-                prefWidth = 400.0
-                selectionModel.selectedItemProperty().onChange {
-                    if (it != null) {
-                        text = it
+        prefWidth = 400.0
+
+        popOver(PopOver.ArrowLocation.TOP_LEFT) {
+            prettyListView(searchSuggestions) {
+                maxHeight = 12 * 23.0
+                prefWidth = textField.prefWidth - 10
+
+                fun showGameDetails(game: Game) {
+                    popOver.hide()
+                    showGameDetailsActions.event(game)
+                }
+
+                setCellFactory {
+                    object : JFXListCell<Game>() {
+                        init {
+                            setOnMouseClicked { showGameDetails(item) }
+                        }
+
+                        override fun updateItem(game: Game?, empty: Boolean) {
+                            super.updateItem(game, empty)
+                            if (game == null) return
+                            text = null
+                            graphic = HBox().apply {
+                                alignment = Pos.CENTER_LEFT
+                                spacing = 10.0
+
+                                imageview(commonOps.fetchThumbnail(game)) {
+                                    fitHeight = 30.0
+                                    fitWidth = 30.0
+                                    isPreserveRatio = true
+                                }
+                                label(game.name) {
+                                    maxWidth = 270.0
+                                    isWrapText = true
+                                }
+                                spacer()
+                                vbox {
+                                    alignment = Pos.TOP_CENTER
+                                    paddingAll = 5.0
+                                    clipRectangle(arc = 10)
+                                    background = Background(BackgroundFill(game.criticScore.ratingColor, CornerRadii.EMPTY, Insets.EMPTY))
+                                    label(game.criticScore?.score?.toString(decimalDigits = 1) ?: "N/A")
+                                    tooltip("Critic Score")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                setOnKeyPressed {
+                    when (it.code) {
+                        KeyCode.ENTER -> if (selectedItem != null) showGameDetails(selectedItem!!)
+                        KeyCode.LEFT -> positionCaret(caretPosition - 1)
+                        KeyCode.RIGHT -> positionCaret(caretPosition + 1)
+//                        KeyCode.HOME -> positionCaret(0)
+//                        KeyCode.END -> positionCaret(text.length)
+                        else -> Unit
                     }
                 }
             }
         }.apply {
-            addEventFilter(KeyEvent.KEY_PRESSED) { e ->
-                if (e.code == KeyCode.ESCAPE) {
-                    clear()
-                }
+            arrowSize = 0.0
+            fun showUnderTextField() {
+                val bounds = textField.boundsInScreen
+                show(currentWindow, bounds.minX - 8, bounds.minY + 20)
             }
-            isShowAutoCompleteSuggestions.onChange {
-                if (it) {
-                    show(textField)
+
+            textField.focusedProperty().forEachWith(isShowSearchSuggestions.property) { focused, isShowSearchSuggestions ->
+                if (focused && isShowSearchSuggestions) {
+                    showUnderTextField()
                 } else {
                     hide()
                 }
             }
-            textField.focusedProperty().onChange {
-                if (it && suggestions.isNotEmpty()) {
-                    show(textField)
+            textField.setOnMouseClicked {
+                if (isShowSearchSuggestions.value) {
+                    showUnderTextField()
+                }
+            }
+
+            addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                if (e.code == KeyCode.ESCAPE) {
+                    clear()
+                    textField.right!!.requestFocus()
                 }
             }
         }

@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
@@ -159,6 +160,9 @@ abstract class ViewSession : CoroutineScope {
         bindIsValid(state) {
             if (it) reason() else null
         }
+
+    fun <T> UserMutableState<T>.debounce(millis: Long = 200): ReceiveChannel<T> =
+        changes.debounce(millis, scope = this@ViewSession)
 
     fun <V> EventBus.viewFinished(view: V) = send(ViewFinishedEvent(view))
 

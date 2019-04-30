@@ -110,7 +110,7 @@ fun <T, R> ObservableValue<T>.mapToList(f: (T) -> List<R>): ObservableList<R> {
     return list
 }
 
-inline fun <T, R, U> ObservableValue<T>.forEachWith(other: ObservableValue<R>, crossinline f: (T, R) -> U) {
+inline fun <T, R> ObservableValue<T>.forEachWith(other: ObservableValue<R>, crossinline f: (T, R) -> Unit) {
     this.typeSafeOnChange { f(it, other.value) }
     other.typeSafeOnChange { f(this.value, it) }
 }

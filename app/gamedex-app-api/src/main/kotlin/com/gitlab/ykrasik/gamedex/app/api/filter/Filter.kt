@@ -331,3 +331,4 @@ sealed class Filter {
 }
 
 fun Filter.isEqual(other: Filter?): Boolean = other != null && isEqual(other)
+val Filter.isEmpty get() = this is Filter.True

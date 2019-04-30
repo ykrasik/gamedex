@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
@@ -27,14 +26,15 @@ import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
 import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyGridView
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
+import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.util.toPredicate
 import javafx.beans.property.SimpleObjectProperty
+import javafx.collections.ObservableList
 import javafx.scene.input.MouseButton
 import javafx.util.Callback
 import org.controlsfx.control.GridCell
@@ -47,8 +47,7 @@ import java.io.File
  * Date: 09/10/2016
  * Time: 15:03
  */
-class GameWallView : PresentableView("Game Wall"),
-    ViewWithGames,
+class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
     ViewCanShowGameDetails,
     ViewWithGameWallDisplaySettings,
     ViewWithNameOverlayDisplaySettings,
@@ -56,11 +55,6 @@ class GameWallView : PresentableView("Game Wall"),
     ViewWithVersionOverlayDisplaySettings,
     ViewCanBrowseUrl,
     ViewCanBrowsePath {
-
-    override val games = mutableListOf<Game>().sortedFiltered()
-
-    override val sort = state(Comparator.comparing(Game::name))
-    override val filter = state { _: Game -> true }
 
     override val showGameDetailsActions = channel<Game>()
 
@@ -96,8 +90,6 @@ class GameWallView : PresentableView("Game Wall"),
     private var popOverShowing = false
 
     init {
-        games.sortedItems.comparatorProperty().bind(sort.property)
-        games.filteredItems.predicateProperty().bind(filter.property.binding { it.toPredicate() })
         register()
     }
 

@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 
 /**
  * User: ykrasik
@@ -38,7 +37,4 @@ class GamePlatformSettingsRepository(factory: SettingsStorageFactory, val platfo
 
     val filterChannel = storage.channel(Data::filter)
     val filter by filterChannel
-
-    val searchChannel = BroadcastEventChannel.conflated("")
-    var search by searchChannel
 }
