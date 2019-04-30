@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.state
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -64,7 +64,7 @@ class GameContextMenu : InstallableContextMenu<Game>(),
     }
 
     override val root = vbox {
-        addClass(CommonStyle.popOverMenu)
+        addClass(GameDexStyle.popOverMenu)
         item("View", Icons.view) { action(showGameDetailsActions) { data } }
         verticalGap()
         item("Edit", Icons.edit) { action { editGame(GameDataType.Name) } }
@@ -73,18 +73,18 @@ class GameContextMenu : InstallableContextMenu<Game>(),
         item("Tag", Icons.tag) { action(tagGameActions) { data } }
         verticalGap()
         item("Re-Fetch", Icons.download) {
-            addClass(CommonStyle.infoButton)
+            addClass(GameDexStyle.infoButton)
             action(refetchGameActions) { data }
         }
         item("Re-Sync", Icons.sync) {
-            addClass(CommonStyle.infoButton)
+            addClass(GameDexStyle.infoButton)
             enableWhen(canResyncGame)
             action(resyncGameActions) { data }
         }
         verticalGap()
         item("Rename/Move Folder", Icons.folderEdit) { action(renameMoveGameActions) { data to null } }
         item("Delete", Icons.delete) {
-            addClass(CommonStyle.dangerButton)
+            addClass(GameDexStyle.dangerButton)
             action(deleteGameActions) { data }
         }
     }

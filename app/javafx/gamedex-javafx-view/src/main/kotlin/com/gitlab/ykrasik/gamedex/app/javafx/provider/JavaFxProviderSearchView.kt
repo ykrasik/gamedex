@@ -206,7 +206,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                                 children += providerLogoView(height = 100)
                             } else {
                                 jfxButton {
-                                    addClass(CommonStyle.hoverable)
+                                    addClass(GameDexStyle.hoverable)
                                     useMaxSize = true
                                     graphic = providerLogoView(height = 30)
                                     action(changeProviderActions) { providerId }
@@ -228,7 +228,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                     hgrow = Priority.ALWAYS
                 }
                 confirmButton(graphic = Icons.search) {
-                    removeClass(CommonStyle.toolbarButton)
+                    removeClass(GameDexStyle.toolbarButton)
                     minWidth = Region.USE_PREF_SIZE
                     enableWhen(canSearchCurrentQuery)
                     // This becomes the new default button when the search textfield has focus.

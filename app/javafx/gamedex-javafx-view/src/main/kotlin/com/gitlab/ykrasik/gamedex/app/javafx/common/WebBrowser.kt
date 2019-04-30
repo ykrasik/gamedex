@@ -65,7 +65,7 @@ class WebBrowser : Fragment() {
                 }
             }
             confirmButton(graphic = Icons.arrowRightCircle.color(Colors.green)) {
-                removeClass(CommonStyle.toolbarButton)
+                removeClass(GameDexStyle.toolbarButton)
                 action { load(textField.text) }
             }
             jfxButton {

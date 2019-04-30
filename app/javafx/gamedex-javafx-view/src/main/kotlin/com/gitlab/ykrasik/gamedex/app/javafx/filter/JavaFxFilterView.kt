@@ -252,7 +252,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             tooltip("Add filter")
         }
         deleteButton {
-            removeClass(CommonStyle.toolbarButton)
+            removeClass(GameDexStyle.toolbarButton)
             // Do not allow deleting an empty root
             isDisable = filter === this@JavaFxFilterView.filter.value && filter is Filter.True
             action(deleteFilterActions) { filter }

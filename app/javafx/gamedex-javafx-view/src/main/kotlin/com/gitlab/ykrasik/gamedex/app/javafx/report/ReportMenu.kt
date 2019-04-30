@@ -60,7 +60,7 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
         addButton {
             alignment = Pos.CENTER
             useMaxWidth = true
-            removeClass(CommonStyle.toolbarButton)
+            removeClass(GameDexStyle.toolbarButton)
             tooltip("Add a new report")
             action(addReportActions)
         }
@@ -80,11 +80,11 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
                                     action(showReportActions) { report }
                                 }
                                 editButton {
-                                    removeClass(CommonStyle.toolbarButton)
+                                    removeClass(GameDexStyle.toolbarButton)
                                     action(editReportActions) { report }
                                 }
                                 deleteButton {
-                                    removeClass(CommonStyle.toolbarButton)
+                                    removeClass(GameDexStyle.toolbarButton)
                                     action(deleteReportActions) { report }
                                 }
                             }

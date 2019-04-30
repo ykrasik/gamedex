@@ -58,7 +58,7 @@ abstract class PresentableWindow(title: String? = null, icon: Node? = null) : Pr
                 stage.sizeToScene()
             }
 
-            root.addClass(CommonStyle.gamedexWindow)
+            root.addClass(GameDexStyle.gamedexWindow)
             val newRoot = StackPane().apply {
                 add(root)
                 rectangle {

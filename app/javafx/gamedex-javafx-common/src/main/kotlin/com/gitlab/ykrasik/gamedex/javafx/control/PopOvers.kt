@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.boundsInScreen
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import javafx.beans.property.Property
@@ -76,7 +76,7 @@ inline fun popOver(
         addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) popover.hide() }
 
         content = PopOverContent(popover).apply {
-            addClass(CommonStyle.popOverMenu)
+            addClass(GameDexStyle.popOverMenu)
             op()
 
 //            if (closeOnClick) {
@@ -215,7 +215,7 @@ inline fun PopOverMenu.popOverSubMenu(
     closeOnAction: Boolean = true,
     crossinline op: PopOverMenu.() -> Unit = {}
 ) = hbox(alignment = Pos.CENTER_LEFT) {
-    addClass(CommonStyle.popOverSubMenu, CommonStyle.jfxHoverable)
+    addClass(GameDexStyle.popOverSubMenu, GameDexStyle.jfxHoverable)
     label(text ?: "", graphic) {
         useMaxWidth = true
         hgrow = Priority.ALWAYS
@@ -233,7 +233,7 @@ inline fun PopOverMenu.popOverSubMenu(
 
 inline fun PopOver.createPopOverMenu(closeOnAction: Boolean, owner: Node, parentMenu: PopOverMenu?, op: PopOverMenu.() -> Unit = {}): PopOverMenu =
     PopOverMenu(popOver = this, owner = owner, parentMenu = parentMenu, closeOnAction = closeOnAction).apply {
-        addClass(CommonStyle.popOverMenu)
+        addClass(GameDexStyle.popOverMenu)
         op()
     }
 
@@ -244,7 +244,7 @@ class PopOverMenu(popOver: PopOver, val owner: Node, val parentMenu: PopOverMenu
     private var unregisterEventHandlers = emptyList<() -> Unit>()
 
     init {
-        addClass(CommonStyle.popOverMenu)
+        addClass(GameDexStyle.popOverMenu)
         children.onChange {
             unregisterEventHandlers.forEach { it() }
             unregisterEventHandlers = children.map { node ->

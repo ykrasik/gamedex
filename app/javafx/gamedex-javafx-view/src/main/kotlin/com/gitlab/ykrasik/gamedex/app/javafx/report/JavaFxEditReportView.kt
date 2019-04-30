@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.state
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
@@ -100,9 +100,9 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
         minWidth = 500.0
         allowDeselection(onClickAgain = true)
 
-        makeIndexColumn().apply { addClass(CommonStyle.centered) }
-        readonlyColumn("Game", Game::name).apply { addClass(CommonStyle.centered) }
-        readonlyColumn("Path", Game::path) { addClass(CommonStyle.centered); remainingWidth() }
+        makeIndexColumn().apply { addClass(GameDexStyle.centered) }
+        readonlyColumn("Game", Game::name).apply { addClass(GameDexStyle.centered) }
+        readonlyColumn("Path", Game::path) { addClass(GameDexStyle.centered); remainingWidth() }
         customGraphicColumn("") { game ->
             minusButton { action(unexcludeGameActions) { game } }
         }

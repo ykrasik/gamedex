@@ -57,7 +57,7 @@ inline fun EventTarget.header(
     graphic: ObservableValue<out Node>? = null,
     crossinline op: Label.() -> Unit = {}
 ) = label(textProperty) {
-    addClass(CommonStyle.headerLabel)
+    addClass(GameDexStyle.headerLabel)
     if (graphic != null) this.graphicProperty().bind(graphic)
     op(this)
 }
@@ -73,7 +73,7 @@ inline fun EventTarget.subHeader(
     graphic: ObservableValue<out Node>? = null,
     crossinline op: Label.() -> Unit = {}
 ) = label(textProperty) {
-    addClass(CommonStyle.subHeaderLabel)
+    addClass(GameDexStyle.subHeaderLabel)
     if (graphic != null) this.graphicProperty().bind(graphic)
     op(this)
 }

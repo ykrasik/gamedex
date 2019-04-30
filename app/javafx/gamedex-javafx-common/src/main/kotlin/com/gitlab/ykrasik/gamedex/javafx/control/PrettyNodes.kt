@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.containsDelta
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.jfoenix.controls.JFXListCell
 import javafx.animation.Transition
 import javafx.collections.ObservableList
@@ -55,7 +55,7 @@ inline fun <T> ListView<T>.prettyListCell(crossinline f: JFXListCell<T>.(T) -> U
                 super.updateItem(item, empty)
                 if (item == null) return
                 f(item)
-                graphic?.addClass(CommonStyle.prettyListCellContent)
+                graphic?.addClass(GameDexStyle.prettyListCellContent)
             }
         }
     }
@@ -63,7 +63,7 @@ inline fun <T> ListView<T>.prettyListCell(crossinline f: JFXListCell<T>.(T) -> U
 
 inline fun <T> EventTarget.prettyGridView(values: ObservableList<T>, crossinline op: PrettyGridView<T>.() -> Unit = {}) =
     opcr(this, PrettyGridView(values)) {
-        addClass(CommonStyle.prettyGridView)
+        addClass(GameDexStyle.prettyGridView)
         op()
     }
 
@@ -79,7 +79,7 @@ class PrettyScrollPane : ScrollPane() {
     private val hBar: ScrollBar
 
     init {
-        addClass(CommonStyle.prettyScrollPane)
+        addClass(GameDexStyle.prettyScrollPane)
         isFitToWidth = true
         isFitToHeight = true
         vbarPolicy = ScrollBarPolicy.NEVER
@@ -104,7 +104,7 @@ class PrettyListView<T> : ListView<T>() {
     private val hBar: ScrollBar
 
     init {
-        addClass(CommonStyle.prettyList)
+        addClass(GameDexStyle.prettyList)
 
         keepSelectionInView()
 
@@ -124,7 +124,7 @@ class PrettyGridView<T>(values: ObservableList<T>) : GridView<T>(values) {
     private val hBar: ScrollBar
 
     init {
-        addClass(CommonStyle.prettyList)
+        addClass(GameDexStyle.prettyList)
 
         val (vBar, hBar) = makePrettyScroll("VirtualScrollBar", children)
         this.vBar = vBar
@@ -168,7 +168,7 @@ private var Node.currentScrollBarTransition: Transition?
 
 private inline fun createScrollBar(orientation: Orientation, f: ScrollBar.() -> Unit = {}) = ScrollBar().apply {
     this.orientation = orientation
-    addClass(CommonStyle.prettyScrollBar)
+    addClass(GameDexStyle.prettyScrollBar)
     isManaged = false
     opacity = 0.0
     currentlyBeingShown = false

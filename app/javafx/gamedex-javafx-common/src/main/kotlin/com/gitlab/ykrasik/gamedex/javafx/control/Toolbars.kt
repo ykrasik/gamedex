@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.HBox
@@ -32,7 +32,7 @@ import tornadofx.useMaxWidth
  */
 
 inline fun EventTarget.customToolbar(spacing: Number = 10, crossinline op: HBox.() -> Unit) = defaultHbox(spacing) {
-    addClass(CommonStyle.customToolbar)
+    addClass(GameDexStyle.customToolbar)
     useMaxWidth = true
     hgrow = Priority.ALWAYS
     alignment = Pos.CENTER_LEFT

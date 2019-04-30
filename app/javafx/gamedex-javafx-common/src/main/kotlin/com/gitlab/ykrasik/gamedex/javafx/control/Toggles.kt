@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.jfoenix.controls.JFXCheckBox
 import com.jfoenix.controls.JFXToggleButton
 import com.jfoenix.controls.JFXToggleNode
@@ -56,9 +56,9 @@ inline fun Node.jfxToggleNode(
     group: ToggleGroup? = getToggleGroup(),
     op: JFXToggleNode.() -> Unit = {}
 ) = opcr(this, JFXToggleNode()) {
-    addClass(CommonStyle.jfxHoverable)
+    addClass(GameDexStyle.jfxHoverable)
     this.graphic = Label(text, graphic).apply {
-        addClass(CommonStyle.jfxToggleNodeLabel)
+        addClass(GameDexStyle.jfxToggleNodeLabel)
         useMaxWidth = true
     }
     this.toggleGroup = group

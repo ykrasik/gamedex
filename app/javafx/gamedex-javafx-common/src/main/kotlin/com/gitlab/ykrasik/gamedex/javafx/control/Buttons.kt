@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -37,7 +37,7 @@ inline fun EventTarget.jfxButton(
     alignment: Pos = Pos.CENTER,
     op: JFXButton.() -> Unit = {}
 ) = opcr(this, JFXButton()) {
-    addClass(CommonStyle.jfxHoverable)
+    addClass(GameDexStyle.jfxHoverable)
     this.text = text
     this.graphic = graphic
     this.buttonType = type

@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxListView
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
@@ -58,7 +58,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
 
     override fun HBox.buildToolbar() {
         enumComboMenu(level.property, text = LogLevel::displayName, graphic = { it.icon }).apply {
-            addClass(CommonStyle.toolbarButton)
+            addClass(GameDexStyle.toolbarButton)
         }
         jfxCheckBox(logTail.property, "Tail")
     }

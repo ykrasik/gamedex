@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleDataCategory
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.mapToList
 import com.gitlab.ykrasik.gamedex.javafx.state
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.color
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
@@ -98,7 +98,7 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
             (popOver.contentNode as ScrollPane).minWidth = 600.0
             op()
         }.apply {
-            addClass(CommonStyle.infoButton)
+            addClass(GameDexStyle.infoButton)
             textProperty().bind(textProperty)
         }
 

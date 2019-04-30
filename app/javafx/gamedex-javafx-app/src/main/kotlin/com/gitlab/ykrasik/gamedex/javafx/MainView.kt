@@ -33,7 +33,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSyncGamesScreen
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
@@ -86,7 +86,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
     }
 
     private val tabPane = jfxTabPane {
-        addClass(CommonStyle.hiddenTabPaneHeader)
+        addClass(GameDexStyle.hiddenTabPaneHeader)
         isDisableAnimation = true   // Too slow by default
 
         tab(gameScreen).select()
@@ -141,7 +141,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
             }
         }
     }.apply {
-        addClass(CommonStyle.toolbarButton, Style.navigationButton)
+        addClass(GameDexStyle.toolbarButton, Style.navigationButton)
         textProperty().bind(tabPane.selectionModel.selectedItemProperty().stringBinding { it!!.text })
     }
 

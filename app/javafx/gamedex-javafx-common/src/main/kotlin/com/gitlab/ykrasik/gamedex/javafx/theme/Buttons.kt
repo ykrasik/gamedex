@@ -34,31 +34,31 @@ import tornadofx.tooltip
 
 inline fun EventTarget.toolbarButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
     jfxButton(text, graphic) {
-        addClass(CommonStyle.toolbarButton)
+        addClass(GameDexStyle.toolbarButton)
         op()
     }
 
 inline fun EventTarget.confirmButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, graphic) {
-        addClass(CommonStyle.confirmButton)
+        addClass(GameDexStyle.confirmButton)
         op()
     }
 
 inline fun EventTarget.warningButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, graphic) {
-        addClass(CommonStyle.warningButton)
+        addClass(GameDexStyle.warningButton)
         op()
     }
 
 inline fun EventTarget.dangerButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, graphic) {
-        addClass(CommonStyle.dangerButton)
+        addClass(GameDexStyle.dangerButton)
         op()
     }
 
 inline fun EventTarget.infoButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, graphic) {
-        addClass(CommonStyle.infoButton)
+        addClass(GameDexStyle.infoButton)
         op()
     }
 
@@ -103,19 +103,19 @@ inline fun EventTarget.deleteButton(text: String? = null, crossinline op: JFXBut
 
 inline fun EventTarget.plusButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
     confirmButton(text, Icons.plus.size(22)) {
-        removeClass(CommonStyle.toolbarButton)
+        removeClass(GameDexStyle.toolbarButton)
         op()
     }
 
 inline fun EventTarget.minusButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
     dangerButton(text, Icons.minus.size(22)) {
-        removeClass(CommonStyle.toolbarButton)
+        removeClass(GameDexStyle.toolbarButton)
         op()
     }
 
 inline fun EventTarget.excludeButton(text: String = "Exclude", crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Icons.warning) {
-        addClass(CommonStyle.warningButton)
+        addClass(GameDexStyle.warningButton)
         tooltip(text)
         op()
     }

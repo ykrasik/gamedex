@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.resetToDefaultButton
@@ -61,7 +61,7 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     private val tabProperty = "tab"
 
     private val tabPane = jfxTabPane {
-        addClass(CommonStyle.hiddenTabPaneHeader)
+        addClass(GameDexStyle.hiddenTabPaneHeader)
         paddingAll = 5
     }
 
@@ -158,7 +158,7 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
         val tab = tabPane.tab(component)
         tab.graphic = null
         jfxToggleNode(component.title, icon) {
-            addClass(CommonStyle.toolbarButton)
+            addClass(GameDexStyle.toolbarButton)
             useMaxWidth = true
             properties += viewProperty to component
             properties += tabProperty to tab

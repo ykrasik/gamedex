@@ -70,7 +70,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     override val resetAllToDefaultActions = channel<Unit>()
 
     private val tabPane: JFXTabPane = jfxTabPane {
-        addClass(CommonStyle.hiddenTabPaneHeader)
+        addClass(GameDexStyle.hiddenTabPaneHeader)
         paddingAll = 5
         initialScreenProperty.onChange { type ->
             navigationToggle.selectToggle(navigationToggle.toggles.find { (it.userData as Tab).userData as GameDataType == type })
@@ -169,13 +169,13 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
                                     validWhen(state.isCustomValueValid)
                                 }
                                 cancelButton {
-                                    removeClass(CommonStyle.toolbarButton)
+                                    removeClass(GameDexStyle.toolbarButton)
                                     action(state.customValueRejectActions) {
                                         popOver.hide()
                                     }
                                 }
                                 acceptButton {
-                                    removeClass(CommonStyle.toolbarButton)
+                                    removeClass(GameDexStyle.toolbarButton)
                                     enableWhen(state.isCustomValueValid)
                                     action {
                                         popOver.hide()

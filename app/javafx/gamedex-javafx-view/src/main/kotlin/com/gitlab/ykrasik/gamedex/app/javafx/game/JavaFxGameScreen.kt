@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -84,7 +84,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         text = Platform::displayName,
         graphic = { it.logo }
     ).apply {
-        addClass(CommonStyle.toolbarButton, Style.platformButton)
+        addClass(GameDexStyle.toolbarButton, Style.platformButton)
         contentDisplay = ContentDisplay.RIGHT
         textProperty().cleanBind(gameWallView.games.sizeProperty.stringBinding { "Games: ${"%4d".format(it)}" })
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
@@ -99,7 +99,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                 text = SortBy::displayName,
                 graphic = { it.icon }
             ).apply {
-                addClass(CommonStyle.toolbarButton)
+                addClass(GameDexStyle.toolbarButton)
             }
             jfxButton {
                 graphicProperty().bind(sortOrder.property.objectBinding { if (it == SortOrder.Asc) Icons.ascending else Icons.descending })

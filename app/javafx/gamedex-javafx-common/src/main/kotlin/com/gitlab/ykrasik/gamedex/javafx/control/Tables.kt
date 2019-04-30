@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.forEachWith
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.sun.javafx.scene.control.skin.ListViewSkin
 import com.sun.javafx.scene.control.skin.TableViewSkin
 import com.sun.javafx.scene.control.skin.TreeViewSkin
@@ -123,7 +123,7 @@ inline fun <reified S> TableView<S>.imageViewColumn(
         }
 
         init {
-            addClass(CommonStyle.centered)
+            addClass(GameDexStyle.centered)
             graphic = imageView
         }
 

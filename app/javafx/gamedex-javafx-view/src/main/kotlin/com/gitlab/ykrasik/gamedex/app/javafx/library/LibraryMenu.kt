@@ -80,7 +80,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
             spacer()
             addButton {
                 alignment = Pos.CENTER
-                removeClass(CommonStyle.toolbarButton)
+                removeClass(GameDexStyle.toolbarButton)
                 tooltip("Add a new library")
                 enableWhen(canAddLibraries)
                 action(addLibraryActions)
@@ -99,17 +99,17 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
                                 text(library.name)
                                 jfxButton(library.path.toString()) {
                                     useMaxWidth = true
-                                    addClass(CommonStyle.toolbarButton)
+                                    addClass(GameDexStyle.toolbarButton)
                                     action(browsePathActions) { library.path }
                                 }
                                 editButton {
-                                    removeClass(CommonStyle.toolbarButton)
+                                    removeClass(GameDexStyle.toolbarButton)
                                     enableWhen(canEditLibraries)
                                     tooltip("Edit library '${library.name}'")
                                     action(editLibraryActions) { library }
                                 }
                                 deleteButton {
-                                    removeClass(CommonStyle.toolbarButton)
+                                    removeClass(GameDexStyle.toolbarButton)
                                     enableWhen(canDeleteLibraries)
                                     tooltip("Delete library '${library.name}'")
                                     action(deleteLibraryActions) { library }

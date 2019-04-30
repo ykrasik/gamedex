@@ -29,7 +29,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.backButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
@@ -133,7 +133,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
                 }
                 vbox {
                     form {
-                        addClass(CommonStyle.centered)
+                        addClass(GameDexStyle.centered)
                         fieldset {
                             horizontalField("Expected") { render(diff.expectedFolderName, diff.patch.deltas) { it.revised } }
                             horizontalField("Actual") { render(diff.folderName, diff.patch.deltas) { it.original } }
