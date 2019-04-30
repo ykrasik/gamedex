@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.filter.presenter
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -179,7 +180,7 @@ class FilterPresenter @Inject constructor(
 
         private fun setIsValid() {
             view.filterIsValid *= Try {
-                check(view.filter.value is Filter.True || view.filter.value.find(Filter.True::class) == null) { "Please select a filter!" }
+                check(view.filter.value.isEmpty || view.filter.value.find(Filter.True::class) == null) { "Please select a filter!" }
             }
         }
 

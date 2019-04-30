@@ -72,16 +72,9 @@ import org.joda.time.Period
 sealed class Filter {
     companion object {
         val Null = True()
-        fun not(delegate: () -> Filter) = delegate().not
     }
 
     abstract fun evaluate(game: Game, context: Context): Boolean
-
-    infix fun and(right: Filter) = And(listOf(this, right))
-    infix fun and(right: () -> Filter) = and(right())
-    infix fun or(right: Filter) = Or(listOf(this, right))
-    infix fun or(right: () -> Filter) = or(right())
-    val not get() = Not(this)
 
     abstract fun isEqual(other: Filter): Boolean
     protected inline fun <reified T> Filter.ifIs(f: (T) -> Boolean) = (this as? T)?.let(f) ?: false
@@ -93,28 +86,31 @@ sealed class Filter {
         abstract val targets: List<Filter>
 
         protected inline fun <reified T : Compound> isEqual0(other: Filter) =
-            other.ifIs<T> { this.targets == it.targets }
+            other.ifIs<T> {
+                this.targets.size == it.targets.size &&
+                    this.targets.asSequence().zip(it.targets.asSequence()).all { (first, second) -> first.isEqual(second) }
+            }
     }
 
     abstract class Modifier : MetaFilter() {
         abstract val target: Filter
     }
 
-    class And(override val targets: List<Filter> = emptyList()) : Compound() {
+    class And(override val targets: List<Filter>) : Compound() {
         override fun evaluate(game: Game, context: Context) = targets.all { it.evaluate(game, context) }
         override fun evaluateNot(game: Game, context: Context) = targets.any { it.evaluateNot(game, context) }
         override fun isEqual(other: Filter) = isEqual0<And>(other)
         override fun toString() = targets.joinToString(separator = ") and (", prefix = "(", postfix = ")")
     }
 
-    class Or(override val targets: List<Filter> = emptyList()) : Compound() {
+    class Or(override val targets: List<Filter>) : Compound() {
         override fun evaluate(game: Game, context: Context) = targets.any { it.evaluate(game, context) }
         override fun evaluateNot(game: Game, context: Context) = targets.all { it.evaluateNot(game, context) }
         override fun isEqual(other: Filter) = isEqual0<Or>(other)
         override fun toString() = targets.joinToString(separator = ") or (", prefix = "(", postfix = ")")
     }
 
-    class Not(override val target: Filter = True()) : Modifier() {
+    class Not(override val target: Filter) : Modifier() {
         override fun evaluate(game: Game, context: Context) = target.evaluateNot(game, context)
         override fun evaluateNot(game: Game, context: Context) = target.evaluate(game, context)
         override fun isEqual(other: Filter) = other.ifIs<Not> { this.target.isEqual(it.target) }
@@ -330,5 +326,10 @@ sealed class Filter {
     }
 }
 
+infix fun Filter.and(right: Filter) = Filter.And(listOf(this, right))
+infix fun Filter.and(right: () -> Filter) = and(right())
+infix fun Filter.or(right: Filter) = Filter.Or(listOf(this, right))
+infix fun Filter.or(right: () -> Filter) = or(right())
+val Filter.not get() = Filter.Not(this)
 fun Filter.isEqual(other: Filter?): Boolean = other != null && isEqual(other)
 val Filter.isEmpty get() = this is Filter.True

@@ -18,6 +18,9 @@ package com.gitlab.ykrasik.gamedex.core.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.and
+import com.gitlab.ykrasik.gamedex.app.api.filter.not
+import com.gitlab.ykrasik.gamedex.app.api.filter.or
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId

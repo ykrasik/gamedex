@@ -20,10 +20,12 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.combineLatest
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.onInvalidated
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
@@ -32,7 +34,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.Observable
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -113,7 +114,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         override val changes = channel<Filter>()
 
         init {
-            filter.property.addListener { _: Observable ->
+            filter.property.onInvalidated {
                 val value = filter.value
                 if (value !== prevExternalFilter) {
                     changes.offer(value)
@@ -156,7 +157,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                     else -> filter.toProperty()
                 }
             }
-            else -> kotlin.error("Unknown filter: $filter")
+            else -> error("Unknown filter: $filter")
         }
     }
 
@@ -179,15 +180,12 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         gap(size = indent * 20.0)
 
         val descriptor = filter.descriptor
-        popOverMenu(descriptor.selectedName, descriptor.selectedIcon().size(26), closeOnAction = false) {
+        popOverMenu(descriptor.selectedName, descriptor.selectedIcon().size(26)) {
             // TODO: As an optimization, can share this popover across all menus.
             fun EventTarget.filterButton(descriptor: FilterDisplayDescriptor) =
                 jfxButton(descriptor.name, descriptor.icon().size(26), alignment = Pos.CENTER_LEFT) {
                     useMaxWidth = true
-                    action {
-                        popOver.hide()
-                        replaceFilterActions.event(filter to descriptor.filter)
-                    }
+                    action { replaceFilterActions.event(filter to descriptor.filter) }
                 }
 
             val subMenus = mutableMapOf<FilterDisplaySubMenu, PopOverMenu>()
@@ -222,7 +220,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         val target = if (negated) parentFilter else filter
         jfxButton(graphic = (if (negated) descriptor.negatedActionIcon() else descriptor.actionIcon()).size(26)) {
             tooltip("Reverse filter")
-            isDisable = filter is Filter.True
+            isDisable = filter.isEmpty
             action {
                 when {
                     !negated -> wrapInNotActions.event(target)
@@ -254,7 +252,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         deleteButton {
             removeClass(GameDexStyle.toolbarButton)
             // Do not allow deleting an empty root
-            isDisable = filter === this@JavaFxFilterView.filter.value && filter is Filter.True
+            isDisable = filter === this@JavaFxFilterView.filter.value && filter.isEmpty
             action(deleteFilterActions) { filter }
         }
     }

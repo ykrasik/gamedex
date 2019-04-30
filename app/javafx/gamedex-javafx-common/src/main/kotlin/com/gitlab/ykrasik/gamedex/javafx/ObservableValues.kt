@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
+import javafx.beans.InvalidationListener
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.ObjectBinding
 import javafx.beans.property.ObjectProperty
@@ -52,6 +53,12 @@ fun <T, R> ObservableValue<T>.map(f: (T) -> R): ObjectProperty<R> {
 
 inline fun <T> ObservableValue<T>.typeSafeOnChange(crossinline op: (T) -> Unit): ChangeListener<T> {
     val listener = ChangeListener<T> { _, _, newValue -> op(newValue) }
+    addListener(listener)
+    return listener
+}
+
+inline fun <T> ObservableValue<T>.onInvalidated(crossinline op: (T) -> Unit): InvalidationListener {
+    val listener = InvalidationListener { op(value) }
     addListener(listener)
     return listener
 }

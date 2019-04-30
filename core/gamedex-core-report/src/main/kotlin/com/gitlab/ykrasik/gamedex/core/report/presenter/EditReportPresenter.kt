@@ -79,9 +79,11 @@ class EditReportPresenter @Inject constructor(
 
         private fun setCanAccept() {
             view.canAccept *= view.nameIsValid.and(view.filterIsValid).and(Try {
-                check(!view.filter.value.isEqual(view.report?.filter) ||
-                    view.name.value != view.report?.name ||
-                    view.excludedGames.map { it.id } != view.report?.excludedGames) { "Nothing changed!" }
+                if (view.filter.value.isEqual(view.report?.filter) &&
+                    view.name.value == view.report?.name &&
+                    view.excludedGames.map { it.id } == view.report?.excludedGames) {
+                    error("Nothing changed!")
+                }
             })
         }
 

@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.filter
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.id
@@ -43,7 +44,7 @@ class FilterServiceImpl @Inject constructor(
     override fun createContext(): Filter.Context = FilterContextImpl()
 
     override fun filter(games: List<Game>, filter: Filter): List<Game> {
-        return if (filter is Filter.True) {
+        return if (filter.isEmpty) {
             games
         } else {
             val context = createContext()
