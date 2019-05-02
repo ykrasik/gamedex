@@ -29,8 +29,6 @@ import com.gitlab.ykrasik.gamedex.core.game.presenter.details.ShowGameDetailsVie
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.EditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.ShowEditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.filter.CurrentPlatformFilterPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.rename.RenameMoveGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.rename.ShowRenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.tag.ShowTagGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.tag.TagGamePresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
@@ -63,9 +61,6 @@ object GameModule : InternalCoreModule() {
 
         bindPresenter(EditGamePresenter::class)
         bindPresenter(ShowEditGamePresenter::class)
-
-        bindPresenter(RenameMoveGamePresenter::class)
-        bindPresenter(ShowRenameMoveGamePresenter::class)
 
         bindPresenter(ShowTagGamePresenter::class)
         bindPresenter(TagGamePresenter::class)

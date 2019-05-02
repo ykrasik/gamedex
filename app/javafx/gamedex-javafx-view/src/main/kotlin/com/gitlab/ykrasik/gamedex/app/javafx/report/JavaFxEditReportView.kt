@@ -54,6 +54,8 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
     override val filter = filterView.externalMutations
     override val filterIsValid = userMutableState(filterView.filterIsValid)
 
+    override val isTag = userMutableState(false)
+
     override val excludedGames = mutableListOf<Game>().observable()
 
     override val unexcludeGameActions = channel<Game>()
@@ -76,6 +78,8 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
                 jfxTextField(name.property, promptText = "Enter Name...") {
                     validWhen(nameIsValid)
                 }
+
+                jfxCheckBox(isTag.property, "Tag matching games")
             }
 
             verticalGap()

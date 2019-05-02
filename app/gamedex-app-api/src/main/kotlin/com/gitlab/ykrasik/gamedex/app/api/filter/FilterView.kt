@@ -33,6 +33,7 @@ interface FilterView {
 
     val possibleGenres: MutableList<String>
     val possibleTags: MutableList<String>
+    val possibleReportTags: MutableList<String>
     val possibleLibraries: MutableList<Library>
     val possibleProviderIds: MutableList<ProviderId>
     val possibleFilters: MutableList<KClass<out Filter.Rule>>

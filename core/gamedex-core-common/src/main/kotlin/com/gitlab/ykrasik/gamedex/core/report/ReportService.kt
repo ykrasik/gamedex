@@ -17,10 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 
@@ -41,4 +43,12 @@ interface ReportService {
     fun delete(report: Report): Task<Unit>
 
     fun calc(report: Report, games: List<Game>): Task<ReportResult>
+
+    fun calcReportTags(game: Game): List<TagId>
+}
+
+sealed class ReportEvent : CoreEvent {
+    data class Added(val reports: List<Report>) : ReportEvent()
+    data class Deleted(val reports: List<Report>) : ReportEvent()
+    data class Updated(val reports: List<Pair<Report, Report>>) : ReportEvent()
 }

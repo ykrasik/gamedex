@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesRequestedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
@@ -72,7 +72,7 @@ class SyncLibrariesPresenter @Inject constructor(
         }
 
         private fun startGameSync(paths: List<LibraryPath>) {
-            eventBus.send(SyncGamesRequestedEvent(paths.map { it to null }, isAllowSmartChooseResults = true))
+            eventBus.send(SyncGamesEvent.Requested(paths.map { it to null }, isAllowSmartChooseResults = true))
         }
     }
 }

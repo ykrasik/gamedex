@@ -22,7 +22,10 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.*
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.provider.*
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.provider.GameSearchStartedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.GameSearchUpdatedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.provider.supports
@@ -48,7 +51,7 @@ class SyncGamesPresenter @Inject constructor(
     override fun present(view: SyncGamesView) = object : ViewSession() {
         init {
             // TODO: Consider launching a job here that can be cancelled.
-            eventBus.forEach<SyncGamesRequestedEvent> { onSyncGamesStarted(it.paths, it.isAllowSmartChooseResults) }
+            eventBus.forEach<SyncGamesEvent.Requested> { onSyncGamesStarted(it.paths, it.isAllowSmartChooseResults) }
             eventBus.forEach<GameSearchUpdatedEvent> { onGameSearchStateUpdated(it.state) }
             view.currentState.forEach { onCurrentStateChanged(it) }
             view.restartStateActions.forEach { onRestart(it) }
@@ -134,7 +137,7 @@ class SyncGamesPresenter @Inject constructor(
         private fun start() {
             check(!view.isGameSyncRunning.value) { "Game sync already running!" }
             view.isGameSyncRunning *= true
-            eventBus.send(SyncGamesStartedEvent)
+            eventBus.send(SyncGamesEvent.Started)
         }
 
         private fun finish(success: Boolean) {
@@ -145,7 +148,7 @@ class SyncGamesPresenter @Inject constructor(
                 // This will update the current search that it's finished.
                 startGameSearch(currentState.copy(status = if (success) GameSearchStatus.Success else GameSearchStatus.Cancelled))
             }
-            eventBus.send(SyncGamesFinishedEvent)
+            eventBus.send(SyncGamesEvent.Finished)
         }
 
         private fun startGameSearch(state: GameSearchState) {

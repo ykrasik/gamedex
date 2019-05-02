@@ -36,7 +36,8 @@ data class Game(
     val library: Library,
     val gameData: GameData,
     val folderName: FolderName,
-    val fileTree: Ref<FileTree?>
+    val fileTree: Ref<FileTree?>,
+    val reportTags: List<TagId>
 ) {
     val id get() = rawGame.id
     val path by lazy { library.path.resolve(metadata.path) }
@@ -108,7 +109,8 @@ data class Game(
                 metaTag = null,
                 version = null
             ),
-            fileTree = ref(FileTree.NotAvailable)
+            fileTree = ref(null),
+            reportTags = emptyList()
         )
     }
 }
@@ -214,6 +216,8 @@ data class FolderName(
     val version: String?
 )
 
+typealias TagId = String
+
 enum class GameDataType(val displayName: String) {
     Name("Name"),
     Description("Description"),
@@ -228,7 +232,7 @@ enum class GameDataType(val displayName: String) {
 
 data class UserData(
     val overrides: Map<GameDataType, GameDataOverride> = emptyMap(),
-    val tags: List<String> = emptyList(),
+    val tags: List<TagId> = emptyList(),
     val excludedProviders: List<ProviderId> = emptyList()
 ) {
     fun nameOverride() = overrides[GameDataType.Name]

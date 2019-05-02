@@ -21,7 +21,9 @@ import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.library.LibraryEvent
+import com.gitlab.ykrasik.gamedex.core.on
+import com.gitlab.ykrasik.gamedex.core.report.ReportEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
@@ -29,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,7 +45,6 @@ class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
     private val gameFactory: GameFactory,
     eventBus: EventBus,
-    libraryService: LibraryService,
     settingsService: SettingsService
 ) : GameService {
     private val log = logger()
@@ -55,15 +57,13 @@ class GameServiceImpl @Inject constructor(
     private val gamesByPlatform = games.toMultiMap(Game::platform)
 
     init {
-        games.broadcastTo(eventBus, Game::id, ::GamesAddedEvent, ::GamesDeletedEvent, ::GamesUpdatedEvent)
+        games.broadcastTo(eventBus, Game::id, GameEvent::Added, GameEvent::Deleted, GameEvent::Updated)
 
-        libraryService.libraries.changesChannel.subscribe {
-            when (it) {
-                is ListEvent.RemoveEvent -> repo.invalidate()
-                is ListEvent.SetEvent -> rebuildGames()
-                else -> Unit
-            }
-        }
+        eventBus.on<LibraryEvent.Deleted>(Dispatchers.IO) { repo.invalidate() }
+        eventBus.on<LibraryEvent.Updated> { rebuildGames() }
+
+        eventBus.on<ReportEvent> { rebuildGames() }
+
         settingsService.providerOrder.dataChannel.drop(1).subscribe {
             rebuildGames()
         }

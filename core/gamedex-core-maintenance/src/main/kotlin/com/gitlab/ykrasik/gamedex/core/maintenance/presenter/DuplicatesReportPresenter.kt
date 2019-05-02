@@ -22,9 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.game.GamesAddedEvent
-import com.gitlab.ykrasik.gamedex.core.game.GamesDeletedEvent
-import com.gitlab.ykrasik.gamedex.core.game.GamesUpdatedEvent
+import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.setAll
@@ -47,9 +45,7 @@ class DuplicatesReportPresenter @Inject constructor(
         private var isDirty by isDirtyChannel
 
         init {
-            eventBus.forEach<GamesAddedEvent> { isDirty = true }
-            eventBus.forEach<GamesDeletedEvent> { isDirty = true }
-            eventBus.forEach<GamesUpdatedEvent> { isDirty = true }
+            eventBus.forEach<GameEvent> { isDirty = true }
 
             view.searchText.debounce().forEach { onSearchTextChanged(it) }
             view.hideViewActions.forEach { finished() }

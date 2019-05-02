@@ -17,7 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.find
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEqual
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
@@ -48,7 +50,8 @@ class EditReportPresenter @Inject constructor(
     override fun present(view: EditReportView) = object : ViewSession() {
         init {
             view.name.forEach { onNameChanged() }
-            view.filter.forEach { setCanAccept() }
+            view.isTag.forEach { onIsTagChanged() }
+            view.filter.forEach { onFilterChanged() }
             view.filterIsValid.forEach { setCanAccept() }
 
             view.unexcludeGameActions.forEach { onUnexcludeGame(it) }
@@ -60,12 +63,21 @@ class EditReportPresenter @Inject constructor(
             val report = view.report
             view.name *= report?.name ?: ""
             view.filter *= report?.filter ?: Filter.Null
+            view.isTag *= report?.data?.isTag ?: true
             view.excludedGames.setAll(report?.excludedGames?.map { gameService[it] } ?: emptyList())
             validateName()
         }
 
         private fun onNameChanged() {
             validateName()
+        }
+
+        private fun onFilterChanged() {
+            setCanAccept()
+        }
+
+        private fun onIsTagChanged() {
+            setCanAccept()
         }
 
         private fun validateName() {
@@ -79,10 +91,14 @@ class EditReportPresenter @Inject constructor(
 
         private fun setCanAccept() {
             view.canAccept *= view.nameIsValid.and(view.filterIsValid).and(Try {
-                if (view.filter.value.isEqual(view.report?.filter) &&
-                    view.name.value == view.report?.name &&
+                if (view.name.value == view.report?.name &&
+                    view.isTag.value == view.report?.data?.isTag &&
+                    view.filter.value.isEqual(view.report?.filter) &&
                     view.excludedGames.map { it.id } == view.report?.excludedGames) {
                     error("Nothing changed!")
+                }
+                if (view.isTag.value && view.filter.value.find(Filter.ReportTag::class) != null) {
+                    error("Reports that tag games may not depend on ReportTag filters!")
                 }
             })
         }
@@ -97,7 +113,9 @@ class EditReportPresenter @Inject constructor(
             val newReportData = ReportData(
                 name = view.name.value,
                 filter = view.filter.value,
-                excludedGames = view.excludedGames.map { it.id }
+                isTag = view.isTag.value,
+                excludedGames = view.excludedGames.map { it.id },
+                timestamp = Timestamp.now
             )
             taskService.execute(
                 if (view.report != null) {

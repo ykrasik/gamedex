@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 
@@ -42,6 +43,12 @@ interface GameService {
     fun deleteAllUserData(): Task<Unit>
 
     fun buildGame(rawGame: RawGame): Game
+}
+
+sealed class GameEvent : CoreEvent {
+    data class Added(val games: List<Game>) : GameEvent()
+    data class Deleted(val games: List<Game>) : GameEvent()
+    data class Updated(val games: List<Pair<Game, Game>>) : GameEvent()
 }
 
 data class AddGameRequest(

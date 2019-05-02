@@ -29,6 +29,7 @@ import com.gitlab.ykrasik.gamedex.util.humanReadable
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import org.joda.time.Period
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
@@ -64,6 +65,7 @@ import org.joda.time.Period
     JsonSubTypes.Type(value = Filter.Library::class, name = "library"),
     JsonSubTypes.Type(value = Filter.Genre::class, name = "genre"),
     JsonSubTypes.Type(value = Filter.Tag::class, name = "tag"),
+    JsonSubTypes.Type(value = Filter.ReportTag::class, name = "reportTag"),
     JsonSubTypes.Type(value = Filter.Provider::class, name = "provider"),
 
     JsonSubTypes.Type(value = Filter.FileName::class, name = "fileName"),
@@ -283,6 +285,12 @@ sealed class Filter {
         override fun toString() = "Tag == '$tag'"
     }
 
+    class ReportTag(val tag: String) : Rule() {
+        override fun evaluate(game: Game, context: Context) = game.reportTags.any { it == tag }
+        override fun isEqual(other: Filter) = other.ifIs<ReportTag> { this.tag == it.tag }
+        override fun toString() = "ReportTag == '$tag'"
+    }
+
     class Provider(val providerId: ProviderId) : Rule() {
         override fun evaluate(game: Game, context: Context) = eval(game, context) { it.any { it.header.id == providerId } }
         override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it.none { it.header.id == providerId } }
@@ -333,3 +341,12 @@ infix fun Filter.or(right: () -> Filter) = or(right())
 val Filter.not get() = Filter.Not(this)
 fun Filter.isEqual(other: Filter?): Boolean = other != null && isEqual(other)
 val Filter.isEmpty get() = this is Filter.True
+fun Filter.find(target: KClass<out Filter>): Filter? {
+    fun doFind(current: Filter): Filter? = when {
+        current::class == target -> current
+        current is Filter.Compound -> current.targets.find { doFind(it) != null }
+        current is Filter.Modifier -> doFind(current.target)
+        else -> null
+    }
+    return doFind(this)
+}

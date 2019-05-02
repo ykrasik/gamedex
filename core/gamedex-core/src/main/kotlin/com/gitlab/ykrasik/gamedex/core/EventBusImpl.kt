@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import javax.inject.Singleton
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
@@ -31,15 +34,26 @@ class EventBusImpl : EventBus, CoroutineScope {
     override val coroutineContext = Dispatchers.Default
 
     // TODO: Consider serializing all access to this with a special dispatcher.
-    private var handlers = emptyMap<KClass<out CoreEvent>, List<EventHandler>>()
+    private val handlers = mutableMapOf<KClass<out CoreEvent>, MutableList<EventHandler>>()
 
     @Suppress("UNCHECKED_CAST")
     override fun <E : CoreEvent> on(event: KClass<E>, context: CoroutineContext, handler: suspend (E) -> Unit): EventSubscription {
-        val eventHandler = EventHandler(context, handler as (suspend (CoreEvent) -> Unit))
-        handlers += event to (handlersFor(event) + eventHandler)
-        return object : EventSubscription {
-            override fun cancel() {
-                handlers += event to (handlersFor(event) - eventHandler)
+        return if (event.isSealed) {
+            val subscriptions = event.sealedSubclasses.map {
+                on(it, context, handler)
+            }
+            object : EventSubscription {
+                override fun cancel() {
+                    subscriptions.forEach { it.cancel() }
+                }
+            }
+        } else {
+            val eventHandler = EventHandler(context, handler as (suspend (CoreEvent) -> Unit))
+            handlersFor(event) += eventHandler
+            object : EventSubscription {
+                override fun cancel() {
+                    handlersFor(event) -= eventHandler
+                }
             }
         }
     }
@@ -52,17 +66,7 @@ class EventBusImpl : EventBus, CoroutineScope {
         }
     }
 
-    override suspend fun <E : CoreEvent> awaitEvent(event: KClass<E>, predicate: (E) -> Boolean): E {
-        val result = CompletableDeferred<E>()
-        val subscription = on(event) {
-            if (predicate(it)) {
-                result.complete(it)
-            }
-        }
-        return result.await().apply { subscription.cancel() }
-    }
-
-    private fun handlersFor(event: KClass<out CoreEvent>) = handlers.getOrDefault(event, emptyList())
+    private fun handlersFor(event: KClass<out CoreEvent>) = handlers.getOrPut(event) { mutableListOf() }
 
     private data class EventHandler(
         val context: CoroutineContext,

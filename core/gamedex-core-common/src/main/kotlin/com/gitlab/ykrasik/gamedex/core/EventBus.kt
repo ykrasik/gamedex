@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -34,8 +35,6 @@ interface EventBus {
     ): EventSubscription
 
     fun <E : CoreEvent> send(event: E): Job
-
-    suspend fun <E : CoreEvent> awaitEvent(event: KClass<E>, predicate: (E) -> Boolean = { true }): E
 }
 
 inline fun <reified E : CoreEvent> EventBus.on(
@@ -43,7 +42,17 @@ inline fun <reified E : CoreEvent> EventBus.on(
     noinline handler: suspend (E) -> Unit
 ) = on(E::class, context, handler)
 
-suspend inline fun <reified E : CoreEvent> EventBus.awaitEvent(noinline predicate: (E) -> Boolean = { true }) = awaitEvent(E::class, predicate)
+suspend inline fun <E : CoreEvent> EventBus.awaitEvent(event: KClass<E>, crossinline predicate: (E) -> Boolean = { true }): E {
+    val result = CompletableDeferred<E>()
+    val subscription = on(event) {
+        if (predicate(it)) {
+            result.complete(it)
+        }
+    }
+    return result.await().apply { subscription.cancel() }
+}
+
+suspend inline fun <reified E : CoreEvent> EventBus.awaitEvent(crossinline predicate: (E) -> Boolean = { true }) = awaitEvent(E::class, predicate)
 
 interface EventSubscription {
     fun cancel()

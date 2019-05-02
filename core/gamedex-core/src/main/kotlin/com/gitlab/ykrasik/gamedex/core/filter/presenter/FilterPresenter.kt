@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.filter.presenter
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.find
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -49,6 +50,7 @@ class FilterPresenter @Inject constructor(
         private val libraries = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformLibraries else commonData.contentLibraries
         private val genres = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformGenres else commonData.genres
         private val tags = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformTags else commonData.tags
+        private val reportTags = commonData.reportTags
         private val providers = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformProviders else commonData.allProviders
 
         private val metaFilters = listOf(
@@ -62,6 +64,7 @@ class FilterPresenter @Inject constructor(
             FilterBuilder.param(Filter::Library) { libraries.first().id },
             FilterBuilder.param(Filter::Genre) { genres.firstOrNull() ?: "" },
             FilterBuilder.param(Filter::Tag) { tags.firstOrNull() ?: "" },
+            FilterBuilder.param(Filter::ReportTag) { reportTags.firstOrNull() ?: "" },
             FilterBuilder.param(Filter::Provider) { commonData.allProviders.first().id },
             FilterBuilder.param(Filter::CriticScore) { 60.0 },
             FilterBuilder.param(Filter::UserScore) { 60.0 },
@@ -87,6 +90,9 @@ class FilterPresenter @Inject constructor(
 
             tags.bind(view.possibleTags)
             tags.changesChannel.forEach { setPossibleRules() }
+
+            reportTags.bind(view.possibleReportTags)
+            reportTags.changesChannel.forEach { setPossibleRules() }
 
             providers.mapping { it.id }.bind(view.possibleProviderIds)
             providers.changesChannel.forEach { setPossibleRules() }
@@ -133,6 +139,9 @@ class FilterPresenter @Inject constructor(
                     }
                     if (view.possibleTags.size < 1) {
                         filters -= Filter.Tag::class
+                    }
+                    if (view.possibleReportTags.size < 1) {
+                        filters -= Filter.ReportTag::class
                     }
                     if (view.possibleLibraries.size <= 1) {
                         filters -= Filter.Library::class
@@ -212,16 +221,6 @@ class FilterPresenter @Inject constructor(
                 else -> current
             }
             return doDelete(this)?.flatten()
-        }
-
-        private fun Filter.find(target: KClass<out Filter>): Filter? {
-            fun doFind(current: Filter): Filter? = when {
-                current::class == target -> current
-                current is Filter.Compound -> current.targets.find { doFind(it) != null }
-                current is Filter.Modifier -> doFind(current.target)
-                else -> null
-            }
-            return doFind(this)
         }
 
         private fun Filter.flatten(): Filter = when (this) {

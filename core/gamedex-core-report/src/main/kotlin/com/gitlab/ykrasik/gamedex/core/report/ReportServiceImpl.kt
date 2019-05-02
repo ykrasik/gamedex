@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.and
 import com.gitlab.ykrasik.gamedex.app.api.filter.not
@@ -25,8 +26,10 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
 import com.gitlab.ykrasik.gamedex.util.flatMapIndexed
 import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
@@ -40,13 +43,16 @@ import javax.inject.Singleton
 @Singleton
 class ReportServiceImpl @Inject constructor(
     private val repo: ReportRepository,
-    private val filterService: FilterService
+    private val filterService: FilterService,
+    eventBus: EventBus
 ) : ReportService {
     private val log = logger()
 
     override val reports = repo.reports
 
     init {
+        reports.broadcastTo(eventBus, Report::id, ReportEvent::Added, ReportEvent::Deleted, ReportEvent::Updated)
+
         if (reports.isEmpty()) {
             log.info("Creating default reports...")
             defaultReports.forEach { repo.add(it) }
@@ -85,6 +91,17 @@ class ReportServiceImpl @Inject constructor(
             result
         }
         ReportResult(matchingGames.sortedBy { it.name })
+    }
+
+    override fun calcReportTags(game: Game): List<TagId> {
+        val context = filterService.createContext()
+        return reports.mapNotNull { report ->
+            if (report.data.isTag && report.filter.evaluate(game, context)) {
+                report.name
+            } else {
+                null
+            }
+        }
     }
 
     fun invalidate() = repo.invalidate()

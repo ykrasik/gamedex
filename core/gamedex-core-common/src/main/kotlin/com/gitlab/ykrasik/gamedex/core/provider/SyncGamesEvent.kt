@@ -14,17 +14,23 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game
+package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 
 /**
  * User: ykrasik
- * Date: 16/01/2019
- * Time: 08:46
+ * Date: 02/12/2018
+ * Time: 12:49
  */
+sealed class SyncGamesEvent : CoreEvent {
+    data class Requested(
+        val paths: List<Pair<LibraryPath, Game?>>,
+        val isAllowSmartChooseResults: Boolean
+    ) : SyncGamesEvent()
 
-data class GamesAddedEvent(val games: List<Game>) : CoreEvent
-data class GamesDeletedEvent(val games: List<Game>) : CoreEvent
-data class GamesUpdatedEvent(val games: List<Pair<Game, Game>>) : CoreEvent
+    object Started : SyncGamesEvent()
+    object Finished : SyncGamesEvent()
+}

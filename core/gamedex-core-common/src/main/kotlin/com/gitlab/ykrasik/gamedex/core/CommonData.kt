@@ -26,8 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesFinishedEvent
-import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesStartedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -49,6 +48,7 @@ interface CommonData {
     val games: ListObservable<Game>
     val genres: ListObservable<String>
     val tags: ListObservable<String>
+    val reportTags: ListObservable<String>
 
     val platformGames: ListObservable<Game>
     val platformGenres: ListObservable<String>
@@ -79,6 +79,7 @@ class CommonDataImpl @Inject constructor(
     override val games = gameService.games
     override val genres = games.genres()
     override val tags = games.tags()
+    override val reportTags = games.reportTags()
 
     // The platform doesn't change that often, so an unoptimized filter is acceptable here.
     override val platformGames =
@@ -90,6 +91,7 @@ class CommonDataImpl @Inject constructor(
 
     private fun ListObservable<Game>.genres() = flatMapping { it.genres }.distincting().sortingBy { it }
     private fun ListObservable<Game>.tags() = flatMapping { it.tags }.distincting().sortingBy { it }
+    private fun ListObservable<Game>.reportTags() = flatMapping { it.reportTags }.distincting().sortingBy { it }
 
     override val libraries = libraryService.libraries
     override val contentLibraries = libraries.filtering { it.type != LibraryType.Excluded }
@@ -108,11 +110,7 @@ class CommonDataImpl @Inject constructor(
     override val platformsWithLibraries = contentLibraries.mapping { it.platform }.distincting()
 
     override val isGameSyncRunning = BroadcastEventChannel.conflated(false).apply {
-        eventBus.on<SyncGamesStartedEvent> {
-            send(true)
-        }
-        eventBus.on<SyncGamesFinishedEvent> {
-            send(false)
-        }
+        eventBus.on<SyncGamesEvent.Started> { send(true) }
+        eventBus.on<SyncGamesEvent.Finished> { send(false) }
     }
 }

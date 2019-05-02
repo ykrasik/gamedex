@@ -63,6 +63,6 @@ class ResyncGameServiceImpl @Inject constructor(
         val paths = games.map { game ->
             LibraryPath(game.library, game.path) to game
         }
-        eventBus.send(SyncGamesRequestedEvent(paths, isAllowSmartChooseResults = false))
+        eventBus.send(SyncGamesEvent.Requested(paths, isAllowSmartChooseResults = false))
     }
 }

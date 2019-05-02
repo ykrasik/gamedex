@@ -38,6 +38,8 @@ interface EditReportView : ConfirmationView {
     val filter: UserMutableState<Filter>
     val filterIsValid: UserMutableState<IsValid>
 
+    val isTag: UserMutableState<Boolean>
+
     val excludedGames: MutableList<Game>
 
     val unexcludeGameActions: ReceiveChannel<Game>

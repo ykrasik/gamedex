@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.game.GamesDeletedEvent
+import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
 import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
@@ -53,7 +53,7 @@ class FileSystemServiceImpl @Inject constructor(
     }
 
     init {
-        eventBus.on<GamesDeletedEvent>(Dispatchers.IO) { it.games.forEach(::onGameDeleted) }
+        eventBus.on<GameEvent.Deleted>(Dispatchers.IO) { it.games.forEach(::onGameDeleted) }
         eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { onDbInvalidated() }
     }
 

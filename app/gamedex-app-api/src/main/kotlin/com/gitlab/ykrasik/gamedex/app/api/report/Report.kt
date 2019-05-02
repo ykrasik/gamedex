@@ -51,6 +51,7 @@ data class Report(
 data class ReportData(
     val name: String,
     val filter: Filter,
+    val isTag: Boolean,
     val excludedGames: List<Int>,
     val timestamp: Timestamp
 ) {
@@ -61,8 +62,9 @@ data class ReportData(
         operator fun invoke(
             name: String,
             filter: Filter,
+            isTag: Boolean = true,
             excludedGames: List<Int> = emptyList(),
             timestamp: Timestamp = Timestamp.now
-        ): ReportData = ReportData(name, filter, excludedGames, timestamp)
+        ): ReportData = ReportData(name, filter, isTag, excludedGames, timestamp)
     }
 }

@@ -20,8 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.awaitEvent
-import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesFinishedEvent
-import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesStartedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,9 +36,9 @@ class ShowSyncGamesPresenter @Inject constructor(
 ) {
     private val session = object : ViewSession() {
         init {
-            eventBus.forEach<SyncGamesStartedEvent> {
+            eventBus.forEach<SyncGamesEvent.Started> {
                 val view = viewManager.showSyncGamesView()
-                eventBus.awaitEvent<SyncGamesFinishedEvent>()
+                eventBus.awaitEvent<SyncGamesEvent.Finished>()
                 viewManager.hide(view)
             }
         }

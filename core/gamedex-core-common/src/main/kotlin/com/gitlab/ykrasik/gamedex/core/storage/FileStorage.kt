@@ -86,7 +86,10 @@ class FileStorage<K, V>(
 
     override fun delete(key: K) = fileFor(key).delete()
     override fun delete(keys: Iterable<K>) = keys.forEach { delete(it) }
-    override fun clear() = delete(ids())
+    override fun clear() {
+        delete(ids())
+        keyGenerator?.init(emptyList())
+    }
 
     override fun ids() = streamFiles { stream -> stream.map { namingStrategy.toKey(it) }.toList() } ?: emptyList()
 

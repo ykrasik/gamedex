@@ -60,6 +60,7 @@ import kotlin.reflect.KClass
 class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) : PresentableView(), FilterView {
     override val possibleGenres = mutableListOf<String>()
     override val possibleTags = mutableListOf<String>()
+    override val possibleReportTags = mutableListOf<String>()
     override val possibleLibraries = mutableListOf<Library>()
     override val possibleProviderIds = mutableListOf<ProviderId>().observable()
     override val possibleFilters = mutableListOf<KClass<out Filter.Rule>>().observable()
@@ -139,6 +140,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                     is Filter.Library -> renderLibraryFilter(filter)
                     is Filter.Genre -> renderGenreFilter(filter)
                     is Filter.Tag -> renderTagFilter(filter)
+                    is Filter.ReportTag -> renderReportTagFilter(filter)
                     is Filter.Provider -> renderProviderFilter(filter)
                     is Filter.CriticScore -> renderScoreFilter(filter, Filter::CriticScore)
                     is Filter.UserScore -> renderScoreFilter(filter, Filter::UserScore)
@@ -307,6 +309,14 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         )
     }
 
+    private fun HBox.renderReportTagFilter(filter: Filter.ReportTag) {
+        val tag = filter.toProperty(Filter.ReportTag::tag, Filter::ReportTag)
+        popoverComboMenu(
+            possibleItems = possibleReportTags,
+            selectedItemProperty = tag
+        )
+    }
+
     private fun HBox.renderTargetDateFilter(filter: Filter.TargetDate, factory: (LocalDate) -> Filter.TargetDate) {
         tooltip("Is after the given date")
         val date = filter.toProperty(Filter.TargetDate::date, factory)
@@ -425,6 +435,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             FilterDisplayDescriptor(Filter.Library::class, "Library", Icons::folder),
             FilterDisplayDescriptor(Filter.Genre::class, "Genre", Icons::masks),
             FilterDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
+            FilterDisplayDescriptor(Filter.ReportTag::class, "Report Tag", { Icons.tag.color(Color.BLACK) }),
             FilterDisplayDescriptor(Filter.Provider::class, "Provider", Icons::web, gap = true),
 
             score<Filter.CriticScore>("Critic Score", Icons::starFull),

@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.minOrder
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
@@ -34,10 +35,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameFactory @Inject constructor(
+    private val config: GameConfig,
     private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
-    private val config: GameConfig,
-    private val settingsService: SettingsService
+    private val settingsService: SettingsService,
+    private val reportService: ReportService
 ) {
     fun create(rawGame: RawGame): Game {
         val library = libraryService[rawGame.metadata.libraryId]
@@ -45,13 +47,21 @@ class GameFactory @Inject constructor(
         val folderName = fileSystemService.analyzeFolderName(rawGame.metadata.path.file.name)
         val fileTree = fileSystemService.fileTree(rawGame.id, library.path.resolve(rawGame.metadata.path))
 
-        return Game(
+        val game = Game(
             library = library,
             rawGame = rawGame,
             gameData = gameData,
             folderName = folderName,
-            fileTree = fileTree
+            fileTree = fileTree,
+            reportTags = emptyList()
         )
+
+        val reportTags = reportService.calcReportTags(game)
+        return if (reportTags.isNotEmpty()) {
+            game.copy(reportTags = reportTags)
+        } else {
+            game
+        }
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
@@ -84,22 +94,21 @@ class GameFactory @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.firstBy(
+    private inline fun <T> RawGame.firstBy(
         defaultOrder: Order,
         override: GameDataOverride?,
         converter: (Any) -> T = { it as T },
-        extractor: (ProviderData) -> T?
-    ): T? =
-        when (override) {
-            is GameDataOverride.Custom -> converter(override.value)
-            else -> {
-                val sorted = sortDataBy(defaultOrder, override as? GameDataOverride.Provider)
-                sorted.findFirst(extractor)
-            }
+        crossinline extractor: (ProviderData) -> T?
+    ): T? = when (override) {
+        is GameDataOverride.Custom -> converter(override.value)
+        else -> {
+            val sorted = sortDataBy(defaultOrder, override as? GameDataOverride.Provider)
+            sorted.findFirst(extractor)
         }
+    }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.listBy(defaultOrder: Order, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
+    private inline fun <T> RawGame.listBy(defaultOrder: Order, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
             is GameDataOverride.Custom -> override.value as List<T>
             else -> {
@@ -109,7 +118,7 @@ class GameFactory @Inject constructor(
         }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.unsortedListBy(override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
+    private inline fun <T> RawGame.unsortedListBy(override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
             is GameDataOverride.Custom -> override.value as List<T>
             else -> providerData.flatMap(extractor)
@@ -127,6 +136,6 @@ class GameFactory @Inject constructor(
             }
         }
 
-    private fun <T> List<ProviderData>.findFirst(extractor: (ProviderData) -> T?): T? =
-        this.asSequence().map(extractor).firstNotNull()
+    private inline fun <T> List<ProviderData>.findFirst(crossinline extractor: (ProviderData) -> T?): T? =
+        this.asSequence().map { extractor(it) }.firstNotNull()
 }

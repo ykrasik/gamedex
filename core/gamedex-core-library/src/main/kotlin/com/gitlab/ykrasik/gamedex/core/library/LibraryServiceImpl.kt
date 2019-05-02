@@ -41,7 +41,7 @@ class LibraryServiceImpl @Inject constructor(
     override val libraries = repo.libraries
 
     init {
-        libraries.broadcastTo(eventBus, Library::id, ::LibrariesAddedEvent, ::LibrariesDeletedEvent, ::LibrariesUpdatedEvent)
+        libraries.broadcastTo(eventBus, Library::id, LibraryEvent::Added, LibraryEvent::Deleted, LibraryEvent::Updated)
         eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { repo.invalidate() }
     }
 

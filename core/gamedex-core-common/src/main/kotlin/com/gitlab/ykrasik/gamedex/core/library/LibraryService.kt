@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import java.io.File
@@ -41,4 +42,10 @@ interface LibraryService {
 
     fun delete(library: Library): Task<Unit>
     fun deleteAll(libraries: List<Library>): Task<Unit>
+}
+
+sealed class LibraryEvent : CoreEvent {
+    data class Added(val libraries: List<Library>) : LibraryEvent()
+    data class Deleted(val libraries: List<Library>) : LibraryEvent()
+    data class Updated(val libraries: List<Pair<Library, Library>>) : LibraryEvent()
 }
