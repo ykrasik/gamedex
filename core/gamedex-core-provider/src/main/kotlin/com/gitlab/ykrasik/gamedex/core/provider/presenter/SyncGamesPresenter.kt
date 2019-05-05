@@ -59,7 +59,7 @@ class SyncGamesPresenter @Inject constructor(
         }
 
         private fun onSyncGamesStarted(paths: List<Pair<LibraryPath, Game?>>, isAllowSmartChooseResults: Boolean) {
-            check(!paths.isEmpty()) { "No games to sync!" }
+            check(paths.isNotEmpty()) { "No games to sync!" }
             val platformsWithEnabledProviders = gameProviderService.platformsWithEnabledProviders
             val pathsWithEnabledProviders = paths.filter { (path, _) -> platformsWithEnabledProviders.contains(path.library.platform) }
 

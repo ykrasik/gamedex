@@ -16,10 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.module
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageFactory
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxViewManager
 import com.google.inject.AbstractModule
 
 /**
@@ -29,7 +27,6 @@ import com.google.inject.AbstractModule
  */
 object JavaFxModule : AbstractModule() {
     override fun configure() {
-        bind(ViewManager::class.java).to(JavaFxViewManager::class.java)
         bind(ImageFactory::class.java).to(JavaFxImageFactory::class.java)
     }
 }

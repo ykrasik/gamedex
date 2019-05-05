@@ -14,12 +14,11 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.app.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
@@ -59,91 +58,90 @@ import tornadofx.View
  * Date: 21/05/2018
  * Time: 10:37
  */
-class JavaFxViewManager : Controller(), ViewManager {
+class ViewManager : Controller() {
 
     private val mainView: MainView by inject()
 
-    override fun showTaskView(): TaskView {
+    fun showTaskView() {
         // Nothing to show, the taskView is always shown (actually, everything else is shown INSIDE the task view)
-        return mainView.taskView
     }
 
-    override fun hide(view: TaskView) {
+    fun hide(view: TaskView) {
         // Nothing to do here, the taskView is never hidden.
     }
 
-    override fun showSyncGamesView() = mainView.showSyncGamesView()
-    override fun hide(view: SyncGamesView) = mainView.showPreviousScreen()
+    fun showSyncGamesView() = mainView.showSyncGamesView()
+    fun hide(view: SyncGamesView) = mainView.showPreviousScreen()
 
-    override fun showGameDetailsView(game: Game) = mainView.showGameDetails(game)
-    override fun hide(view: GameDetailsView) = mainView.showPreviousScreen()
+    fun showGameDetailsView(game: Game) = mainView.showGameDetails(game)
+    fun hide(view: GameDetailsView) = mainView.showPreviousScreen()
 
     private val editLibraryView: JavaFxEditLibraryView by inject()
-    override fun showEditLibraryView(library: Library?) = editLibraryView.showModal { this.library = library }
-    override fun hide(view: EditLibraryView) = view.close()
+    fun showEditLibraryView(library: Library?) = editLibraryView.showModal { this.library = library }
+    fun hide(view: EditLibraryView) = view.close()
 
     private val deleteLibraryView: JavaFxDeleteLibraryView by inject()
-    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.showModal { this.library = library }
-    override fun hide(view: DeleteLibraryView) = view.close()
+    fun showDeleteLibraryView(library: Library) = deleteLibraryView.showModal { this.library = library }
+    fun hide(view: DeleteLibraryView) = view.close()
 
     private val editGameView: JavaFxEditGameView by inject()
-    override fun showEditGameView(game: Game, initialType: GameDataType) = editGameView.showModal {
+    fun showEditGameView(game: Game, initialType: GameDataType) = editGameView.showModal {
         this.game = game
         this.initialScreen = initialType
     }
-    override fun hide(view: EditGameView) = view.close()
+    fun hide(view: EditGameView) = view.close()
 
     private val deleteGameView: JavaFxDeleteGameView by inject()
-    override fun showDeleteGameView(game: Game) = deleteGameView.showModal { this.game = game }
-    override fun hide(view: DeleteGameView) = view.close()
+    fun showDeleteGameView(game: Game) = deleteGameView.showModal { this.game = game }
+    fun hide(view: DeleteGameView) = view.close()
 
     private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
-    override fun showRenameMoveGameView(game: Game, initialName: String?) = renameMoveGameView.showModal {
+    fun showRenameMoveGameView(game: Game, initialName: String?) = renameMoveGameView.showModal {
         this.game = game
         this.initialName = initialName
     }
-    override fun hide(view: RenameMoveGameView) = view.close()
+    fun hide(view: RenameMoveGameView) = view.close()
 
     private val tagGameView: JavaFxTagGameView by inject()
-    override fun showTagGameView(game: Game) = tagGameView.showModal { this.game = game }
-    override fun hide(view: TagGameView) = view.close()
+    fun showTagGameView(game: Game) = tagGameView.showModal { this.game = game }
+    fun hide(view: TagGameView) = view.close()
 
-    override fun showReportView(report: Report) = mainView.showReportView(report)
-    override fun hide(view: ReportView) = mainView.showPreviousScreen()
+    fun showReportView(report: Report) = mainView.showReportView(report)
+    fun hide(view: ReportView) = mainView.showPreviousScreen()
 
     private val editReportView: JavaFxEditReportView by inject()
-    override fun showEditReportView(report: Report?) = editReportView.showModal { this.report = report }
-    override fun hide(view: EditReportView) = view.close()
+    fun showEditReportView(report: Report?) = editReportView.showModal { this.report = report }
+    fun hide(view: EditReportView) = view.close()
 
     private val deleteReportView: JavaFxDeleteReportView by inject()
-    override fun showDeleteReportView(report: Report) = deleteReportView.showModal { this.report = report }
-    override fun hide(view: DeleteReportView) = view.close()
+    fun showDeleteReportView(report: Report) = deleteReportView.showModal { this.report = report }
+    fun hide(view: DeleteReportView) = view.close()
 
     private val refetchGamesView: JavaFxRefetchGamesView by inject()
-    override fun showRefetchGamesView() = refetchGamesView.showModal()
-    override fun hide(view: RefetchGamesView) = view.close()
+    fun showRefetchGamesView() = refetchGamesView.showModal()
+    fun hide(view: RefetchGamesView) = view.close()
 
     private val resyncGamesView: JavaFxResyncGamesView by inject()
-    override fun showResyncGamesView() = resyncGamesView.showModal()
-    override fun hide(view: ResyncGamesView) = view.close()
+    fun showResyncGamesView() = resyncGamesView.showModal()
+    fun hide(view: ResyncGamesView) = view.close()
 
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
-    override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showModal { this.staleData = staleData }
-    override fun hide(view: CleanupDatabaseView) = view.close()
+    fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showModal { this.staleData = staleData }
+    fun hide(view: CleanupDatabaseView) = view.close()
 
-    override fun showDuplicatesView() = mainView.showDuplicatesReport()
-    override fun hide(view: DuplicatesView) = mainView.showPreviousScreen()
+    fun showDuplicatesView() = mainView.showDuplicatesReport()
+    fun hide(view: DuplicatesView) = mainView.showPreviousScreen()
 
-    override fun showFolderNameDiffView() = mainView.showFolderNameDiffReport()
-    override fun hide(view: FolderNameDiffView) = mainView.showPreviousScreen()
+    fun showFolderNameDiffView() = mainView.showFolderNameDiffReport()
+    fun hide(view: FolderNameDiffView) = mainView.showPreviousScreen()
 
     private val settingsView: JavaFxSettingsView by inject()
-    override fun showSettingsView() = settingsView.showModal()
-    override fun hide(view: SettingsView) = view.close()
+    fun showSettingsView() = settingsView.showModal()
+    fun hide(view: SettingsView) = view.close()
 
     private val aboutView: JavaFxAboutView by inject()
-    override fun showAboutView() = aboutView.showModal()
-    override fun hide(view: AboutView) = view.close()
+    fun showAboutView() = aboutView.showModal()
+    fun hide(view: AboutView) = view.close()
 
     private fun Any.close() = (this as View).close()
 

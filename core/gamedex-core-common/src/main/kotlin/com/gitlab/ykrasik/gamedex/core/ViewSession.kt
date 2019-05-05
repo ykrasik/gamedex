@@ -43,24 +43,24 @@ abstract class ViewSession : CoroutineScope {
     private var _isShowing = false
     protected val isShowing get() = _isShowing
 
-    suspend fun show() {
+    suspend fun onShow() {
         check(!_isShowing) { "Presenter already showing: $this" }
         _isShowing = true
-        onShow()
+        onShown()
     }
 
-    protected open suspend fun onShow() {}
+    protected open suspend fun onShown() {}
 
-    fun hide() {
+    fun onHide() {
         check(_isShowing) { "Presenter wasn't showing: $this" }
         _isShowing = false
-        onHide()
+        onHidden()
     }
 
-    protected open fun onHide() {}
+    protected open fun onHidden() {}
 
     fun destroy() {
-        if (_isShowing) hide()
+        if (_isShowing) onHide()
         coroutineContext.cancel()
     }
 
@@ -164,16 +164,9 @@ abstract class ViewSession : CoroutineScope {
     fun <T> UserMutableState<T>.debounce(millis: Long = 200): ReceiveChannel<T> =
         changes.debounce(millis, scope = this@ViewSession)
 
-    fun <V> EventBus.viewFinished(view: V) = send(ViewFinishedEvent(view))
+    fun State<IsValid>.assert() = value.assert()
 
-    suspend inline fun <V> EventBus.awaitViewFinished(view: V) = awaitEvent<ViewFinishedEvent<V>> { it.view == view }
-    inline fun <reified V> EventBus.onViewFinished(crossinline handler: (V) -> Unit) = forEach<ViewFinishedEvent<*>> {
-        if (it.view is V) {
-            handler(it.view)
-        }
-    }
-
-    fun State<IsValid>.assert() {
-        value.get()
+    fun IsValid.assert() {
+        get()
     }
 }

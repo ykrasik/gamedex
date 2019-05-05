@@ -20,8 +20,10 @@ import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Ref
 
 /**
@@ -44,4 +46,6 @@ interface ViewCommonOps {
     val providerLogos: Map<ProviderId, Image>
 
     fun youTubeGameplayUrl(game: Game): String
+
+    val canRunGameSync: BroadcastReceiveChannel<IsValid>
 }

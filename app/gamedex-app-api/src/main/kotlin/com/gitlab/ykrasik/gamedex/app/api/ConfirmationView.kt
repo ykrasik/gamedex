@@ -28,4 +28,6 @@ interface ConfirmationView {
     val canAccept: State<IsValid>
     val acceptActions: ReceiveChannel<Unit>
     val cancelActions: ReceiveChannel<Unit>
+
+    fun hide()
 }

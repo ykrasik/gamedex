@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -109,4 +110,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     }
 
     override fun selectDirectory(initialDirectory: File): File? = chooseDirectory("Browse Path...", initialDirectory)
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 }

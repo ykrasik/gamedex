@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
@@ -33,8 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class DeleteReportPresenter @Inject constructor(
     private val reportService: ReportService,
-    private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val taskService: TaskService
 ) : Presenter<DeleteReportView> {
     override fun present(view: DeleteReportView) = object : ViewSession() {
         init {
@@ -51,6 +49,6 @@ class DeleteReportPresenter @Inject constructor(
             finished()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun finished() = view.hide()
     }
 }

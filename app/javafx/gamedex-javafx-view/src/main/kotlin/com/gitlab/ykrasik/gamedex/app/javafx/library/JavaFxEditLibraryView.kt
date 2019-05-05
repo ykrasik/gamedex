@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -112,4 +113,7 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
     }
 
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 }

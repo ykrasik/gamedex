@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.RefetchGameService
@@ -35,8 +34,7 @@ import javax.inject.Singleton
 class RefetchGamesPresenter @Inject constructor(
     private val settingsService: SettingsService,
     private val refetchGameService: RefetchGameService,
-    private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val taskService: TaskService
 ) : Presenter<RefetchGamesView> {
     override fun present(view: RefetchGamesView) = object : ViewSession() {
         init {
@@ -46,7 +44,7 @@ class RefetchGamesPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             view.refetchGamesFilter *= settingsService.providerGeneral.refetchGamesFilter
             setCanAccept()
         }
@@ -70,6 +68,6 @@ class RefetchGamesPresenter @Inject constructor(
             finished()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun finished() = view.hide()
     }
 }

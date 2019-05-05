@@ -42,10 +42,6 @@ object ReportModule : InternalCoreModule() {
         bindPresenter(ReportPresenter::class)
         bindPresenter(ReportsPresenter::class)
         bindPresenter(SearchReportResultPresenter::class)
-        bindPresenter(ShowAddReportPresenter::class)
-        bindPresenter(ShowDeleteReportPresenter::class)
-        bindPresenter(ShowEditReportPresenter::class)
-        bindPresenter(ShowReportPresenter::class)
     }
 
     @Provides

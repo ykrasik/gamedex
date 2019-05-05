@@ -119,7 +119,7 @@ class EditGamePresenter @Inject constructor(
             allOverrides.forEach { it.onResetStateToDefault() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             allOverrides.forEach { it.initStateOnShow() }
 
             gameWithoutOverrides = gameService.buildGame(view.game.rawGame.copy(userData = UserData.Null))

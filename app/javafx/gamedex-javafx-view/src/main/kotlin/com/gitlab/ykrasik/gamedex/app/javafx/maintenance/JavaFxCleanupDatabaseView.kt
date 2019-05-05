@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleDataCategory
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.mapToList
 import com.gitlab.ykrasik.gamedex.javafx.state
@@ -101,6 +102,9 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
             addClass(GameDexStyle.infoButton)
             textProperty().bind(textProperty)
         }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 
     class JavaFxStaleDataCategory : StaleDataCategory {
         override val canDelete = state(IsValid.valid)

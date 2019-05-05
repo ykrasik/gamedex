@@ -46,7 +46,7 @@ class CleanupDatabasePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             view.librariesAndGames.canDelete *= Try {
                 check(view.staleData.libraries.isNotEmpty() || view.staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" }
             }

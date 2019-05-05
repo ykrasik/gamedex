@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideState
 import com.gitlab.ykrasik.gamedex.app.api.game.OverrideSelectionType
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -233,6 +234,9 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
         override val customValueRejectActions = channel<Unit>()
         override val resetToDefaultActions = channel<Unit>()
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 
     class Style : Stylesheet() {
         companion object {

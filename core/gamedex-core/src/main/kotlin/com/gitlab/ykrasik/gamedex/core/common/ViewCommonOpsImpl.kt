@@ -18,10 +18,14 @@ package com.gitlab.ykrasik.gamedex.core.common
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.version.ApplicationVersion
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,7 +40,8 @@ class ViewCommonOpsImpl @Inject constructor(
     private val config: CommonOpsConfig,
     private val imageService: ImageService,
     gameProviderService: GameProviderService,
-    private val fileSystemService: FileSystemService
+    private val fileSystemService: FileSystemService,
+    commonData: CommonData
 ) : ViewCommonOps {
     override val applicationVersion = ApplicationVersion
 
@@ -55,6 +60,13 @@ class ViewCommonOpsImpl @Inject constructor(
         val search = URLEncoder.encode("${game.name} gameplay ${game.platform}", "utf-8")
         return "${config.youTubeBaseUrl}/results?search_query=$search"
     }
+
+    override val canRunGameSync: BroadcastReceiveChannel<IsValid> =
+        commonData.isGameSyncRunning.map { isGameSyncRunning ->
+            Try {
+                check(!isGameSyncRunning) { "Game sync in progress!" }
+            }
+        }
 }
 
 data class CommonOpsConfig(

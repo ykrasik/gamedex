@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -113,4 +114,7 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
 
         excludedGames.perform { resizeColumnsToFitContent() }
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 }

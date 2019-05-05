@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.report.presenter
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -38,8 +37,7 @@ import javax.inject.Singleton
 class ReportPresenter @Inject constructor(
     private val gameService: GameService,
     private val reportService: ReportService,
-    private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val taskService: TaskService
 ) : Presenter<ReportView> {
     override fun present(view: ReportView) = object : ViewSession() {
         private val isReportDirtyChannel = BroadcastEventChannel.conflated(false)
@@ -93,14 +91,14 @@ class ReportPresenter @Inject constructor(
             }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             // Send the existing 'reportDirty' value to the channel again, to cause the consumer to re-run
             isReportDirty = isReportDirty
         }
 
         private fun finished() {
             view.report *= Report.Null
-            eventBus.viewFinished(view)
+            view.hide()
         }
     }
 }

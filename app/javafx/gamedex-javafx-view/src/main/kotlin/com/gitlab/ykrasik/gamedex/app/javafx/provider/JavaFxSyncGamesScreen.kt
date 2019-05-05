@@ -14,14 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.provider
+package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchStatus
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxProviderSearchView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar

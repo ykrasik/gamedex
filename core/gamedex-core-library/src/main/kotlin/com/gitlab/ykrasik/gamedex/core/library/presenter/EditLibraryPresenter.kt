@@ -60,7 +60,7 @@ class EditLibraryPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val library = view.library
 
             view.platform *= library?.platformOrNull ?: Platform.Windows

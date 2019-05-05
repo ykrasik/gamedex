@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.common
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -101,4 +102,7 @@ class JavaFxAboutView : PresentableWindow("About"), AboutView, ViewCanBrowseUrl 
     init {
         register()
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 }

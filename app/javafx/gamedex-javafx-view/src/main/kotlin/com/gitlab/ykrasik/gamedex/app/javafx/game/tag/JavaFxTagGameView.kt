@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.tag
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -105,6 +106,9 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
             }
         }
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 
     class Style : Stylesheet() {
         companion object {

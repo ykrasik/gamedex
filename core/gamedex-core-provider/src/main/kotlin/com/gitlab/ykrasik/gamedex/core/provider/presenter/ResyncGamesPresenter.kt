@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
+import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.ResyncGameService
@@ -36,7 +36,7 @@ class ResyncGamesPresenter @Inject constructor(
     private val settingsService: SettingsService,
     private val resyncGameService: ResyncGameService,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val viewCommonOps: ViewCommonOps
 ) : Presenter<ResyncGamesView> {
     override fun present(view: ResyncGamesView) = object : ViewSession() {
         init {
@@ -46,7 +46,8 @@ class ResyncGamesPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
+            viewCommonOps.canRunGameSync.peek().assert()
             view.resyncGamesFilter *= settingsService.providerGeneral.resyncGamesFilter
             setCanAccept()
         }
@@ -70,6 +71,6 @@ class ResyncGamesPresenter @Inject constructor(
             finished()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun finished() = view.hide()
     }
 }

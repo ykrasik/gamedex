@@ -29,6 +29,8 @@ interface ReportView {
     val report: UserMutableState<Report>
 
     val result: State<ReportResult>
+
+    fun hide()
 }
 
 data class ReportResult(

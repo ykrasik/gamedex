@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
@@ -51,4 +52,7 @@ class JavaFxDeleteReportView : ConfirmationWindow(icon = Icons.delete), DeleteRe
         isDisable = true
         add(filterView.root)
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 }

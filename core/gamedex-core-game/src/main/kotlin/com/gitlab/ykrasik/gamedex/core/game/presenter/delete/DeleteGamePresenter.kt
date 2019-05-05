@@ -44,7 +44,7 @@ class DeleteGamePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             view.fromFileSystem *= false
         }
 

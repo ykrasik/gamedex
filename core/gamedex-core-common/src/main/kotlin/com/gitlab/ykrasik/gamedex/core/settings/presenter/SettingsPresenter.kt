@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
@@ -31,8 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SettingsPresenter @Inject constructor(
-    private val settingsService: SettingsService,
-    private val eventBus: EventBus
+    private val settingsService: SettingsService
 ) : Presenter<SettingsView> {
     override fun present(view: SettingsView) = object : ViewSession() {
         init {
@@ -41,7 +39,7 @@ class SettingsPresenter @Inject constructor(
             view.resetDefaultsActions.forEach { onResetDefaults() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             settingsService.saveSnapshot()
         }
 
@@ -55,7 +53,7 @@ class SettingsPresenter @Inject constructor(
             finished()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun finished() = view.hide()
 
         private fun onResetDefaults() {
             if (view.confirmResetDefaults()) {

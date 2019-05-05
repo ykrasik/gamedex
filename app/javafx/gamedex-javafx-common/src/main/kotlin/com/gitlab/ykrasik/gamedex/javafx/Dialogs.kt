@@ -67,4 +67,6 @@ class AreYouSureDialog(title: String, icon: Node?, op: (VBox.() -> Unit)?) : Con
         openModal(StageStyle.TRANSPARENT, block = true)
         return accept
     }
+
+    override fun hide() = close()
 }

@@ -63,7 +63,7 @@ class DuplicatesReportPresenter @Inject constructor(
             view.duplicates.setAll(duplicates)
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             // Send the existing 'isDirty' value to the channel again, to cause the consumer to re-run
             isDirty = isDirty
         }

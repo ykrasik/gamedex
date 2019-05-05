@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.delete
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
@@ -46,4 +47,7 @@ class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGame
     override val root = buildAreYouSure {
         jfxCheckBox(fromFileSystem.property, "From File System")
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 }

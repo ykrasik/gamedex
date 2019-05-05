@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -28,5 +27,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface GameDetailsView {
     val game: UserMutableState<Game?>
 
-    val hideViewActions: ReceiveChannel<Unit>
+    fun hide()
 }

@@ -25,4 +25,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
  */
 interface AboutView {
     val acceptActions: ReceiveChannel<Unit>
+
+    fun hide()
 }

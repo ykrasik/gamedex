@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.control.PopOverMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
@@ -45,10 +45,11 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     ClearUserDataView,
     ViewCanCleanupDatabase,
     ViewCanRefetchGames,
-    ViewCanResyncGames,
     ViewCanShowDuplicatesReport,
     ViewCanShowFolderNameDiffReport,
     ViewCanBrowsePath {
+
+    private val commonOps: JavaFxCommonOps by di()
 
     override val exportDatabaseActions = channel<Unit>()
     override val importDatabaseActions = channel<Unit>()
@@ -103,7 +104,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             infoButton("Re-Sync", Icons.sync) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                enableWhen(canResyncGames)
+                enableWhen(commonOps.canRunGameSync)
                 action(resyncGamesActions)
             }
         }

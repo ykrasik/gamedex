@@ -33,10 +33,11 @@ import kotlin.reflect.full.allSuperclasses
  * Time: 17:33
  */
 @Singleton
-class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<*>, Presenter<*>>) : ViewRegistry {
+class ViewRegistryImpl @Inject constructor(
+    private val presenters: MutableMap<KClass<*>, Presenter<*>>
+) : ViewRegistry {
     private val log = logger()
 
-    private val presenters: Map<KClass<*>, Presenter<*>> = initialPresenters
     private val sessions = mutableMapOf<Any, List<ViewSession>>()
 
     override fun onCreate(view: Any) {
@@ -58,13 +59,13 @@ class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<
     override fun onShow(view: Any) {
         GlobalScope.launch(Dispatchers.Main, CoroutineStart.UNDISPATCHED) {
             log.trace("Show: $view")
-            sessions[view]!!.forEach { it.show() }
+            sessions[view]!!.forEach { it.onShow() }
         }
     }
 
     override fun onHide(view: Any) {
         log.trace("Hide: $view")
-        sessions[view]!!.forEach { it.hide() }
+        sessions[view]!!.forEach { it.onHide() }
     }
 
 //    init {

@@ -14,12 +14,11 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.app.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
-import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsScreen
@@ -28,11 +27,14 @@ import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxFolderNameDiffScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxSyncGamesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
+import com.gitlab.ykrasik.gamedex.javafx.callOnDock
+import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSyncGamesScreen
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -54,7 +56,9 @@ import java.util.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAboutView {
+class MainView : PresentableView("GameDex"), ViewCanShowAboutView {
+    private val viewManager: ViewManager by inject()
+
     val taskView: JavaFxTaskView by inject()
 
     private val gameScreen: JavaFxGameScreen by inject()
@@ -71,7 +75,6 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
-    override val showSettingsActions = channel<Unit>()
     override val showAboutActions = channel<Unit>()
 
     private val maxNavigationHistory = 5
@@ -125,7 +128,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
 
         navigationButton(logScreen)
         navigationButton("Settings", Icons.settings) {
-            action(showSettingsActions)
+            action { viewManager.showSettingsView() }
             shortcut("ctrl+o")
             tooltip("Settings (ctrl+o)")
         }

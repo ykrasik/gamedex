@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
@@ -48,6 +49,7 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     ViewCanChangeMetaTagOverlayDisplaySettings,
     ViewCanChangeVersionOverlayDisplaySettings {
 
+    private val viewManager: ViewManager by inject()
     private val commonOps: JavaFxCommonOps by di()
 
     override val resetDefaultsActions = channel<Unit>()
@@ -167,4 +169,8 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     }
 
     override fun confirmResetDefaults() = areYouSureDialog("Reset all settings to default?")
+
+    override fun hide() {
+        viewManager.hide(this)
+    }
 }

@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
@@ -48,4 +49,7 @@ class JavaFxResyncGamesView : ConfirmationWindow("Re-Sync Games", Icons.sync), R
             filterView.filter.onChange { resizeToContent() }
         }
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 }

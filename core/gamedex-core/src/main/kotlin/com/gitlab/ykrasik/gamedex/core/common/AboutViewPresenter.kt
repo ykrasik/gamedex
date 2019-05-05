@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.common
 
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
@@ -29,12 +28,10 @@ import javax.inject.Singleton
  * Time: 15:28
  */
 @Singleton
-class AboutViewPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<AboutView> {
+class AboutViewPresenter @Inject constructor() : Presenter<AboutView> {
     override fun present(view: AboutView) = object : ViewSession() {
         init {
-            view.acceptActions.forEach {
-                eventBus.viewFinished(view)
-            }
+            view.acceptActions.forEach { view.hide() }
         }
     }
 }

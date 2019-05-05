@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.common.WebBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
@@ -251,6 +251,9 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         gap()
         searchTextField(this@JavaFxReportScreen, searchText.property) { isFocusTraversable = false }
     }
+
+    private val viewManager: ViewManager by inject()
+    override fun hide() = viewManager.hide(this)
 
     class Style : Stylesheet() {
         companion object {

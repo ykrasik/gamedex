@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.find
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEqual
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -44,8 +43,7 @@ import javax.inject.Singleton
 class EditReportPresenter @Inject constructor(
     private val reportService: ReportService,
     private val gameService: GameService,
-    private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val taskService: TaskService
 ) : Presenter<EditReportView> {
     override fun present(view: EditReportView) = object : ViewSession() {
         init {
@@ -59,7 +57,7 @@ class EditReportPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val report = view.report
             view.name *= report?.name ?: ""
             view.filter *= report?.filter ?: Filter.Null
@@ -131,6 +129,6 @@ class EditReportPresenter @Inject constructor(
             finished()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun finished() = view.hide()
     }
 }

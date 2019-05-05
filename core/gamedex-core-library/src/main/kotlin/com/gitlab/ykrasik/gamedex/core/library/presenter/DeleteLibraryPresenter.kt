@@ -45,7 +45,7 @@ class DeleteLibraryPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             view.gamesToBeDeleted.setAll(gameService.games.filter { it.library.id == view.library.id })
         }
 

@@ -51,7 +51,7 @@ class TagGamePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val game = view.game
             view.tags.setAll(commonData.tags)
             view.checkedTags.setAll(game.tags)

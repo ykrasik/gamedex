@@ -62,7 +62,7 @@ class RenameMoveGamePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val game = view.game
             library = game.library
             name = view.initialName ?: game.rawGame.metadata.path.file.name

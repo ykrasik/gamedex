@@ -24,8 +24,10 @@ import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.control.toImage
+import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Ref
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
@@ -92,4 +94,10 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     fun providerLogo(providerId: ProviderId): JavaFxImage = providerLogos.getValue(providerId)
 
     fun youTubeGameplayUrl(game: Game): String = ops.youTubeGameplayUrl(game)
+
+    val canRunGameSync = state(IsValid.valid).apply {
+        ops.canRunGameSync.subscribe(Dispatchers.JavaFx) {
+            this.value = it
+        }
+    }
 }
