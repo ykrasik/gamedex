@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
@@ -47,14 +47,14 @@ import java.io.File
  * Date: 30/03/2017
  * Time: 18:17
  */
-class JavaFxGameDetailsScreen : PresentableScreen(),
+class JavaFxGameDetailsView : PresentableScreen(),
     GameDetailsView,
     ViewCanEditGame,
     ViewCanDeleteGame,
     ViewCanTagGame,
     ViewCanResyncGame,
     ViewCanRefetchGame,
-    ViewCanBrowsePath {
+    ViewCanOpenFile {
 
     private val commonOps: JavaFxCommonOps by di()
 
@@ -77,7 +77,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     override val canResyncGame = state(IsValid.valid)
     override val resyncGameActions = channel<Game>()
 
-    override val browsePathActions = channel<File>()
+    override val openFileActions = channel<File>()
     private val browseUrlActions = channel<String>()
 
     init {
@@ -167,9 +167,9 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
                 game.onChange { game ->
                     replaceChildren {
                         if (game!!.id != Game.Null.id) {
-                            children += GameDetailsPaneBuilder(game, commonOps) {
-                                browsePathActions = this@JavaFxGameDetailsScreen.browsePathActions
-                                browseUrlActions = this@JavaFxGameDetailsScreen.browseUrlActions
+                            children += GameDetailsSummaryBuilder(game, commonOps) {
+                                browsePathActions = this@JavaFxGameDetailsView.openFileActions
+                                browseUrlActions = this@JavaFxGameDetailsView.browseUrlActions
                                 fillWidth = false
                                 imageFitWidth = 400
                                 imageFitHeight = 400

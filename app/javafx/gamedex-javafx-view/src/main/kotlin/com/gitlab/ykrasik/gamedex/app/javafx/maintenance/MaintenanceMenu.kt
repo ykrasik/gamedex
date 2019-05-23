@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
@@ -48,7 +48,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     ViewCanResyncGames,
     ViewCanShowDuplicatesReport,
     ViewCanShowFolderNameDiffReport,
-    ViewCanBrowsePath {
+    ViewCanOpenFile {
 
     override val exportDatabaseActions = channel<Unit>()
     override val importDatabaseActions = channel<Unit>()
@@ -62,7 +62,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     override val showDuplicatesReportActions = channel<Unit>()
     override val showFolderNameDiffReportActions = channel<Unit>()
 
-    override val browsePathActions = channel<File>()
+    override val openFileActions = channel<File>()
 
     init {
         register()
@@ -144,7 +144,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
 
     override fun browseDirectory(directory: File) {
         // TODO: This kinda sucks. a presenter is telling the view to browse, but the view is delegating to another presenter.
-        browsePathActions.offer(directory)
+        openFileActions.offer(directory)
     }
 
     override fun confirmImportDatabase() = areYouSureDialog("The existing database will be lost!")

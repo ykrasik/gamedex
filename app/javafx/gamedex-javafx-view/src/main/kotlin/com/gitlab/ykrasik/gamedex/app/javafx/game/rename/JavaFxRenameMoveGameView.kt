@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -39,7 +39,7 @@ import java.io.File
  * Date: 11/06/2017
  * Time: 19:47
  */
-class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView, ViewCanBrowsePath {
+class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView, ViewCanOpenFile {
     override var initialName: String? = null
 
     private val gameProperty = SimpleObjectProperty(Game.Null)
@@ -53,7 +53,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     override val nameIsValid = state(IsValid.valid)
 
     override val selectDirectoryActions = channel<Unit>()
-    override val browsePathActions = channel<File>()
+    override val openFileActions = channel<File>()
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Rename/Move '${it!!.name}'" })
@@ -71,7 +71,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                     horizontalField {
                         jfxButton {
                             textProperty().bind(gameProperty.stringBinding { it!!.path.toString() })
-                            action(browsePathActions) { game.path }
+                            action(openFileActions) { game.path }
                         }
                     }
                 }

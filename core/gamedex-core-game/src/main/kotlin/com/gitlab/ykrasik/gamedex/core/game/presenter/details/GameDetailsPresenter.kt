@@ -33,7 +33,7 @@ import javax.inject.Singleton
  * Time: 20:22
  */
 @Singleton
-class GameDetailsViewPresenter @Inject constructor(
+class GameDetailsPresenter @Inject constructor(
     private val gameService: GameService,
     private val eventBus: EventBus
 ) : Presenter<GameDetailsView> {

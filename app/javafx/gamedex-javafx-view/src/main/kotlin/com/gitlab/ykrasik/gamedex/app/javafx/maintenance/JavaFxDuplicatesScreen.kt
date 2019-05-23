@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.GameDuplicates
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -47,7 +47,7 @@ import java.io.File
 class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     DuplicatesView,
     ViewCanShowGameDetails,
-    ViewCanBrowsePath {
+    ViewCanOpenFile {
 
     private val gameContextMenu: GameContextMenu by inject()
     private val commonOps: JavaFxCommonOps by di()
@@ -60,7 +60,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     override val searchText = userMutableState("")
     override val matchingGame = state<Game?>(null)
 
-    override val browsePathActions = channel<File>()
+    override val openFileActions = channel<File>()
 //    private val browseUrlActions = channel<String>()
 
     override val hideViewActions = channel<Unit>()
@@ -74,7 +74,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
             val game = duplicate.game
             text = null
             maxWidth = 600.0
-            graphic = GameDetailsPaneBuilder(
+            graphic = GameDetailsSummaryBuilder(
                 name = game.name,
                 nameOp = { isWrapText = true },
                 platform = game.platform,
@@ -84,7 +84,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
                 path = game.path,
                 fileTree = game.fileTree,
                 image = commonOps.fetchThumbnail(game),
-                browsePathActions = browsePathActions,
+                browsePathActions = openFileActions,
                 pathOp = { isMouseTransparent = true },
                 imageFitHeight = 70,
                 imageFitWidth = 70,

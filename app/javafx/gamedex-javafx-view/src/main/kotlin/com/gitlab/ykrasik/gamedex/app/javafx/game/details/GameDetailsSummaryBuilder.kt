@@ -48,7 +48,7 @@ import java.io.File
  * Date: 16/01/2019
  * Time: 08:38
  */
-class GameDetailsPaneBuilder(
+class GameDetailsSummaryBuilder(
     var name: String? = null,
     var nameOp: (Label.() -> Unit)? = null,
 
@@ -323,7 +323,7 @@ class GameDetailsPaneBuilder(
     }
 
     companion object {
-        inline operator fun invoke(game: Game, commonOps: JavaFxCommonOps, op: GameDetailsPaneBuilder.() -> Unit) = GameDetailsPaneBuilder(
+        inline operator fun invoke(game: Game, commonOps: JavaFxCommonOps, op: GameDetailsSummaryBuilder.() -> Unit) = GameDetailsSummaryBuilder(
             name = game.name,
             platform = game.platform,
             description = game.description,

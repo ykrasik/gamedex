@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.app.javafx
 
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
@@ -22,17 +22,20 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.LibraryMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxFolderNameDiffScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxSyncGamesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
+import com.gitlab.ykrasik.gamedex.javafx.callOnDock
+import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSyncGamesScreen
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -67,7 +70,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
     private val maintenanceMenu: MaintenanceMenu by inject()
     private val logScreen: JavaFxLogScreen by inject()
 
-    private val gameDetailsScreen: JavaFxGameDetailsScreen by inject()
+    private val gameDetailsView: JavaFxGameDetailsView by inject()
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
@@ -95,7 +98,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         tab(duplicatesScreen)
         tab(folderNameDiffScreen)
         tab(logScreen)
-        tab(gameDetailsScreen)
+        tab(gameDetailsView)
 
         selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
             cleanupClosedTab(oldValue)
@@ -208,7 +211,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         crossinline op: PopOverMenu.() -> Unit = { children += view.root }
     ): HBox = popOverSubMenu(view.title, view.icon, op = op)
 
-    fun showGameDetails(params: ViewGameParams): JavaFxGameDetailsScreen = selectScreen(gameDetailsScreen) {
+    fun showGameDetails(params: ViewGameParams): JavaFxGameDetailsView = selectScreen(gameDetailsView) {
         this.gameParams.valueFromView = params
     }
 

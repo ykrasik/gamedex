@@ -14,17 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.file
+package com.gitlab.ykrasik.gamedex.core.file.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
-import kotlinx.coroutines.channels.ReceiveChannel
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.awt.Desktop
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 12/10/2018
- * Time: 09:27
+ * Time: 09:30
  */
-interface ViewCanBrowsePath : ViewCanDisplayError {
-    val browsePathActions: ReceiveChannel<File>
+@Singleton
+class OpenFilePresenter @Inject constructor() : Presenter<ViewCanOpenFile> {
+    override fun present(view: ViewCanOpenFile) = object : ViewSession() {
+        init {
+            view.openFileActions.forEach {
+                try {
+                    withContext(Dispatchers.IO) {
+                        // TODO: This is actually more like view-specific logic.
+                        Desktop.getDesktop().open(it)
+                    }
+                } catch (e: Exception) {
+                    view.onError("File doesn't exist: $it", e)
+                }
+            }
+        }
+    }
 }

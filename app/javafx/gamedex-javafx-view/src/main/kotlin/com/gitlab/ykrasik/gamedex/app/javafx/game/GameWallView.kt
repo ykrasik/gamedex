@@ -17,14 +17,14 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
@@ -55,7 +55,7 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
     ViewWithMetaTagOverlayDisplaySettings,
     ViewWithVersionOverlayDisplaySettings,
     ViewCanBrowseUrl,
-    ViewCanBrowsePath {
+    ViewCanOpenFile {
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
 
@@ -65,7 +65,7 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
     override val versionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
     override val browseUrlActions = channel<String>()
-    override val browsePathActions = channel<File>()
+    override val openFileActions = channel<File>()
 
     private val commonOps: JavaFxCommonOps by di()
 
@@ -78,8 +78,8 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
             addClass(Style.quickDetails)
             gameProperty.typeSafeOnChange { game ->
                 replaceChildren {
-                    children += GameDetailsPaneBuilder(game, commonOps) {
-                        browsePathActions = this@GameWallView.browsePathActions
+                    children += GameDetailsSummaryBuilder(game, commonOps) {
+                        browsePathActions = this@GameWallView.openFileActions
                         browseUrlActions = this@GameWallView.browseUrlActions
                         image = null
                     }.build()

@@ -14,14 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.provider
+package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchStatus
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxProviderSearchView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
@@ -42,7 +41,7 @@ import java.io.File
  * Date: 17/10/2018
  * Time: 09:18
  */
-class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesView, ViewCanBrowsePath {
+class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesView, ViewCanOpenFile {
     override val cancelActions = channel<Unit>()
 
     override val isAllowSmartChooseResults = state(false)
@@ -56,7 +55,7 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
     override val currentState = userMutableState<GameSearchState?>(null)
     override val restartStateActions = channel<GameSearchState>()
 
-    override val browsePathActions = channel<File>()
+    override val openFileActions = channel<File>()
 
     private val providerSearchView: JavaFxProviderSearchView by inject()
 

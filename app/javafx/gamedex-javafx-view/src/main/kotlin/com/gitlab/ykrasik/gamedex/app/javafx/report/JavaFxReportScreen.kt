@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.report.*
@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.common.WebBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
@@ -56,7 +56,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     ViewCanSearchReportResult,
     ViewCanShowGameDetails,
     ViewCanAddOrEditReport,
-    ViewCanBrowsePath {
+    ViewCanOpenFile {
 
     private val gameContextMenu: GameContextMenu by inject()
     private val browser = WebBrowser()
@@ -75,7 +75,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
 
     override val matchingGame = state<Game?>(null)
 
-    override val browsePathActions = channel<File>()
+    override val openFileActions = channel<File>()
     private val browseUrlActions = channel<String>()
 
     override val report = userMutableState(Report.Null)
@@ -89,7 +89,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         prettyListCell { game ->
             text = null
             maxWidth = 600.0
-            graphic = GameDetailsPaneBuilder(
+            graphic = GameDetailsSummaryBuilder(
                 name = game.name,
                 nameOp = { isWrapText = true },
                 platform = game.platform,
@@ -99,7 +99,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                 path = game.path,
                 fileTree = game.fileTree,
                 image = commonOps.fetchThumbnail(game),
-                browsePathActions = browsePathActions,
+                browsePathActions = openFileActions,
                 pathOp = { isMouseTransparent = true },
                 imageFitHeight = 70,
                 imageFitWidth = 70,
@@ -195,8 +195,8 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                             isBrowserVisible = false
                             replaceChildren {
                                 if (game != null) {
-                                    children += GameDetailsPaneBuilder(game, commonOps) {
-                                        browsePathActions = this@JavaFxReportScreen.browsePathActions
+                                    children += GameDetailsSummaryBuilder(game, commonOps) {
+                                        browsePathActions = this@JavaFxReportScreen.openFileActions
                                         browseUrlActions = this@JavaFxReportScreen.browseUrlActions
                                         fillWidth = false
                                         imageFitWidth = 320
