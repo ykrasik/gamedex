@@ -132,7 +132,7 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
         val client = GiantBombClient(
             GiantBombConfig(
                 baseUrl = server.baseUrl,
-                noImageFileName = "",
+                noImageFileNames = emptyList(),
                 accountUrl = "",
                 defaultOrder = ProviderOrderPriorities.default,
                 platforms = mapOf(platform.name to platformId)

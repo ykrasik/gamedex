@@ -83,7 +83,7 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
         siteUrl = siteDetailUrl
     )
 
-    private fun String.filterEmptyImage(): String? = if (endsWith(config.noImageFileName)) null else this
+    private fun String.filterEmptyImage(): String? = takeUnless { config.noImageFileNames.any { this.endsWith(it) } }
 
     private fun assertOk(status: GiantBombClient.Status) {
         if (status != GiantBombClient.Status.OK) {

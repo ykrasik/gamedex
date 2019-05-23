@@ -96,8 +96,16 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 }
             }
 
-            "consider GiantBomb logo url as absent image" test {
-                givenClientSearchReturns(listOf(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage"))))
+            "consider noImageUrl1 as absent image" test {
+                givenClientSearchReturns(listOf(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1"))))
+
+                search() should haveASingleSearchResultThat {
+                    it.thumbnailUrl shouldBe null
+                }
+            }
+
+            "consider noImageUrl2 as absent image" test {
+                givenClientSearchReturns(listOf(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2"))))
 
                 search() should haveASingleSearchResultThat {
                     it.thumbnailUrl shouldBe null
@@ -162,21 +170,41 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.imageUrls.posterUrl shouldBe null
             }
 
-            "consider GiantBomb logo url as absent thumbnail" test {
-                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage")))
+            "consider noImageUrl1 as absent thumbnail" test {
+                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1")))
 
                 fetch().gameData.imageUrls.thumbnailUrl shouldBe null
             }
 
-            "consider GiantBomb logo url as absent poster" test {
-                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage")))
+            "consider noImageUrl2 as absent thumbnail" test {
+                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2")))
+
+                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
+            }
+
+            "consider noImageUrl1 as absent poster" test {
+                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage1")))
 
                 fetch().gameData.imageUrls.posterUrl shouldBe null
             }
 
-            "filter out GiantBomb logo url from screenshots" test {
+            "consider noImageUrl1 as absent poster" test {
+                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage2")))
+
+                fetch().gameData.imageUrls.posterUrl shouldBe null
+            }
+
+            "filter out no image urls from screenshots" test {
                 val screenshot1 = randomImage()
-                givenClientFetchReturns(detailsResult().copy(images = listOf(randomImage().copy(superUrl = "${randomUrl()}/$noImage"), screenshot1)))
+                givenClientFetchReturns(
+                    detailsResult().copy(
+                        images = listOf(
+                            randomImage().copy(superUrl = "${randomUrl()}/$noImage1"),
+                            screenshot1,
+                            randomImage().copy(superUrl = "${randomUrl()}/$noImage2")
+                        )
+                    )
+                )
 
                 fetch().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
@@ -197,7 +225,8 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
         val description = randomParagraph()
         val apiDetailUrl = randomUrl()
         val account = GiantBombUserAccount(apiKey = randomWord())
-        val noImage = randomWord()
+        val noImage1 = randomWord()
+        val noImage2 = randomWord()
 
         fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
@@ -236,7 +265,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
         suspend fun search(name: String = this.name) = provider.search(name, platform, account)
         suspend fun fetch(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.fetch(apiUrl, platform, account)
 
-        private val config = GiantBombConfig("", noImage, "", ProviderOrderPriorities.default, emptyMap())
+        private val config = GiantBombConfig("", listOf(noImage1, noImage2), "", ProviderOrderPriorities.default, emptyMap())
         private val client = mockk<GiantBombClient>()
         val provider = GiantBombProvider(config, client)
 
