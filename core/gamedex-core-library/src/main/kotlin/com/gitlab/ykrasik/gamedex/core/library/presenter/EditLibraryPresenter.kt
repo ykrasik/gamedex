@@ -60,7 +60,7 @@ class EditLibraryPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val library = view.library
 
             view.platform *= library?.platformOrNull ?: Platform.Windows
@@ -189,13 +189,13 @@ class EditLibraryPresenter @Inject constructor(
 
             taskService.execute(task)
 
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

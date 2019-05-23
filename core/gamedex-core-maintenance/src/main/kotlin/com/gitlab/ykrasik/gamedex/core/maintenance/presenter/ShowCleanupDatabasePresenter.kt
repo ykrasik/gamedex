@@ -17,11 +17,13 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanCleanupDatabase
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,8 +38,12 @@ class ShowCleanupDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanCleanupDatabase> {
+    init {
+        eventBus.onHideViewRequested<CleanupDatabaseView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanCleanupDatabase) = object : ViewSession() {
         init {
             view.cleanupDatabaseActions.forEach { cleanupDatabase() }
@@ -45,11 +51,11 @@ class ShowCleanupDatabasePresenter @Inject constructor(
 
         private suspend fun cleanupDatabase() {
             val staleData = taskService.execute(maintenanceService.detectStaleData())
-            if (staleData.isEmpty) return
-
-            val cleanupDatabaseView = viewManager.showCleanupDatabaseView(staleData)
-            eventBus.awaitViewFinished(cleanupDatabaseView)
-            viewManager.hide(cleanupDatabaseView)
+            if (staleData.isEmpty) {
+                view.onError("No stale data detected!")
+            } else {
+                viewManager.showCleanupDatabaseView(staleData)
+            }
         }
     }
 }

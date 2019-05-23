@@ -29,12 +29,14 @@ import javax.inject.Singleton
  * Time: 15:28
  */
 @Singleton
-class AboutViewPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<AboutView> {
+class AboutViewPresenter @Inject constructor(
+    private val eventBus: EventBus
+) : Presenter<AboutView> {
     override fun present(view: AboutView) = object : ViewSession() {
         init {
-            view.acceptActions.forEach {
-                eventBus.viewFinished(view)
-            }
+            view.acceptActions.forEach { hideView() }
         }
+
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

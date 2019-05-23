@@ -19,10 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
+import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -66,12 +63,13 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     private val isBrowserVisibleProperty = SimpleBooleanProperty(false)
     private var isBrowserVisible by isBrowserVisibleProperty
 
-    override val game = userMutableState<Game?>(null)
+    override val gameParams = userMutableState(ViewGameParams(Game.Null))
+    private val game = gameParams.property.binding { it.game }
 
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
-    override val editGameActions = channel<Pair<Game, GameDataType>>()
+    override val editGameActions = channel<EditGameParams>()
     override val deleteGameActions = channel<Game>()
     override val tagGameActions = channel<Game>()
     override val refetchGameActions = channel<Game>()
@@ -85,10 +83,12 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     init {
         register()
 
-        titleProperty.bind(game.property.stringBinding { it?.name })
-        game.property.typeSafeOnChange { game ->
-            isBrowserVisible = game != null
-            browser.loadYouTubeGameplay(game)
+        titleProperty.bind(game.stringBinding { it?.name })
+        game.typeSafeOnChange { game ->
+            isBrowserVisible = game.id != Game.Null.id
+            if (isBrowserVisible) {
+                browser.loadYouTubeGameplay(game)
+            }
         }
 
         GlobalScope.launch(Dispatchers.JavaFx) {
@@ -105,7 +105,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
             tooltip(selectedProperty().binding { "${if (it) "Hide" else "Show"} Browser" })
         }
         jfxButton("YouTube", Icons.youTube) {
-            tooltip(game.property.stringBinding { "Search YouTube for gameplay videos of '${it?.name}'" })
+            tooltip(game.stringBinding { "Search YouTube for gameplay videos of '${it?.name}'" })
             action {
                 isBrowserVisible = true
                 browser.loadYouTubeGameplay(game.value)
@@ -140,7 +140,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     override val root = stackpane {
         vgrow = Priority.ALWAYS
         stackpane {
-            backgroundProperty().bind(game.property.flatMap { game ->
+            backgroundProperty().bind(game.flatMap { game ->
                 val image = commonOps.fetchPoster(game)
                 image.binding {
                     Background(
@@ -164,9 +164,9 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
             // Top
             stackpane {
                 paddingAll = 5.0
-                game.property.onChange { game ->
+                game.onChange { game ->
                     replaceChildren {
-                        if (game != null) {
+                        if (game!!.id != Game.Null.id) {
                             children += GameDetailsPaneBuilder(game, commonOps) {
                                 browsePathActions = this@JavaFxGameDetailsScreen.browsePathActions
                                 browseUrlActions = this@JavaFxGameDetailsScreen.browseUrlActions
@@ -190,5 +190,5 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
         }
     }
 
-    private fun editGame(initialTab: GameDataType) = editGameActions.event(game.value!! to initialTab)
+    private fun editGame(initialTab: GameDataType) = editGameActions.event(EditGameParams(game.value!!, initialTab))
 }

@@ -119,7 +119,7 @@ class EditGamePresenter @Inject constructor(
             allOverrides.forEach { it.onResetStateToDefault() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             allOverrides.forEach { it.initStateOnShow() }
 
             gameWithoutOverrides = gameService.buildGame(view.game.rawGame.copy(userData = UserData.Null))
@@ -133,8 +133,7 @@ class EditGamePresenter @Inject constructor(
                 .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.header.id to value } }
                 .toMap()
 
-            val currentOverride = view.game.rawGame.userData.overrides[type]
-            when (currentOverride) {
+            when (val currentOverride = view.game.rawGame.userData.overrides[type]) {
                 is GameDataOverride.Custom -> {
                     selection *= OverrideSelectionType.Custom
                     canSelectCustomOverride *= IsValid.valid
@@ -190,14 +189,14 @@ class EditGamePresenter @Inject constructor(
             view.canAccept.assert()
             val newRawGame = calcUpdatedGame()
             taskService.execute(gameService.replace(view.game, newRawGame))
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
 
         private fun calcUpdatedGame(): RawGame {
             val overrides: Map<GameDataType, GameDataOverride> = allOverrides.mapNotNull { override ->

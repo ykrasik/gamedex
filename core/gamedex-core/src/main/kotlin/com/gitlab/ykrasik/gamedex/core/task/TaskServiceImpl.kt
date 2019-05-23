@@ -33,16 +33,18 @@ class TaskServiceImpl @Inject constructor(
     private val eventBus: EventBus
 ) : TaskService {
     override suspend fun <T> execute(task: Task<T>): T = withTaskView {
-        eventBus.send(TaskStartedEvent(task))
-        val event = eventBus.awaitEvent<TaskFinishedEvent<T>> { it.task == task }
+        eventBus.send(TaskEvent.Started(task))
+        val event = eventBus.awaitEvent<TaskEvent.Finished<T>> { it.task == task }
         return event.result.get()
     }
 
     private inline fun <T> withTaskView(f: () -> T): T {
         val view = viewManager.showTaskView()
-        val result = f()
-        viewManager.hide(view)
-        return result
+        return try {
+            f()
+        } finally {
+            viewManager.hide(view)
+        }
     }
 }
 

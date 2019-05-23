@@ -51,7 +51,7 @@ class TagGamePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val game = view.game
             view.tags.setAll(commonData.tags)
             view.checkedTags.setAll(game.tags)
@@ -114,13 +114,13 @@ class TagGamePresenter @Inject constructor(
             val newRawGame = view.game.rawGame.copy(userData = newUserData)
             taskService.execute(gameService.replace(view.game, newRawGame))
 
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

@@ -82,7 +82,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val currentPlatformFilter = filterView.externalMutations
     override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
 
-    override val showGameDetailsActions = channel<Game>()
+    override val viewGameDetailsActions = channel<ViewGameParams>()
 
     init {
         register()
@@ -157,7 +157,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
                 fun showGameDetails(game: Game) {
                     popOver.hide()
-                    showGameDetailsActions.event(game)
+                    viewGameDetailsActions.event(ViewGameParams(game))
                 }
 
                 setCellFactory {

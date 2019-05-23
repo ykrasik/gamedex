@@ -16,7 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -36,29 +38,31 @@ class GameDetailsViewPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : ViewSession() {
+        private var gameParams by view.gameParams
+
         init {
-            view.game *= null
-            view.hideViewActions.forEach { finished() }
+            view.gameParams *= ViewGameParams.Null
+            view.hideViewActions.forEach { hideView() }
 
             gameService.games.changesChannel.forEach { e ->
-                val game = view.game.value ?: return@forEach
+                val game = gameParams.game.takeIf { it.id != Game.Null.id } ?: return@forEach
                 when (e) {
                     is ListEvent.ItemRemoved -> {
-                        if (e.item == game) finished()
+                        if (e.item == game) hideView()
                     }
                     is ListEvent.ItemsRemoved -> {
-                        if (e.items.contains(game)) finished()
+                        if (e.items.contains(game)) hideView()
                     }
                     is ListEvent.ItemSet -> {
                         if (e.item.id == game.id) {
                             val item = e.item
-                            view.game *= item
+                            gameParams = ViewGameParams(item)
                         }
                     }
                     is ListEvent.ItemsSet -> {
                         val relevantGame = e.items.find { it.id == game.id }
                         if (relevantGame != null) {
-                            view.game *= relevantGame
+                            gameParams = ViewGameParams(relevantGame)
                         }
                     }
                     else -> {
@@ -68,9 +72,9 @@ class GameDetailsViewPresenter @Inject constructor(
             }
         }
 
-        private fun finished() {
-            view.game *= null
-            eventBus.viewFinished(view)
+        private fun hideView() {
+            view.gameParams *= ViewGameParams.Null
+            eventBus.requestHideView(view)
         }
     }
 }

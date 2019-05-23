@@ -45,14 +45,19 @@ import tornadofx.vbox
  * Time: 21:20
  */
 // TODO: Allow adding extra buttons, like for report screen.
-class GameContextMenu : InstallableContextMenu<Game>(),
-    ViewCanShowGameDetails, ViewCanEditGame, ViewCanDeleteGame,
-    ViewCanRenameMoveGame, ViewCanTagGame, ViewCanRefetchGame, ViewCanResyncGame {
+class GameContextMenu : InstallableContextMenu<ViewGameParams>(),
+    ViewCanShowGameDetails,
+    ViewCanEditGame,
+    ViewCanDeleteGame,
+    ViewCanRenameMoveGame,
+    ViewCanTagGame,
+    ViewCanRefetchGame,
+    ViewCanResyncGame {
 
-    override val showGameDetailsActions = channel<Game>()
-    override val editGameActions = channel<Pair<Game, GameDataType>>()
+    override val viewGameDetailsActions = channel<ViewGameParams>()
+    override val editGameActions = channel<EditGameParams>()
     override val deleteGameActions = channel<Game>()
-    override val renameMoveGameActions = channel<Pair<Game, String?>>()
+    override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
     override val refetchGameActions = channel<Game>()
 
@@ -65,27 +70,29 @@ class GameContextMenu : InstallableContextMenu<Game>(),
 
     override val root = vbox {
         addClass(GameDexStyle.popOverMenu)
-        item("View", Icons.view) { action(showGameDetailsActions) { data } }
+        item("View", Icons.view) { action(viewGameDetailsActions) { data } }
         verticalGap()
         item("Edit", Icons.edit) { action { editGame(GameDataType.Name) } }
         item("Change Thumbnail", Icons.thumbnail) { action { editGame(GameDataType.Thumbnail) } }
         verticalGap()
-        item("Tag", Icons.tag) { action(tagGameActions) { data } }
+        item("Tag", Icons.tag) { action(tagGameActions) { data.game } }
         verticalGap()
         item("Re-Fetch", Icons.download) {
             addClass(GameDexStyle.infoButton)
-            action(refetchGameActions) { data }
+            action(refetchGameActions) { data.game }
         }
         item("Re-Sync", Icons.sync) {
             addClass(GameDexStyle.infoButton)
             enableWhen(canResyncGame)
-            action(resyncGameActions) { data }
+            action(resyncGameActions) { data.game }
         }
         verticalGap()
-        item("Rename/Move Folder", Icons.folderEdit) { action(renameMoveGameActions) { data to null } }
+        item("Rename/Move Folder", Icons.folderEdit) {
+            action(renameMoveGameActions) { RenameMoveGameParams(data.game, initialSuggestion = null) }
+        }
         item("Delete", Icons.delete) {
             addClass(GameDexStyle.dangerButton)
-            action(deleteGameActions) { data }
+            action(deleteGameActions) { data.game }
         }
     }
 
@@ -94,5 +101,5 @@ class GameContextMenu : InstallableContextMenu<Game>(),
         op()
     }
 
-    private fun editGame(initialScreen: GameDataType) = editGameActions.event(data to initialScreen)
+    private fun editGame(initialView: GameDataType) = editGameActions.event(EditGameParams(data.game, initialView))
 }

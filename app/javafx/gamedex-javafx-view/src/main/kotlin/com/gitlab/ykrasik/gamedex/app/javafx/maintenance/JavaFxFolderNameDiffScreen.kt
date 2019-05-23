@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameParams
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiff
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffs
@@ -45,7 +46,6 @@ import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextFlow
 import tornadofx.*
-import java.io.File
 
 /**
  * User: ykrasik
@@ -55,7 +55,6 @@ import java.io.File
 class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.diff),
     FolderNameDiffView,
     ViewCanShowGameDetails,
-    ViewCanBrowsePath,
     ViewCanRenameMoveGame {
 
     private val gameContextMenu: GameContextMenu by inject()
@@ -64,15 +63,12 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     override val diffs = mutableListOf<FolderNameDiffs>().observable()
 //    override val excludeGameActions = channel<Game>()
 
-    override val showGameDetailsActions = channel<Game>()
+    override val viewGameDetailsActions = channel<ViewGameParams>()
 
     override val searchText = userMutableState("")
     override val matchingGame = state<Game?>(null)
 
-    override val browsePathActions = channel<File>()
-//    private val browseUrlActions = channel<String>()
-
-    override val renameMoveGameActions = channel<Pair<Game, String?>>()
+    override val renameMoveGameActions = channel<RenameMoveGameParams>()
 
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
@@ -80,7 +76,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     private val diffContextMenu = object : InstallableContextMenu<Pair<Game, FolderNameDiff>>() {
         override val root = vbox {
             jfxButton("Rename to Expected", Icons.folderEdit) {
-                action(renameMoveGameActions) { data.first to data.second.expectedFolderName }
+                action(renameMoveGameActions) { RenameMoveGameParams(data.first, initialSuggestion = data.second.expectedFolderName) }
             }
             // TODO: Add a 'search only this provider' option
         }
@@ -104,7 +100,6 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
                 path = game.path,
                 fileTree = game.fileTree,
                 image = commonOps.fetchThumbnail(game),
-                browsePathActions = browsePathActions,
                 pathOp = { isMouseTransparent = true },
                 imageFitHeight = 70,
                 imageFitWidth = 70,
@@ -112,8 +107,8 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
             ).build()
         }
 
-        gameContextMenu.install(this) { selectionModel.selectedItem.game }
-        onUserSelect { showGameDetailsActions.event(it.game) }
+        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game) }
+        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game)) }
     }
 
     private val selectedDiff = gamesView.selectionModel.selectedItemProperty()
@@ -145,7 +140,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
             }
         }
         onUserSelect {
-            renameMoveGameActions.event(selectedDiff.value.game to selectionModel.selectedItem.expectedFolderName)
+            renameMoveGameActions.event(RenameMoveGameParams(selectedDiff.value.game, initialSuggestion = selectionModel.selectedItem.expectedFolderName))
         }
     }
 

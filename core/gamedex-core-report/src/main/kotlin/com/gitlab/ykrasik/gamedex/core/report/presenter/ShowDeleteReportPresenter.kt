@@ -17,10 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanDeleteReport
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,14 +34,16 @@ import javax.inject.Singleton
 @Singleton
 class ShowDeleteReportPresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanDeleteReport> {
+    init {
+        eventBus.onHideViewRequested<DeleteReportView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanDeleteReport) = object : ViewSession() {
         init {
             view.deleteReportActions.forEach { report ->
-                val deleteReportView = viewManager.showDeleteReportView(report)
-                eventBus.awaitViewFinished(deleteReportView)
-                viewManager.hide(deleteReportView)
+                viewManager.showDeleteReportView(report)
             }
         }
     }

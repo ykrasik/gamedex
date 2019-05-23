@@ -14,20 +14,17 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.library
+package com.gitlab.ykrasik.gamedex.core.task
 
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
+import com.gitlab.ykrasik.gamedex.util.Try
 
 /**
  * User: ykrasik
- * Date: 01/06/2018
- * Time: 10:26
+ * Date: 02/11/2018
+ * Time: 14:54
  */
-interface ViewCanEditLibrary {
-    val canEditLibraries: State<IsValid>
-
-    val editLibraryActions: ReceiveChannel<Library>
+sealed class TaskEvent : CoreEvent {
+    data class Started<T>(val task: Task<T>) : TaskEvent()
+    data class Finished<T>(val task: Task<T>, val result: Try<T>) : TaskEvent()
 }

@@ -32,7 +32,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 08:08
  */
 interface EditGameView : ConfirmationView {
-    val initialScreen: GameDataType
     val game: Game
 
     val nameOverride: GameDataOverrideState<String>

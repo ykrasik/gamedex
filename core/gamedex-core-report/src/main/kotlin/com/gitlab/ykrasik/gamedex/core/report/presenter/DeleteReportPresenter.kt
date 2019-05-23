@@ -44,13 +44,13 @@ class DeleteReportPresenter @Inject constructor(
 
         private suspend fun onAccept() {
             taskService.execute(reportService.delete(view.report))
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

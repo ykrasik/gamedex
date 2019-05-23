@@ -46,7 +46,7 @@ class RefetchGamesPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             view.refetchGamesFilter *= settingsService.providerGeneral.refetchGamesFilter
             setCanAccept()
         }
@@ -61,15 +61,15 @@ class RefetchGamesPresenter @Inject constructor(
             val filter = view.refetchGamesFilter.value
             settingsService.providerGeneral.modify { copy(refetchGamesFilter = filter) }
 
-            finished()
+            hideView()
 
             taskService.execute(refetchGameService.refetchGames(filter))
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

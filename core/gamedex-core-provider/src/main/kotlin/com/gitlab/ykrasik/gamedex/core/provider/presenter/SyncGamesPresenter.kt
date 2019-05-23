@@ -23,8 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.GameSearchStartedEvent
-import com.gitlab.ykrasik.gamedex.core.provider.GameSearchUpdatedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.id
@@ -52,7 +51,7 @@ class SyncGamesPresenter @Inject constructor(
         init {
             // TODO: Consider launching a job here that can be cancelled.
             eventBus.forEach<SyncGamesEvent.Requested> { onSyncGamesStarted(it.paths, it.isAllowSmartChooseResults) }
-            eventBus.forEach<GameSearchUpdatedEvent> { onGameSearchStateUpdated(it.state) }
+            eventBus.forEach<GameSearchEvent.Updated> { onGameSearchStateUpdated(it.state) }
             view.currentState.forEach { onCurrentStateChanged(it) }
             view.restartStateActions.forEach { onRestart(it) }
             view.cancelActions.forEach { onCancel() }
@@ -153,7 +152,7 @@ class SyncGamesPresenter @Inject constructor(
 
         private fun startGameSearch(state: GameSearchState) {
             view.currentState *= state
-            eventBus.send(GameSearchStartedEvent(state, view.isAllowSmartChooseResults.value))
+            eventBus.send(GameSearchEvent.Started(state, view.isAllowSmartChooseResults.value))
         }
 
         private fun initState(index: Int, libraryPath: LibraryPath, game: Game?): GameSearchState {

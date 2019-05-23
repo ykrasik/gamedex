@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.api
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
@@ -51,7 +50,7 @@ interface ViewManager {
     fun showSyncGamesView(): SyncGamesView
     fun hide(view: SyncGamesView)
 
-    fun showGameDetailsView(game: Game): GameDetailsView
+    fun showGameDetailsView(params: ViewGameParams): GameDetailsView
     fun hide(view: GameDetailsView)
 
     fun showEditLibraryView(library: Library?): EditLibraryView
@@ -60,13 +59,13 @@ interface ViewManager {
     fun showDeleteLibraryView(library: Library): DeleteLibraryView
     fun hide(view: DeleteLibraryView)
 
-    fun showEditGameView(game: Game, initialType: GameDataType): EditGameView
+    fun showEditGameView(params: EditGameParams): EditGameView
     fun hide(view: EditGameView)
 
     fun showDeleteGameView(game: Game): DeleteGameView
     fun hide(view: DeleteGameView)
 
-    fun showRenameMoveGameView(game: Game, initialName: String?): RenameMoveGameView
+    fun showRenameMoveGameView(params: RenameMoveGameParams): RenameMoveGameView
     fun hide(view: RenameMoveGameView)
 
     fun showTagGameView(game: Game): TagGameView

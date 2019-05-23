@@ -17,10 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,14 +34,16 @@ import javax.inject.Singleton
 @Singleton
 class ShowGameDetailsViewPresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanShowGameDetails> {
+    init {
+        eventBus.onHideViewRequested<GameDetailsView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanShowGameDetails) = object : ViewSession() {
         init {
-            view.showGameDetailsActions.forEach { game ->
-                val gameView = viewManager.showGameDetailsView(game)
-                eventBus.awaitViewFinished(gameView)
-                viewManager.hide(gameView)
+            view.viewGameDetailsActions.forEach { params ->
+                viewManager.showGameDetailsView(params)
             }
         }
     }

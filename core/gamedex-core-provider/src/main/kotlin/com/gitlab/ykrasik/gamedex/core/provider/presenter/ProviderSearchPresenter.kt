@@ -28,8 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.GameSearchStartedEvent
-import com.gitlab.ykrasik.gamedex.core.provider.GameSearchUpdatedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
@@ -54,7 +53,7 @@ class ProviderSearchPresenter @Inject constructor(
         private var state by view.state
 
         init {
-            eventBus.forEach<GameSearchStartedEvent> { onGameSearchStarted(it.state, it.isAllowSmartChooseResults) }
+            eventBus.forEach<GameSearchEvent.Started> { onGameSearchStarted(it.state, it.isAllowSmartChooseResults) }
             view.changeProviderActions.forEach { onChangeProvider(it) }
             view.choiceActions.forEach { onChoice(it, isUserAction = true) }
             view.query.forEach { onQueryChanged(it) }
@@ -299,7 +298,7 @@ class ProviderSearchPresenter @Inject constructor(
 
         private inline fun modifyState(crossinline f: Modifier<GameSearchState>) {
             state = f(state)
-            eventBus.send(GameSearchUpdatedEvent(state))
+            eventBus.send(GameSearchEvent.Updated(state))
         }
 
         private val firstAcceptedResult: ProviderSearchResult?

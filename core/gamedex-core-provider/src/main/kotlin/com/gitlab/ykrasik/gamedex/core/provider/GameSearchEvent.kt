@@ -14,33 +14,17 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report.presenter
+package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanAddReport
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 
 /**
  * User: ykrasik
- * Date: 24/06/2018
- * Time: 18:08
+ * Date: 20/10/2018
+ * Time: 09:32
  */
-@Singleton
-class ShowAddReportPresenter @Inject constructor(
-    private val eventBus: EventBus,
-    private val viewManager: ViewManager
-) : Presenter<ViewCanAddReport> {
-    override fun present(view: ViewCanAddReport) = object : ViewSession() {
-        init {
-            view.addReportActions.forEach {
-                val editReportView = viewManager.showEditReportView(report = null)
-                eventBus.awaitViewFinished(editReportView)
-                viewManager.hide(editReportView)
-            }
-        }
-    }
+sealed class GameSearchEvent : CoreEvent {
+    data class Started(val state: GameSearchState, val isAllowSmartChooseResults: Boolean) : GameSearchEvent()
+    data class Updated(val state: GameSearchState) : GameSearchEvent()
 }

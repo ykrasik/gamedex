@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
@@ -54,7 +55,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     ViewCanExcludeGameFromReport,
     ViewCanSearchReportResult,
     ViewCanShowGameDetails,
-    ViewCanEditReport,
+    ViewCanAddOrEditReport,
     ViewCanBrowsePath {
 
     private val gameContextMenu: GameContextMenu by inject()
@@ -67,8 +68,8 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
 
     override val excludeGameActions = channel<Game>()
 
-    override val showGameDetailsActions = channel<Game>()
-    override val editReportActions = channel<Report>()
+    override val viewGameDetailsActions = channel<ViewGameParams>()
+    override val addOrEditReportActions = channel<Report>()
 
     override val searchText = userMutableState("")
 
@@ -110,8 +111,8 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
 //            }
         }
 
-        gameContextMenu.install(this) { selectionModel.selectedItem }
-        onUserSelect { showGameDetailsActions.event(it) }
+        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem) }
+        onUserSelect { viewGameDetailsActions.event(ViewGameParams(it)) }
     }
 
     private val selectedGame = gamesView.selectionModel.selectedItemProperty()
@@ -244,7 +245,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         jfxButton {
             textProperty().bind(report.property.stringBinding { it!!.name })
             graphicProperty().bind(hoverProperty().binding { if (it) Icons.edit else Icons.chart })
-            action(editReportActions) { report.value }
+            action(addOrEditReportActions) { report.value }
         }
         gap()
         header(games.sizeProperty.stringBinding { "Games: $it" })

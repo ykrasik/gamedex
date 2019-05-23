@@ -17,10 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,14 +34,16 @@ import javax.inject.Singleton
 @Singleton
 class ShowRefetchGamesPresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanRefetchGames> {
+    init {
+        eventBus.onHideViewRequested<RefetchGamesView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanRefetchGames) = object : ViewSession() {
         init {
             view.refetchGamesActions.forEach {
-                val refetchGamesView = viewManager.showRefetchGamesView()
-                eventBus.awaitViewFinished(refetchGamesView)
-                viewManager.hide(refetchGamesView)
+                viewManager.showRefetchGamesView()
             }
         }
     }

@@ -14,38 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library.presenter
+package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
-import com.gitlab.ykrasik.gamedex.core.CommonData
+import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanAddOrEditReport
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/06/2018
- * Time: 10:35
+ * Date: 24/06/2018
+ * Time: 18:08
  */
 @Singleton
-class ShowEditLibraryPresenter @Inject constructor(
-    private val commonData: CommonData,
+class ShowAddOrEditReportPresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
-) : Presenter<ViewCanEditLibrary> {
-    override fun present(view: ViewCanEditLibrary) = object : ViewSession() {
+    eventBus: EventBus
+) : Presenter<ViewCanAddOrEditReport> {
+    init {
+        eventBus.onHideViewRequested<EditReportView> { viewManager.hide(it) }
+    }
+
+    override fun present(view: ViewCanAddOrEditReport) = object : ViewSession() {
         init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canEditLibraries) { "Game sync in progress!" }
-
-            view.editLibraryActions.forEach { library ->
-                view.canEditLibraries.assert()
-
-                val editLibraryView = viewManager.showEditLibraryView(library)
-                eventBus.awaitViewFinished(editLibraryView)
-                viewManager.hide(editLibraryView)
+            view.addOrEditReportActions.forEach {
+                viewManager.showEditReportView(report = it)
             }
         }
     }

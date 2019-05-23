@@ -52,8 +52,8 @@ import tornadofx.*
 class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     private val commonOps: JavaFxCommonOps by di()
 
-    private val initialScreenProperty = SimpleObjectProperty(GameDataType.Name)
-    override var initialScreen: GameDataType by initialScreenProperty
+    private val initialViewProperty = SimpleObjectProperty(GameDataType.Name)
+    var initialView: GameDataType by initialViewProperty
 
     private val gameProperty = SimpleObjectProperty(Game.Null)
     override var game by gameProperty
@@ -72,7 +72,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     private val tabPane: JFXTabPane = jfxTabPane {
         addClass(GameDexStyle.hiddenTabPaneHeader)
         paddingAll = 5
-        initialScreenProperty.onChange { type ->
+        initialViewProperty.onChange { type ->
             navigationToggle.selectToggle(navigationToggle.toggles.find { (it.userData as Tab).userData as GameDataType == type })
         }
     }

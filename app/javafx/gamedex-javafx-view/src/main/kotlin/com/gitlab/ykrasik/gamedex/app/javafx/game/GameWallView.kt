@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
@@ -56,7 +57,7 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
     ViewCanBrowseUrl,
     ViewCanBrowsePath {
 
-    override val showGameDetailsActions = channel<Game>()
+    override val viewGameDetailsActions = channel<ViewGameParams>()
 
     override val gameWallDisplaySettings = JavaFxGameWallDisplaySettings()
     override val nameOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
@@ -135,12 +136,12 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
                         popOver.hide()
                         popOverShowing = false
                         if (e.button == MouseButton.PRIMARY) {
-                            showGameDetailsActions.event(cell.item)
+                            viewGameDetailsActions.event(ViewGameParams(cell.item))
                         }
                     }
                 }
             }
-            gameContextMenu.install(cell) { cell.item!! }
+            gameContextMenu.install(cell) { ViewGameParams(cell.item!!) }
             return cell
         }
     }

@@ -59,7 +59,7 @@ class EditReportPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val report = view.report
             view.name *= report?.name ?: ""
             view.filter *= report?.filter ?: Filter.Null
@@ -124,13 +124,13 @@ class EditReportPresenter @Inject constructor(
                     reportService.add(newReportData)
                 }
             )
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

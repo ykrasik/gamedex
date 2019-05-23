@@ -46,7 +46,7 @@ class CleanupDatabasePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             view.librariesAndGames.canDelete *= Try {
                 check(view.staleData.libraries.isNotEmpty() || view.staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" }
             }
@@ -89,7 +89,7 @@ class CleanupDatabasePresenter @Inject constructor(
         }
 
         private suspend fun onAccept() {
-            finished()
+            hideView()
 
             val staleData = view.staleData.copy(
                 libraries = if (view.librariesAndGames.shouldDelete.value) view.staleData.libraries else emptyList(),
@@ -101,9 +101,9 @@ class CleanupDatabasePresenter @Inject constructor(
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

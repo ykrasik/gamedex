@@ -46,7 +46,7 @@ class ResyncGamesPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             view.resyncGamesFilter *= settingsService.providerGeneral.resyncGamesFilter
             setCanAccept()
         }
@@ -63,13 +63,13 @@ class ResyncGamesPresenter @Inject constructor(
 
             taskService.execute(resyncGameService.resyncGames(filter))
 
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

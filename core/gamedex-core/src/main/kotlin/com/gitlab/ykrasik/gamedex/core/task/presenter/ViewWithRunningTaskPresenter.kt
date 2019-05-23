@@ -20,8 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
-import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
+import com.gitlab.ykrasik.gamedex.core.task.TaskEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,8 +35,8 @@ class ViewWithRunningTaskPresenter @Inject constructor(private val eventBus: Eve
         private var isRunningTask by view.isRunningTask
 
         init {
-            eventBus.forEach<TaskStartedEvent<*>> { isRunningTask = true }
-            eventBus.forEach<TaskFinishedEvent<*>> { isRunningTask = false }
+            eventBus.forEach<TaskEvent.Started<*>> { isRunningTask = true }
+            eventBus.forEach<TaskEvent.Finished<*>> { isRunningTask = false }
         }
     }
 }

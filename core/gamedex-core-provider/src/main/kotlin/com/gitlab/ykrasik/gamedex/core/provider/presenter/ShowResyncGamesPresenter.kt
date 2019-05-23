@@ -17,11 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
-import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,8 +32,12 @@ import javax.inject.Singleton
 class ShowResyncGamesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanResyncGames> {
+    init {
+        eventBus.onHideViewRequested<ResyncGamesView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanResyncGames) = object : ViewSession() {
         init {
             commonData.isGameSyncRunning.disableWhenTrue(view.canResyncGames) { "Game sync in progress!" }
@@ -43,9 +45,7 @@ class ShowResyncGamesPresenter @Inject constructor(
             view.resyncGamesActions.forEach {
                 view.canResyncGames.assert()
 
-                val resyncGamesView = viewManager.showResyncGamesView()
-                eventBus.awaitViewFinished(resyncGamesView)
-                viewManager.hide(resyncGamesView)
+                viewManager.showResyncGamesView()
             }
         }
     }

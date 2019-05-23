@@ -25,5 +25,11 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:39
  */
 interface ViewCanShowGameDetails {
-    val showGameDetailsActions: ReceiveChannel<Game>
+    val viewGameDetailsActions: ReceiveChannel<ViewGameParams>
+}
+
+data class ViewGameParams(val game: Game) {
+    companion object {
+        val Null = ViewGameParams(Game.Null)
+    }
 }

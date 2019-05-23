@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
+import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -23,6 +24,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Date: 16/12/2018
  * Time: 09:55
  */
-interface ViewCanCleanupDatabase {
+interface ViewCanCleanupDatabase : ViewCanDisplayError {
     val cleanupDatabaseActions: ReceiveChannel<Unit>
 }

@@ -36,8 +36,7 @@ object LibraryModule : InternalCoreModule() {
         bindPresenter(DeleteLibraryPresenter::class)
         bindPresenter(EditLibraryPresenter::class)
         bindPresenter(LibrariesPresenter::class)
-        bindPresenter(ShowAddLibraryPresenter::class)
+        bindPresenter(ShowAddOrEditLibraryPresenter::class)
         bindPresenter(ShowDeleteLibraryPresenter::class)
-        bindPresenter(ShowEditLibraryPresenter::class)
     }
 }

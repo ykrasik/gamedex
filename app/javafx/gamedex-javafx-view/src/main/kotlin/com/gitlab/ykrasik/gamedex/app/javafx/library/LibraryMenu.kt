@@ -19,9 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddOrEditLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -45,8 +44,7 @@ import java.io.File
 class LibraryMenu : PresentableView("Libraries", Icons.folders),
     ViewCanSyncLibraries,
     ViewWithLibraries,
-    ViewCanAddLibrary,
-    ViewCanEditLibrary,
+    ViewCanAddOrEditLibrary,
     ViewCanDeleteLibrary,
     ViewCanBrowsePath {
 
@@ -55,11 +53,8 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
 
     override val libraries = mutableListOf<Library>().observable()
 
-    override val canAddLibraries = state(IsValid.valid)
-    override val addLibraryActions = channel<Unit>()
-
-    override val canEditLibraries = state(IsValid.valid)
-    override val editLibraryActions = channel<Library>()
+    override val canAddOrEditLibraries = state(IsValid.valid)
+    override val addOrEditLibraryActions = channel<Library?>()
 
     override val canDeleteLibraries = state(IsValid.valid)
     override val deleteLibraryActions = channel<Library>()
@@ -80,10 +75,11 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
             spacer()
             addButton {
                 alignment = Pos.CENTER
+                useMaxWidth = true
                 removeClass(GameDexStyle.toolbarButton)
                 tooltip("Add a new library")
-                enableWhen(canAddLibraries)
-                action(addLibraryActions)
+                enableWhen(canAddOrEditLibraries)
+                action(addOrEditLibraryActions) { null }
             }
         }
         verticalGap()
@@ -104,9 +100,9 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
                                 }
                                 editButton {
                                     removeClass(GameDexStyle.toolbarButton)
-                                    enableWhen(canEditLibraries)
+                                    enableWhen(canAddOrEditLibraries)
                                     tooltip("Edit library '${library.name}'")
-                                    action(editLibraryActions) { library }
+                                    action(addOrEditLibraryActions) { library }
                                 }
                                 deleteButton {
                                     removeClass(GameDexStyle.toolbarButton)

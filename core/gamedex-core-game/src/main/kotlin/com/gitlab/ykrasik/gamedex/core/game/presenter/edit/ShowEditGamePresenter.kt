@@ -17,10 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.edit
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,14 +34,16 @@ import javax.inject.Singleton
 @Singleton
 class ShowEditGamePresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanEditGame> {
+    init {
+        eventBus.onHideViewRequested<EditGameView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanEditGame) = object : ViewSession() {
         init {
-            view.editGameActions.forEach { (game, initialType) ->
-                val editGameView = viewManager.showEditGameView(game, initialType)
-                eventBus.awaitViewFinished(editGameView)
-                viewManager.hide(editGameView)
+            view.editGameActions.forEach { params ->
+                viewManager.showEditGameView(params)
             }
         }
     }

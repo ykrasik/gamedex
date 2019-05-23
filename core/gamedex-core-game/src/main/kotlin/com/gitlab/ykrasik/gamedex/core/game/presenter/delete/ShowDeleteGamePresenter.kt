@@ -17,10 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.delete
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,14 +34,16 @@ import javax.inject.Singleton
 @Singleton
 class ShowDeleteGamePresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanDeleteGame> {
+    init {
+        eventBus.onHideViewRequested<DeleteGameView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanDeleteGame) = object : ViewSession() {
         init {
             view.deleteGameActions.forEach { game ->
-                val deleteGameView = viewManager.showDeleteGameView(game)
-                eventBus.awaitViewFinished(deleteGameView)
-                viewManager.hide(deleteGameView)
+                viewManager.showDeleteGameView(game)
             }
         }
     }

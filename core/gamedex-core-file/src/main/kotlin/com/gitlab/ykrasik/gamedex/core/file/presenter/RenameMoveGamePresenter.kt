@@ -62,7 +62,7 @@ class RenameMoveGamePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             val game = view.game
             library = game.library
             name = view.initialName ?: game.rawGame.metadata.path.file.name
@@ -123,13 +123,13 @@ class RenameMoveGamePresenter @Inject constructor(
 
             taskService.execute(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
 
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

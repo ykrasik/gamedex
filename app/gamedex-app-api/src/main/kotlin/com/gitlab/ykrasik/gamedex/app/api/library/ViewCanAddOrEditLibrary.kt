@@ -14,15 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.report
+package com.gitlab.ykrasik.gamedex.app.api.library
 
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 24/06/2018
- * Time: 18:07
+ * Date: 01/06/2018
+ * Time: 10:26
  */
-interface ViewCanAddReport {
-    val addReportActions: ReceiveChannel<Unit>
+interface ViewCanAddOrEditLibrary {
+    val canAddOrEditLibraries: State<IsValid>
+
+    val addOrEditLibraryActions: ReceiveChannel<Library?>
 }

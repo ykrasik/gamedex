@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanShowReport
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,18 +34,16 @@ import javax.inject.Singleton
 @Singleton
 class ShowReportPresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanShowReport> {
+    init {
+        eventBus.onHideViewRequested<ReportView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanShowReport) = object : ViewSession() {
         init {
-            view.showReportActions.forEach { report ->
-                view.currentReport *= report
-
-                viewManager.showReportView(report)
-            }
-
-            eventBus.onViewFinished<ReportView> {
-                viewManager.hide(it)
+            view.showReportActions.forEach {
+                viewManager.showReportView(it)
             }
         }
     }

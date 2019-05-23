@@ -14,19 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.library
-
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
+package com.gitlab.ykrasik.gamedex.core
 
 /**
  * User: ykrasik
- * Date: 01/06/2018
- * Time: 10:25
+ * Date: 16/12/2018
+ * Time: 09:55
  */
-interface ViewCanAddLibrary {
-    val canAddLibraries: State<IsValid>
-
-    val addLibraryActions: ReceiveChannel<Unit>
+sealed class ViewEvent : CoreEvent {
+//    data class RequestShow(val viewClass: KClass<*>) : ViewEvent()
+    data class RequestHide(val view: Any) : ViewEvent()
 }

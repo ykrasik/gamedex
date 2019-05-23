@@ -24,8 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.awaitEvent
 import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
 import com.gitlab.ykrasik.gamedex.core.task.Task
-import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
-import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
+import com.gitlab.ykrasik.gamedex.core.task.TaskEvent
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -48,14 +47,14 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
 
     override fun present(view: TaskView) = object : ViewSession() {
         init {
-            eventBus.forEach<TaskStartedEvent<*>> { execute(it.task) }
+            eventBus.forEach<TaskEvent.Started<*>> { execute(it.task) }
             view.cancelTaskActions.forEach { cancelTask() }
         }
 
         private suspend fun <T> execute(task: Task<T>) {
             if (view.job.value != null) {
                 log.warn("Trying to execute a task(${task.title}) when one is already executing(${view.taskProgress.title})")
-                eventBus.awaitEvent<TaskFinishedEvent<T>>()
+                eventBus.awaitEvent<TaskEvent.Finished<T>>()
                 log.warn("Previous task(${view.taskProgress.title}) finished, executing new task(${task.title})")
             }
             check(view.job.value == null) { "Already running a job: ${view.taskProgress.title}" }
@@ -120,7 +119,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                 }
             }
 
-            eventBus.send(TaskFinishedEvent(task, resultToReturn))
+            eventBus.send(TaskEvent.Finished(task, resultToReturn))
         }
 
         private fun bindTaskProgress(task: Task<*>, taskProgress: TaskProgress) {

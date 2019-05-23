@@ -14,15 +14,39 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.report
+package com.gitlab.ykrasik.gamedex.core.library.presenter
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddOrEditLibrary
+import com.gitlab.ykrasik.gamedex.core.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 24/06/2018
- * Time: 18:04
+ * Date: 01/06/2018
+ * Time: 10:33
  */
-interface ViewCanEditReport {
-    val editReportActions: ReceiveChannel<Report>
+@Singleton
+class ShowAddOrEditLibraryPresenter @Inject constructor(
+    private val commonData: CommonData,
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanAddOrEditLibrary> {
+    init {
+        eventBus.onHideViewRequested<EditLibraryView> { viewManager.hide(it) }
+    }
+
+    override fun present(view: ViewCanAddOrEditLibrary) = object : ViewSession() {
+        init {
+            commonData.isGameSyncRunning.disableWhenTrue(view.canAddOrEditLibraries) { "Game sync in progress!" }
+
+            view.addOrEditLibraryActions.forEach {
+                view.canAddOrEditLibraries.assert()
+
+                viewManager.showEditLibraryView(library = it)
+            }
+        }
+    }
 }

@@ -37,7 +37,7 @@ class BrowsePathPresenter @Inject constructor() : Presenter<ViewCanBrowsePath> {
                     // TODO: This is actually more like view-specific logic.
                     Desktop.getDesktop().open(it)
                 } catch (e: Exception) {
-                    view.onError(e, "Path doesn't exist: $it")
+                    view.onError("File doesn't exist: $it", e)
                 }
             }
         }

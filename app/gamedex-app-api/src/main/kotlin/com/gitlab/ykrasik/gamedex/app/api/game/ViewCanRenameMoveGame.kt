@@ -25,5 +25,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:47
  */
 interface ViewCanRenameMoveGame {
-    val renameMoveGameActions: ReceiveChannel<Pair<Game, String?>>
+    val renameMoveGameActions: ReceiveChannel<RenameMoveGameParams>
 }
+
+data class RenameMoveGameParams(val game: Game, val initialSuggestion: String?)

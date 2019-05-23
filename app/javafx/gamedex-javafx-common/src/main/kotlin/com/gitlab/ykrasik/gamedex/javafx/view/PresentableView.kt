@@ -62,7 +62,7 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
         }
     }
 
-    override fun onError(e: Exception, message: String) {
+    override fun onError(message: String, e: Exception?) {
         notification(message).error.show()
     }
 

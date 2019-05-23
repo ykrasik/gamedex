@@ -14,15 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider
+package com.gitlab.ykrasik.gamedex.app.api.report
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
-import com.gitlab.ykrasik.gamedex.core.CoreEvent
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 20/10/2018
- * Time: 09:32
+ * Date: 24/06/2018
+ * Time: 18:07
  */
-data class GameSearchStartedEvent(val state: GameSearchState, val isAllowSmartChooseResults: Boolean) : CoreEvent
-data class GameSearchUpdatedEvent(val state: GameSearchState) : CoreEvent
+interface ViewCanAddOrEditReport {
+    val addOrEditReportActions: ReceiveChannel<Report?>
+}

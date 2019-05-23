@@ -26,5 +26,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 10:19
  */
 interface ViewCanEditGame {
-    val editGameActions: ReceiveChannel<Pair<Game, GameDataType>>
+    val editGameActions: ReceiveChannel<EditGameParams>
 }
+
+data class EditGameParams(val game: Game, val initialView: GameDataType)

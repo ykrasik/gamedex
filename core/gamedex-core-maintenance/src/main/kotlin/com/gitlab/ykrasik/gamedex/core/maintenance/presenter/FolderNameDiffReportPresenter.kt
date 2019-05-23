@@ -48,7 +48,7 @@ class FolderNameDiffReportPresenter @Inject constructor(
             eventBus.forEach<GameEvent> { isDirty = true }
 
             view.searchText.debounce().forEach { onSearchTextChanged(it) }
-            view.hideViewActions.forEach { finished() }
+            view.hideViewActions.forEach { hideView() }
 
             isDirtyChannel.forEach { isDirty ->
                 if (isDirty && isShowing) {
@@ -63,7 +63,7 @@ class FolderNameDiffReportPresenter @Inject constructor(
             view.diffs.setAll(folderNameDiffs)
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             // Send the existing 'isDirty' value to the channel again, to cause the consumer to re-run
             isDirty = isDirty
         }
@@ -78,6 +78,6 @@ class FolderNameDiffReportPresenter @Inject constructor(
         private fun Game.matchesSearchQuery(query: String) =
             query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

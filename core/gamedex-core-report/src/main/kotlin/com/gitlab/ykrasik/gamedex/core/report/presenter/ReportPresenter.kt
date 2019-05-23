@@ -63,10 +63,10 @@ class ReportPresenter @Inject constructor(
 
                 when (e) {
                     is ListEvent.ItemRemoved -> {
-                        if (e.item == report) finished()
+                        if (e.item == report) hideView()
                     }
                     is ListEvent.ItemsRemoved -> {
-                        if (e.items.contains(report)) finished()
+                        if (e.items.contains(report)) hideView()
                     }
                     is ListEvent.ItemSet -> {
                         if (e.item.id == report.id) {
@@ -93,14 +93,14 @@ class ReportPresenter @Inject constructor(
             }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             // Send the existing 'reportDirty' value to the channel again, to cause the consumer to re-run
             isReportDirty = isReportDirty
         }
 
-        private fun finished() {
+        private fun hideView() {
             view.report *= Report.Null
-            eventBus.viewFinished(view)
+            eventBus.requestHideView(view)
         }
     }
 }

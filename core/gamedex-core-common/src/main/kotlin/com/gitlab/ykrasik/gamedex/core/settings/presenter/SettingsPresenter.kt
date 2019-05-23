@@ -41,21 +41,21 @@ class SettingsPresenter @Inject constructor(
             view.resetDefaultsActions.forEach { onResetDefaults() }
         }
 
-        override suspend fun onShow() {
+        override suspend fun onShown() {
             settingsService.saveSnapshot()
         }
 
         private fun onAccept() {
             settingsService.commitSnapshot()
-            finished()
+            hideView()
         }
 
         private fun onCancel() {
             settingsService.revertSnapshot()
-            finished()
+            hideView()
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun hideView() = eventBus.requestHideView(view)
 
         private fun onResetDefaults() {
             if (view.confirmResetDefaults()) {

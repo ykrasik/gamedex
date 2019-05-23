@@ -17,10 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanShowFolderNameDiffReport
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,14 +34,16 @@ import javax.inject.Singleton
 @Singleton
 class ShowFolderNameDiffReportPresenter @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    eventBus: EventBus
 ) : Presenter<ViewCanShowFolderNameDiffReport> {
+    init {
+        eventBus.onHideViewRequested<FolderNameDiffView> { viewManager.hide(it) }
+    }
+
     override fun present(view: ViewCanShowFolderNameDiffReport) = object : ViewSession() {
         init {
             view.showFolderNameDiffReportActions.forEach {
-                val folderNameDiffView = viewManager.showFolderNameDiffView()
-                eventBus.awaitViewFinished(folderNameDiffView)
-                viewManager.hide(folderNameDiffView)
+                viewManager.showFolderNameDiffView()
             }
         }
     }

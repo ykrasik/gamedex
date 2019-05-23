@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.geometry.Pos
@@ -36,18 +35,15 @@ import java.io.File
 class ReportMenu : PresentableView("Reports", Icons.chart),
     ViewWithReports,
     ViewCanShowReport,
-    ViewCanAddReport,
-    ViewCanEditReport,
+    ViewCanAddOrEditReport,
     ViewCanDeleteReport,
     ViewCanBrowsePath {
 
     override val reports = mutableListOf<Report>().observable()
 
     override val showReportActions = channel<Report>()
-    override val currentReport = state<Report?>(null)
 
-    override val addReportActions = channel<Unit>()
-    override val editReportActions = channel<Report>()
+    override val addOrEditReportActions = channel<Report?>()
     override val deleteReportActions = channel<Report>()
 
     override val browsePathActions = channel<File>()
@@ -62,7 +58,7 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
             useMaxWidth = true
             removeClass(GameDexStyle.toolbarButton)
             tooltip("Add a new report")
-            action(addReportActions)
+            action(addOrEditReportActions) { null }
         }
         verticalGap()
         vbox {
@@ -81,7 +77,7 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
                                 }
                                 editButton {
                                     removeClass(GameDexStyle.toolbarButton)
-                                    action(editReportActions) { report }
+                                    action(addOrEditReportActions) { report }
                                 }
                                 deleteButton {
                                     removeClass(GameDexStyle.toolbarButton)

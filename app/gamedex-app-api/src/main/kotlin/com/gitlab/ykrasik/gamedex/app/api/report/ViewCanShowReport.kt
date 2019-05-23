@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.report
 
-import com.gitlab.ykrasik.gamedex.app.api.State
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -26,6 +25,4 @@ import kotlinx.coroutines.channels.ReceiveChannel
  */
 interface ViewCanShowReport {
     val showReportActions: ReceiveChannel<Report>
-
-    val currentReport: State<Report?>
 }

@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.GameDuplicates
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -54,7 +55,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     override val duplicates = mutableListOf<GameDuplicates>().observable()
 //    override val excludeGameActions = channel<Game>()
 
-    override val showGameDetailsActions = channel<Game>()
+    override val viewGameDetailsActions = channel<ViewGameParams>()
 
     override val searchText = userMutableState("")
     override val matchingGame = state<Game?>(null)
@@ -91,8 +92,8 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
             ).build()
         }
 
-        gameContextMenu.install(this) { selectionModel.selectedItem.game }
-        onUserSelect { showGameDetailsActions.event(it.game) }
+        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game) }
+        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game)) }
     }
 
     private val selectedDuplicate = gamesView.selectionModel.selectedItemProperty()

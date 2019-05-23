@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
@@ -75,7 +74,7 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun showSyncGamesView() = mainView.showSyncGamesView()
     override fun hide(view: SyncGamesView) = mainView.showPreviousScreen()
 
-    override fun showGameDetailsView(game: Game) = mainView.showGameDetails(game)
+    override fun showGameDetailsView(params: ViewGameParams) = mainView.showGameDetails(params)
     override fun hide(view: GameDetailsView) = mainView.showPreviousScreen()
 
     private val editLibraryView: JavaFxEditLibraryView by inject()
@@ -87,9 +86,9 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: DeleteLibraryView) = view.close()
 
     private val editGameView: JavaFxEditGameView by inject()
-    override fun showEditGameView(game: Game, initialType: GameDataType) = editGameView.showModal {
-        this.game = game
-        this.initialScreen = initialType
+    override fun showEditGameView(params: EditGameParams) = editGameView.showModal {
+        this.game = params.game
+        this.initialView = params.initialView
     }
     override fun hide(view: EditGameView) = view.close()
 
@@ -98,9 +97,9 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: DeleteGameView) = view.close()
 
     private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
-    override fun showRenameMoveGameView(game: Game, initialName: String?) = renameMoveGameView.showModal {
-        this.game = game
-        this.initialName = initialName
+    override fun showRenameMoveGameView(params: RenameMoveGameParams) = renameMoveGameView.showModal {
+        this.game = params.game
+        this.initialName = params.initialSuggestion
     }
     override fun hide(view: RenameMoveGameView) = view.close()
 

@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -208,8 +208,8 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         crossinline op: PopOverMenu.() -> Unit = { children += view.root }
     ): HBox = popOverSubMenu(view.title, view.icon, op = op)
 
-    fun showGameDetails(game: Game): JavaFxGameDetailsScreen = selectScreen(gameDetailsScreen) {
-        this.game.valueFromView = game
+    fun showGameDetails(params: ViewGameParams): JavaFxGameDetailsScreen = selectScreen(gameDetailsScreen) {
+        this.gameParams.valueFromView = params
     }
 
     fun showSyncGamesView(): JavaFxSyncGamesScreen = selectScreen(syncGamesScreen)
