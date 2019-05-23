@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
-import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
@@ -33,6 +32,7 @@ import com.jfoenix.controls.JFXToggleNode
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tab
+import javafx.scene.control.Toggle
 import tornadofx.*
 
 /**
@@ -42,7 +42,6 @@ import tornadofx.*
  */
 class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     SettingsView,
-    ViewWithRunningTask,
     ViewCanChangeGameWallDisplaySettings,
     ViewCanChangeNameOverlayDisplaySettings,
     ViewCanChangeMetaTagOverlayDisplaySettings,
@@ -57,9 +56,6 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     override val mutableMetaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val mutableVersionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
-    private val viewProperty = "view"
-    private val tabProperty = "tab"
-
     private val tabPane = jfxTabPane {
         addClass(GameDexStyle.hiddenTabPaneHeader)
         paddingAll = 5
@@ -69,6 +65,7 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
         register()
     }
 
+    private val generalSettingsView: JavaFxGeneralSettingsView by inject()
     private val wallDisplaySettingsView = JavaFxWallDisplaySettingsView(mutableGameWallDisplaySettings)
     private val nameDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableNameOverlayDisplaySettings, "Name")
     private val metaTagDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableMetaTagOverlayDisplaySettings, "MetaTag")
@@ -99,6 +96,7 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
         }
         left = vbox(spacing = 5) {
             paddingAll = 10
+            usePrefSize = true
             togglegroup {
                 var attemptedDeselection = false
                 selectedToggleProperty().addListener { _, oldValue, newValue ->
@@ -108,21 +106,25 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
                         selectToggle(oldValue)
                     } else {
                         if (!attemptedDeselection) {
-                            if (oldValue != null) {
-                                (oldValue.properties[viewProperty] as UIComponent).callOnUndock()
-                            }
-                            (newValue.properties[viewProperty] as UIComponent).callOnDock()
-                            tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
+                            oldValue?.component?.callOnUndock()
+                            newValue.component.callOnDock()
+                            tabPane.selectionModel.select(newValue.tab)
                         }
                         attemptedDeselection = false
                     }
                 }
 
-                header("Game Display")
+                header("General")
+                entry(generalSettingsView)
+
+                verticalGap(size = 20)
+
+                header("Display")
                 entry(wallDisplaySettingsView)
                 entry(nameDisplaySettingsView)
                 entry(metaTagDisplaySettingsView)
                 entry(versionDisplaySettingsView)
+
                 verticalGap(size = 20)
 
                 header("Providers")
@@ -135,36 +137,32 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
             }
         }
         center = tabPane
-
-        var hidden = false
-        var prevOpacity = 1.0
-        setOnKeyPressed { e ->
-            if (e.isShiftDown) {
-                prevOpacity = windowOpacity
-                windowOpacity = 0.0
-                hidden = true
-            }
-        }
-        setOnKeyReleased {
-            if (hidden) {
-                windowOpacity = prevOpacity
-                hidden = false
-            }
-        }
     }
 
-    private inline fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) {
+    private inline fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}): JFXToggleNode {
         val icon = component.icon
         val tab = tabPane.tab(component)
         tab.graphic = null
-        jfxToggleNode(component.title, icon) {
+        return jfxToggleNode(component.title, icon) {
             addClass(GameDexStyle.toolbarButton)
             useMaxWidth = true
-            properties += viewProperty to component
-            properties += tabProperty to tab
+            this.component = component
+            this.tab = tab
             op()
         }
     }
 
     override fun confirmResetDefaults() = areYouSureDialog("Reset all settings to default?")
+
+    private var Toggle.component: UIComponent
+        get() = properties["gameDex.view"] as UIComponent
+        set(value) {
+            properties["gameDex.view"] = value
+        }
+
+    private var Toggle.tab: Tab
+        get() = properties["gameDex.tab"] as Tab
+        set(value) {
+            properties["gameDex.tab"] = value
+        }
 }

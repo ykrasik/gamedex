@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.app.javafx.common.WebBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -33,15 +33,9 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.excludeButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.layout.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.javafx.JavaFx
-import kotlinx.coroutines.launch
 import tornadofx.*
 import java.io.File
 
@@ -56,13 +50,10 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     ViewCanSearchReportResult,
     ViewCanShowGameDetails,
     ViewCanAddOrEditReport,
-    ViewCanOpenFile {
+    ViewCanOpenFile,
+    ViewCanBrowseUrl {
 
     private val gameContextMenu: GameContextMenu by inject()
-    private val browser = WebBrowser()
-
-    private val isBrowserVisibleProperty = SimpleBooleanProperty(false)
-    private var isBrowserVisible by isBrowserVisibleProperty
 
     private val commonOps: JavaFxCommonOps by di()
 
@@ -76,7 +67,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     override val matchingGame = state<Game?>(null)
 
     override val openFileActions = channel<File>()
-    private val browseUrlActions = channel<String>()
+    override val browseUrlActions = channel<String>()
 
     override val report = userMutableState(Report.Null)
     override val result = state(ReportResult.Null)
@@ -132,26 +123,11 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         vbox {
             hgrow = Priority.ALWAYS
 
-            GlobalScope.launch(Dispatchers.JavaFx) {
-                browseUrlActions.consumeEach { url ->
-                    isBrowserVisible = true
-                    browser.load(url)
-                }
-            }
-
             customToolbar {
-                jfxToggleNode("Browser") {
-                    selectedProperty().bindBidirectional(isBrowserVisibleProperty)
-                    graphicProperty().bind(selectedProperty().binding { if (it) Icons.earthOff else Icons.earth })
-                    tooltip(selectedProperty().binding { "${if (it) "Hide" else "Show"} Browser" })
-                }
                 jfxButton("YouTube", Icons.youTube) {
                     enableWhen { selectedGame.isNotNull }
                     tooltip(selectedGame.stringBinding { "Search YouTube for gameplay videos of '${it?.name}'" })
-                    action {
-                        isBrowserVisible = true
-                        browser.loadYouTubeGameplay(selectedGame.value)
-                    }
+                    action(browseUrlActions) { commonOps.youTubeGameplayUrl(selectedGame.value) }
                 }
 
                 spacer()
@@ -192,7 +168,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                     stackpane {
                         paddingAll = 5.0
                         selectedGame.onChange { game ->
-                            isBrowserVisible = false
                             replaceChildren {
                                 if (game != null) {
                                     children += GameDetailsSummaryBuilder(game, commonOps) {
@@ -209,13 +184,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                             }
                         }
                     }
-
-                    verticalGap(size = 30)
-
-                    // Bottom
-                    addComponent(browser) {
-                        root.visibleWhen { isBrowserVisibleProperty }
-                    }
                 }
             }
         }
@@ -228,16 +196,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
             if (match != null) {
                 gamesView.selectionModel.select(match)
             }
-        }
-
-        report.property.typeSafeOnChange {
-            isBrowserVisible = false
-            browser.load(null)
-        }
-
-        whenUndocked {
-            isBrowserVisible = false
-            browser.load(null)
         }
     }
 

@@ -35,6 +35,7 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
+import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 
 /**
  * User: ykrasik
@@ -109,6 +110,9 @@ interface ViewManager {
 
     fun showSettingsView(): SettingsView
     fun hide(view: SettingsView)
+
+    fun showBrowserView(url: String): BrowserView
+    fun hide(view: BrowserView)
 
     fun showAboutView(): AboutView
     fun hide(view: AboutView)

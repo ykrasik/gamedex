@@ -36,7 +36,9 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
+import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxAboutView
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxBrowserView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
@@ -166,6 +168,13 @@ class JavaFxViewManager : Controller(), ViewManager {
     private val settingsView: JavaFxSettingsView by inject()
     override fun showSettingsView() = settingsView.showModal()
     override fun hide(view: SettingsView) = view.close()
+
+    private val browserView: JavaFxBrowserView by inject()
+    override fun showBrowserView(url: String) = browserView.showModal { load(url) }
+    override fun hide(view: BrowserView) {
+        browserView.load(null)
+        view.close()
+    }
 
     private val aboutView: JavaFxAboutView by inject()
     override fun showAboutView() = aboutView.showModal()

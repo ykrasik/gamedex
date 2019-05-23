@@ -16,13 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.common
 
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.value.ObservableValue
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
@@ -34,15 +35,20 @@ import tornadofx.*
  * Date: 09/06/2017
  * Time: 22:29
  */
-class WebBrowser : Fragment() {
-    private val commonOps: JavaFxCommonOps by di()
+class JavaFxBrowserView : PresentableView("Browser", Icons.web), BrowserView {
     private val webView: WebView = webview()
 
     private val fullscreenBrowser = StandaloneBrowserFragment()
     private lateinit var prevParent: Pane
 
+    init {
+        register()
+    }
+
     override val root = borderpane {
         vgrow = Priority.ALWAYS
+        prefWidth = screenBounds.width * 9 / 10
+        prefHeight = screenBounds.height * 9 / 10
         clipRectangle(arc = 20)
         top = customToolbar {
             jfxButton(graphic = Icons.arrowLeft) {
@@ -77,9 +83,6 @@ class WebBrowser : Fragment() {
             add(webView)
         }
     }
-
-    fun loadYouTubeGameplay(game: Game?) =
-        load(game?.let { commonOps.youTubeGameplayUrl(it) })
 
     // TODO: Find a way to clear browsing history on stop.
     // TODO: Don't stop if in standalone mode.
@@ -122,7 +125,7 @@ class WebBrowser : Fragment() {
 
         override fun onDock() {
             modalStage!!.isMaximized = true
-            root.children += this@WebBrowser.root
+            root.children += this@JavaFxBrowserView.root
         }
     }
 }

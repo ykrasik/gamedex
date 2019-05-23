@@ -25,22 +25,19 @@ import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.app.javafx.common.WebBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.binding
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.flatMap
+import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Pos
 import javafx.scene.layout.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.javafx.JavaFx
-import kotlinx.coroutines.launch
 import tornadofx.*
 import java.io.File
 
@@ -58,14 +55,10 @@ class JavaFxGameDetailsView : PresentableScreen(),
     ViewCanTagGame,
     ViewCanRefetchGame,
     ViewCanResyncGame,
-    ViewCanOpenFile {
+    ViewCanOpenFile,
+    ViewCanBrowseUrl {
 
     private val commonOps: JavaFxCommonOps by di()
-
-    private val browser = WebBrowser()
-
-    private val isBrowserVisibleProperty = SimpleBooleanProperty(false)
-    private var isBrowserVisible by isBrowserVisibleProperty
 
     override val gameParams = userMutableState(ViewGameParams(Game.Null))
     private val game = gameParams.property.binding { it.game }
@@ -84,38 +77,18 @@ class JavaFxGameDetailsView : PresentableScreen(),
     override val resyncGameActions = channel<Game>()
 
     override val openFileActions = channel<File>()
-    private val browseUrlActions = channel<String>()
+    override val browseUrlActions = channel<String>()
 
     init {
         register()
 
         titleProperty.bind(game.stringBinding { it?.name })
-        game.typeSafeOnChange { game ->
-            isBrowserVisible = game.id != Game.Null.id
-            if (isBrowserVisible) {
-                browser.loadYouTubeGameplay(game)
-            }
-        }
-
-        GlobalScope.launch(Dispatchers.JavaFx) {
-            browseUrlActions.consumeEach { url ->
-                browser.load(url)
-            }
-        }
     }
 
     override fun HBox.buildToolbar() {
-        jfxToggleNode("Browser") {
-            selectedProperty().bindBidirectional(isBrowserVisibleProperty)
-            graphicProperty().bind(selectedProperty().binding { if (it) Icons.earthOff else Icons.earth })
-            tooltip(selectedProperty().binding { "${if (it) "Hide" else "Show"} Browser" })
-        }
         jfxButton("YouTube", Icons.youTube) {
             tooltip(game.stringBinding { "Search YouTube for gameplay videos of '${it?.name}'" })
-            action {
-                isBrowserVisible = true
-                browser.loadYouTubeGameplay(game.value)
-            }
+            action(browseUrlActions) { commonOps.youTubeGameplayUrl(game.value) }
         }
 
         spacer()
@@ -173,7 +146,6 @@ class JavaFxGameDetailsView : PresentableScreen(),
             alignment = Pos.TOP_CENTER
             addClass(JavaFxReportScreen.Style.detailsViewContent)
 
-            // Top
             stackpane {
                 paddingAll = 5.0
                 game.onChange { game ->
@@ -191,13 +163,6 @@ class JavaFxGameDetailsView : PresentableScreen(),
                         }
                     }
                 }
-            }
-
-            verticalGap(size = 30)
-
-            // Bottom
-            addComponent(browser) {
-                root.visibleWhen { isBrowserVisibleProperty }
             }
         }
     }
