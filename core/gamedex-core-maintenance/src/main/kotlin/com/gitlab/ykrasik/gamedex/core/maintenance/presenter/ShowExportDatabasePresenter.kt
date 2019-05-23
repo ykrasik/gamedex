@@ -14,33 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.maintenance.module
+package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
-import com.gitlab.ykrasik.gamedex.core.maintenance.presenter.*
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanExportDatabase
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 12/10/2018
- * Time: 10:31
+ * Date: 06/05/2019
+ * Time: 09:13
  */
-object MaintenanceModule : InternalCoreModule() {
-    override fun configure() {
-        bindPresenter(ShowExportDatabasePresenter::class)
-        bindPresenter(ExportDatabasePresenter::class)
+@Singleton
+class ShowExportDatabasePresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanExportDatabase> {
+    init {
+        eventBus.onHideViewRequested<ExportDatabaseView> { viewManager.hide(it) }
+    }
 
-        bindPresenter(ShowImportDatabasePresenter::class)
-        bindPresenter(ImportDatabasePresenter::class)
-
-        bindPresenter(ClearUserDataPresenter::class)
-
-        bindPresenter(ShowCleanupDatabasePresenter::class)
-        bindPresenter(CleanupDatabasePresenter::class)
-
-        bindPresenter(ShowDuplicatesReportPresenter::class)
-        bindPresenter(DuplicatesReportPresenter::class)
-
-        bindPresenter(ShowFolderNameDiffReportPresenter::class)
-        bindPresenter(FolderNameDiffReportPresenter::class)
+    override fun present(view: ViewCanExportDatabase) = object : ViewSession() {
+        init {
+            view.exportDatabaseActions.forEach {
+                viewManager.showExportDatabaseView()
+            }
+        }
     }
 }

@@ -17,14 +17,16 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.defaultTimeZone
+import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.now
-import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,24 +39,58 @@ import javax.inject.Singleton
 class ExportDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
-    private val settingsService: SettingsService
+    private val settingsService: SettingsService,
+    private val eventBus: EventBus
 ) : Presenter<ExportDatabaseView> {
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
         init {
-            view.exportDatabaseActions.forEach { exportDatabase() }
+            view.exportDatabaseDirectory.forEach { onDirectoryChanged() }
+            view.browseActions.forEach { onBrowse() }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
 
-        private suspend fun exportDatabase() {
-            val selectedDirectory = view.selectDatabaseExportDirectory(settingsService.general.exportDbDirectory) ?: return
-            settingsService.general.modify { copy(exportDbDirectory = selectedDirectory) }
-            val timestamp = now.defaultTimeZone
-            val timestampedPath = Paths.get(
-                selectedDirectory.toString(),
-                "db ${timestamp.toString("yyyy-MM-dd HH_mm_ss")}.json"
-            ).toFile()
-
-            taskService.execute(maintenanceService.exportDatabase(timestampedPath))
-            view.browseDirectory(selectedDirectory)
+        override suspend fun onShown() {
+            view.exportDatabaseDirectory *= ""
+            onBrowse()
         }
+
+        private fun onDirectoryChanged() {
+            view.exportDatabaseFolderIsValid *= Try {
+                check(view.exportDatabaseDirectory.value.isNotBlank()) { "Please enter a path to a directory!" }
+                check(view.exportDatabaseDirectory.value.file.isDirectory) { "Directory doesn't exist!" }
+            }
+            setCanAccept()
+        }
+
+        private suspend fun onBrowse() {
+            val dir = view.selectExportDatabaseDirectory(settingsService.general.exportDbDirectory)
+            if (dir != null) {
+                view.exportDatabaseDirectory *= dir.absolutePath
+                onAccept()
+            } else {
+                onDirectoryChanged()
+            }
+        }
+
+        private fun setCanAccept() {
+            view.canAccept *= view.exportDatabaseFolderIsValid.value
+        }
+
+        private suspend fun onAccept() {
+            view.canAccept.assert()
+            hideView()
+
+            val file = view.exportDatabaseDirectory.value.file.resolve("db ${now.defaultTimeZone.toString("yyyy-MM-dd HH_mm_ss")}.json")
+            taskService.execute(maintenanceService.exportDatabase(file))
+            settingsService.general.modify { copy(exportDbDirectory = file.parentFile) }
+            view.openDirectory(file.parentFile)
+        }
+
+        private fun onCancel() {
+            hideView()
+        }
+
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

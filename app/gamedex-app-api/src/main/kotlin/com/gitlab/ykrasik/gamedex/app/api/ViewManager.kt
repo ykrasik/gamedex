@@ -23,10 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
@@ -86,6 +83,12 @@ interface ViewManager {
 
     fun showResyncGamesView(): ResyncGamesView
     fun hide(view: ResyncGamesView)
+
+    fun showImportDatabaseView(): ImportDatabaseView
+    fun hide(view: ImportDatabaseView)
+
+    fun showExportDatabaseView(): ExportDatabaseView
+    fun hide(view: ExportDatabaseView)
 
     fun showCleanupDatabaseView(staleData: StaleData): CleanupDatabaseView
     fun hide(view: CleanupDatabaseView)

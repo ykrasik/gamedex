@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
@@ -31,8 +30,10 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
-import tornadofx.*
-import java.io.File
+import tornadofx.hbox
+import tornadofx.text
+import tornadofx.tooltip
+import tornadofx.useMaxWidth
 
 /**
  * User: ykrasik
@@ -40,18 +41,17 @@ import java.io.File
  * Time: 14:57
  */
 class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
-    ExportDatabaseView,
-    ImportDatabaseView,
+    ViewCanExportDatabase,
+    ViewCanImportDatabase,
     ClearUserDataView,
     ViewCanCleanupDatabase,
     ViewCanRefetchGames,
     ViewCanResyncGames,
     ViewCanShowDuplicatesReport,
-    ViewCanShowFolderNameDiffReport,
-    ViewCanOpenFile {
+    ViewCanShowFolderNameDiffReport {
 
-    override val exportDatabaseActions = channel<Unit>()
     override val importDatabaseActions = channel<Unit>()
+    override val exportDatabaseActions = channel<Unit>()
     override val clearUserDataActions = channel<Unit>()
     override val cleanupDatabaseActions = channel<Unit>()
     override val refetchGamesActions = channel<Unit>()
@@ -62,8 +62,6 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     override val showDuplicatesReportActions = channel<Unit>()
     override val showFolderNameDiffReportActions = channel<Unit>()
 
-    override val openFileActions = channel<File>()
-
     init {
         register()
     }
@@ -72,15 +70,15 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
 
     fun init(menu: PopOverMenu) = with(menu) {
         popOverSubMenu("Database", Icons.database) {
-            confirmButton("Export", Icons.export) {
-                useMaxWidth = true
-                alignment = Pos.CENTER_LEFT
-                action(exportDatabaseActions)
-            }
             warningButton("Import", Icons.import) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 action(importDatabaseActions)
+            }
+            confirmButton("Export", Icons.export) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                action(exportDatabaseActions)
             }
 
             verticalGap()
@@ -133,21 +131,6 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             action(clearUserDataActions)
         }
     }
-
-    override fun selectDatabaseExportDirectory(initialDirectory: File?) =
-        chooseDirectory("Select Database Export Folder...", initialDirectory)
-
-    override fun selectDatabaseImportFile(initialDirectory: File?) =
-        chooseFile("Select Database File...", filters = emptyArray()) {
-            this@chooseFile.initialDirectory = initialDirectory
-        }.firstOrNull()
-
-    override fun browseDirectory(directory: File) {
-        // TODO: This kinda sucks. a presenter is telling the view to browse, but the view is delegating to another presenter.
-        openFileActions.offer(directory)
-    }
-
-    override fun confirmImportDatabase() = areYouSureDialog("The existing database will be lost!")
 
     override fun confirmClearUserData() = areYouSureDialog("Clear game user data?") {
         text("This will remove tags, excluded providers & any custom information entered (like custom names or thumbnails) from all games.") {

@@ -16,6 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 import java.io.File
 
@@ -24,9 +28,11 @@ import java.io.File
  * Date: 06/05/2018
  * Time: 12:05
  */
-interface ImportDatabaseView {
-    val importDatabaseActions: ReceiveChannel<Unit>
+interface ImportDatabaseView : ConfirmationView {
+    val importDatabaseFile: UserMutableState<String>
+    val importDatabaseFileIsValid: State<IsValid>
 
-    fun selectDatabaseImportFile(initialDirectory: File?): File?
-    fun confirmImportDatabase(): Boolean
+    val browseActions: ReceiveChannel<Unit>
+
+    fun selectImportDatabaseFile(initialDirectory: File?): File?
 }

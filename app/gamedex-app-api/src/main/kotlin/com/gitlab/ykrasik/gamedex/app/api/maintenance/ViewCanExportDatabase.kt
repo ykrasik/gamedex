@@ -14,33 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.maintenance.module
+package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import com.gitlab.ykrasik.gamedex.core.maintenance.presenter.*
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 12/10/2018
- * Time: 10:31
+ * Date: 06/05/2019
+ * Time: 09:11
  */
-object MaintenanceModule : InternalCoreModule() {
-    override fun configure() {
-        bindPresenter(ShowExportDatabasePresenter::class)
-        bindPresenter(ExportDatabasePresenter::class)
-
-        bindPresenter(ShowImportDatabasePresenter::class)
-        bindPresenter(ImportDatabasePresenter::class)
-
-        bindPresenter(ClearUserDataPresenter::class)
-
-        bindPresenter(ShowCleanupDatabasePresenter::class)
-        bindPresenter(CleanupDatabasePresenter::class)
-
-        bindPresenter(ShowDuplicatesReportPresenter::class)
-        bindPresenter(DuplicatesReportPresenter::class)
-
-        bindPresenter(ShowFolderNameDiffReportPresenter::class)
-        bindPresenter(FolderNameDiffReportPresenter::class)
-    }
+interface ViewCanExportDatabase {
+    val exportDatabaseActions: ReceiveChannel<Unit>
 }
