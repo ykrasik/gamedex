@@ -30,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.supportedPlatforms
 import com.gitlab.ykrasik.gamedex.provider.supports
 import com.google.inject.ImplementedBy
 import kotlinx.coroutines.Dispatchers
@@ -63,6 +64,7 @@ interface CommonData {
     val enabledProviders: ListObservable<EnabledGameProvider>
 
     val platformsWithLibraries: ListObservable<Platform>
+    val platformsWithEnabledProviders: ListObservable<Platform>
 
     val isGameSyncRunning: BroadcastReceiveChannel<Boolean>
 }
@@ -108,6 +110,7 @@ class CommonDataImpl @Inject constructor(
     override val enabledProviders = gameProviderService.enabledProviders
 
     override val platformsWithLibraries = contentLibraries.mapping { it.platform }.distincting()
+    override val platformsWithEnabledProviders = enabledProviders.flatMapping { provider -> provider.supportedPlatforms }.distincting()
 
     override val isGameSyncRunning = BroadcastEventChannel.conflated(false).apply {
         eventBus.on<SyncGamesEvent.Started> { send(true) }

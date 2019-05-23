@@ -19,10 +19,10 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.provider.*
+import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
@@ -41,7 +41,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SyncGamesPresenter @Inject constructor(
-    private val gameProviderService: GameProviderService,
+    private val commonData: CommonData,
     private val settingsService: SettingsService,
     private val eventBus: EventBus
 ) : Presenter<SyncGamesView> {
@@ -58,8 +58,8 @@ class SyncGamesPresenter @Inject constructor(
         }
 
         private fun onSyncGamesStarted(paths: List<Pair<LibraryPath, Game?>>, isAllowSmartChooseResults: Boolean) {
-            check(!paths.isEmpty()) { "No games to sync!" }
-            val platformsWithEnabledProviders = gameProviderService.platformsWithEnabledProviders
+            check(paths.isNotEmpty()) { "No games to sync!" }
+            val platformsWithEnabledProviders = commonData.platformsWithEnabledProviders
             val pathsWithEnabledProviders = paths.filter { (path, _) -> platformsWithEnabledProviders.contains(path.library.platform) }
 
             start()
@@ -157,7 +157,7 @@ class SyncGamesPresenter @Inject constructor(
 
         private fun initState(index: Int, libraryPath: LibraryPath, game: Game?): GameSearchState {
             // TODO: Move this logic inside GameProviderService?
-            val providersToSearch = gameProviderService.enabledProviders
+            val providersToSearch = commonData.enabledProviders
                 .sortedBy { settingsService.providerOrder.search.indexOf(it.id) }
                 .filter { provider -> provider.supports(libraryPath.library.platform) }
                 .map { it.id }

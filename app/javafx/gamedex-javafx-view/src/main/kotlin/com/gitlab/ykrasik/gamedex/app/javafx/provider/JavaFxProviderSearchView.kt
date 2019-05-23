@@ -180,18 +180,17 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                                         }
                                     }
 
-                                    val choice = choices[providerId]
-                                    val choiceIcon = when (choice) {
+                                    val choiceIcon = when (choices[providerId]) {
                                         is ProviderSearchChoice.Accept -> {
                                             tooltip("$providerId has an accepted result.")
                                             Icons.accept
                                         }
                                         is ProviderSearchChoice.Skip -> {
-                                            tooltip("$providerId was skipped from syncing this path.")
+                                            tooltip("$providerId was skipped.")
                                             Icons.redo
                                         }
                                         is ProviderSearchChoice.Exclude -> {
-                                            tooltip("$providerId is excluded from syncing this path.")
+                                            tooltip("$providerId was excluded.")
                                             Icons.warning
                                         }
                                         else -> null
@@ -206,7 +205,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                                 children += providerLogoView(height = 100)
                             } else {
                                 jfxButton {
-                                    addClass(GameDexStyle.hoverable)
+                                    scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
                                     useMaxSize = true
                                     graphic = providerLogoView(height = 30)
                                     action(changeProviderActions) { providerId }

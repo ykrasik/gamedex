@@ -78,6 +78,7 @@ class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableS
     override val changes = channel<T>()
 
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
+    inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
 
     override fun toString() = value.toString()
 }
@@ -86,6 +87,7 @@ class JavaFxState<T, P : Property<T>>(val property: P) : State<T> {
     override var value: T by property
 
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
+    inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
 
     override fun toString() = value.toString()
 }

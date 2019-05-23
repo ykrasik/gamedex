@@ -60,15 +60,24 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
 
     override val verifyAccountActions = channel<Unit>()
 
-    private val accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
+    private val accountLabelContainer = stackpane {
+        addClass(Style.flashContainer)
+        opacity = 0.0
+    }
 
     init {
         register()
 
-        status.onChange { status ->
-            if (status == ProviderAccountStatus.Invalid) {
-                accountLabelFlashContainer.flash(target = 0.5, reverse = true)
+        status.onInvalidated { status ->
+            val (toAdd, toRemove) = when (status) {
+                ProviderAccountStatus.Valid -> Style.validAccountContainer to listOf(Style.unverifiedAccountContainer, Style.invalidAccountContainer)
+                ProviderAccountStatus.Unverified -> Style.unverifiedAccountContainer to listOf(Style.validAccountContainer, Style.invalidAccountContainer)
+                ProviderAccountStatus.Invalid -> Style.invalidAccountContainer to listOf(Style.unverifiedAccountContainer, Style.validAccountContainer)
+                else -> null to listOf(Style.validAccountContainer, Style.unverifiedAccountContainer, Style.invalidAccountContainer)
             }
+            if (toAdd != null) accountLabelContainer.addClass(toAdd)
+            accountLabelContainer.removeClass(*toRemove.toTypedArray())
+            accountLabelContainer.flashFade(duration = 0.2.seconds, target = 0.5)
         }
     }
 
@@ -106,7 +115,7 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
                                     graphicProperty().bind(status.property.binding { it.icon })
                                     textFillProperty().bind(status.property.binding { it.color })
                                 }
-                                add(accountLabelFlashContainer)
+                                add(accountLabelContainer)
                             }
                         }
                     }
@@ -180,6 +189,9 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
             val providerLabel by cssclass()
             val accountLabel by cssclass()
             val flashContainer by cssclass()
+            val validAccountContainer by cssclass()
+            val unverifiedAccountContainer by cssclass()
+            val invalidAccountContainer by cssclass()
             val verifyAccountButton by cssid()
 
             init {
@@ -200,10 +212,20 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
             }
 
             flashContainer {
-                backgroundColor = multi(Color.RED)
                 backgroundRadius = multi(box(5.px))
                 borderRadius = multi(box(5.px))
-                opacity = 0.0
+            }
+
+            validAccountContainer {
+                backgroundColor = multi(Colors.green)
+            }
+
+            unverifiedAccountContainer {
+                backgroundColor = multi(Colors.orange)
+            }
+
+            invalidAccountContainer {
+                backgroundColor = multi(Colors.red)
             }
 
             verifyAccountButton {

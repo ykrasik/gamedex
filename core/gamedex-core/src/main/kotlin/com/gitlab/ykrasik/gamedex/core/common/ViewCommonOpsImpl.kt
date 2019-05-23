@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.common
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
@@ -51,8 +52,8 @@ class ViewCommonOpsImpl @Inject constructor(
     override val providers = gameProviderService.allProviders.map { it.metadata }
     override val providerLogos = gameProviderService.logos
 
-    override fun youTubeGameplayUrl(game: Game): String {
-        val search = URLEncoder.encode("${game.name} gameplay ${game.platform}", "utf-8")
+    override fun youTubeGameplayUrl(name: String, platform: Platform): String {
+        val search = URLEncoder.encode("$name gameplay $platform", "utf-8")
         return "${config.youTubeBaseUrl}/results?search_query=$search"
     }
 }

@@ -34,7 +34,7 @@ data class GameConfig(
         val genres = genreReverseMapping.flatMap { (target, sources) ->
             sources.map { it to target.urlDecoded() }
         }.toMultiMap()
-        genres.forEach { source, targets ->
+        genres.forEach { (source, targets) ->
             if (targets.contains(noGenre)) {
                 require(targets.size == 1) { "Genre('$source') is both mapped to a value and marked as filtered: $targets" }
             }

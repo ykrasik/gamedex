@@ -177,7 +177,6 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                                 imageview(commonOps.fetchThumbnail(game)) {
                                     fitHeight = 30.0
                                     fitWidth = 30.0
-                                    isPreserveRatio = true
                                 }
                                 label(game.name) {
                                     maxWidth = 270.0
@@ -215,7 +214,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                 show(currentWindow, bounds.minX - 8, bounds.minY + 20)
             }
 
-            textField.focusedProperty().forEachWith(isShowSearchSuggestions.property) { focused, isShowSearchSuggestions ->
+            textField.focusedProperty().combineLatest(isShowSearchSuggestions.property).forEachWith(textField.textProperty()) { (focused, isShowSearchSuggestions), _ ->
                 if (focused && isShowSearchSuggestions) {
                     showUnderTextField()
                 } else {

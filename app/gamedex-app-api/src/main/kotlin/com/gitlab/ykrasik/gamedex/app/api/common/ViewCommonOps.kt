@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.common
 
 import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
@@ -43,5 +44,5 @@ interface ViewCommonOps {
     val providers: List<GameProviderMetadata>
     val providerLogos: Map<ProviderId, Image>
 
-    fun youTubeGameplayUrl(game: Game): String
+    fun youTubeGameplayUrl(name: String, platform: Platform): String
 }

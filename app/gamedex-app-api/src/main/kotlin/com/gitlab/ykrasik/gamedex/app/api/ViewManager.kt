@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
@@ -94,6 +95,9 @@ interface ViewManager {
 
     fun showFolderNameDiffView(): FolderNameDiffView
     fun hide(view: FolderNameDiffView)
+
+    fun showLogView(): LogView
+    fun hide(view: LogView)
 
     fun showSettingsView(): SettingsView
     fun hide(view: SettingsView)

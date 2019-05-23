@@ -36,4 +36,4 @@ class JavaFxImageFactory : ImageFactory {
 }
 
 typealias DomainImage = com.gitlab.ykrasik.gamedex.app.api.image.Image
-typealias JavaFxImage = javafx.scene.image.Image
+typealias JavaFxImage = Image

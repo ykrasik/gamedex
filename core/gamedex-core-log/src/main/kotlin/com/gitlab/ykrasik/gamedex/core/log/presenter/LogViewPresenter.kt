@@ -14,27 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.log
+package com.gitlab.ykrasik.gamedex.core.log.presenter
 
-import org.joda.time.DateTime
+import com.gitlab.ykrasik.gamedex.app.api.log.LogView
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.log.LogService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 06/05/2018
- * Time: 12:53
- */
-interface ViewWithLogEntries {
-    val entries: MutableList<LogEntry>
-}
-
-data class LogEntry(val level: LogLevel, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
-
-enum class LogLevel(val displayName: String) {
-    Trace("Trace"),
-    Debug("Debug"),
-    Info("Info"),
-    Warn("Warn"),
-    Error("Error");
-
-    fun canLog(level: LogLevel) = this.ordinal >= level.ordinal
+@Singleton
+class LogViewPresenter @Inject constructor(private val logService: LogService) : Presenter<LogView> {
+    override fun present(view: LogView) = object : ViewSession() {
+        init {
+            logService.entries.bind(view.entries)
+        }
+    }
 }

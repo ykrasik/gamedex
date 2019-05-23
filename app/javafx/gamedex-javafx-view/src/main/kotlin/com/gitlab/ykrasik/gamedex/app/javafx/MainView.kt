@@ -18,13 +18,14 @@ package com.gitlab.ykrasik.gamedex.app.javafx
 
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanShowLogView
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.LibraryMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxFolderNameDiffScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
@@ -36,10 +37,12 @@ import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
 import com.jfoenix.controls.JFXButton
 import javafx.geometry.Pos
@@ -57,23 +60,30 @@ import java.util.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAboutView {
+class MainView : PresentableView("GameDex"),
+    ViewCanSyncLibraries,
+    ViewCanShowSettings,
+    ViewCanShowLogView,
+    ViewCanShowAboutView {
     val taskView: JavaFxTaskView by inject()
 
     private val gameScreen: JavaFxGameScreen by inject()
-    private val libraryMenu: LibraryMenu by inject()
     private val syncGamesScreen: JavaFxSyncGamesScreen by inject()
-    private val reportMenu: ReportMenu by inject()
     private val reportScreen: JavaFxReportScreen by inject()
     private val duplicatesScreen: JavaFxDuplicatesScreen by inject()
     private val folderNameDiffScreen: JavaFxFolderNameDiffScreen by inject()
     private val maintenanceMenu: MaintenanceMenu by inject()
-    private val logScreen: JavaFxLogScreen by inject()
 
+    private val libraryMenu: LibraryMenu by inject()
+    private val reportMenu: ReportMenu by inject()
     private val gameDetailsView: JavaFxGameDetailsView by inject()
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
+    override val canSyncLibraries = state(IsValid.valid)
+    override val syncLibrariesActions = channel<Unit>()
+
+    override val showLogViewActions = channel<Unit>()
     override val showSettingsActions = channel<Unit>()
     override val showAboutActions = channel<Unit>()
 
@@ -82,7 +92,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
 
     private val toolbar = customToolbar {
         children.onChange {
-            fade(0.6.seconds, 1.0, play = true) {
+            fade(0.6.seconds, 1.0) {
                 fromValue = 0.0
             }
         }
@@ -97,7 +107,6 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         tab(reportScreen)
         tab(duplicatesScreen)
         tab(folderNameDiffScreen)
-        tab(logScreen)
         tab(gameDetailsView)
 
         selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
@@ -116,7 +125,15 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
     private fun TabPane.tab(screen: PresentableScreen) = tab(screen) { userData = screen }
 
     private val mainNavigationButton = popOverMenu(graphic = Icons.menu) {
-        navigationButton(gameScreen)
+        navigationButton(gameScreen) {
+            shortcut("ctrl+g")
+            tooltip("Show Games (ctrl+g)")
+        }
+        navigationButton("Sync Libraries", Icons.folderSync) {
+            tooltip("Scan all libraries for new games and sync them with providers")
+            enableWhen(canSyncLibraries)
+            action(syncLibrariesActions)
+        }
 
         verticalGap(size = 15)
 
@@ -126,17 +143,23 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
 
         verticalGap(size = 15)
 
-        navigationButton(logScreen)
+        navigationButton("Log", Icons.book) {
+            action(showLogViewActions)
+            shortcut("ctrl+l")
+            tooltip("Show Log (ctrl+l)")
+        }
         navigationButton("Settings", Icons.settings) {
             action(showSettingsActions)
             shortcut("ctrl+o")
-            tooltip("Settings (ctrl+o)")
+            tooltip("Show Settings (ctrl+o)")
         }
 
         verticalGap(size = 15)
 
         navigationButton("About", Icons.information) {
             action(showAboutActions)
+            shortcut("ctrl+i")
+            tooltip("Show About (ctrl+i)")
         }
         navigationButton("Quit", Icons.quit) {
             action {
@@ -153,8 +176,10 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         prepareNewTab(tabPane.selectionModel.selectedItem)
 
         whenDockedOnce {
-            val applicationStartTime = System.currentTimeMillis() - params[StartTimeParam] as Long
-            log.info("Total application start time: ${applicationStartTime.humanReadableDuration}")
+            (params[StartTimeParam] as? Long)?.let { startTime ->
+                val applicationStartTime = System.currentTimeMillis() - startTime
+                log.info("Total application start time: ${applicationStartTime.humanReadableDuration}")
+            }
         }
     }
 
@@ -193,11 +218,10 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         }
     }
 
-    private fun PopOverContent.navigationButton(screen: PresentableScreen) =
+    private inline fun PopOverContent.navigationButton(screen: PresentableScreen, crossinline op: JFXButton.() -> Unit = {}) =
         navigationButton(screen.title, screen.icon) {
-            action {
-                selectScreen(screen)
-            }
+            action { showScreen(screen) }
+            op()
         }
 
     private inline fun PopOverContent.navigationButton(text: String, icon: Node, crossinline op: JFXButton.() -> Unit = {}) =
@@ -211,28 +235,27 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         crossinline op: PopOverMenu.() -> Unit = { children += view.root }
     ): HBox = popOverSubMenu(view.title, view.icon, op = op)
 
-    fun showGameDetails(params: ViewGameParams): JavaFxGameDetailsView = selectScreen(gameDetailsView) {
+    fun showGameDetails(params: ViewGameParams): JavaFxGameDetailsView = showScreen(gameDetailsView) {
         this.gameParams.valueFromView = params
     }
 
-    fun showSyncGamesView(): JavaFxSyncGamesScreen = selectScreen(syncGamesScreen)
+    fun showSyncGamesView(): JavaFxSyncGamesScreen = showScreen(syncGamesScreen)
 
-    fun showReportView(report: Report): JavaFxReportScreen = selectScreen(reportScreen) {
+    fun showReportView(report: Report): JavaFxReportScreen = showScreen(reportScreen) {
         this.report.valueFromView = report
     }
 
-    fun showDuplicatesReport(): JavaFxDuplicatesScreen = selectScreen(duplicatesScreen)
-    fun showFolderNameDiffReport(): JavaFxFolderNameDiffScreen = selectScreen(folderNameDiffScreen)
+    fun showDuplicatesReport(): JavaFxDuplicatesScreen = showScreen(duplicatesScreen)
+    fun showFolderNameDiffReport(): JavaFxFolderNameDiffScreen = showScreen(folderNameDiffScreen)
 
     fun showPreviousScreen() {
         navigationHistory.pop()   // The current screen being shown is at the top of the stack.
         tabPane.selectionModel.select(navigationHistory.pop()) // Pop again, because the selection change will push it right back in.
     }
 
-    private inline fun <V : PresentableScreen> selectScreen(screen: V, op: V.() -> Unit = {}): V {
-        op(screen)
+    private inline fun <V : PresentableScreen> showScreen(screen: V, op: V.() -> Unit = {}): V = screen.apply {
+        op()
         tabPane.selectionModel.select(screen.tab)
-        return screen
     }
 
     private val Tab.screen: PresentableScreen get() = userData as PresentableScreen

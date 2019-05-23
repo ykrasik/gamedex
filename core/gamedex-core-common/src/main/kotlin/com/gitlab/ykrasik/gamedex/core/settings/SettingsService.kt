@@ -18,6 +18,9 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
+import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -58,7 +61,8 @@ interface SettingsService {
 @Singleton
 class SettingsServiceImpl @Inject constructor(
     private val factory: JsonStorageFactory<String>,
-    gameProviderService: GameProviderService
+    gameProviderService: GameProviderService,
+    eventBus: EventBus
 ) : SettingsService {
     private val log = logger()
     private val all = mutableListOf<SettingsRepository<*>>()
@@ -84,6 +88,15 @@ class SettingsServiceImpl @Inject constructor(
     override val providers = gameProviderService.allProviders.map { provider ->
         provider.id to repo { ProviderSettingsRepository(settingsStorage("provider"), provider) }
     }.toMap()
+
+    init {
+        eventBus.on<DatabaseInvalidatedEvent> {
+            // Drop any filters we may currently have - they may be incorrect for the new database (point to non-existing libraries).
+            platforms.forEach { (_, settings) ->
+                settings.resetDefaults()
+            }
+        }
+    }
 
     private fun settingsStorage(basePath: String = "") = SettingsStorageFactory("conf/$basePath", factory)
 

@@ -127,7 +127,7 @@ class GameServiceImpl @Inject constructor(
         throw NoSuchElementException("Game doesn't exist: id=$id")
     }
 
-    override fun get(platform: Platform): List<Game> = gamesByPlatform.getValue(platform)
+    override fun get(platform: Platform): List<Game> = gamesByPlatform.getOrDefault(platform, emptyList())
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 }

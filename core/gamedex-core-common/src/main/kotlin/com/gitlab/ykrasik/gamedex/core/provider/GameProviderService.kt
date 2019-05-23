@@ -33,10 +33,9 @@ interface GameProviderService {
     val allProviders: List<GameProvider>
     val enabledProviders: ListObservable<EnabledGameProvider>
 
-    val platformsWithEnabledProviders: Set<Platform>
-
     fun isEnabled(id: ProviderId): Boolean
 
+    // TODO: This service should not have any knowledge of images.
     val logos: Map<ProviderId, Image>
 
     fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit>

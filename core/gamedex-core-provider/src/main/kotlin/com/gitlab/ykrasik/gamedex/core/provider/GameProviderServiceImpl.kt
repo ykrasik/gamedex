@@ -92,9 +92,6 @@ class GameProviderServiceImpl @Inject constructor(
 
     override val logos = allProviders.map { it.id to imageService.createImage(it.logo) }.toMap()
 
-    override val platformsWithEnabledProviders: Set<Platform>
-        get() = enabledProviders.fold(setOf()) { acc, provider -> acc + provider.supportedPlatforms }
-
     override fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit> {
         val provider = allProviders.find { it.id == providerId }!!
         val accountFeature = checkNotNull(provider.accountFeature) { "Provider $providerId does not require an account!" }

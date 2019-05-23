@@ -96,5 +96,22 @@ inline fun <T> List<T>.findCircular(startIndex: Int = 0, predicate: (T) -> Boole
     return null
 }
 
+inline fun <T, R> List<T>.findTransform(transform: (T) -> R, predicate: (R) -> Boolean): R? {
+    forEach {
+        val value = transform(it)
+        if (predicate(value)) return value
+    }
+    return null
+}
+
+inline fun <T, R> List<T>.findLastTransform(transform: (T) -> R, predicate: (R) -> Boolean): R? {
+    val iterator = this.listIterator(size)
+    while (iterator.hasPrevious()) {
+        val value = transform(iterator.previous())
+        if (predicate(value)) return value
+    }
+    return null
+}
+
 fun <T> MutableList<T>.push(t: T) = add(t)
 fun <T> MutableList<T>.pop() = removeAt(size - 1)

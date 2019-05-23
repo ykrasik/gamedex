@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.common
 
 import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
@@ -91,5 +92,6 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }.withDefault { noImage }
     fun providerLogo(providerId: ProviderId): JavaFxImage = providerLogos.getValue(providerId)
 
-    fun youTubeGameplayUrl(game: Game): String = ops.youTubeGameplayUrl(game)
+    fun youTubeGameplayUrl(name: String, platform: Platform): String = ops.youTubeGameplayUrl(name, platform)
+    fun youTubeGameplayUrl(game: Game): String = youTubeGameplayUrl(game.name, game.platform)
 }

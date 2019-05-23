@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
@@ -43,6 +44,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameVie
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
+import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxCleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxRefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxResyncGamesView
@@ -52,14 +54,15 @@ import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import javafx.stage.StageStyle
 import tornadofx.Controller
 import tornadofx.View
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 21/05/2018
  * Time: 10:37
  */
+@Singleton
 class JavaFxViewManager : Controller(), ViewManager {
-
     private val mainView: MainView by inject()
 
     override fun showTaskView(): TaskView {
@@ -135,6 +138,10 @@ class JavaFxViewManager : Controller(), ViewManager {
 
     override fun showFolderNameDiffView() = mainView.showFolderNameDiffReport()
     override fun hide(view: FolderNameDiffView) = mainView.showPreviousScreen()
+
+    private val logView: JavaFxLogView by inject()
+    override fun showLogView(): LogView = logView.showModal()
+    override fun hide(view: LogView) = view.close()
 
     private val settingsView: JavaFxSettingsView by inject()
     override fun showSettingsView() = settingsView.showModal()

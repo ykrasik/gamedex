@@ -20,15 +20,15 @@ import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.geometry.VPos
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Region
+import javafx.scene.layout.VBox
 import javafx.util.Duration
-import tornadofx.fade
-import tornadofx.onChange
-import tornadofx.opcr
-import tornadofx.seconds
+import tornadofx.*
 import java.io.ByteArrayInputStream
 
 /**
@@ -50,10 +50,28 @@ inline fun Image.toImageView(
     f(this)
 }
 
-inline fun EventTarget.imageViewResizingPane(
+@Suppress("UNCHECKED_CAST")
+inline fun EventTarget.imageview(
+    image: ObservableValue<Image>,
+    isPreserveRatio: Boolean = true,
+    crossinline op: ImageView.() -> Unit = {}
+) = imageview(image as ObservableValue<Image?>) {
+    this.isPreserveRatio = isPreserveRatio
+    op()
+}
+
+inline fun EventTarget.makeRoundCorners(
     imageView: ImageView,
-    op: ImageViewResizingPane.() -> Unit = {}
-) = opcr(this, ImageViewResizingPane(imageView), op)
+    arc: Number = 20,
+    crossinline op: VBox.() -> Unit = {}
+) = vbox {
+    alignment = Pos.TOP_RIGHT
+    maxWidth = Region.USE_PREF_SIZE
+    maxHeight = Region.USE_PREF_SIZE
+    children += imageView
+    clipRectangle(arc = arc)
+    op()
+}
 
 fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView = apply {
     imageProperty().onChange {
@@ -62,6 +80,11 @@ fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageVi
         }
     }
 }
+
+inline fun EventTarget.imageViewResizingPane(
+    imageView: ImageView,
+    op: ImageViewResizingPane.() -> Unit = {}
+) = opcr(this, ImageViewResizingPane(imageView), op)
 
 inline fun EventTarget.imageViewResizingPane(
     image: ObservableValue<Image>,
@@ -78,13 +101,13 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
     }
 
     val imageProperty = imageView.imageProperty()
+    var image by imageProperty
 
     override fun layoutChildren() {
         layoutInArea(imageView, 0.0, 0.0, imageView.fitWidth, imageView.fitHeight, 0.0, HPos.CENTER, VPos.CENTER)
     }
 
     override fun resize(width: Double, height: Double) {
-        val image = imageView.image
         val normalizedWidth = Math.min(width, image.width * maxEnlargeRatio)
         val normalizedHeight = Math.min(height, image.height * maxEnlargeRatio)
 
@@ -123,7 +146,7 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
 
     override fun getContentBias(): Orientation = Orientation.VERTICAL
 
-    private val imageRatio: Double get() = imageView.image.let { it.height / it.width }
+    private val imageRatio: Double get() = imageView.image.run { height / width }
 
     private fun limitByMaxWidth(width: Double) = limitIfApplicable(width, maxWidth)
     private fun limitByMaxHeight(height: Double) = limitIfApplicable(height, maxHeight)

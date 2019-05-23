@@ -263,7 +263,7 @@ inline fun <T> ListObservable<T>.broadcastTo(
                         events += itemsDeletedEvent(deletedItems)
                     }
 
-                    val updatedItems = updatedIds.map { prevItemsById[it]!! to updatedItemsById[it]!! }
+                    val updatedItems = updatedIds.map { prevItemsById.getValue(it) to updatedItemsById.getValue(it) }
                     if (updatedItems.isNotEmpty()) {
                         events += itemsUpdatedEvent(updatedItems)
                     }

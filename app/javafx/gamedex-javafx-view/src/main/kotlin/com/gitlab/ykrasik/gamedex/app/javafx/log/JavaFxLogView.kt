@@ -17,20 +17,16 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import com.gitlab.ykrasik.gamedex.app.api.log.*
-import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxListView
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableWindow
 import com.jfoenix.controls.JFXListCell
-import javafx.scene.input.KeyCombination
-import javafx.scene.layout.HBox
-import javafx.scene.paint.Color
 import tornadofx.*
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -40,7 +36,7 @@ import java.io.StringWriter
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries, ViewCanChangeLogLevel, ViewCanChangeLogTail {
+class JavaFxLogView : PresentableWindow("Log", Icons.book), LogView, ViewCanChangeLogLevel, ViewCanChangeLogTail {
     override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
     override var level = userMutableState(LogLevel.Info)
@@ -56,67 +52,71 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
         register()
     }
 
-    override fun HBox.buildToolbar() {
-        enumComboMenu(level.property, text = LogLevel::displayName, graphic = { it.icon }).apply {
-            addClass(GameDexStyle.toolbarButton)
+    override val root = borderpane {
+        top = customToolbar {
+            enumComboMenu(level.property, text = LogLevel::displayName, graphic = { it.icon }).apply {
+                addClass(GameDexStyle.toolbarButton)
+            }
+            jfxCheckBox(logTail.property, "Tail")
         }
-        jfxCheckBox(logTail.property, "Tail")
-    }
+        center = prettyListView(entries) {
+            addClass(Style.logView)
+            minWidth = screenBounds.width * 5 / 6
+            minHeight = screenBounds.height * 5 / 6
 
-    override val root = jfxListView(entries) {
-        addClass(Style.logView)
+            setCellFactory {
+                object : JFXListCell<LogEntry>() {
+                    init {
+                        popoverContextMenu {
+                            jfxButton("Copy to Clipboard", Icons.clipboard) {
+                                action {
+                                    clipboard.putString(item.message)
+                                }
+                            }
+                        }
+                    }
 
-        setCellFactory {
-            object : JFXListCell<LogEntry>() {
-                init {
-//                    addClass(CommonStyle.jfxHoverable)
-                    contextmenu {
-                        item("Copy to Clipboard", KeyCombination.keyCombination("ctrl+c")).action {
-                            clipboard.putString(item.message)
+                    override fun updateItem(item: LogEntry?, empty: Boolean) {
+                        super.updateItem(item, empty)
+
+                        toggleClass(Style.trace, false)
+                        toggleClass(Style.debug, false)
+                        toggleClass(Style.info, false)
+                        toggleClass(Style.warn, false)
+                        toggleClass(Style.error, false)
+
+                        if (item == null || empty) {
+                            text = null
+                            graphic = null
+                            return
+                        }
+
+                        val message = if (item.throwable != null) {
+                            val sw = StringWriter()
+                            sw.appendln(item.message)
+                            item.throwable!!.printStackTrace(PrintWriter(sw))
+                            sw.toString()
+                        } else {
+                            item.message
+                        }
+                        text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] $message"
+                        graphic = item.level.icon.size(20)
+
+                        when (item.level) {
+                            LogLevel.Trace -> toggleClass(Style.trace, true)
+                            LogLevel.Debug -> toggleClass(Style.debug, true)
+                            LogLevel.Info -> toggleClass(Style.info, true)
+                            LogLevel.Warn -> toggleClass(Style.warn, true)
+                            LogLevel.Error -> toggleClass(Style.error, true)
                         }
                     }
                 }
-
-                override fun updateItem(item: LogEntry?, empty: Boolean) {
-                    super.updateItem(item, empty)
-
-                    toggleClass(Style.trace, false)
-                    toggleClass(Style.debug, false)
-                    toggleClass(Style.info, false)
-                    toggleClass(Style.warn, false)
-                    toggleClass(Style.error, false)
-
-                    if (item == null || empty) {
-                        text = null
-                        graphic = null
-                        return
-                    }
-
-                    val message = if (item.throwable != null) {
-                        val sw = StringWriter()
-                        sw.appendln(item.message)
-                        item.throwable!!.printStackTrace(PrintWriter(sw))
-                        sw.toString()
-                    } else {
-                        item.message
-                    }
-                    text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] $message"
-                    graphic = item.level.icon.size(20)
-
-                    when (item.level) {
-                        LogLevel.Trace -> toggleClass(Style.trace, true)
-                        LogLevel.Debug -> toggleClass(Style.debug, true)
-                        LogLevel.Info -> toggleClass(Style.info, true)
-                        LogLevel.Warn -> toggleClass(Style.warn, true)
-                        LogLevel.Error -> toggleClass(Style.error, true)
-                    }
-                }
             }
-        }
 
-        entries.onChange {
-            if (logTail.value) {
-                scrollTo(items.size)
+            entries.onChange {
+                if (logTail.value) {
+                    scrollTo(items.size)
+                }
             }
         }
     }
@@ -148,8 +148,6 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
         init {
             logView {
                 listCell {
-                    backgroundColor = multi(Color.WHITE) // removes alternating list gray cells.
-
                     and(trace) {
                         textFill = Icons.logTrace.iconColor
                     }
@@ -164,9 +162,6 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
                     }
                     and(error) {
                         textFill = Icons.logError.iconColor
-                    }
-                    and(selected) {
-                        backgroundColor = multi(Color.LIGHTBLUE)
                     }
                 }
             }

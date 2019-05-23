@@ -35,8 +35,6 @@ class GameDexStyle : Stylesheet() {
 
         val centered by cssclass()
 
-        val hoverable by cssclass()
-
         val jfxHoverable by cssclass()
         val jfxToggleNodeLabel by cssclass()
 
@@ -73,9 +71,18 @@ class GameDexStyle : Stylesheet() {
         val jfxButton by cssclass()
         val jfxProgressBar by csselement("JFXProgressBar")
         val jfxSpinner by csselement("JFXSpinner")
+        val jfxDialog by cssclass()
+
+        val stackPane by csselement("StackPane")
 
         val arc by cssclass()
         val secondaryBar by cssclass()
+
+        val hoverShadow = mixin {
+            and(hover) {
+                effect = DropShadow()
+            }
+        }
     }
 
     init {
@@ -106,14 +113,6 @@ class GameDexStyle : Stylesheet() {
 
         centered {
             alignment = Pos.CENTER
-        }
-
-        hoverable {
-            and(hover) {
-                translateX = 1.px
-                translateY = 1.px
-                effect = DropShadow()
-            }
         }
 
         jfxHoverable {
@@ -274,6 +273,13 @@ class GameDexStyle : Stylesheet() {
             }
             arc {
                 stroke = Color.ORANGE
+            }
+        }
+
+        jfxDialog {
+            stackPane {
+                backgroundRadius = multi(box(20.px))
+                backgroundColor = multi(Color.TRANSPARENT)
             }
         }
 

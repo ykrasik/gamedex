@@ -106,6 +106,7 @@ class JavaFxTaskView : PresentableView(), TaskView {
         jfxProgressBar(taskProgress.progress.property) {
             useMaxWidth = true
             addClass(if (isMain) Style.mainTaskProgress else Style.subTaskProgress)
+            clipRectangle(arc = 3)
         }
         imageview(taskProgress.javaFxImage) {
             fitHeight = 120.0
@@ -151,6 +152,10 @@ class JavaFxTaskView : PresentableView(), TaskView {
 
         init {
             mainTaskProgress {
+                bar {
+                    backgroundColor = multi(Color.CORNFLOWERBLUE)
+                    backgroundRadius = multi(box(20.px))
+                }
             }
 
             mainTaskText {
@@ -160,6 +165,7 @@ class JavaFxTaskView : PresentableView(), TaskView {
             subTaskProgress {
                 bar {
                     backgroundColor = multi(Color.FORESTGREEN)
+                    backgroundRadius = multi(box(20.px))
                 }
 //                percentage {
 //                    fill = Color.CADETBLUE

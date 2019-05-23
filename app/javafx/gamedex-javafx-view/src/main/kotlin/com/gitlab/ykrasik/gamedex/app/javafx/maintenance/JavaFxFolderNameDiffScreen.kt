@@ -30,7 +30,6 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.backButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
@@ -40,6 +39,7 @@ import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
@@ -83,9 +83,6 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     }
 
     private val gamesView = prettyListView(diffs) {
-        vgrow = Priority.ALWAYS
-        useMaxSize = true
-
         prettyListCell { diff ->
             val game = diff.game
             text = null
@@ -115,26 +112,23 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     private val diffsOfSelectedGame = selectedDiff.mapToList { it?.diffs ?: emptyList() }
 
     private val diffsView = prettyListView(diffsOfSelectedGame) {
-        vgrow = Priority.ALWAYS
-
         prettyListCell { diff ->
             text = null
             graphic = HBox().apply {
                 spacing = 20.0
                 addClass(Style.diffItem)
-                hbox {
+                stackpane {
                     minWidth = 160.0
+                    alignment = Pos.CENTER
                     children += commonOps.providerLogo(diff.providerId).toImageView(height = 80.0, width = 160.0)
                 }
-                vbox {
-                    form {
-                        addClass(GameDexStyle.centered)
-                        fieldset {
-                            horizontalField("Expected") { render(diff.expectedFolderName, diff.patch.deltas) { it.revised } }
-                            horizontalField("Actual") { render(diff.folderName, diff.patch.deltas) { it.original } }
-                        }
-
+                form {
+                    alignment = Pos.CENTER
+                    fieldset {
+                        horizontalField("Expected") { render(diff.expectedFolderName, diff.patch.deltas) { it.revised } }
+                        horizontalField("Actual") { render(diff.folderName, diff.patch.deltas) { it.original } }
                     }
+
                 }
                 diffContextMenu.install(this) { selectedDiff.value.game to diff }
             }
@@ -145,20 +139,19 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     }
 
     override val root = hbox {
-        vgrow = Priority.ALWAYS
-        useMaxSize = true
-
         // Left
         vbox {
-            minWidth = width
             hgrow = Priority.ALWAYS
-            add(gamesView)
+            maxWidth = screenBounds.width / 2
+            add(gamesView.apply { vgrow = Priority.ALWAYS })
         }
+
+        gap(size = 10)
 
         // Right
         vbox {
             hgrow = Priority.ALWAYS
-            add(diffsView)
+            add(diffsView.apply { vgrow = Priority.ALWAYS })
         }
     }
 

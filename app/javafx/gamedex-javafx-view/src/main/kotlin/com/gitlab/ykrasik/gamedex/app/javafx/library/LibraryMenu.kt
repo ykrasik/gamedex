@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddOrEditLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
@@ -42,14 +41,10 @@ import java.io.File
  * Time: 21:34
  */
 class LibraryMenu : PresentableView("Libraries", Icons.folders),
-    ViewCanSyncLibraries,
     ViewWithLibraries,
     ViewCanAddOrEditLibrary,
     ViewCanDeleteLibrary,
     ViewCanOpenFile {
-
-    override val canSyncLibraries = state(IsValid.valid)
-    override val syncLibrariesActions = channel<Unit>()
 
     override val libraries = mutableListOf<Library>().observable()
 
@@ -66,21 +61,13 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
     }
 
     override val root = vbox(spacing = 5) {
-        hbox {
-            infoButton("Sync Libraries", graphic = Icons.folderSync) {
-                tooltip("Scan all libraries for new games and sync them with providers")
-                enableWhen(canSyncLibraries)
-                action(syncLibrariesActions)
-            }
-            spacer()
-            addButton {
-                alignment = Pos.CENTER
-                useMaxWidth = true
-                removeClass(GameDexStyle.toolbarButton)
-                tooltip("Add a new library")
-                enableWhen(canAddOrEditLibraries)
-                action(addOrEditLibraryActions) { null }
-            }
+        addButton {
+            alignment = Pos.CENTER
+            useMaxWidth = true
+            removeClass(GameDexStyle.toolbarButton)
+            tooltip("Add a new library")
+            enableWhen(canAddOrEditLibraries)
+            action(addOrEditLibraryActions) { null }
         }
         verticalGap()
         vbox {

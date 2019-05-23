@@ -40,7 +40,7 @@ object Colors {
     val anotherPrettyLightGray = c("#bfc4cc")
     val blueGrey = c("#afbbce")
     val transparentDark = c(0, 0, 0, 0.6)
-    val transparentWhite = c("#e8eaed", 0.8)
+    val transparentWhite = c("#e8eaed", 0.6)
 
     // Taken from [https://digitalsynopsis.com/design/beautiful-color-gradients-backgrounds/]
 
@@ -114,7 +114,7 @@ enum class GradientDirection {
 }
 
 val Score?.ratingColor: Color
-    get() = if (this != null) (score / 100).ratingColor else Colors.prettyLightGray
+    get() = if (this != null) (score / 100).ratingColor else Colors.niceBlueDarker
 
 val Double.ratingColor: Color
     get() = when {

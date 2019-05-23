@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.jfoenix.utils.JFXNodeUtils
-import javafx.animation.FadeTransition
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Bounds
@@ -31,7 +30,6 @@ import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.stage.Screen
 import javafx.stage.Stage
-import javafx.util.Duration
 import tornadofx.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberFunctions
@@ -116,13 +114,6 @@ fun Node.mouseTransparentWhen(expr: () -> ObservableValue<Boolean>) {
     mouseTransparentProperty().cleanBind(expr())
 }
 
-fun Node.flash(duration: Duration = 0.15.seconds, target: Double = 0.0, reverse: Boolean = false): FadeTransition =
-    fade(duration, if (reverse) 1.0 - target else target) {
-        setOnFinished {
-            fade(duration, if (reverse) 0.0 else 1.0)
-        }
-    }
-
 inline fun <T : UIComponent> Pane.addComponent(component: T, f: T.() -> Unit = {}) {
     children += component.root
     f(component)
@@ -165,6 +156,7 @@ val Node.verticalScrollBar: ScrollBar?
 
 val Color.hex: String get() = JFXNodeUtils.colorToHex(this)
 val String.color: Color get() = Color.valueOf(this)
+fun Color.withOpacity(opacity: Double): Color = Color(red, green, blue, opacity)
 
 val Node.boundsInScreen: Bounds get() = localToScreen(boundsInLocal)
 

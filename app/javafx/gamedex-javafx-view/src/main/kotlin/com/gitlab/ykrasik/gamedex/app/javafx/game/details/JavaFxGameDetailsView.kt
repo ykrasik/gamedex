@@ -51,9 +51,10 @@ class JavaFxGameDetailsView : PresentableScreen(),
     GameDetailsView,
     ViewCanEditGame,
     ViewCanDeleteGame,
+    ViewCanRenameMoveGame,
     ViewCanTagGame,
-    ViewCanResyncGame,
     ViewCanRefetchGame,
+    ViewCanResyncGame,
     ViewCanOpenFile {
 
     private val commonOps: JavaFxCommonOps by di()
@@ -71,6 +72,7 @@ class JavaFxGameDetailsView : PresentableScreen(),
 
     override val editGameActions = channel<EditGameParams>()
     override val deleteGameActions = channel<Game>()
+    override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
     override val refetchGameActions = channel<Game>()
 
@@ -113,26 +115,32 @@ class JavaFxGameDetailsView : PresentableScreen(),
         }
 
         spacer()
-        editButton("Edit") { action { editGame(GameDataType.Name) } }
+        editButton("Edit") { action(editGameActions) { EditGameParams(game.value, initialView = GameDataType.Name) } }
         gap()
-        toolbarButton("Tag", graphic = Icons.tag) { action(tagGameActions) { game.value!! } }
+        toolbarButton("Tag", Icons.tag) { action(tagGameActions) { game.value } }
         gap()
         extraMenu {
             infoButton("Re-Fetch", graphic = Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                action(refetchGameActions) { game.value!! }
+                action(refetchGameActions) { game.value }
             }
             infoButton("Re-Sync", graphic = Icons.sync) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 enableWhen(canResyncGame)
-                action(resyncGameActions) { game.value!! }
+                action(resyncGameActions) { game.value }
+            }
+
+            verticalGap()
+
+            warningButton("Rename/Move Folder", Icons.folderEdit) {
+                action(renameMoveGameActions) { RenameMoveGameParams(game.value, initialSuggestion = null) }
             }
             deleteButton("Delete") {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                action(deleteGameActions) { game.value!! }
+                action(deleteGameActions) { game.value }
             }
         }
     }
@@ -189,6 +197,4 @@ class JavaFxGameDetailsView : PresentableScreen(),
             }
         }
     }
-
-    private fun editGame(initialTab: GameDataType) = editGameActions.event(EditGameParams(game.value!!, initialTab))
 }

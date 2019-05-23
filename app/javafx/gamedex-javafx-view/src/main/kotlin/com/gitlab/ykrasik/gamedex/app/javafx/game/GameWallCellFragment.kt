@@ -20,21 +20,21 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.app.api.settings.GameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
 import com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
+import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.control.fadeOnImageChange
+import com.gitlab.ykrasik.gamedex.javafx.control.scaleOnMouseOver
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableValue
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Label
-import javafx.scene.effect.DropShadow
-import javafx.scene.effect.Glow
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
-import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
@@ -60,13 +60,12 @@ class GameWallCellFragment(
     var isSelected by isSelectedProperty
 
     override val root = stackpane {
+        addClass(Style.gameWallCell)
+        scaleOnMouseOver(duration = 0.1.seconds, target = 1.03)
+
         val root = this
         minWidthProperty().bind(maxWidthProperty())
         minHeightProperty().bind(maxHeightProperty())
-
-        val dropshadow = DropShadow().apply { input = Glow() }
-        setOnMouseEntered { effect = dropshadow }
-        setOnMouseExited { effect = null }
 
         stackpane {
             val content = this
@@ -111,12 +110,7 @@ class GameWallCellFragment(
                 }
             }
 
-            clip = Rectangle().apply {
-                arcWidth = 20.0
-                arcHeight = 20.0
-                heightProperty().bind(content.heightProperty())
-                widthProperty().bind(content.widthProperty())
-            }
+            clipRectangle(arc = 20)
         }
     }
 
@@ -124,9 +118,9 @@ class GameWallCellFragment(
         addClass(Style.overlayText)
         visibleWhen {
             val showOnlyWhenActive = settings.showOnlyWhenActive.value.toProperty()
-            settings.enabled.value.toProperty().and(textProperty().isNotEmpty).and(
-                showOnlyWhenActive.and(this@overlayLabel.hoverProperty().or(isSelectedProperty)).or(showOnlyWhenActive.not())
-            )
+            settings.enabled.value.toProperty() and textProperty().isNotEmpty and (
+                showOnlyWhenActive and this@overlayLabel.hoverProperty() or showOnlyWhenActive.not()
+                )
         }
 
         font = run {
@@ -176,6 +170,7 @@ class GameWallCellFragment(
 
     class Style : Stylesheet() {
         companion object {
+            val gameWallCell by cssclass()
             val overlayText by cssclass()
 
             init {
@@ -184,6 +179,9 @@ class GameWallCellFragment(
         }
 
         init {
+            gameWallCell {
+                +GameDexStyle.hoverShadow
+            }
             overlayText {
                 padding = box(5.px)
                 alignment = Pos.BASELINE_CENTER

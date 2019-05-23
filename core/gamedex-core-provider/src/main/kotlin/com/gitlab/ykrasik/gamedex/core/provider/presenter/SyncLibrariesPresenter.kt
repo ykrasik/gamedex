@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryService
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
@@ -37,7 +36,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class SyncLibrariesPresenter @Inject constructor(
-    private val gameProviderService: GameProviderService,
     private val commonData: CommonData,
     private val syncLibraryService: SyncLibraryService,
     private val taskService: TaskService,
@@ -46,16 +44,15 @@ class SyncLibrariesPresenter @Inject constructor(
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
             commonData.contentLibraries.itemsChannel
-                .combineLatest(gameProviderService.enabledProviders.itemsChannel)
+                .combineLatest(commonData.platformsWithEnabledProviders.itemsChannel)
                 .combineLatest(commonData.isGameSyncRunning)
                 .forEach {
-                    val (libraries, enabledProviders) = it.first
+                    val (libraries, platformsWithEnabledProviders) = it.first
                     val isGameSyncRunning = it.second
-                    val platformsWithEnabledProviders = gameProviderService.platformsWithEnabledProviders
                     view.canSyncLibraries *= Try {
                         check(!isGameSyncRunning) { "Game sync in progress!" }
                         check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
-                        check(enabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
+                        check(platformsWithEnabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
                         check(libraries.any { it.platform in platformsWithEnabledProviders }) { "Please enable a provider that supports your platform!" }
                     }
                 }

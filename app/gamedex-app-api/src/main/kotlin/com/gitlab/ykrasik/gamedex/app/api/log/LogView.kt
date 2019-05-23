@@ -14,24 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.log.module
+package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.gitlab.ykrasik.gamedex.core.log.presenter.LogLevelPresenter
-import com.gitlab.ykrasik.gamedex.core.log.presenter.LogTailPresenter
-import com.gitlab.ykrasik.gamedex.core.log.presenter.LogViewPresenter
-import com.gitlab.ykrasik.gamedex.core.log.presenter.ShowLogViewPresenter
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import org.joda.time.DateTime
 
 /**
  * User: ykrasik
- * Date: 12/10/2018
- * Time: 10:40
+ * Date: 06/05/2018
+ * Time: 12:53
  */
-object LogModule : InternalCoreModule() {
-    override fun configure() {
-        bindPresenter(LogViewPresenter::class)
-        bindPresenter(LogLevelPresenter::class)
-        bindPresenter(LogTailPresenter::class)
-        bindPresenter(ShowLogViewPresenter::class)
-    }
+interface LogView {
+    val entries: MutableList<LogEntry>
+}
+
+data class LogEntry(val level: LogLevel, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
+
+enum class LogLevel(val displayName: String) {
+    Trace("Trace"),
+    Debug("Debug"),
+    Info("Info"),
+    Warn("Warn"),
+    Error("Error");
+
+    fun canLog(level: LogLevel) = this.ordinal >= level.ordinal
 }

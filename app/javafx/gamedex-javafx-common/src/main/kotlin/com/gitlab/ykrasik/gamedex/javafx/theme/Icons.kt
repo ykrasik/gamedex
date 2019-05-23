@@ -124,6 +124,7 @@ object Icons {
     val fileMusic get() = fontIcon(MaterialDesign.MDI_FILE_MUSIC)   // FIXME: Use outline version
     val fileVideo get() = fontIcon(MaterialDesign.MDI_FILE_VIDEO)   // FIXME: Use outline version
     val archive get() = fontIcon(MaterialDesign.MDI_ARCHIVE)
+    val clipboard get() = fontIcon(MaterialDesign.MDI_CLIPBOARD_OUTLINE)
 
     val download get() = fontIcon(MaterialDesign.MDI_CLOUD_DOWNLOAD)
     val upload get() = fontIcon(MaterialDesign.MDI_CLOUD_UPLOAD)
@@ -178,11 +179,11 @@ object Icons {
     val starEmpty get() = fontIcon(MaterialDesign.MDI_STAR_OUTLINE)
     val starHalf get() = fontIcon(MaterialDesign.MDI_STAR_HALF)
 
-    val logTrace get() = fontIcon(MaterialDesign.MDI_ALPHA_T_BOX, color = Color.LIGHTGRAY)
-    val logDebug get() = fontIcon(MaterialDesign.MDI_ALPHA_D_BOX, color = Color.GRAY)
-    val logInfo get() = fontIcon(MaterialDesign.MDI_ALPHA_I_BOX)
-    val logWarn get() = fontIcon(MaterialDesign.MDI_ALPHA_W_BOX, color = Colors.orange)
-    val logError get() = fontIcon(MaterialDesign.MDI_ALPHA_E_BOX, color = Colors.red)
+    val logTrace get() = fontIcon(MaterialDesign.MDI_ALPHA_T_BOX_OUTLINE, color = Color.GRAY)
+    val logDebug get() = fontIcon(MaterialDesign.MDI_ALPHA_D_BOX_OUTLINE, color = Colors.niceBlue.darker())
+    val logInfo get() = fontIcon(MaterialDesign.MDI_ALPHA_I_BOX_OUTLINE)
+    val logWarn get() = fontIcon(MaterialDesign.MDI_ALPHA_W_BOX_OUTLINE, color = Colors.orange)
+    val logError get() = fontIcon(MaterialDesign.MDI_ALPHA_E_BOX_OUTLINE, color = Colors.red)
 }
 
 fun fontIcon(icon: Ikon, color: Paint = Color.BLACK): FontIcon = FontIcon.of(icon, 30).color(color)

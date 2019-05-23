@@ -37,12 +37,14 @@ import kotlin.collections.set
 
 inline fun EventTarget.prettyScrollPane(op: (PrettyScrollPane).() -> Unit) = opcr(this, PrettyScrollPane(), op)
 
-inline fun <T> EventTarget.prettyListView(values: ObservableList<T>, crossinline op: PrettyListView<T>.() -> Unit = {}) =
+inline fun <T> EventTarget.prettyListView(values: ObservableList<T>? = null, crossinline op: PrettyListView<T>.() -> Unit = {}) =
     opcr(this, PrettyListView<T>()) {
-        if (values is SortedFilteredList<T>) {
-            values.bindTo(this)
-        } else {
-            items = values
+        if (values != null) {
+            if (values is SortedFilteredList<T>) {
+                values.bindTo(this)
+            } else {
+                items = values
+            }
         }
         op()
     }
@@ -200,7 +202,7 @@ private fun Control.bindScrollBars(scrollBarClass: String, vBar: ScrollBar, hBar
 
 private fun Control.makePrettyScroll(scrollBarClass: String, children: ObservableList<Node>): Pair<ScrollBar, ScrollBar> {
     val parent = this
-    
+
     val vBar = createScrollBar(Orientation.VERTICAL)
     val hBar = createScrollBar(Orientation.HORIZONTAL)
 
@@ -238,7 +240,7 @@ private fun Control.makePrettyScroll(scrollBarClass: String, children: Observabl
 
     fun ScrollBar.showOnMouseOver() {
         parent.addEventFilter(MouseEvent.MOUSE_MOVED) { e ->
-            if (boundsInParent.containsDelta(e.x, e.y, delta = 5.0) && visibleAmount < 1) {
+            if (boundsInParent.containsDelta(e.x, e.y, delta = 5.0) && visibleAmount != 1.0) {
                 showScrollBar()
             } else {
                 hideScrollBar()
@@ -248,7 +250,7 @@ private fun Control.makePrettyScroll(scrollBarClass: String, children: Observabl
 
     fun ScrollBar.showOnScroll(deltaExtractor: (ScrollEvent) -> Double) {
         parent.addEventFilter(ScrollEvent.SCROLL) { e ->
-            if (deltaExtractor(e) != 0.0 && visibleAmount < 1) {
+            if (deltaExtractor(e) != 0.0 && visibleAmount != 1.0) {
                 showScrollBar()
             }
         }
@@ -259,6 +261,31 @@ private fun Control.makePrettyScroll(scrollBarClass: String, children: Observabl
 
     hBar.showOnMouseOver()
     hBar.showOnScroll(ScrollEvent::getDeltaX)
+
+    var dragging = false
+    var draggingExited = false
+    addEventFilter(MouseEvent.MOUSE_PRESSED) {
+        dragging = true
+        draggingExited = false
+    }
+    addEventFilter(MouseEvent.MOUSE_ENTERED) {
+        draggingExited = false
+    }
+    addEventFilter(MouseEvent.MOUSE_RELEASED) {
+        dragging = false
+        if (draggingExited) {
+            vBar.hideScrollBar()
+            hBar.hideScrollBar()
+        }
+    }
+    addEventFilter(MouseEvent.MOUSE_EXITED) {
+        if (dragging) {
+            draggingExited = true
+        } else {
+            vBar.hideScrollBar()
+            hBar.hideScrollBar()
+        }
+    }
 
     return vBar to hBar
 }

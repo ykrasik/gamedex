@@ -160,6 +160,7 @@ data class ProviderHeader(
     val apiUrl: String
 )
 
+// TODO: This is a redundant class.
 data class ImageUrls(
     val thumbnailUrl: String?,
     val posterUrl: String?,
@@ -199,7 +200,7 @@ data class FileTree(
     val children: List<FileTree>
 ) {
     companion object {
-        val NotAvailable = FileTree(
+        val Null = FileTree(
             name = "Not Available",
             size = FileSize.Empty,
             isDirectory = true,

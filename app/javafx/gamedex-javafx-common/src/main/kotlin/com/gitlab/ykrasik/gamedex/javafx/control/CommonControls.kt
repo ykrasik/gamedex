@@ -29,8 +29,6 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.ListView
-import javafx.scene.image.Image
-import javafx.scene.image.ImageView
 import javafx.scene.layout.*
 import javafx.scene.shape.Rectangle
 import org.controlsfx.control.MaskerPane
@@ -73,10 +71,6 @@ inline fun View.skipFirstTime(op: () -> Unit) {
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-fun EventTarget.imageview(image: ObservableValue<Image>, op: ImageView.() -> Unit = {}) =
-    imageview(image as ObservableValue<Image?>, op)
-
 fun ObservableValue<out Number>.asPercent() = stringBinding { (it ?: 0).toDouble().asPercent() }
 
 fun Region.enableWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>, wrapInErrorTooltip: Boolean = true): Unit =
@@ -102,12 +96,20 @@ fun Field.enableWhen(isValid: ObservableValue<IsValid>) {
     labelContainer.errorTooltip(isValid.stringBinding { it?.errorOrNull?.message })
 }
 
-fun Node.showWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): Unit = showWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
+fun Node.showWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): Unit =
+    showWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
+
 fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
     val shouldShow = expr()
     managedWhen { shouldShow }
     visibleWhen { shouldShow }
 }
+
+fun <T : Node> T.visibleWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): T =
+    visibleWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
+
+fun <T : Node> T.enableWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): T =
+    enableWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
 
 inline fun Node.wrapInHbox(crossinline op: HBox.() -> Unit = {}) {
     val wrapper = HBox().apply {
@@ -143,6 +145,9 @@ inline fun Parent.verticalGap(size: Number = 10, crossinline f: Region.() -> Uni
 
 fun EventTarget.defaultHbox(spacing: Number = 5, alignment: Pos = Pos.CENTER_LEFT, op: HBox.() -> Unit = {}) =
     hbox(spacing, alignment, op)
+
+fun EventTarget.defaultVbox(spacing: Number = 5, alignment: Pos = Pos.CENTER_LEFT, op: VBox.() -> Unit = {}) =
+    vbox(spacing, alignment, op)
 
 inline fun Fieldset.horizontalField(text: String? = null, forceLabelIndent: Boolean = false, crossinline op: Field.() -> Unit = {}) =
     field(text, forceLabelIndent = forceLabelIndent) {

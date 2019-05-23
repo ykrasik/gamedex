@@ -14,11 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core
+package com.gitlab.ykrasik.gamedex.core.log.presenter
+
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.log.LogView
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanShowLogView
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 16/12/2018
- * Time: 09:55
+ * Date: 10/05/2019
+ * Time: 08:24
  */
-data class ViewFinishedEvent<V>(val view: V) : CoreEvent
+@Singleton
+class ShowLogViewPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanShowLogView> {
+    init {
+        eventBus.onHideViewRequested<LogView> { viewManager.hide(it) }
+    }
+
+    override fun present(view: ViewCanShowLogView) = object : ViewSession() {
+        init {
+            view.showLogViewActions.forEach {
+                viewManager.showLogView()
+            }
+        }
+    }
+}

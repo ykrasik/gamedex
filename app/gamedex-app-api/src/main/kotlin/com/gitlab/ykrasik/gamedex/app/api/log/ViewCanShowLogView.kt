@@ -14,20 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.log.presenter
+package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.log.LogService
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.coroutines.channels.ReceiveChannel
 
-@Singleton
-class LogEntriesPresenter @Inject constructor(private val logService: LogService) : Presenter<ViewWithLogEntries> {
-    override fun present(view: ViewWithLogEntries) = object : ViewSession() {
-        init {
-            logService.entries.bind(view.entries)
-        }
-    }
+/**
+ * User: ykrasik
+ * Date: 10/05/2019
+ * Time: 08:20
+ */
+interface ViewCanShowLogView {
+    val showLogViewActions: ReceiveChannel<Unit>
 }

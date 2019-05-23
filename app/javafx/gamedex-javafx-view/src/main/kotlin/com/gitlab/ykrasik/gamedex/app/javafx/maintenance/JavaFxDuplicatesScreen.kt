@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
@@ -34,10 +33,10 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import tornadofx.*
-import java.io.File
 
 /**
  * User: ykrasik
@@ -46,8 +45,7 @@ import java.io.File
  */
 class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     DuplicatesView,
-    ViewCanShowGameDetails,
-    ViewCanOpenFile {
+    ViewCanShowGameDetails {
 
     private val gameContextMenu: GameContextMenu by inject()
     private val commonOps: JavaFxCommonOps by di()
@@ -60,16 +58,10 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     override val searchText = userMutableState("")
     override val matchingGame = state<Game?>(null)
 
-    override val openFileActions = channel<File>()
-//    private val browseUrlActions = channel<String>()
-
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
     private val gamesView = prettyListView(duplicates) {
-        vgrow = Priority.ALWAYS
-        useMaxSize = true
-
         prettyListCell { duplicate ->
             val game = duplicate.game
             text = null
@@ -84,7 +76,6 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
                 path = game.path,
                 fileTree = game.fileTree,
                 image = commonOps.fetchThumbnail(game),
-                browsePathActions = openFileActions,
                 pathOp = { isMouseTransparent = true },
                 imageFitHeight = 70,
                 imageFitWidth = 70,
@@ -100,15 +91,14 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     private val duplicatesOfSelectedGame = selectedDuplicate.mapToList { it?.duplicates ?: emptyList() }
 
     private val duplicatesView = prettyListView(duplicatesOfSelectedGame) {
-        vgrow = Priority.ALWAYS
-
         prettyListCell { duplicate ->
             text = null
             graphic = HBox().apply {
                 spacing = 20.0
                 addClass(Style.duplicateItem)
-                hbox {
+                stackpane {
                     minWidth = 160.0
+                    alignment = Pos.CENTER
                     children += commonOps.providerLogo(duplicate.providerId).toImageView(height = 80.0, width = 160.0)
                 }
                 vbox {
@@ -129,20 +119,19 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     }
 
     override val root = hbox {
-        vgrow = Priority.ALWAYS
-        useMaxSize = true
-
         // Left
         vbox {
-            minWidth = width
             hgrow = Priority.ALWAYS
-            add(gamesView)
+            maxWidth = screenBounds.width / 2
+            add(gamesView.apply { vgrow = Priority.ALWAYS })
         }
+
+        gap(size = 10)
 
         // Right
         vbox {
             hgrow = Priority.ALWAYS
-            add(duplicatesView)
+            add(duplicatesView.apply { vgrow = Priority.ALWAYS })
         }
     }
 
