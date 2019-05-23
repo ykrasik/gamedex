@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Ref
@@ -35,8 +36,7 @@ import com.gitlab.ykrasik.gamedex.util.Ref
 interface ViewCommonOps {
     val applicationVersion: Version
 
-    suspend fun fetchThumbnail(game: Game): Image?
-    suspend fun fetchPoster(game: Game): Image?
+    suspend fun fetchImage(url: String, imageType: ImageType): Image?
     suspend fun downloadImage(url: String): Image?
 
     fun fetchFileTree(game: Game): Ref<FileTree?>

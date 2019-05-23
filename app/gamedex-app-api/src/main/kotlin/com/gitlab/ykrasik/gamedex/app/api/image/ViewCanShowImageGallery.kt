@@ -16,26 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.image
 
+import kotlinx.coroutines.channels.ReceiveChannel
+
 /**
  * User: ykrasik
- * Date: 01/05/2018
- * Time: 12:52
- *
- * A required implementation from the view layer.
+ * Date: 12/05/2019
+ * Time: 08:59
  */
-interface ImageFactory {
-    operator fun invoke(data: ByteArray): Image
+interface ViewCanShowImageGallery {
+    val viewImageActions: ReceiveChannel<ViewImageParams>
 }
 
-/**
- * A required implementation from the view layer.
- */
-interface Image {
-    val raw: ByteArray
-}
-
-enum class ImageType {
-    Thumbnail,
-    Poster,
-    Screenshot
-}
+data class ViewImageParams(val imageUrl: String, val imageUrls: List<String>, val imageType: ImageType)

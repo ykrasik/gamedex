@@ -112,6 +112,7 @@ data/
 db/
 cache/thumbnails
 cache/posters
+cache/screenshots
 cache/files
 *.iss
 db*.json

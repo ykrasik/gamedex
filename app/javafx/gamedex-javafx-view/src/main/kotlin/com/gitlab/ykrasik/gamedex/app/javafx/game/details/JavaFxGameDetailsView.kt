@@ -20,6 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.*
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -49,6 +51,7 @@ import java.io.File
  */
 class JavaFxGameDetailsView : PresentableScreen(),
     GameDetailsView,
+    ViewCanShowImageGallery,
     ViewCanEditGame,
     ViewCanDeleteGame,
     ViewCanRenameMoveGame,
@@ -70,6 +73,7 @@ class JavaFxGameDetailsView : PresentableScreen(),
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
+    override val viewImageActions = channel<ViewImageParams>()
     override val editGameActions = channel<EditGameParams>()
     override val deleteGameActions = channel<Game>()
     override val renameMoveGameActions = channel<RenameMoveGameParams>()

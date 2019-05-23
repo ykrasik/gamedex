@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.common
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
@@ -41,9 +42,7 @@ class ViewCommonOpsImpl @Inject constructor(
 ) : ViewCommonOps {
     override val applicationVersion = ApplicationVersion
 
-    override suspend fun fetchThumbnail(game: Game) = imageService.fetchThumbnail(game)
-
-    override suspend fun fetchPoster(game: Game) = imageService.fetchPoster(game)
+    override suspend fun fetchImage(url: String, imageType: ImageType) = imageService.fetchImage(url, imageType)
 
     override suspend fun downloadImage(url: String) = imageService.downloadImage(url)
 

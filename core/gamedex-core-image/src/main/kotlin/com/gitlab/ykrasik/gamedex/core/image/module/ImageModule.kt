@@ -17,6 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.image.module
 
 import com.gitlab.ykrasik.gamedex.core.image.*
+import com.gitlab.ykrasik.gamedex.core.image.presenter.ImageGalleryPresenter
+import com.gitlab.ykrasik.gamedex.core.image.presenter.ShowImageGalleryPresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
@@ -39,6 +41,9 @@ object ImageModule : InternalCoreModule() {
 
     override fun configure() {
         bind(ImageService::class.java).to(ImageServiceImpl::class.java)
+
+        bindPresenter(ShowImageGalleryPresenter::class)
+        bindPresenter(ImageGalleryPresenter::class)
     }
 
     @Provides
@@ -48,12 +53,17 @@ object ImageModule : InternalCoreModule() {
     @Provides
     @Singleton
     @ThumbnailStorage
-    fun thumbnailRepository() = imageStorage("cache/thumbnails")
+    fun thumbnailStorage() = imageStorage("cache/thumbnails")
 
     @Provides
     @Singleton
     @PosterStorage
-    fun posterRepository() = imageStorage("cache/posters")
+    fun posterStorage() = imageStorage("cache/posters")
+
+    @Provides
+    @Singleton
+    @ScreenshotStorage
+    fun screenshotStorage() = imageStorage("cache/screenshots")
 
     private fun imageStorage(basePath: String): Storage<String, ByteArray> = FileStorage.binary(basePath).stringId(
         keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },

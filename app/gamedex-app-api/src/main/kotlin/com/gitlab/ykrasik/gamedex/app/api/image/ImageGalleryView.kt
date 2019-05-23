@@ -16,26 +16,23 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.image
 
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.channels.ReceiveChannel
+
 /**
  * User: ykrasik
- * Date: 01/05/2018
- * Time: 12:52
- *
- * A required implementation from the view layer.
+ * Date: 12/05/2019
+ * Time: 09:03
  */
-interface ImageFactory {
-    operator fun invoke(data: ByteArray): Image
-}
+interface ImageGalleryView {
+    val imageParams: UserMutableState<ViewImageParams>
+    val currentImageIndex: State<Int>
 
-/**
- * A required implementation from the view layer.
- */
-interface Image {
-    val raw: ByteArray
-}
+    val canViewNextImage: State<IsValid>
+    val viewNextImageActions: ReceiveChannel<Unit>
 
-enum class ImageType {
-    Thumbnail,
-    Poster,
-    Screenshot
+    val canViewPrevImage: State<IsValid>
+    val viewPrevImageActions: ReceiveChannel<Unit>
 }

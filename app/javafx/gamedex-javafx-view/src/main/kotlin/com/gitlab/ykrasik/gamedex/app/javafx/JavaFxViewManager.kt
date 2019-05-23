@@ -21,6 +21,8 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
@@ -39,6 +41,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageGalleryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogView
@@ -92,6 +95,7 @@ class JavaFxViewManager : Controller(), ViewManager {
         this.game = params.game
         this.initialView = params.initialView
     }
+
     override fun hide(view: EditGameView) = view.close()
 
     private val deleteGameView: JavaFxDeleteGameView by inject()
@@ -103,6 +107,7 @@ class JavaFxViewManager : Controller(), ViewManager {
         this.game = params.game
         this.initialName = params.initialSuggestion
     }
+
     override fun hide(view: RenameMoveGameView) = view.close()
 
     private val tagGameView: JavaFxTagGameView by inject()
@@ -119,6 +124,14 @@ class JavaFxViewManager : Controller(), ViewManager {
     private val deleteReportView: JavaFxDeleteReportView by inject()
     override fun showDeleteReportView(report: Report) = deleteReportView.showModal { this.report = report }
     override fun hide(view: DeleteReportView) = view.close()
+
+    private val imageGalleryView: JavaFxImageGalleryView by inject()
+    override fun showImageGalleryView(params: ViewImageParams) =
+        imageGalleryView.showModal {
+            this.imageParams.valueFromView = params
+        }
+
+    override fun hide(view: ImageGalleryView) = view.close()
 
     private val refetchGamesView: JavaFxRefetchGamesView by inject()
     override fun showRefetchGamesView() = refetchGamesView.showModal()

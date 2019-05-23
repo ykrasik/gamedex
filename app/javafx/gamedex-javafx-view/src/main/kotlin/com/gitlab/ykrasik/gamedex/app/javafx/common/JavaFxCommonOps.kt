@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
@@ -48,21 +49,22 @@ import javax.inject.Singleton
 @Singleton
 class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     private val loading = getResourceAsByteArray("spinner.gif").toImage()
-    private val noImage = getResourceAsByteArray("no-image-available.png").toImage()
 
     val applicationVersion: Version = ops.applicationVersion
 
-    fun fetchThumbnail(game: Game?): ObservableValue<JavaFxImage> = game.ifNotNull {
-        loadImage {
-            ops.fetchThumbnail(it)
-        }
+    fun fetchThumbnail(game: Game?): ObservableValue<JavaFxImage> = game?.thumbnailUrl.ifNotNull {
+        loadImage { ops.fetchImage(it, ImageType.Thumbnail) }
     }
 
-    fun fetchPoster(game: Game?): ObservableValue<JavaFxImage> = game.ifNotNull {
-        loadImage {
-            ops.fetchPoster(it)
-        }
+    fun fetchPoster(game: Game?): ObservableValue<JavaFxImage> = game?.posterUrl.ifNotNull {
+        loadImage { ops.fetchImage(it, ImageType.Poster) }
     }
+
+    fun fetchScreenshot(url: String): ObservableValue<JavaFxImage> =
+        loadImage { ops.fetchImage(url, ImageType.Screenshot) }
+
+    fun fetchImage(url: String, type: ImageType): ObservableValue<JavaFxImage> =
+        loadImage { ops.fetchImage(url, type) }
 
     fun downloadImage(url: String?): ObservableValue<JavaFxImage> = url.ifNotNull {
         loadImage {
@@ -95,3 +97,8 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     fun youTubeGameplayUrl(name: String, platform: Platform): String = ops.youTubeGameplayUrl(name, platform)
     fun youTubeGameplayUrl(game: Game): String = youTubeGameplayUrl(game.name, game.platform)
 }
+
+private val noImage = JavaFxCommonOps::class.java.getResource("no-image-available.png").readBytes().toImage()
+
+val JavaFxImage.isNoImage: Boolean get() = this === noImage
+val ObservableValue<JavaFxImage>.isNoImage: Boolean get() = value.isNoImage

@@ -20,6 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
@@ -77,6 +79,9 @@ interface ViewManager {
 
     fun showDeleteReportView(report: Report): DeleteReportView
     fun hide(view: DeleteReportView)
+
+    fun showImageGalleryView(params: ViewImageParams): ImageGalleryView
+    fun hide(view: ImageGalleryView)
 
     fun showRefetchGamesView(): RefetchGamesView
     fun hide(view: RefetchGamesView)

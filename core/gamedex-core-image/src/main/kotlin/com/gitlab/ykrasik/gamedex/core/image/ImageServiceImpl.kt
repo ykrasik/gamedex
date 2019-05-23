@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.image
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
@@ -39,6 +39,7 @@ import javax.inject.Singleton
 class ImageServiceImpl @Inject constructor(
     @ThumbnailStorage private val thumbnailStorage: Storage<String, ByteArray>,
     @PosterStorage private val posterStorage: Storage<String, ByteArray>,
+    @ScreenshotStorage private val screenshotStorage: Storage<String, ByteArray>,
     private val imageFactory: ImageFactory,
     private val httpClient: HttpClient,
     config: ImageConfig
@@ -50,9 +51,7 @@ class ImageServiceImpl @Inject constructor(
 
     override fun createImage(data: ByteArray) = imageFactory(data)
 
-    override suspend fun fetchThumbnail(game: Game) = game.thumbnailUrl?.let { fetchImage(it, thumbnailStorage) }
-    override suspend fun fetchPoster(game: Game) = game.posterUrl?.let { fetchImage(it, posterStorage) }
-
+    override suspend fun fetchImage(url: String, imageType: ImageType) = fetchImage(url, imageType.storage)
     private suspend fun fetchImage(url: String, storage: Storage<String, ByteArray>): Image? =
         try {
             persistedImageCache.getOrPut(url) {
@@ -111,6 +110,13 @@ class ImageServiceImpl @Inject constructor(
         posterStorage.delete(imageUrls)
     }
 
+    private val ImageType.storage: Storage<String, ByteArray>
+        get() = when (this) {
+            ImageType.Thumbnail -> thumbnailStorage
+            ImageType.Poster -> posterStorage
+            ImageType.Screenshot -> screenshotStorage
+        }
+
     // Not thread-safe.
     private class Cache<K, V>(private val maxSize: Int) : LinkedHashMap<K, V>(maxSize, 1f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
@@ -128,3 +134,8 @@ annotation class ThumbnailStorage
 @Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class PosterStorage
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ScreenshotStorage

@@ -14,28 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.image
+package com.gitlab.ykrasik.gamedex.core.image.presenter
+
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/05/2018
- * Time: 12:52
- *
- * A required implementation from the view layer.
+ * Date: 12/05/2019
+ * Time: 09:00
  */
-interface ImageFactory {
-    operator fun invoke(data: ByteArray): Image
-}
+@Singleton
+class ShowImageGalleryPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanShowImageGallery> {
+    init {
+        eventBus.onHideViewRequested<ImageGalleryView> { viewManager.hide(it) }
+    }
 
-/**
- * A required implementation from the view layer.
- */
-interface Image {
-    val raw: ByteArray
-}
-
-enum class ImageType {
-    Thumbnail,
-    Poster,
-    Screenshot
+    override fun present(view: ViewCanShowImageGallery) = object : ViewSession() {
+        init {
+            view.viewImageActions.forEach { params ->
+                viewManager.showImageGalleryView(params)
+            }
+        }
+    }
 }
