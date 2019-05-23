@@ -18,24 +18,18 @@ package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
-import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.excludeButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import javafx.geometry.Orientation
-import javafx.geometry.Pos
-import javafx.scene.layout.*
+import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
 import tornadofx.*
 import java.io.File
 
@@ -48,18 +42,18 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     ReportView,
     ViewCanExcludeGameFromReport,
     ViewCanSearchReportResult,
-    ViewCanShowGameDetails,
     ViewCanAddOrEditReport,
-    ViewCanOpenFile,
-    ViewCanBrowseUrl {
+    ViewCanOpenFile {
 
-    private val gameContextMenu: GameContextMenu by inject()
-
-    private val commonOps: JavaFxCommonOps by di()
+    private val gameDetailsView = JavaFxGameDetailsView(
+        canClose = false,
+        imageFitWidth = screenBounds.width / 3,
+        imageFitHeight = screenBounds.height * 2 / 3, // TODO: This sucks, find a way to make this be dynamic.
+        maxDetailsWidth = screenBounds.width / 4
+    )
 
     override val excludeGameActions = channel<Game>()
 
-    override val viewGameDetailsActions = channel<ViewGameParams>()
     override val addOrEditReportActions = channel<Report>()
 
     override val searchText = userMutableState("")
@@ -67,123 +61,36 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     override val matchingGame = state<Game?>(null)
 
     override val openFileActions = channel<File>()
-    override val browseUrlActions = channel<String>()
 
     override val report = userMutableState(Report.Null)
     override val result = state(ReportResult.Null)
     private val games = result.property.mapToList { it.games }
 
     private val gamesView = prettyListView(games) {
-        vgrow = Priority.ALWAYS
-        useMaxSize = true
-
+        prefWidth = 900.0
+        maxWidth = prefWidth
         prettyListCell { game ->
             text = null
-            maxWidth = 600.0
-            graphic = GameDetailsSummaryBuilder(
-                name = game.name,
-                nameOp = { isWrapText = true },
-                platform = game.platform,
-                releaseDate = game.releaseDate,
-                criticScore = game.criticScore,
-                userScore = game.userScore,
-                path = game.path,
-                fileTree = game.fileTree,
-                image = commonOps.fetchThumbnail(game),
-                browsePathActions = openFileActions,
-                pathOp = { isMouseTransparent = true },
-                imageFitHeight = 70,
-                imageFitWidth = 70,
-                orientation = Orientation.HORIZONTAL
-            ).build()
-//            val cellMinWidth = prefWidth(-1.0) + (verticalScrollbar?.width ?: 0.0) + insets.left + insets.right
-//            if (cellMinWidth > this@customListView.minWidth) {
-//                this@customListView.minWidth = cellMinWidth
-//            }
+            graphic = GameDetailsSummaryBuilder(game) {
+                nameOp = { maxWidth = 550.0 }
+                pathOp = { maxWidth = 550.0 }
+            }.build()
         }
-
-        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem) }
-        onUserSelect { viewGameDetailsActions.event(ViewGameParams(it)) }
     }
 
-    private val selectedGame = gamesView.selectionModel.selectedItemProperty()
-
     override val root = hbox {
-        vgrow = Priority.ALWAYS
-        useMaxSize = true
-
         // Left
         vbox {
-            hgrow = Priority.ALWAYS
-            minWidth = width
-            add(gamesView)
+            maxWidth = screenBounds.width / 2
+            add(gamesView.apply { vgrow = Priority.ALWAYS })
         }
 
         // Right
-        vbox {
-            hgrow = Priority.ALWAYS
-
-            customToolbar {
-                jfxButton("YouTube", Icons.youTube) {
-                    enableWhen { selectedGame.isNotNull }
-                    tooltip(selectedGame.stringBinding { "Search YouTube for gameplay videos of '${it?.name}'" })
-                    action(browseUrlActions) { commonOps.youTubeGameplayUrl(selectedGame.value) }
-                }
-
-                spacer()
-
-                excludeButton {
-                    action(excludeGameActions) { selectedGame.value!! }
-                    tooltip(selectedGame.mapWith(report.property) { game, report ->
-                        "Exclude game '${game?.name}' from report '${report.name}' - it will not show in results any more."
-                    })
-                }
-            }
-
-            stackpane {
-                vgrow = Priority.ALWAYS
-                stackpane {
-                    backgroundProperty().bind(selectedGame.flatMap { game ->
-                        val image = commonOps.fetchPoster(game)
-                        image.binding {
-                            Background(
-                                BackgroundImage(
-                                    it,
-                                    BackgroundRepeat.NO_REPEAT,
-                                    BackgroundRepeat.NO_REPEAT,
-                                    BackgroundPosition.CENTER,
-                                    BackgroundSize(1.0, 1.0, true, true, true, false)
-                                )
-                            )
-                        }
-                    })
-                }
-                vbox {
-                    paddingAll = 40.0
-                    vgrow = Priority.ALWAYS
-                    alignment = Pos.TOP_CENTER
-                    addClass(Style.detailsViewContent)
-
-                    // Top
-                    stackpane {
-                        paddingAll = 5.0
-                        selectedGame.onChange { game ->
-                            replaceChildren {
-                                if (game != null) {
-                                    children += GameDetailsSummaryBuilder(game, commonOps) {
-                                        browsePathActions = this@JavaFxReportScreen.openFileActions
-                                        browseUrlActions = this@JavaFxReportScreen.browseUrlActions
-                                        fillWidth = false
-                                        imageFitWidth = 320
-                                        imageFitHeight = 320
-                                        descriptionOp = { maxWidth = 600.0 }
-                                    }.build {
-                                        alignment = Pos.TOP_CENTER
-                                    }
-                                }
-                            }
-                        }
-                    }
+        addComponent(gameDetailsView) {
+            root.hgrow = Priority.ALWAYS
+            gamesView.selectionModel.selectedItemProperty().typeSafeOnChange {
+                if (it != null) {
+                    gameParams.valueFromView = ViewGameParams(it, listOf(it))
                 }
             }
         }
@@ -209,21 +116,5 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         header(games.sizeProperty.stringBinding { "Games: $it" })
         gap()
         searchTextField(this@JavaFxReportScreen, searchText.property) { isFocusTraversable = false }
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            val detailsViewContent by cssclass()
-
-            init {
-                importStylesheetSafe(Style::class)
-            }
-        }
-
-        init {
-            detailsViewContent {
-                backgroundColor = multi(Colors.transparentWhite)
-            }
-        }
     }
 }

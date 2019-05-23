@@ -28,8 +28,8 @@ interface ViewCanShowGameDetails {
     val viewGameDetailsActions: ReceiveChannel<ViewGameParams>
 }
 
-data class ViewGameParams(val game: Game) {
+data class ViewGameParams(val game: Game, val games: List<Game>) {
     companion object {
-        val Null = ViewGameParams(Game.Null)
+        val Null = ViewGameParams(Game.Null, emptyList())
     }
 }

@@ -25,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.javafx.control.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.javafx.control.scaleOnMouseOver
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableValue
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -55,9 +54,6 @@ class GameWallCellFragment(
     private var nameOverlayLabel: Label by singleAssign()
     private var metaTagOverlayLabel: Label by singleAssign()
     private var versionOverlayLabel: Label by singleAssign()
-
-    private val isSelectedProperty = SimpleBooleanProperty(false)
-    var isSelected by isSelectedProperty
 
     override val root = stackpane {
         addClass(Style.gameWallCell)

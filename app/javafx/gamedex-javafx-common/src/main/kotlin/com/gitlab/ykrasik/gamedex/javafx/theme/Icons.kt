@@ -66,7 +66,11 @@ object Icons {
     val unfoldMore get() = fontIcon(MaterialDesign.MDI_UNFOLD_MORE_HORIZONTAL)
     val unfoldLess get() = fontIcon(MaterialDesign.MDI_UNFOLD_LESS_HORIZONTAL)
     val arrowLeft get() = fontIcon(MaterialDesign.MDI_ARROW_LEFT)
+    val arrowLeftBold get() = fontIcon(MaterialDesign.MDI_ARROW_LEFT_BOLD)
+    val arrowLeftBoldBox get() = fontIcon(MaterialDesign.MDI_ARROW_LEFT_BOLD_BOX)
     val arrowRight get() = fontIcon(MaterialDesign.MDI_ARROW_RIGHT)
+    val arrowRightBold get() = fontIcon(MaterialDesign.MDI_ARROW_RIGHT_BOLD)
+    val arrowRightBoldBox get() = fontIcon(MaterialDesign.MDI_ARROW_RIGHT_BOLD_BOX)
     val arrowRightCircle get() = fontIcon(MaterialDesign.MDI_ARROW_RIGHT_CIRCLE_OUTLINE)
     val chevronRight get() = fontIcon(MaterialDesign.MDI_CHEVRON_RIGHT)
 

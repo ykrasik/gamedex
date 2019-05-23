@@ -38,7 +38,6 @@ import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget
-import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
@@ -84,28 +83,12 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
 
     private val gamesView = prettyListView(diffs) {
         prettyListCell { diff ->
-            val game = diff.game
             text = null
-            maxWidth = 600.0
-            graphic = GameDetailsSummaryBuilder(
-                name = game.name,
-                nameOp = { isWrapText = true },
-                platform = game.platform,
-                releaseDate = game.releaseDate,
-                criticScore = game.criticScore,
-                userScore = game.userScore,
-                path = game.path,
-                fileTree = game.fileTree,
-                image = commonOps.fetchThumbnail(game),
-                pathOp = { isMouseTransparent = true },
-                imageFitHeight = 70,
-                imageFitWidth = 70,
-                orientation = Orientation.HORIZONTAL
-            ).build()
+            graphic = GameDetailsSummaryBuilder(diff.game).build()
         }
 
-        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game) }
-        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game)) }
+        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game, diffs.map { it.game }) }
+        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game, diffs.map { it.game })) }
     }
 
     private val selectedDiff = gamesView.selectionModel.selectedItemProperty()

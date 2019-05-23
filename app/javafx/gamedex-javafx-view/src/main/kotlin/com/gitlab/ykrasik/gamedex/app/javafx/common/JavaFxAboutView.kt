@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.theme.subHeader
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableWindow
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.defaultTimeZone
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import javafx.geometry.Pos
@@ -36,7 +36,7 @@ import tornadofx.*
  * Date: 09/02/2019
  * Time: 17:30
  */
-class JavaFxAboutView : PresentableWindow("About"), AboutView, ViewCanBrowseUrl {
+class JavaFxAboutView : PresentableView("About"), AboutView, ViewCanBrowseUrl {
     private val commonOps: JavaFxCommonOps by di()
 
     override val acceptActions = channel<Unit>()

@@ -78,6 +78,11 @@ class GameDexStyle : Stylesheet() {
         val arc by cssclass()
         val secondaryBar by cssclass()
 
+        val criticScore by cssclass()
+        val criticScoreReviews by cssclass()
+        val userScore by cssclass()
+        val userScoreReviews by cssclass()
+
         val hoverShadow = mixin {
             and(hover) {
                 effect = DropShadow()
@@ -343,6 +348,30 @@ class GameDexStyle : Stylesheet() {
                     backgroundColor = multi(c(0, 0, 0, 0.6))
                 }
             }
+        }
+
+        criticScore {
+            fontSize = 26.px
+            fontWeight = FontWeight.BOLD
+            textFill = Color.WHITE
+        }
+
+        criticScoreReviews {
+            fontSize = 18.px
+            textFill = Color.WHITE
+        }
+
+        userScore {
+            fontSize = 18.px
+            fontWeight = FontWeight.BOLD
+            textFill = Color.WHITE
+            padding = box(top = 6.px, right = 0.px, left = 0.px, bottom = 0.px)
+        }
+
+        userScoreReviews {
+            fontSize = 15.px
+            textFill = Color.WHITE
+            padding = box(top = 4.px, right = 0.px, left = 0.px, bottom = 2.px)
         }
     }
 }

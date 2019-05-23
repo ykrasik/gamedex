@@ -18,13 +18,20 @@ package com.gitlab.ykrasik.gamedex.javafx.theme
 
 import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
+import com.gitlab.ykrasik.gamedex.util.toString
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
+import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Label
-import tornadofx.addClass
-import tornadofx.label
-import tornadofx.toProperty
+import javafx.scene.layout.Background
+import javafx.scene.layout.BackgroundFill
+import javafx.scene.layout.CornerRadii
+import javafx.scene.layout.VBox
+import tornadofx.*
 
 /**
  * User: ykrasik
@@ -76,4 +83,30 @@ inline fun EventTarget.subHeader(
     addClass(GameDexStyle.subHeaderLabel)
     if (graphic != null) this.graphicProperty().bind(graphic)
     op(this)
+}
+
+fun EventTarget.criticScoreDisplay(score: Score?, op: (VBox.() -> Unit)? = null) =
+    scoreDisplay(score, "Critic", GameDexStyle.criticScore, GameDexStyle.criticScoreReviews, op)
+
+fun EventTarget.userScoreDisplay(score: Score?, op: (VBox.() -> Unit)? = null) =
+    scoreDisplay(score, "User", GameDexStyle.userScore, GameDexStyle.userScoreReviews, op)
+
+private fun EventTarget.scoreDisplay(
+    score: Score?,
+    name: String,
+    scoreStyleClass: CssRule,
+    reviewsStyleClass: CssRule,
+    op: (VBox.() -> Unit)? = null
+) = vbox {
+    alignment = Pos.TOP_CENTER
+    paddingAll = 5
+    usePrefWidth = true
+    clipRectangle(arc = 10)
+
+    background = Background(BackgroundFill(score.ratingColor, CornerRadii.EMPTY, Insets.EMPTY))
+    label(score?.score?.toString(decimalDigits = 1) ?: "N/A") { addClass(scoreStyleClass) }
+    spacer()
+    label("${score?.numReviews ?: 0} ${name}s") { addClass(reviewsStyleClass) }
+    tooltip("$name Score")
+    op?.invoke(this)
 }

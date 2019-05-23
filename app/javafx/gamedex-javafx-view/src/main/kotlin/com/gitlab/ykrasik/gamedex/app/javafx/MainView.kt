@@ -17,14 +17,12 @@
 package com.gitlab.ykrasik.gamedex.app.javafx
 
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanShowLogView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.LibraryMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxFolderNameDiffScreen
@@ -32,7 +30,6 @@ import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxSyncGamesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -65,7 +62,6 @@ class MainView : PresentableView("GameDex"),
     ViewCanShowSettings,
     ViewCanShowLogView,
     ViewCanShowAboutView {
-    val taskView: JavaFxTaskView by inject()
 
     private val gameScreen: JavaFxGameScreen by inject()
     private val syncGamesScreen: JavaFxSyncGamesScreen by inject()
@@ -76,7 +72,8 @@ class MainView : PresentableView("GameDex"),
 
     private val libraryMenu: LibraryMenu by inject()
     private val reportMenu: ReportMenu by inject()
-    private val gameDetailsView: JavaFxGameDetailsView by inject()
+
+    private val overlayPane = OverlayPane()
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
@@ -107,7 +104,6 @@ class MainView : PresentableView("GameDex"),
         tab(reportScreen)
         tab(duplicatesScreen)
         tab(folderNameDiffScreen)
-        tab(gameDetailsView)
 
         selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
             cleanupClosedTab(oldValue)
@@ -115,11 +111,16 @@ class MainView : PresentableView("GameDex"),
         }
     }
 
-    override val root = taskView.init {
+    override val root = stackpane {
         borderpane {
             top = toolbar
             center = tabPane
         }
+        children += overlayPane
+    }
+
+    init {
+        shortcut("ctrl+q", overlayPane::hideAll)
     }
 
     private fun TabPane.tab(screen: PresentableScreen) = tab(screen) { userData = screen }
@@ -235,10 +236,6 @@ class MainView : PresentableView("GameDex"),
         crossinline op: PopOverMenu.() -> Unit = { children += view.root }
     ): HBox = popOverSubMenu(view.title, view.icon, op = op)
 
-    fun showGameDetails(params: ViewGameParams): JavaFxGameDetailsView = showScreen(gameDetailsView) {
-        this.gameParams.valueFromView = params
-    }
-
     fun showSyncGamesView(): JavaFxSyncGamesScreen = showScreen(syncGamesScreen)
 
     fun showReportView(report: Report): JavaFxReportScreen = showScreen(reportScreen) {
@@ -257,6 +254,15 @@ class MainView : PresentableView("GameDex"),
         op()
         tabPane.selectionModel.select(screen.tab)
     }
+
+    fun showOverlay(view: View, modal: Boolean, onExternalCloseRequested: () -> Unit, customizeOverlay: OverlayPane.OverlayLayer.() -> Unit) =
+        overlayPane.show(view, modal, onExternalCloseRequested, customizeOverlay)
+
+    fun hideOverlay(view: View) = overlayPane.hide(view)
+
+    fun saveAndClearCurrentOverlays() = overlayPane.saveAndClear()
+
+    fun restoreSavedOverlays() = overlayPane.restoreSaved()
 
     private val Tab.screen: PresentableScreen get() = userData as PresentableScreen
     private val PresentableScreen.tab: Tab get() = tabPane.tabs.find { it.screen == this }!!

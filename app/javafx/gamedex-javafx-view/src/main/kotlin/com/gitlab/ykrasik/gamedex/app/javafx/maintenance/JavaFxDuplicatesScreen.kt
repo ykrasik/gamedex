@@ -32,7 +32,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.backButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
@@ -63,28 +62,12 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
 
     private val gamesView = prettyListView(duplicates) {
         prettyListCell { duplicate ->
-            val game = duplicate.game
             text = null
-            maxWidth = 600.0
-            graphic = GameDetailsSummaryBuilder(
-                name = game.name,
-                nameOp = { isWrapText = true },
-                platform = game.platform,
-                releaseDate = game.releaseDate,
-                criticScore = game.criticScore,
-                userScore = game.userScore,
-                path = game.path,
-                fileTree = game.fileTree,
-                image = commonOps.fetchThumbnail(game),
-                pathOp = { isMouseTransparent = true },
-                imageFitHeight = 70,
-                imageFitWidth = 70,
-                orientation = Orientation.HORIZONTAL
-            ).build()
+            graphic = GameDetailsSummaryBuilder(duplicate.game).build()
         }
 
-        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game) }
-        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game)) }
+        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game, duplicates.map { it.game }) }
+        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game, duplicates.map { it.game })) }
     }
 
     private val selectedDuplicate = gamesView.selectionModel.selectedItemProperty()

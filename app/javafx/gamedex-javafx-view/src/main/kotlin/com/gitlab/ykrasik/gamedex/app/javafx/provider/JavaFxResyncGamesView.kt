@@ -45,7 +45,6 @@ class JavaFxResyncGamesView : ConfirmationWindow("Re-Sync Games", Icons.sync), R
         center = scrollpane {
             paddingAll = 10
             add(filterView.root)
-            filterView.filter.onChange { resizeToContent() }
         }
     }
 }

@@ -67,22 +67,23 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val changeProviderActions = channel<ProviderId>()
 
     private val resultsView = prettyListView(searchResults) {
-//        useMaxWidth = true
-//        hgrow = Priority.ALWAYS
         vgrow = Priority.ALWAYS
+        minWidth = 1000.0
         enableWhen(canChangeState, wrapInErrorTooltip = false)
-//        maxWidth = screenBounds.width / 2
         prettyListCell { result ->
-            maxWidth = 800.0
             text = null
-            graphic = GameDetailsSummaryBuilder(
-                name = result.name,
-                description = result.description,
-                releaseDate = result.releaseDate,
-                criticScore = result.criticScore,
-                userScore = result.userScore,
+            graphic = GameDetailsSummaryBuilder {
+                platform = state.property.value.libraryPath.library.platform
+                name = result.name
+                nameOp = { maxWidth = 600.0 }
+                description = result.description
+                descriptionOp = { maxWidth = 600.0 }
+                releaseDate = result.releaseDate
+                criticScore = result.criticScore
+                userScore = result.userScore
                 image = commonOps.downloadImage(result.thumbnailUrl)
-            ).build()
+                imageFitWidth = 200
+            }.build()
 
 //            val cellMinWidth = prefWidth(-1.0) + (verticalScrollbar?.width ?: 0.0) + insets.left + insets.right
 //            if (cellMinWidth > this@customListView.minWidth) {

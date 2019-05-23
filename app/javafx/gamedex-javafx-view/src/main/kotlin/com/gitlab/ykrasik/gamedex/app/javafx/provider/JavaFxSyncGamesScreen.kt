@@ -113,15 +113,8 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
         useMaxWidth = true
         visibleWhen { pathsToProcessSize.booleanBinding { it!!.toInt() > 0 } }
 
-        stackpane {
-            useMaxSize = true
-            hgrow = Priority.ALWAYS
-            add(paths)
-        }
-        addComponent(providerSearchView) {
-            root.useMaxWidth = true
-            root.hgrow = Priority.ALWAYS
-        }
+        add(paths)
+        add(providerSearchView)
     }
 
     override fun HBox.buildToolbar() {

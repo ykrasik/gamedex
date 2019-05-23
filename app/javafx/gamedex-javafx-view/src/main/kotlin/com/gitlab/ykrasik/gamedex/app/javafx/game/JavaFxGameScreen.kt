@@ -157,7 +157,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
                 fun showGameDetails(game: Game) {
                     popOver.hide()
-                    viewGameDetailsActions.event(ViewGameParams(game))
+                    viewGameDetailsActions.event(ViewGameParams(game, games))
                 }
 
                 setCellFactory {

@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableWindow
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.jfoenix.controls.JFXListCell
 import tornadofx.*
 import java.io.PrintWriter
@@ -36,7 +36,7 @@ import java.io.StringWriter
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogView : PresentableWindow("Log", Icons.book), LogView, ViewCanChangeLogLevel, ViewCanChangeLogTail {
+class JavaFxLogView : PresentableView("Log", Icons.book), LogView, ViewCanChangeLogLevel, ViewCanChangeLogTail {
     override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
     override var level = userMutableState(LogLevel.Info)

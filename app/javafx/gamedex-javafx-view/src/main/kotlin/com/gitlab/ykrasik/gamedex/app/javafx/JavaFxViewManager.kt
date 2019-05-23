@@ -36,10 +36,12 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxAboutView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxBrowserView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
@@ -55,7 +57,9 @@ import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxDeleteReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxEditReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
-import javafx.stage.StageStyle
+import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
+import com.gitlab.ykrasik.gamedex.javafx.control.OverlayPane
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import tornadofx.Controller
 import tornadofx.View
 import javax.inject.Singleton
@@ -69,91 +73,105 @@ import javax.inject.Singleton
 class JavaFxViewManager : Controller(), ViewManager {
     private val mainView: MainView by inject()
 
-    override fun showTaskView(): TaskView {
-        // Nothing to show, the taskView is always shown (actually, everything else is shown INSIDE the task view)
-        return mainView.taskView
+    override val externalCloseRequests = channel<Any>()
+
+    private val taskView: JavaFxTaskView by inject()
+    override fun showTaskView() = taskView.showOverlay(modal = true)
+    override fun hide(view: TaskView) = view.hideOverlay()
+
+    private val gameDetailsView by lazy {
+        JavaFxGameDetailsView(
+            canClose = true,
+            imageFitWidth = screenBounds.width / 3,
+            imageFitHeight = screenBounds.height * 2 / 3
+        )
     }
 
-    override fun hide(view: TaskView) {
-        // Nothing to do here, the taskView is never hidden.
+    override fun showGameDetailsView(params: ViewGameParams) =
+        gameDetailsView.showOverlay(customizeOverlay = gameDetailsView.customizeOverlay) {
+            this.gameParams.valueFromView = params
+        }
+
+    override fun hide(view: GameDetailsView) = gameDetailsView.hideOverlay()
+
+    override fun showSyncGamesView() = hideOverlayPane {
+        mainView.showSyncGamesView()
     }
 
-    override fun showSyncGamesView() = mainView.showSyncGamesView()
-    override fun hide(view: SyncGamesView) = mainView.showPreviousScreen()
-
-    override fun showGameDetailsView(params: ViewGameParams) = mainView.showGameDetails(params)
-    override fun hide(view: GameDetailsView) = mainView.showPreviousScreen()
+    override fun hide(view: SyncGamesView) = restoreOverlayPane {
+        mainView.showPreviousScreen()
+    }
 
     private val editLibraryView: JavaFxEditLibraryView by inject()
-    override fun showEditLibraryView(library: Library?) = editLibraryView.showModal { this.library = library }
-    override fun hide(view: EditLibraryView) = view.close()
+    override fun showEditLibraryView(library: Library?) = editLibraryView.showOverlay(modal = true) { this.library = library }
+    override fun hide(view: EditLibraryView) = view.hideOverlay()
 
     private val deleteLibraryView: JavaFxDeleteLibraryView by inject()
-    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.showModal { this.library = library }
-    override fun hide(view: DeleteLibraryView) = view.close()
+    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.showOverlay { this.library = library }
+    override fun hide(view: DeleteLibraryView) = view.hideOverlay()
 
     private val editGameView: JavaFxEditGameView by inject()
-    override fun showEditGameView(params: EditGameParams) = editGameView.showModal {
+    override fun showEditGameView(params: EditGameParams) = editGameView.showOverlay(modal = true) {
         this.game = params.game
         this.initialView = params.initialView
     }
 
-    override fun hide(view: EditGameView) = view.close()
+    override fun hide(view: EditGameView) = view.hideOverlay()
 
     private val deleteGameView: JavaFxDeleteGameView by inject()
-    override fun showDeleteGameView(game: Game) = deleteGameView.showModal { this.game = game }
-    override fun hide(view: DeleteGameView) = view.close()
+    override fun showDeleteGameView(game: Game) = deleteGameView.showOverlay { this.game = game }
+    override fun hide(view: DeleteGameView) = view.hideOverlay()
 
     private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
-    override fun showRenameMoveGameView(params: RenameMoveGameParams) = renameMoveGameView.showModal {
+    override fun showRenameMoveGameView(params: RenameMoveGameParams) = renameMoveGameView.showOverlay {
         this.game = params.game
         this.initialName = params.initialSuggestion
     }
 
-    override fun hide(view: RenameMoveGameView) = view.close()
+    override fun hide(view: RenameMoveGameView) = view.hideOverlay()
 
     private val tagGameView: JavaFxTagGameView by inject()
-    override fun showTagGameView(game: Game) = tagGameView.showModal { this.game = game }
-    override fun hide(view: TagGameView) = view.close()
+    override fun showTagGameView(game: Game) = tagGameView.showOverlay(modal = true) { this.game = game }
+    override fun hide(view: TagGameView) = view.hideOverlay()
 
     override fun showReportView(report: Report) = mainView.showReportView(report)
     override fun hide(view: ReportView) = mainView.showPreviousScreen()
 
     private val editReportView: JavaFxEditReportView by inject()
-    override fun showEditReportView(report: Report?) = editReportView.showModal { this.report = report }
-    override fun hide(view: EditReportView) = view.close()
+    override fun showEditReportView(report: Report?) = editReportView.showOverlay { this.report = report }
+    override fun hide(view: EditReportView) = view.hideOverlay()
 
     private val deleteReportView: JavaFxDeleteReportView by inject()
-    override fun showDeleteReportView(report: Report) = deleteReportView.showModal { this.report = report }
-    override fun hide(view: DeleteReportView) = view.close()
+    override fun showDeleteReportView(report: Report) = deleteReportView.showOverlay { this.report = report }
+    override fun hide(view: DeleteReportView) = view.hideOverlay()
 
-    private val imageGalleryView: JavaFxImageGalleryView by inject()
+    private val imageView: JavaFxImageGalleryView by inject()
     override fun showImageGalleryView(params: ViewImageParams) =
-        imageGalleryView.showModal {
+        imageView.showOverlay(customizeOverlay = imageView.customizeOverlay) {
             this.imageParams.valueFromView = params
         }
 
-    override fun hide(view: ImageGalleryView) = view.close()
+    override fun hide(view: ImageGalleryView) = view.hideOverlay()
 
     private val refetchGamesView: JavaFxRefetchGamesView by inject()
-    override fun showRefetchGamesView() = refetchGamesView.showModal()
-    override fun hide(view: RefetchGamesView) = view.close()
+    override fun showRefetchGamesView() = refetchGamesView.showOverlay()
+    override fun hide(view: RefetchGamesView) = view.hideOverlay()
 
     private val resyncGamesView: JavaFxResyncGamesView by inject()
-    override fun showResyncGamesView() = resyncGamesView.showModal()
-    override fun hide(view: ResyncGamesView) = view.close()
+    override fun showResyncGamesView() = resyncGamesView.showOverlay()
+    override fun hide(view: ResyncGamesView) = view.hideOverlay()
 
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
-    override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showModal { this.staleData = staleData }
-    override fun hide(view: CleanupDatabaseView) = view.close()
+    override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showOverlay(modal = true) { this.staleData = staleData }
+    override fun hide(view: CleanupDatabaseView) = view.hideOverlay()
 
     private val importDatabaseView: JavaFxImportDatabaseView by inject()
-    override fun showImportDatabaseView() = importDatabaseView.showModal()
-    override fun hide(view: ImportDatabaseView) = view.close()
+    override fun showImportDatabaseView() = importDatabaseView.showOverlay()
+    override fun hide(view: ImportDatabaseView) = view.hideOverlay()
 
     private val exportDatabaseView: JavaFxExportDatabaseView by inject()
-    override fun showExportDatabaseView() = exportDatabaseView.showModal()
-    override fun hide(view: ExportDatabaseView) = view.close()
+    override fun showExportDatabaseView() = exportDatabaseView.showOverlay()
+    override fun hide(view: ExportDatabaseView) = view.hideOverlay()
 
     override fun showDuplicatesView() = mainView.showDuplicatesReport()
     override fun hide(view: DuplicatesView) = mainView.showPreviousScreen()
@@ -162,28 +180,47 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: FolderNameDiffView) = mainView.showPreviousScreen()
 
     private val logView: JavaFxLogView by inject()
-    override fun showLogView(): LogView = logView.showModal()
-    override fun hide(view: LogView) = view.close()
+    override fun showLogView(): LogView = logView.showOverlay()
+    override fun hide(view: LogView) = view.hideOverlay()
 
     private val settingsView: JavaFxSettingsView by inject()
-    override fun showSettingsView() = settingsView.showModal()
-    override fun hide(view: SettingsView) = view.close()
+    override fun showSettingsView() = settingsView.showOverlay(modal = true)
+    override fun hide(view: SettingsView) = view.hideOverlay()
 
     private val browserView: JavaFxBrowserView by inject()
-    override fun showBrowserView(url: String) = browserView.showModal { load(url) }
+    override fun showBrowserView(url: String) = browserView.showOverlay() { load(url) }
     override fun hide(view: BrowserView) {
         browserView.load(null)
-        view.close()
+        view.hideOverlay()
     }
 
     private val aboutView: JavaFxAboutView by inject()
-    override fun showAboutView() = aboutView.showModal()
-    override fun hide(view: AboutView) = view.close()
+    override fun showAboutView() = aboutView.showOverlay()
+    override fun hide(view: AboutView) = view.hideOverlay()
 
-    private fun Any.close() = (this as View).close()
+    private fun Any.hideOverlay() = mainView.hideOverlay(this as View)
 
-    private inline fun <V : View> V.showModal(f: V.() -> Unit = {}): V = apply {
+    private inline fun <V : View> V.showOverlay(
+        modal: Boolean = false,
+        noinline customizeOverlay: OverlayPane.OverlayLayer.() -> Unit = {},
+        f: V.() -> Unit = {}
+    ): V = apply {
         f()
-        openModal(StageStyle.TRANSPARENT, owner = mainView.currentStage)
+        mainView.showOverlay(
+            view = this,
+            modal = modal,
+            onExternalCloseRequested = { externalCloseRequests.offer(this) },
+            customizeOverlay = customizeOverlay
+        )
+    }
+
+    private inline fun <V : View> hideOverlayPane(f: () -> V): V {
+        mainView.saveAndClearCurrentOverlays()
+        return f()
+    }
+
+    private inline fun restoreOverlayPane(f: () -> Unit) {
+        f()
+        mainView.restoreSavedOverlays()
     }
 }

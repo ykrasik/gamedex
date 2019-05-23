@@ -19,10 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.module
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.*
-import com.gitlab.ykrasik.gamedex.core.common.AboutViewPresenter
-import com.gitlab.ykrasik.gamedex.core.common.CommonOpsConfig
-import com.gitlab.ykrasik.gamedex.core.common.ShowAboutViewPresenter
-import com.gitlab.ykrasik.gamedex.core.common.ViewCommonOpsImpl
+import com.gitlab.ykrasik.gamedex.core.common.*
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterServiceImpl
@@ -96,6 +93,8 @@ object CoreModule : InternalCoreModule() {
     }
 
     private fun bindPresenters() {
+        bind(ExternalHidePresenter::class.java)
+
         bindPresenter(TaskPresenter::class)
         bindPresenter(ViewWithRunningTaskPresenter::class)
 

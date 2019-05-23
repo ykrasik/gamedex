@@ -22,25 +22,14 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
-import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyGridView
-import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
-import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ObservableList
 import javafx.scene.input.MouseButton
-import javafx.util.Callback
 import org.controlsfx.control.GridCell
-import org.controlsfx.control.GridView
-import tornadofx.*
 import java.io.File
 
 /**
@@ -48,13 +37,12 @@ import java.io.File
  * Date: 09/10/2016
  * Time: 15:03
  */
-class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
+class GameWallView(private val games: ObservableList<Game>) : PresentableView("Game Wall"),
     ViewCanShowGameDetails,
     ViewWithGameWallDisplaySettings,
     ViewWithNameOverlayDisplaySettings,
     ViewWithMetaTagOverlayDisplaySettings,
     ViewWithVersionOverlayDisplaySettings,
-    ViewCanBrowseUrl,
     ViewCanOpenFile {
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
@@ -64,31 +52,11 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
     override val metaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val versionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
-    override val browseUrlActions = channel<String>()
     override val openFileActions = channel<File>()
 
     private val commonOps: JavaFxCommonOps by di()
 
     private val gameContextMenu: GameContextMenu by inject()
-
-    private val gameProperty = SimpleObjectProperty<Game>(Game.Null)
-
-    private val popOver = popOver(closeOnAction = false).apply {
-        contentNode = stackpane {
-            addClass(Style.quickDetails)
-            gameProperty.typeSafeOnChange { game ->
-                replaceChildren {
-                    children += GameDetailsSummaryBuilder(game, commonOps) {
-                        browsePathActions = this@GameWallView.openFileActions
-                        browseUrlActions = this@GameWallView.browseUrlActions
-                        image = null
-                    }.build()
-                }
-            }
-        }
-    }
-
-    private var popOverShowing = false
 
     init {
         register()
@@ -104,46 +72,14 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
         // the grid constantly constructs new instances of it, so if they retain a listener to the settings - we leak.
         // A workaround is to re-set the cellFactory whenever any settings change - this causes all cells to be rebuilt
         // without them having any listeners.
-        gameWallDisplaySettings.onChange { setCellFactory(GameWallCellFactory()) }
+        fun resetCellFactory() = setCellFactory { GameWallCell() }
+
+        gameWallDisplaySettings.onChange { resetCellFactory() }
         listOf(nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings).forEach {
-            it.onChange { setCellFactory(GameWallCellFactory()) }
+            it.onChange { resetCellFactory() }
         }
 
-        setCellFactory(GameWallCellFactory())
-    }
-
-    private inner class GameWallCellFactory : Callback<GridView<Game>, GridCell<Game>> {
-        override fun call(param: GridView<Game>?): GridCell<Game> {
-            val cell = GameWallCell()
-            cell.setOnMouseClicked { e ->
-                popOver.setOnHidden {
-                    cell.markSelected(false)
-                }
-                when (e.clickCount) {
-                    1 -> with(popOver) {
-                        if (popOverShowing) {
-                            popOverShowing = false
-                            hide()
-                        } else if (e.button == MouseButton.PRIMARY) {
-                            determineArrowLocation(e.screenX, e.screenY, preferTop = false, preferLeft = false)
-                            gameProperty.value = cell.item
-                            cell.markSelected(true)
-                            show(cell)
-                            popOverShowing = true
-                        }
-                    }
-                    2 -> {
-                        popOver.hide()
-                        popOverShowing = false
-                        if (e.button == MouseButton.PRIMARY) {
-                            viewGameDetailsActions.event(ViewGameParams(cell.item))
-                        }
-                    }
-                }
-            }
-            gameContextMenu.install(cell) { ViewGameParams(cell.item!!) }
-            return cell
-        }
+        resetCellFactory()
     }
 
     private inner class GameWallCell : GridCell<Game>() {
@@ -152,13 +88,16 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
         )
 
         init {
+            setOnMousePressed { e ->
+                if (e.button == MouseButton.PRIMARY) {
+                    viewGameDetailsActions.event(ViewGameParams(item!!, games))
+                }
+            }
+            gameContextMenu.install(this) { ViewGameParams(item!!, games) }
+
             fragment.root.maxWidthProperty().bind(this.widthProperty())
             fragment.root.maxHeightProperty().bind(this.heightProperty())
             graphic = fragment.root
-        }
-
-        fun markSelected(selected: Boolean) {
-            fragment.isSelected = selected
         }
 
         override fun updateItem(item: Game?, empty: Boolean) {
@@ -181,7 +120,7 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
             fragment.preserveRatio = when (gameWallDisplaySettings.imageDisplayType.value) {
                 ImageDisplayType.Fit, ImageDisplayType.Fixed -> true
                 ImageDisplayType.Stretch -> isPreserveImageRatio()
-                else -> kotlin.error("Invalid ImageDisplayType: ${gameWallDisplaySettings.imageDisplayType.value}")
+                else -> error("Invalid ImageDisplayType: ${gameWallDisplaySettings.imageDisplayType.value}")
             }
 
             super.resize(width, height)
@@ -204,23 +143,6 @@ class GameWallView(games: ObservableList<Game>) : PresentableView("Game Wall"),
 
             // If stretchRatio isn't bigger than maxStretch, stretch the image.
             return Math.abs(stretchRatio - 1) > maxStretch
-        }
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            val quickDetails by cssclass()
-
-            init {
-                importStylesheetSafe(Style::class)
-            }
-        }
-
-        init {
-            quickDetails {
-                padding = box(20.px)
-                backgroundColor = multi(Colors.cloudyKnoxville)
-            }
         }
     }
 

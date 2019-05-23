@@ -17,17 +17,23 @@
 package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
+import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
+import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.state
-import com.gitlab.ykrasik.gamedex.javafx.theme.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.cancelButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.scene.Node
-import javafx.scene.layout.*
-import javafx.scene.paint.Color
+import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
+import javafx.scene.layout.StackPane
+import javafx.scene.layout.VBox
 import tornadofx.*
 
 /**
@@ -35,69 +41,7 @@ import tornadofx.*
  * Date: 18/12/2018
  * Time: 20:50
  */
-/**
- * A window that becomes invisible while a task is running, so the user may see task progress (which is displayed over the main window).
- */
-abstract class PresentableWindow(title: String? = null, icon: Node? = null) : PresentableView(title, icon), ViewWithRunningTask {
-    final override val isRunningTask = state(false)
-
-    protected val windowOpacityProperty = SimpleObjectProperty(1.0)
-    protected var windowOpacity by windowOpacityProperty
-
-    init {
-        whenDockedOnce {
-            val stage = currentStage!!
-            stage.draggableResizable()
-            stage.opacityProperty().cleanBind(windowOpacityProperty.doubleBinding { it!! })
-            stage.scene.fill = Color.TRANSPARENT
-
-            val root = this.root
-            if (root is Region) {
-                stage.minWidthProperty().bind(root.minWidthProperty().doubleBinding { if (it!!.toDouble() >= 0.0) it.toDouble() else 0.0 })
-                stage.minHeightProperty().bind(root.minHeightProperty().doubleBinding { if (it!!.toDouble() >= 0.0) it.toDouble() else 0.0 })
-                stage.sizeToScene()
-            }
-
-            root.addClass(GameDexStyle.gamedexWindow)
-            val newRoot = StackPane().apply {
-                add(root)
-                rectangle {
-                    x = 1.0
-                    y = 1.0
-                    arcWidth = 8.0
-                    arcHeight = 8.0
-                    heightProperty().bind(this@apply.heightProperty().subtract(1))
-                    widthProperty().bind(this@apply.widthProperty().subtract(1))
-                    fill = Color.TRANSPARENT
-                    stroke = Color.GRAY
-                    isMouseTransparent = true
-                }
-                clipRectangle {
-                    arcHeight = 10.0
-                    arcWidth = 10.0
-                    heightProperty().bind(stage.heightProperty())
-                    widthProperty().bind(stage.widthProperty())
-                }
-            }
-            stage.scene.root = newRoot
-        }
-
-        var prevOpacity = windowOpacity
-        isRunningTask.property.onChange { isRunningTask ->
-            // Make the window invisible while running any task.
-            if (isRunningTask) {
-                prevOpacity = windowOpacity
-                windowOpacity = 0.0
-            } else {
-                windowOpacity = prevOpacity
-            }
-        }
-    }
-
-    fun resizeToContent() = currentStage!!.sizeToScene()
-}
-
-abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : PresentableWindow(title, icon), ConfirmationView {
+abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : PresentableView(title, icon), ConfirmationView {
     override val canAccept = state(IsValid.valid)
     override val acceptActions = channel<Unit>()
     override val cancelActions = channel<Unit>()

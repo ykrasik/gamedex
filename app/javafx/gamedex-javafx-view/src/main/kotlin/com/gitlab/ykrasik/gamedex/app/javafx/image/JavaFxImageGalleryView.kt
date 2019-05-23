@@ -22,9 +22,16 @@ import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import javafx.geometry.Pos
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
+import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import tornadofx.*
 
@@ -49,6 +56,52 @@ class JavaFxImageGalleryView : PresentableView(), ImageGalleryView {
 
     init {
         register()
+    }
+
+    val customizeOverlay: OverlayPane.OverlayLayer.() -> Unit = {
+        val overlayPane = this
+
+        stackpane {
+            addClass(Style.arrowLeftContainer)
+            maxWidth = Region.USE_PREF_SIZE
+            maxHeight = Region.USE_PREF_SIZE
+            stackpaneConstraints { alignment = Pos.CENTER_LEFT }
+            visibleProperty().bind(overlayPane.hidingProperty.not() and overlayPane.activeProperty)
+            jfxButton(graphic = Icons.arrowLeftBold.size(120)) {
+                addClass(Style.arrowLeft)
+                visibleWhen(canViewPrevImage)
+                scaleOnMouseOver(duration = 0.2.seconds, target = 1.1)
+                overlayPane.addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                    if (e.code == KeyCode.LEFT && canViewPrevImage.value.isSuccess) {
+                        flashColor(duration = 0.2.seconds, from = Colors.transparentWhite, to = Color.WHITE)
+                        flashScale(duration = 0.2.seconds, target = 1.1)
+                        fire()
+                    }
+                }
+                action(viewPrevImageActions) { slideDirection = ViewTransition.Direction.RIGHT }
+            }
+        }
+
+        stackpane {
+            addClass(Style.arrowRightContainer)
+            maxWidth = Region.USE_PREF_SIZE
+            maxHeight = Region.USE_PREF_SIZE
+            stackpaneConstraints { alignment = Pos.CENTER_RIGHT }
+            visibleProperty().bind(overlayPane.hidingProperty.not() and overlayPane.activeProperty)
+            jfxButton(graphic = Icons.arrowRightBold.size(120)) {
+                addClass(Style.arrowRight)
+                visibleWhen(canViewNextImage)
+                scaleOnMouseOver(duration = 0.2.seconds, target = 1.1)
+                overlayPane.addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                    if (e.code == KeyCode.RIGHT && canViewNextImage.value.isSuccess) {
+                        flashColor(duration = 0.2.seconds, from = Colors.transparentWhite, to = Color.WHITE)
+                        flashScale(duration = 0.2.seconds, target = 1.1)
+                        fire()
+                    }
+                }
+                action(viewNextImageActions) { slideDirection = ViewTransition.Direction.LEFT }
+            }
+        }
     }
 
     override val root = stackpane {

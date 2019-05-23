@@ -63,8 +63,6 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
     init {
         titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report" })
 //        iconProperty.bind(reportProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
-        excludedGames.onChange { resizeToContent() }
-        filterView.filter.onChange { resizeToContent() }
         register()
     }
 

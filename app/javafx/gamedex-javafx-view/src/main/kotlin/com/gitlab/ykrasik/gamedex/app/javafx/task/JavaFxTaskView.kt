@@ -27,9 +27,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.cancelButton
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
-import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import kotlinx.coroutines.Job
 import tornadofx.*
@@ -54,31 +52,22 @@ class JavaFxTaskView : PresentableView(), TaskView {
         register()
     }
 
-    override val root = stackpane { }
+    override val root = vbox(spacing = 5) {
+        addClass(Style.taskViewRoot)
 
-    fun init(f: EventTarget.() -> Node): StackPane = root.apply {
-        f()
-        maskerPane {
-            visibleWhen { job.property.isNotNull }
-            progressNode = vbox(spacing = 5) {
-                progressDisplay(taskProgress, isMain = true)
+        progressDisplay(taskProgress, isMain = true)
 
-                vbox {
-                    showWhen { isRunningSubTask.property }
+        vbox {
+            showWhen { isRunningSubTask.property }
+            verticalGap(size = 20)
+            progressDisplay(subTaskProgress, isMain = false)
+        }
 
-                    region { minHeight = 20.0 }
-                    progressDisplay(subTaskProgress, isMain = false)
-                }
-
-                hbox {
-                    showWhen { isCancellable.property }
-                    spacer()
-                    cancelButton("Cancel") {
-                        addClass(Style.progressText)
-                        action(cancelTaskActions)
-                    }
-                }
-            }
+        cancelButton("Cancel") {
+            useMaxWidth = true
+            showWhen { isCancellable.property }
+            addClass(Style.progressText)
+            action(cancelTaskActions)
         }
     }
 
@@ -138,6 +127,7 @@ class JavaFxTaskView : PresentableView(), TaskView {
 
     class Style : Stylesheet() {
         companion object {
+            val taskViewRoot by cssclass()
             val mainTaskProgress by cssclass()
             val mainTaskText by cssclass()
             val subTaskProgress by cssclass()
@@ -151,6 +141,13 @@ class JavaFxTaskView : PresentableView(), TaskView {
         }
 
         init {
+            taskViewRoot {
+                padding = box(20.px)
+                minWidth = 700.px
+//                minHeight = 175.px
+                backgroundColor = multi(c(0, 0, 0, 0.9))
+            }
+
             mainTaskProgress {
                 bar {
                     backgroundColor = multi(Color.CORNFLOWERBLUE)

@@ -14,37 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.provider
+package com.gitlab.ykrasik.gamedex.core.common
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
-import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import tornadofx.borderpane
-import tornadofx.paddingAll
-import tornadofx.scrollpane
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.ViewEvent
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/06/2017
- * Time: 10:57
+ * Date: 15/05/2019
+ * Time: 20:19
  */
-class JavaFxRefetchGamesView : ConfirmationWindow("Re-Fetch Games", Icons.download), RefetchGamesView {
-    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = false)
-
-    override val refetchGamesFilter = filterView.externalMutations
-    override val refetchGamesFilterIsValid = userMutableState(filterView.filterIsValid)
-
-    init {
-        register()
-    }
-
-    override val root = borderpane {
-        top = confirmationToolbar()
-        center = scrollpane {
-            paddingAll = 10
-            add(filterView.root)
+@Singleton
+class ExternalHidePresenter @Inject constructor(
+    eventBus: EventBus,
+    private val viewManager: ViewManager
+) {
+    private val session = object : ViewSession() {
+        init {
+            viewManager.externalCloseRequests.forEach { view ->
+                eventBus.send(ViewEvent.RequestHide(view))
+            }
         }
     }
 }
