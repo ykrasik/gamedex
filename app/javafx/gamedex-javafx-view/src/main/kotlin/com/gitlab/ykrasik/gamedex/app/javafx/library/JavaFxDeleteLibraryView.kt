@@ -35,7 +35,7 @@ class JavaFxDeleteLibraryView : ConfirmationWindow(icon = Icons.delete), DeleteL
     private val libraryProperty = SimpleObjectProperty(Library.Null)
     override var library: Library by libraryProperty
 
-    override val gamesToBeDeleted = mutableListOf<Game>().observable()
+    override val gamesToBeDeleted = mutableListOf<Game>().asObservable()
 
     init {
         titleProperty.bind(libraryProperty.stringBinding { "Delete library '${it!!.name}'?" })

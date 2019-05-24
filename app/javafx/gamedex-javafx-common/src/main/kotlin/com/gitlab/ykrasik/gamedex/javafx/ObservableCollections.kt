@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx
 
 import javafx.collections.*
 import tornadofx.SortedFilteredList
-import tornadofx.observable
+import tornadofx.asObservable
 
 /**
  * User: ykrasik
@@ -42,4 +42,4 @@ fun <T> ObservableList<T>.perform(f: (ObservableList<T>) -> Unit): ListChangeLis
 }
 
 fun <T> ObservableList<T>.sortedFiltered() = SortedFilteredList(this)
-fun <T> List<T>.sortedFiltered() = this.observable().sortedFiltered()
+fun <T> List<T>.sortedFiltered() = this.asObservable().sortedFiltered()

@@ -37,7 +37,7 @@ import java.io.StringWriter
  * Time: 11:14
  */
 class JavaFxLogView : PresentableView("Log", Icons.book), LogView, ViewCanChangeLogLevel, ViewCanChangeLogTail {
-    override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
+    override val entries = mutableListOf<LogEntry>().asObservable().sortedFiltered()
 
     override var level = userMutableState(LogLevel.Info)
     override var logTail = userMutableState(false)

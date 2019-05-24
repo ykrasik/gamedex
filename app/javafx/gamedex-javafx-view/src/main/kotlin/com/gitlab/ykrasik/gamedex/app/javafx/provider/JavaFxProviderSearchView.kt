@@ -48,7 +48,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     private val currentProviderId = state.property.stringBinding { it!!.currentProvider ?: "" }
 
     override val query = userMutableState("")
-    override val searchResults = mutableListOf<ProviderSearchResult>().observable()
+    override val searchResults = mutableListOf<ProviderSearchResult>().asObservable()
 
     override val selectedSearchResult = userMutableState<ProviderSearchResult?>(null)
 

@@ -56,7 +56,7 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
 
     override val isTag = userMutableState(false)
 
-    override val excludedGames = mutableListOf<Game>().observable()
+    override val excludedGames = mutableListOf<Game>().asObservable()
 
     override val unexcludeGameActions = channel<Game>()
 

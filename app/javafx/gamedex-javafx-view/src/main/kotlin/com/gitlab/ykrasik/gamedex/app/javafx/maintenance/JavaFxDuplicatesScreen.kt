@@ -49,7 +49,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     private val gameContextMenu: GameContextMenu by inject()
     private val commonOps: JavaFxCommonOps by di()
 
-    override val duplicates = mutableListOf<GameDuplicates>().observable()
+    override val duplicates = mutableListOf<GameDuplicates>().asObservable()
 //    override val excludeGameActions = channel<Game>()
 
     override val viewGameDetailsActions = channel<ViewGameParams>()

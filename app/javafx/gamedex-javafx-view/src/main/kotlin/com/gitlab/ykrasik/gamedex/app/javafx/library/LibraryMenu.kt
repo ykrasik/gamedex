@@ -46,7 +46,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
     ViewCanDeleteLibrary,
     ViewCanOpenFile {
 
-    override val libraries = mutableListOf<Library>().observable()
+    override val libraries = mutableListOf<Library>().asObservable()
 
     override val canAddOrEditLibraries = state(IsValid.valid)
     override val addOrEditLibraryActions = channel<Library?>()

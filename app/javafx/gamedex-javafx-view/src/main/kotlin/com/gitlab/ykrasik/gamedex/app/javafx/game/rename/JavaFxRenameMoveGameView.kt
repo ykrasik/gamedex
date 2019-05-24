@@ -45,7 +45,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     private val gameProperty = SimpleObjectProperty(Game.Null)
     override var game by gameProperty
 
-    override val possibleLibraries = mutableListOf<Library>().observable()
+    override val possibleLibraries = mutableListOf<Library>().asObservable()
 
     override val library = userMutableState(Library.Null)
     override val path = userMutableState("")

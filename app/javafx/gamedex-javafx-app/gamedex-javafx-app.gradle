@@ -60,6 +60,7 @@ task copyPluginsDist(type: Copy) {
 
 jfxNative {
 //    dependsOn shadowJar
+    dependsOn rootProject.subprojects.assemble
     dependsOn customizeWindowsInstaller
     dependsOn copyPluginsDist
     finalizedBy cleanInstallerIss

@@ -39,7 +39,7 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
     ViewCanDeleteReport,
     ViewCanOpenFile {
 
-    override val reports = mutableListOf<Report>().observable()
+    override val reports = mutableListOf<Report>().asObservable()
 
     override val showReportActions = channel<Report>()
 

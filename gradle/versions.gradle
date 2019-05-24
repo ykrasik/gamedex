@@ -16,6 +16,7 @@ dependencyUpdates.resolutionStrategy {
             boolean ignored = [
                 'org.kordamp.ikonli:ikonli-javafx:11.*',
                 'org.controlsfx:controlsfx:9.*',
+                'org.controlsfx:controlsfx:11.*',
                 'com.jfoenix:jfoenix:9.*',
                 'com.h2database:h2:1.4.197'
             ].any { regex ->

@@ -26,6 +26,7 @@ import io.ktor.client.features.UserAgent
  * Time: 09:50
  */
 val testHttpClient = HttpClient(Apache) {
+    expectSuccess = false
     install(UserAgent)
 
     engine {

@@ -59,7 +59,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     private val gameContextMenu: GameContextMenu by inject()
     private val commonOps: JavaFxCommonOps by di()
 
-    override val diffs = mutableListOf<FolderNameDiffs>().observable()
+    override val diffs = mutableListOf<FolderNameDiffs>().asObservable()
 //    override val excludeGameActions = channel<Game>()
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
