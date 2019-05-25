@@ -43,7 +43,6 @@ import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.TaskServiceImpl
 import com.gitlab.ykrasik.gamedex.core.task.presenter.TaskPresenter
-import com.gitlab.ykrasik.gamedex.core.task.presenter.ViewWithRunningTaskPresenter
 import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowseUrlPresenter
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Injector
@@ -96,7 +95,6 @@ object CoreModule : InternalCoreModule() {
         bind(ExternalHidePresenter::class.java)
 
         bindPresenter(TaskPresenter::class)
-        bindPresenter(ViewWithRunningTaskPresenter::class)
 
         bindPresenter(FilterPresenter::class)
 

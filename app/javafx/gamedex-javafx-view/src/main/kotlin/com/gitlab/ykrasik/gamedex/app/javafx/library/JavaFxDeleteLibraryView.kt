@@ -47,7 +47,7 @@ class JavaFxDeleteLibraryView : ConfirmationWindow(icon = Icons.delete), DeleteL
             this.replaceChildren {
                 if (gamesToBeDeleted.isNotEmpty()) {
                     label("The following ${gamesToBeDeleted.size} games will also be deleted:")
-                    listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
+                    listview(gamesToBeDeleted.map { it.name }.asObservable()) { fitAtMost(10) }
                 }
             }
         }
