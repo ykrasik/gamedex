@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.image.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -39,7 +38,7 @@ class ImageGalleryPresenter @Inject constructor() : Presenter<ImageGalleryView> 
 
         init {
             currentIndex = -1
-            view.imageParams *= ViewImageParams(imageUrl = "", imageUrls = emptyList(), imageType = ImageType.Thumbnail)
+            view.imageParams *= ViewImageParams(imageUrl = "", imageUrls = emptyList())
             view.imageParams.forEach { onParamsChanged(it) }
             view.viewNextImageActions.debounce(100).forEach { onViewNextImage() }
             view.viewPrevImageActions.debounce(100).forEach { onViewPrevImage() }

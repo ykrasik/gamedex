@@ -22,6 +22,5 @@ package com.gitlab.ykrasik.gamedex.core.image
  * Time: 10:40
  */
 data class ImageConfig(
-    val fetchCacheSize: Int,
-    val downloadCacheSize: Int
+    val cacheSize: Int
 )

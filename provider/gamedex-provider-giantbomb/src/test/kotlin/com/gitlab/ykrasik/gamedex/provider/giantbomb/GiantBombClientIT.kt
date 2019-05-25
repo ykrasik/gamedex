@@ -24,9 +24,8 @@ import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
 import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldHave
 import io.kotlintest.matchers.shouldThrow
-import io.kotlintest.matchers.substring
+import io.ktor.client.features.ClientRequestException
 import io.ktor.http.HttpStatusCode
 
 /**
@@ -55,13 +54,13 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                 )
             }
 
-            "throw IllegalStateException on invalid http response status" test {
+            "throw ClientRequestException on invalid http response status" test {
                 server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
-                val e = shouldThrow<IllegalStateException> {
+                val e = shouldThrow<ClientRequestException> {
                     client.search(name, platform, account)
                 }
-                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
+                e.response.status shouldBe HttpStatusCode.BadRequest
             }
         }
 
@@ -78,13 +77,13 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                 )
             }
 
-            "throw IllegalStateException on invalid http response status" test {
+            "throw ClientRequestException on invalid http response status" test {
                 server.aFetchRequest(detailPath) willFailWith HttpStatusCode.BadRequest
 
-                val e = shouldThrow<IllegalStateException> {
+                val e = shouldThrow<ClientRequestException> {
                     client.fetch(detailUrl, account)
                 }
-                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
+                e.response.status shouldBe HttpStatusCode.BadRequest
             }
         }
     }

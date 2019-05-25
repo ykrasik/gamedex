@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
@@ -165,7 +164,7 @@ class JavaFxGameDetailsView(
                 val screenshotUrls = game.value.screenshotUrls
                 if (screenshotUrls.isNotEmpty()) {
                     viewImageActions.offer(
-                        ViewImageParams(imageUrl = screenshotUrls.first(), imageUrls = screenshotUrls, imageType = ImageType.Screenshot)
+                        ViewImageParams(imageUrl = screenshotUrls.first(), imageUrls = screenshotUrls)
                     )
                 }
             }
@@ -213,7 +212,7 @@ class JavaFxGameDetailsView(
             // Background screenshot
             backgroundProperty().bind(game.flatMap { game ->
                 if (game.screenshotUrls.isNotEmpty()) {
-                    val image = commonOps.fetchScreenshot(game.screenshotUrls.first())
+                    val image = commonOps.fetchImage(game.screenshotUrls.first(), persist = true)
                     image.binding {
                         if (it.isNoImage) {
                             noBackground
@@ -445,7 +444,7 @@ class JavaFxGameDetailsView(
             gridpaneConstraints { rowIndex = 2; columnIndex = 0 }
 
             game.screenshotUrls.forEach { url ->
-                makeRoundCorners(imageview(commonOps.fetchScreenshot(url)) {
+                makeRoundCorners(imageview(commonOps.fetchImage(url, persist = true)) {
                     fitWidth = 100.0
                     fitHeight = 70.0
                 }, arc = 10) {
@@ -453,7 +452,7 @@ class JavaFxGameDetailsView(
 
                     addClass(Style.screenshotItem)
                     setOnMouseClicked {
-                        viewImageActions.offer(ViewImageParams(imageUrl = url, imageUrls = game.screenshotUrls, imageType = ImageType.Screenshot))
+                        viewImageActions.offer(ViewImageParams(imageUrl = url, imageUrls = game.screenshotUrls))
                     }
                 }
             }

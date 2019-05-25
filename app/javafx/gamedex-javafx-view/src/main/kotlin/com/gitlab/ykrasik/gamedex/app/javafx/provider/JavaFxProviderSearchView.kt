@@ -81,7 +81,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                 releaseDate = result.releaseDate
                 criticScore = result.criticScore
                 userScore = result.userScore
-                image = commonOps.downloadImage(result.thumbnailUrl)
+                image = commonOps.fetchImage(result.thumbnailUrl, persist = true)
                 imageFitWidth = 200
             }.build()
 

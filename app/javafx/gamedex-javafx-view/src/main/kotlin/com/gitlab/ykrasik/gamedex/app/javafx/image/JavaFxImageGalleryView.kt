@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
@@ -43,7 +42,7 @@ import tornadofx.*
 class JavaFxImageGalleryView : PresentableView(), ImageGalleryView {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val imageParams = userMutableState(ViewImageParams(imageUrl = "", imageUrls = emptyList(), imageType = ImageType.Thumbnail))
+    override val imageParams = userMutableState(ViewImageParams(imageUrl = "", imageUrls = emptyList()))
     override val currentImageIndex = state(-1)
 
     override val canViewNextImage = state(IsValid.valid)
@@ -119,7 +118,7 @@ class JavaFxImageGalleryView : PresentableView(), ImageGalleryView {
         isPreserveRatio = true
 
         if (params.imageUrl.isNotBlank()) {
-            imageProperty().bind(commonOps.fetchImage(params.imageUrl, params.imageType))
+            imageProperty().bind(commonOps.fetchImage(params.imageUrl, persist = true))
         } else {
             image = null
         }

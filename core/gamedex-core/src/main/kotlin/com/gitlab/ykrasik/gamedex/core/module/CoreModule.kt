@@ -144,7 +144,6 @@ object CoreModule : InternalCoreModule() {
     @Provides
     @Singleton
     fun httpClient(): HttpClient = HttpClient(Apache) {
-        expectSuccess = false
         install(UserAgent)
 //        install(Logging) {
 //            logger = object : Logger {

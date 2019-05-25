@@ -29,7 +29,6 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.response.readText
 import io.ktor.http.ContentType
-import io.ktor.http.isSuccess
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -75,11 +74,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig, privat
         val text = response.readText()
         val message = "$initialMessage Done: [${response.status}] $text"
         log.trace(message)
-        return if (response.status.isSuccess()) {
-            transform(text)
-        } else {
-            throw IllegalStateException(message)
-        }
+        return transform(text)
     }
 
 //    private fun parseError(raw: String): String {

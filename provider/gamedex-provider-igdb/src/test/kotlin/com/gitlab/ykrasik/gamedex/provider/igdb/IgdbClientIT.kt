@@ -28,6 +28,7 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldHave
 import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.matchers.substring
+import io.ktor.client.features.ClientRequestException
 import io.ktor.http.HttpStatusCode
 
 /**
@@ -82,22 +83,22 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 )
             }
 
-            "throw IllegalStateException on empty response" test {
+            "throw ClientRequestException on empty response" test {
                 server.aFetchRequest(id) willReturn emptyList()
 
-                val e = shouldThrow<IllegalStateException> {
+                val e = shouldThrow<ClientRequestException> {
                     client.fetch(detailUrl, account)
                 }
                 e.message!! shouldHave substring("Not Found!")
             }
 
-            "throw IllegalStateException on invalid http response status" test {
+            "throw ClientRequestException on invalid http response status" test {
                 server.aFetchRequest(id) willFailWith HttpStatusCode.BadRequest
 
-                val e = shouldThrow<IllegalStateException> {
+                val e = shouldThrow<ClientRequestException> {
                     client.fetch(detailUrl, account)
                 }
-                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
+                e.response.status shouldBe HttpStatusCode.BadRequest
             }
         }
     }

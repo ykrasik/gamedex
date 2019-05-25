@@ -28,7 +28,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.call
 import io.ktor.client.request.parameter
 import io.ktor.client.response.readText
-import io.ktor.http.isSuccess
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -72,11 +71,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val text = response.readText()
         val message = "$initialMessage Done: [${response.status}] $text"
         log.trace(message)
-        return if (response.status.isSuccess()) {
-            text.fromJson()
-        } else {
-            throw IllegalStateException(message)
-        }
+        return text.fromJson()
     }
 
     private companion object {

@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
@@ -37,33 +36,31 @@ import javax.inject.Singleton
  */
 @Singleton
 class ImageServiceImpl @Inject constructor(
-    @ThumbnailStorage private val thumbnailStorage: Storage<String, ByteArray>,
-    @PosterStorage private val posterStorage: Storage<String, ByteArray>,
-    @ScreenshotStorage private val screenshotStorage: Storage<String, ByteArray>,
+    @ImageStorage private val storage: Storage<String, ByteArray>,
     private val imageFactory: ImageFactory,
     private val httpClient: HttpClient,
     config: ImageConfig
 ) : ImageService {
     private val log = logger()
 
-    private val persistedImageCache = Cache<String, Deferred<Image>>(config.fetchCacheSize)
-    private val downloadedImageCache = Cache<String, Deferred<Image>>(config.downloadCacheSize)
+    private val cache = Cache<String, Deferred<Image>>(config.cacheSize)
 
     override fun createImage(data: ByteArray) = imageFactory(data)
 
-    override suspend fun fetchImage(url: String, imageType: ImageType) = fetchImage(url, imageType.storage)
-    private suspend fun fetchImage(url: String, storage: Storage<String, ByteArray>): Image? =
+    override suspend fun fetchImage(url: String, persist: Boolean) = withContext(Dispatchers.Main) {
         try {
-            persistedImageCache.getOrPut(url) {
+            cache.getOrPut(url) {
                 GlobalScope.async(Dispatchers.IO) {
                     val persistedBytes = storage[url]
                     if (persistedBytes != null) {
                         createImage(persistedBytes)
                     } else {
-                        val downloadedImage = downloadImage0(url)
+                        val downloadedImage = createImage(httpClient.download(url))
                         // Save downloaded image
-                        launch {
-                            storage[url] = downloadedImage.raw
+                        if (persist) {
+                            launch {
+                                storage[url] = downloadedImage.raw
+                            }
                         }
                         downloadedImage
                     }
@@ -71,51 +68,22 @@ class ImageServiceImpl @Inject constructor(
             }.await()
         } catch (e: Exception) {
             log.error("Error fetching image $url", e)
-            persistedImageCache -= url
+            cache -= url
             null
         }
-
-    override suspend fun downloadImage(url: String) =
-        try {
-            downloadImage0(url)
-        } catch (e: Exception) {
-            log.error("Error downloading image $url", e)
-            downloadedImageCache -= url
-            null
-        }
-
-    private suspend fun downloadImage0(url: String) = downloadedImageCache.getOrPut(url) {
-        GlobalScope.async(Dispatchers.IO) {
-            val downloadedBytes = httpClient.download(url)
-            createImage(downloadedBytes)
-        }
-    }.await()
-
-    override fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> {
-        return listOf(thumbnailStorage, posterStorage)
-            .map { it.fetchImageSizesExcept(exceptUrls) }
-            .reduce { acc, map -> acc + map }
     }
 
-    private fun Storage<String, ByteArray>.fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> {
-        val excudedKeys = exceptUrls.toSet()
-        return ids().asSequence()
-            .filter { it !in excudedKeys }
-            .map { it to FileSize(sizeTaken(it)) }
+    override fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> {
+        val excludedKeys = exceptUrls.toSet()
+        return storage.ids().asSequence()
+            .filter { it !in excludedKeys }
+            .map { it to FileSize(storage.sizeTaken(it)) }
             .toMap()
     }
 
     override fun deleteImages(imageUrls: List<String>) {
-        thumbnailStorage.delete(imageUrls)
-        posterStorage.delete(imageUrls)
+        storage.delete(imageUrls)
     }
-
-    private val ImageType.storage: Storage<String, ByteArray>
-        get() = when (this) {
-            ImageType.Thumbnail -> thumbnailStorage
-            ImageType.Poster -> posterStorage
-            ImageType.Screenshot -> screenshotStorage
-        }
 
     // Not thread-safe.
     private class Cache<K, V>(private val maxSize: Int) : LinkedHashMap<K, V>(maxSize, 1f, true) {
@@ -128,14 +96,4 @@ class ImageServiceImpl @Inject constructor(
 @BindingAnnotation
 @Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class ThumbnailStorage
-
-@BindingAnnotation
-@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class PosterStorage
-
-@BindingAnnotation
-@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class ScreenshotStorage
+annotation class ImageStorage

@@ -27,4 +27,4 @@ interface ViewCanShowImageGallery {
     val viewImageActions: ReceiveChannel<ViewImageParams>
 }
 
-data class ViewImageParams(val imageUrl: String, val imageUrls: List<String>, val imageType: ImageType)
+data class ViewImageParams(val imageUrl: String, val imageUrls: List<String>)

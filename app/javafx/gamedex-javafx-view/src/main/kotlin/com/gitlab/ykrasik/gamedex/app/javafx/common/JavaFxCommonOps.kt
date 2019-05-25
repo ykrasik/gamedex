@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageType
 import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
@@ -52,23 +51,13 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     val applicationVersion: Version = ops.applicationVersion
 
-    fun fetchThumbnail(game: Game?): ObservableValue<JavaFxImage> = game?.thumbnailUrl.ifNotNull {
-        loadImage { ops.fetchImage(it, ImageType.Thumbnail) }
-    }
+    fun fetchThumbnail(game: Game?): ObservableValue<JavaFxImage> = fetchImage(game?.thumbnailUrl, persist = true)
 
-    fun fetchPoster(game: Game?): ObservableValue<JavaFxImage> = game?.posterUrl.ifNotNull {
-        loadImage { ops.fetchImage(it, ImageType.Poster) }
-    }
+    fun fetchPoster(game: Game?): ObservableValue<JavaFxImage> = fetchImage(game?.posterUrl, persist = true)
 
-    fun fetchScreenshot(url: String): ObservableValue<JavaFxImage> =
-        loadImage { ops.fetchImage(url, ImageType.Screenshot) }
-
-    fun fetchImage(url: String, type: ImageType): ObservableValue<JavaFxImage> =
-        loadImage { ops.fetchImage(url, type) }
-
-    fun downloadImage(url: String?): ObservableValue<JavaFxImage> = url.ifNotNull {
+    fun fetchImage(url: String?, persist: Boolean): ObservableValue<JavaFxImage> = url.ifNotNull {
         loadImage {
-            ops.downloadImage(it)
+            ops.fetchImage(it, persist)
         }
     }
 

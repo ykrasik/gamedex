@@ -33,9 +33,3 @@ interface ImageFactory {
 interface Image {
     val raw: ByteArray
 }
-
-enum class ImageType {
-    Thumbnail,
-    Poster,
-    Screenshot
-}
