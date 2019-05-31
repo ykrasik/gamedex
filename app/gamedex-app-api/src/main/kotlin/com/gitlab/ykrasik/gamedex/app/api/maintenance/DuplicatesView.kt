@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.api.maintenance
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -33,9 +33,9 @@ interface DuplicatesView {
     val searchText: UserMutableState<String>
     val matchingGame: State<Game?>
 
-//    val excludeGameActions: ReceiveChannel<Game>
+//    val excludeGameActions: MultiReceiveChannel<Game>
 
-    val hideViewActions: ReceiveChannel<Unit>
+    val hideViewActions: MultiReceiveChannel<Unit>
 }
 
 data class GameDuplicates(

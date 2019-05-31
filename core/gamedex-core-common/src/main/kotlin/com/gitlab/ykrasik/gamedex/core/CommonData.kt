@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.EnabledGameProvider
@@ -66,7 +66,7 @@ interface CommonData {
     val platformsWithLibraries: ListObservable<Platform>
     val platformsWithEnabledProviders: ListObservable<Platform>
 
-    val isGameSyncRunning: BroadcastReceiveChannel<Boolean>
+    val isGameSyncRunning: MultiReceiveChannel<Boolean>
 }
 
 @Singleton
@@ -112,7 +112,7 @@ class CommonDataImpl @Inject constructor(
     override val platformsWithLibraries = contentLibraries.mapping { it.platform }.distincting()
     override val platformsWithEnabledProviders = enabledProviders.flatMapping { provider -> provider.supportedPlatforms }.distincting()
 
-    override val isGameSyncRunning = BroadcastEventChannel.conflated(false).apply {
+    override val isGameSyncRunning = MultiChannel.conflated(false).apply {
         eventBus.on<SyncGamesEvent.Started> { send(true) }
         eventBus.on<SyncGamesEvent.Finished> { send(false) }
     }

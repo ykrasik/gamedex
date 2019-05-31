@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
@@ -84,7 +84,7 @@ abstract class ViewSession : CoroutineScope {
         this.value = f(value)
     }
 
-    fun State<IsValid>.and(other: State<IsValid>) = value.and(other.value)
+    infix fun State<IsValid>.and(other: State<IsValid>) = value and other.value
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
     fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit): Job = launch {
@@ -92,6 +92,7 @@ abstract class ViewSession : CoroutineScope {
             try {
                 f(it)
             } catch (e: Exception) {
+                // TODO: Delegate this to the view?
                 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
             }
         }
@@ -103,9 +104,9 @@ abstract class ViewSession : CoroutineScope {
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    fun <T> BroadcastReceiveChannel<T>.forEach(f: suspend (T) -> Unit) = subscribe().forEach(f)
+    fun <T> MultiReceiveChannel<T>.forEach(f: suspend (T) -> Unit) = subscribe().forEach(f)
 
-    inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) = subscribe().forEachImmediately(f)
+    inline fun <T> MultiReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) = subscribe().forEachImmediately(f)
 
     fun <T> ListObservable<T>.bind(list: MutableList<T>) {
         list.setAll(this)
@@ -123,7 +124,7 @@ abstract class ViewSession : CoroutineScope {
     }
 
     inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(
-        channelAccessor: S.() -> BroadcastReceiveChannel<T>,
+        channelAccessor: S.() -> MultiReceiveChannel<T>,
         userMutableState: UserMutableState<T>,
         crossinline f: (Data).(T) -> Data
     ) {
@@ -134,7 +135,7 @@ abstract class ViewSession : CoroutineScope {
         }
     }
 
-    fun <T> BroadcastReceiveChannel<T>.bind(state: State<T>) =
+    fun <T> MultiReceiveChannel<T>.bind(state: State<T>) =
         forEachImmediately { state.value = it }
 
     inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
@@ -142,7 +143,7 @@ abstract class ViewSession : CoroutineScope {
             handler(event)
         }
 
-    inline fun <T> BroadcastReceiveChannel<T>.bindIsValid(state: State<IsValid>, crossinline reason: (value: T) -> String?) {
+    inline fun <T> MultiReceiveChannel<T>.bindIsValid(state: State<IsValid>, crossinline reason: (value: T) -> String?) {
         forEachImmediately { value ->
             val reasonMessage = reason(value)
             state *= Try {
@@ -151,18 +152,18 @@ abstract class ViewSession : CoroutineScope {
         }
     }
 
-    inline fun BroadcastReceiveChannel<Boolean>.enableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
+    inline fun MultiReceiveChannel<Boolean>.enableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
         bindIsValid(state) {
             if (!it) reason() else null
         }
 
-    inline fun BroadcastReceiveChannel<Boolean>.disableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
+    inline fun MultiReceiveChannel<Boolean>.disableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
         bindIsValid(state) {
             if (it) reason() else null
         }
 
     fun <T> UserMutableState<T>.debounce(millis: Long = 200): ReceiveChannel<T> =
-        changes.debounce(millis, scope = this@ViewSession)
+        changes.subscribe().debounce(millis, scope = this@ViewSession)
 
     fun <V : Any> EventBus.requestHideView(view: V) = send(ViewEvent.RequestHide(view))
 

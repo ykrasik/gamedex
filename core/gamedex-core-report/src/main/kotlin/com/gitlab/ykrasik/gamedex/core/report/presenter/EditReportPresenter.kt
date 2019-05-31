@@ -90,7 +90,7 @@ class EditReportPresenter @Inject constructor(
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.nameIsValid.and(view.filterIsValid).and(Try {
+            view.canAccept *= view.nameIsValid and view.filterIsValid and Try {
                 if (view.name.value == view.report?.name &&
                     view.isTag.value == view.report?.data?.isTag &&
                     view.filter.value.isEqual(view.report?.filter) &&
@@ -100,7 +100,7 @@ class EditReportPresenter @Inject constructor(
                 if (view.isTag.value && view.filter.value.find(Filter.ReportTag::class) != null) {
                     error("Reports that tag games may not depend on ReportTag filters!")
                 }
-            })
+            }
         }
 
         private fun onUnexcludeGame(game: Game) {

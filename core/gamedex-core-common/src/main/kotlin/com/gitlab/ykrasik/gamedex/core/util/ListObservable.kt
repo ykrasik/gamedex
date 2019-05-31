@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.util
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -38,8 +38,8 @@ import kotlinx.coroutines.launch
  * Time: 10:37
  */
 interface ListObservable<T> : List<T>, CoroutineScope {
-    val itemsChannel: BroadcastReceiveChannel<List<T>>
-    val changesChannel: BroadcastReceiveChannel<ListEvent<T>>
+    val itemsChannel: MultiReceiveChannel<List<T>>
+    val changesChannel: MultiReceiveChannel<ListEvent<T>>
 
     // Record all changes that happened while executing f() and execute them as a single 'set' operation.
     suspend fun <R> buffered(f: suspend () -> R): R
@@ -49,8 +49,8 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     override val coroutineContext = Dispatchers.Default + Job()
 
     private var _list: List<T> = initial
-    override val itemsChannel = BroadcastEventChannel<List<T>>(Channel.CONFLATED, coroutineContext).apply { offer(initial) }
-    override val changesChannel = BroadcastEventChannel<ListEvent<T>>(coroutineContext = coroutineContext)
+    override val itemsChannel = MultiChannel<List<T>>(Channel.CONFLATED, coroutineContext).apply { offer(initial) }
+    override val changesChannel = MultiChannel<ListEvent<T>>(coroutineContext = coroutineContext)
 
     private var buffer = false
 

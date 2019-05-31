@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.javafx.error
 import com.gitlab.ykrasik.gamedex.javafx.notification
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
@@ -27,7 +28,6 @@ import javafx.scene.Node
 import javafx.scene.control.Button
 import javafx.scene.control.ButtonBase
 import javafx.scene.layout.HBox
-import kotlinx.coroutines.channels.Channel
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.View
 import tornadofx.action
@@ -68,17 +68,15 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
 
     protected fun register() = viewRegistry.onCreate(this)
 
-    fun <E> Channel<E>.event(e: E) = offer(e)
+    fun <E> MultiChannel<E>.event(e: E) = offer(e)
 
-    fun <T> ObservableValue<T>.bindChanges(channel: Channel<T>): ChangeListener<T> = bindChanges(channel) { it }
-
-    inline fun <T, R> ObservableValue<T>.bindChanges(channel: Channel<R>, crossinline factory: (T) -> R): ChangeListener<T> =
+    fun <T> ObservableValue<T>.bindChanges(channel: MultiChannel<T>): ChangeListener<T> = bindChanges(channel) { it }
+    inline fun <T, R> ObservableValue<T>.bindChanges(channel: MultiChannel<R>, crossinline factory: (T) -> R): ChangeListener<T> =
         typeSafeOnChange { channel.event(factory(it)) }
 
-    fun ButtonBase.action(channel: Channel<Unit>) = action(channel) { }
-
-    inline fun <T> ButtonBase.action(channel: Channel<T>, crossinline f: () -> T) = apply {
-        action { channel.event(f()) }
+    fun ButtonBase.action(channel: MultiChannel<Unit>) = action(channel) { }
+    inline fun <T> ButtonBase.action(channel: MultiChannel<T>, crossinline f: () -> T) = apply {
+        action { channel.offer(f()) }
     }
 }
 

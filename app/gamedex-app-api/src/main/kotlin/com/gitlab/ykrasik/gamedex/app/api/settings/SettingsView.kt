@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,7 +25,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:38
  */
 interface SettingsView : ConfirmationView {
-    val resetDefaultsActions: ReceiveChannel<Unit>
+    val resetDefaultsActions: MultiReceiveChannel<Unit>
 
     fun confirmResetDefaults(): Boolean
 }

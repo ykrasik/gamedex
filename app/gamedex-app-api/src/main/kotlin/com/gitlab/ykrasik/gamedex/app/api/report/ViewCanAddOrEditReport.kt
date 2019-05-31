@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.report
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 18:07
  */
 interface ViewCanAddOrEditReport {
-    val addOrEditReportActions: ReceiveChannel<Report?>
+    val addOrEditReportActions: MultiReceiveChannel<Report?>
 }

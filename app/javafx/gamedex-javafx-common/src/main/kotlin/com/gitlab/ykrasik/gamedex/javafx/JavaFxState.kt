@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -75,7 +75,7 @@ class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableS
     // To be used when the view needs to update the value programmatically and report a change event.
     var valueFromView: T by property
 
-    override val changes = channel<T>()
+    override val changes = MultiChannel<T>()
 
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)

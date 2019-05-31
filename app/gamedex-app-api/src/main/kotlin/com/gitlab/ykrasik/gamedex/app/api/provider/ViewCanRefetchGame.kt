@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,5 +25,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 14:23
  */
 interface ViewCanRefetchGame {
-    val refetchGameActions: ReceiveChannel<Game>
+    val refetchGameActions: MultiReceiveChannel<Game>
 }

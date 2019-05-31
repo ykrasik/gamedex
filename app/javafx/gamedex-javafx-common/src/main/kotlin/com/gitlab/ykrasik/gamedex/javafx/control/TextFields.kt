@@ -121,7 +121,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
                 val canDecrement = Try {
                     check(property.value.toDouble() - 1 >= min.toDouble()) { "Limit reached!" }
                 }
-                value!!.and(canDecrement)
+                value!! and canDecrement
             })
             action { textfield.text = stringify(parse(textfield.text).toDouble() - 1) }
         }
@@ -130,7 +130,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
                 val canIncrement = Try {
                     check(property.value.toDouble() + 1 <= max.toDouble()) { "Limit reached!" }
                 }
-                value!!.and(canIncrement)
+                value!! and canIncrement
             })
             action { textfield.text = stringify(parse(textfield.text).toDouble() + 1) }
         }

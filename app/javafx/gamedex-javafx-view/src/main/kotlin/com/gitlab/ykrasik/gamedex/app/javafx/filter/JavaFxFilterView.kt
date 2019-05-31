@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.combineLatest
@@ -43,7 +44,6 @@ import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
-import kotlinx.coroutines.channels.Channel
 import org.joda.time.DurationFieldType
 import org.joda.time.LocalDate
 import org.joda.time.Period
@@ -241,7 +241,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     private fun HBox.renderAdditionalButtons(filter: Filter) {
         // FIXME: Use a NodeList
         buttonWithPopover(graphic = Icons.plus.size(28)) {
-            fun operatorButton(name: String, graphic: Node, channel: Channel<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
+            fun operatorButton(name: String, graphic: Node, channel: MultiChannel<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
                 useMaxWidth = true
                 action(channel) { filter }
             }

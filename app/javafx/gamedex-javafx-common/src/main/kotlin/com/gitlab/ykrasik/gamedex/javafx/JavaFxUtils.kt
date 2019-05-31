@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.jfoenix.utils.JFXNodeUtils
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -30,6 +31,7 @@ import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.stage.Screen
 import javafx.stage.Stage
+import kotlinx.coroutines.Dispatchers
 import tornadofx.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberFunctions
@@ -162,4 +164,8 @@ val Node.boundsInScreen: Bounds get() = localToScreen(boundsInLocal)
 
 fun Bounds.containsDelta(x: Double, y: Double, delta: Double): Boolean {
     return !isEmpty && x in (minX - delta)..(maxX + delta) && y in (minY - delta)..(maxY + delta)
+}
+
+inline fun <T> MultiReceiveChannel<T>.forEach(crossinline f: (T) -> Unit) = subscribe(Dispatchers.Main) {
+    f(it)
 }

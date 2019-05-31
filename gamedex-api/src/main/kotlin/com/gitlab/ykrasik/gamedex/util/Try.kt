@@ -54,6 +54,6 @@ sealed class Try<out T> {
 
 typealias IsValid = Try<Any>
 
-fun IsValid.or(other: IsValid): IsValid = if (isError) other else this
-fun IsValid.and(other: IsValid): IsValid = if (isSuccess) other else this
+infix fun IsValid.or(other: IsValid): IsValid = if (isError) other else this
+infix fun IsValid.and(other: IsValid): IsValid = if (isSuccess) other else this
 val IsValid.not get(): IsValid = if (isSuccess) IsValid.invalid("Negation") else IsValid.valid

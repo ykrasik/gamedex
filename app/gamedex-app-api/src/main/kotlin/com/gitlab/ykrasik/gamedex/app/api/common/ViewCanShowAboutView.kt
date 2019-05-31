@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.common
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 17:44
  */
 interface ViewCanShowAboutView {
-    val showAboutActions: ReceiveChannel<Unit>
+    val showAboutActions: MultiReceiveChannel<Unit>
 }

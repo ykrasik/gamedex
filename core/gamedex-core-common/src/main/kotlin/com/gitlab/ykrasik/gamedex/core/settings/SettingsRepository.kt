@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -39,7 +39,7 @@ import kotlin.reflect.KProperty1
 abstract class SettingsRepository<T : Any> {
     protected abstract val storage: SettingsStorage<T>
 
-    val dataChannel: BroadcastReceiveChannel<T> get() = storage.dataChannel
+    val dataChannel: MultiReceiveChannel<T> get() = storage.dataChannel
 
     fun modify(f: T.() -> T) = storage.modify(f)
     fun perform(f: (T) -> Unit) = storage.perform(f)
@@ -68,7 +68,7 @@ class SettingsStorage<T : Any>(
 
     private var enableWrite = true
 
-    private val rawDataChannel = BroadcastEventChannel.conflated {
+    private val rawDataChannel = MultiChannel.conflated {
         val existingData = try {
             storage[name]
         } catch (e: Exception) {
@@ -111,8 +111,8 @@ class SettingsStorage<T : Any>(
         }
     }
 
-    fun <R> channel(extractor: KProperty1<T, R>): BroadcastReceiveChannel<R> {
-        val channel = BroadcastEventChannel.conflated(extractor(data))
+    fun <R> channel(extractor: KProperty1<T, R>): MultiReceiveChannel<R> {
+        val channel = MultiChannel.conflated(extractor(data))
         launch {
             _dataChannel.subscribe().drop(1).consumeEach {
                 channel.send(extractor(it))

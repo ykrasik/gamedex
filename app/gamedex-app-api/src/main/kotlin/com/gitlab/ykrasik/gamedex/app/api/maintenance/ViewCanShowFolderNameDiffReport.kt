@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 13:35
  */
 interface ViewCanShowFolderNameDiffReport {
-    val showFolderNameDiffReportActions: ReceiveChannel<Unit>
+    val showFolderNameDiffReportActions: MultiReceiveChannel<Unit>
 }

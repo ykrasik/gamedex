@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -29,5 +29,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface ViewCanDeleteLibrary {
     val canDeleteLibraries: State<IsValid>
 
-    val deleteLibraryActions: ReceiveChannel<Library>
+    val deleteLibraryActions: MultiReceiveChannel<Library>
 }

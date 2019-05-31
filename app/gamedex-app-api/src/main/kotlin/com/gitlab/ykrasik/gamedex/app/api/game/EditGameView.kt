@@ -22,9 +22,9 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -42,7 +42,7 @@ interface EditGameView : ConfirmationView {
     val thumbnailUrlOverride: GameDataOverrideState<String>
     val posterUrlOverride: GameDataOverrideState<String>
 
-    val resetAllToDefaultActions: ReceiveChannel<Unit>
+    val resetAllToDefaultActions: MultiReceiveChannel<Unit>
 }
 
 interface GameDataOverrideState<T> {
@@ -54,10 +54,10 @@ interface GameDataOverrideState<T> {
     val canSelectCustomOverride: State<IsValid>
     val rawCustomValue: UserMutableState<String>
     val isCustomValueValid: State<IsValid>
-    val customValueAcceptActions: ReceiveChannel<Unit>
-    val customValueRejectActions: ReceiveChannel<Unit>
+    val customValueAcceptActions: MultiReceiveChannel<Unit>
+    val customValueRejectActions: MultiReceiveChannel<Unit>
 
-    val resetToDefaultActions: ReceiveChannel<Unit>
+    val resetToDefaultActions: MultiReceiveChannel<Unit>
 }
 
 sealed class OverrideSelectionType {

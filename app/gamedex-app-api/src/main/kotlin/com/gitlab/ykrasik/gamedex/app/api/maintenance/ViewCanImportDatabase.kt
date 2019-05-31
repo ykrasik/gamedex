@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 08:36
  */
 interface ViewCanImportDatabase {
-    val importDatabaseActions: ReceiveChannel<Unit>
+    val importDatabaseActions: MultiReceiveChannel<Unit>
 }

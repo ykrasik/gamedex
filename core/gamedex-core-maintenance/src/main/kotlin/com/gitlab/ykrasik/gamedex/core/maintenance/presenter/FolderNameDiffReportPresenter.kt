@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -41,7 +41,7 @@ class FolderNameDiffReportPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<FolderNameDiffView> {
     override fun present(view: FolderNameDiffView) = object : ViewSession() {
-        private val isDirtyChannel = BroadcastEventChannel.conflated(true)
+        private val isDirtyChannel = MultiChannel.conflated(true)
         private var isDirty by isDirtyChannel
 
         init {

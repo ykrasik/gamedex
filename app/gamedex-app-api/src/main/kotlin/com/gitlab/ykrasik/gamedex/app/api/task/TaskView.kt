@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.api.task
 
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -32,7 +32,7 @@ interface TaskView {
     val job: State<Job?>
 
     val isCancellable: State<Boolean>
-    val cancelTaskActions: ReceiveChannel<Unit>
+    val cancelTaskActions: MultiReceiveChannel<Unit>
 
     val taskProgress: TaskProgress
     val subTaskProgress: TaskProgress

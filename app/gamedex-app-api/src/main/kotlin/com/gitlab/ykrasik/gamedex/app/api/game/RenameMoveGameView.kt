@@ -21,8 +21,8 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 import java.io.File
 
 /**
@@ -42,6 +42,6 @@ interface RenameMoveGameView : ConfirmationView {
     val name: UserMutableState<String>
     val nameIsValid: State<IsValid>
 
-    val selectDirectoryActions: ReceiveChannel<Unit>
+    val selectDirectoryActions: MultiReceiveChannel<Unit>
     fun selectDirectory(initialDirectory: File): File?
 }

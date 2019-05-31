@@ -279,15 +279,15 @@ class ProviderSearchPresenter @Inject constructor(
         }
 
         private fun onQueryChanged(query: String) {
-            view.canSearchCurrentQuery *= view.canChangeState.value.and(Try {
+            view.canSearchCurrentQuery *= view.canChangeState.value and Try {
                 check(query != state.currentSearch?.query) { "Same query!" }
-            })
+            }
         }
 
         private fun onSelectedSearchResultChanged(selectedResult: ProviderSearchResult?) {
-            view.canAcceptSearchResult *= view.canChangeState.value.and(Try {
+            view.canAcceptSearchResult *= view.canChangeState.value and Try {
                 check(selectedResult != null) { "No result selected!" }
-            })
+            }
         }
 
         private fun updateProvider(provider: ProviderId) {

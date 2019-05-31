@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -26,7 +26,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:47
  */
 interface SyncGamesView {
-    val cancelActions: ReceiveChannel<Unit>
+    val cancelActions: MultiReceiveChannel<Unit>
 
     val isAllowSmartChooseResults: State<Boolean>
 
@@ -36,7 +36,7 @@ interface SyncGamesView {
     val state: MutableList<GameSearchState>
 
     val currentState: UserMutableState<GameSearchState?>
-    val restartStateActions: ReceiveChannel<GameSearchState>
+    val restartStateActions: MultiReceiveChannel<GameSearchState>
 
     fun successMessage(message: String)
     fun cancelledMessage(message: String)

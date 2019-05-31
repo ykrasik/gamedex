@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.report
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:48
  */
 interface ViewCanDeleteReport {
-    val deleteReportActions: ReceiveChannel<Report>
+    val deleteReportActions: MultiReceiveChannel<Report>
 }

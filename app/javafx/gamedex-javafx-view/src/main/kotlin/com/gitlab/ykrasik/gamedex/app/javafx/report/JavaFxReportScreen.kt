@@ -54,7 +54,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
 
     override val excludeGameActions = channel<Game>()
 
-    override val addOrEditReportActions = channel<Report>()
+    override val addOrEditReportActions = channel<Report?>()
 
     override val searchText = userMutableState("")
 

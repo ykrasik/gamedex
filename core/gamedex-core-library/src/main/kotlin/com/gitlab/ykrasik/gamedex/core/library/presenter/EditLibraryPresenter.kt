@@ -95,9 +95,9 @@ class EditLibraryPresenter @Inject constructor(
             view.shouldShowPlatform *= Try {
                 check(type != LibraryType.Excluded) { "Excluded libraries don't have a platform!" }
             }
-            view.canChangePlatform *= view.shouldShowPlatform.value.and(Try {
+            view.canChangePlatform *= view.shouldShowPlatform.value and Try {
                 assertEmptyLibrary("platform")
-            })
+            }
             validate()
         }
 
@@ -141,7 +141,7 @@ class EditLibraryPresenter @Inject constructor(
             view.library?.let { library -> (findExisting(library) ?: library) == library } ?: false
 
         private fun setCanAccept() {
-            val changed = Try {
+            view.canAccept *= view.pathIsValid and view.nameIsValid and Try {
                 val existingLibrary = view.library
                 if (existingLibrary != null) {
                     check(
@@ -152,7 +152,6 @@ class EditLibraryPresenter @Inject constructor(
                     ) { "Nothing changed!" }
                 }
             }
-            view.canAccept *= view.pathIsValid.and(view.nameIsValid).and(changed)
         }
 
         private fun onBrowse() {

@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.gitlab.ykrasik.gamedex.app.api.util.onReceive
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import javafx.scene.Node
 import javafx.scene.layout.VBox

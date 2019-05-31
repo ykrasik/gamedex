@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -36,10 +36,10 @@ interface TagGameView : ConfirmationView {
 
     val toggleAll: UserMutableState<Boolean>
 
-    val checkTagChanges: ReceiveChannel<Pair<String, Boolean>>
+    val checkTagChanges: MultiReceiveChannel<Pair<String, Boolean>>
 
     val newTagName: UserMutableState<String>
     val newTagNameIsValid: State<IsValid>
 
-    val addNewTagActions: ReceiveChannel<Unit>
+    val addNewTagActions: MultiReceiveChannel<Unit>
 }

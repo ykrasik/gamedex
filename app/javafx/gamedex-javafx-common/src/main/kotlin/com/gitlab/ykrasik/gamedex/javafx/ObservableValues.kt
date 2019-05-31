@@ -137,4 +137,4 @@ inline fun <T, R, U> ObservableValue<T>.mapWith(other: ObservableValue<R>, cross
 }
 
 fun ObservableValue<out Try<Any>>.and(other: ObservableValue<out Try<Any>>): ObjectProperty<Try<Any>> =
-    mapWith(other) { first, second -> first.and(second) }
+    mapWith(other) { first, second -> first and second }

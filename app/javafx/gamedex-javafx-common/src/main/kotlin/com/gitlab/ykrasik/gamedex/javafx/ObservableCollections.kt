@@ -31,14 +31,13 @@ inline fun <T> ObservableSet<T>.onChange(crossinline f: (SetChangeListener.Chang
 inline fun <K, V> ObservableMap<K, V>.onChange(crossinline f: (MapChangeListener.Change<out K, out V>) -> Unit): MapChangeListener<K, V> =
     MapChangeListener<K, V> { f(it) }.apply { addListener(this) }
 
-fun <T> ObservableList<T>.changeListener(op: (ListChangeListener.Change<out T>) -> Unit): ListChangeListener<T> =
+inline fun <T> ObservableList<T>.changeListener(crossinline op: (ListChangeListener.Change<out T>) -> Unit): ListChangeListener<T> =
     ListChangeListener<T> { c -> op(c) }.apply { addListener(this) }
 
 // Perform the action on the initial value of the observable and on each change.
-fun <T> ObservableList<T>.perform(f: (ObservableList<T>) -> Unit): ListChangeListener<T> {
-    fun doPerform() = f(this)
-    doPerform()
-    return this.changeListener { doPerform() }
+inline fun <T> ObservableList<T>.perform(crossinline f: (ObservableList<T>) -> Unit): ListChangeListener<T> {
+    f(this)
+    return this.changeListener { f(this) }
 }
 
 fun <T> ObservableList<T>.sortedFiltered() = SortedFilteredList(this)

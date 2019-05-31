@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.task
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,13 +37,13 @@ class Task<T>(
     private val run: suspend Task<*>.() -> T
 ) {
     // TODO: should probably be a conflated channel
-    private val _messageChannel = BroadcastEventChannel<String>()
-    val messageChannel: BroadcastReceiveChannel<String> = _messageChannel
+    private val _messageChannel = MultiChannel<String>()
+    val messageChannel: MultiReceiveChannel<String> = _messageChannel
     var message by Delegates.observable("") { _, _, value -> _messageChannel.offer(value) }
 
     // TODO: should probably be a conflated channel
-    private val _processedItemsChannel = BroadcastEventChannel<Int>()
-    val processedItemsChannel: BroadcastReceiveChannel<Int> = _processedItemsChannel
+    private val _processedItemsChannel = MultiChannel<Int>()
+    val processedItemsChannel: MultiReceiveChannel<Int> = _processedItemsChannel
     private val _processedItems = AtomicInteger(0)
     var processedItems: Int
         get() = _processedItems.get()
@@ -57,23 +57,23 @@ class Task<T>(
     }
 
     // TODO: should probably be a conflated channel
-    private val _totalItemsChannel = BroadcastEventChannel<Int>().apply {
+    private val _totalItemsChannel = MultiChannel<Int>().apply {
         subscribe {
             // When totalItems changes, reset processedItems.
             processedItems = 0
         }
     }
-    val totalItemsChannel: BroadcastReceiveChannel<Int> = _totalItemsChannel
+    val totalItemsChannel: MultiReceiveChannel<Int> = _totalItemsChannel
     var totalItems by Delegates.observable(0) { _, _, value -> _totalItemsChannel.offer(value) }
 
     // TODO: should probably be a conflated channel
-    private val _imageChannel = BroadcastEventChannel<Image?>()
-    val imageChannel: BroadcastReceiveChannel<Image?> = _imageChannel
+    private val _imageChannel = MultiChannel<Image?>()
+    val imageChannel: MultiReceiveChannel<Image?> = _imageChannel
     var image by Delegates.observable(initialImage) { _, _, value -> _imageChannel.offer(value) }
 
     // TODO: should probably be a conflated channel
-    private val _subTaskChannel = BroadcastEventChannel<Task<*>?>()
-    val subTaskChannel: BroadcastReceiveChannel<Task<*>?> = _subTaskChannel
+    private val _subTaskChannel = MultiChannel<Task<*>?>()
+    val subTaskChannel: MultiReceiveChannel<Task<*>?> = _subTaskChannel
 
     var successMessage: ((T) -> String)? = null
     var cancelMessage: (() -> String)? = { "Cancelled" }

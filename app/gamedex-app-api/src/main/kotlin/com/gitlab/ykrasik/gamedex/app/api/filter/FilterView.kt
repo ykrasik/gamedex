@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlin.reflect.KClass
 
 /**
@@ -38,15 +38,15 @@ interface FilterView {
     val possibleProviderIds: MutableList<ProviderId>
     val possibleFilters: MutableList<KClass<out Filter.Rule>>
 
-    val setFilterActions: ReceiveChannel<Filter>
-    val wrapInAndActions: ReceiveChannel<Filter>
-    val wrapInOrActions: ReceiveChannel<Filter>
-    val wrapInNotActions: ReceiveChannel<Filter>
-    val unwrapNotActions: ReceiveChannel<Filter.Not>
-    val clearFilterActions: ReceiveChannel<Unit>
-    val updateFilterActions: ReceiveChannel<Pair<Filter.Rule, Filter.Rule>>
-    val replaceFilterActions: ReceiveChannel<Pair<Filter, KClass<out Filter>>>
-    val deleteFilterActions: ReceiveChannel<Filter>
+    val setFilterActions: MultiReceiveChannel<Filter>
+    val wrapInAndActions: MultiReceiveChannel<Filter>
+    val wrapInOrActions: MultiReceiveChannel<Filter>
+    val wrapInNotActions: MultiReceiveChannel<Filter>
+    val unwrapNotActions: MultiReceiveChannel<Filter.Not>
+    val clearFilterActions: MultiReceiveChannel<Unit>
+    val updateFilterActions: MultiReceiveChannel<Pair<Filter.Rule, Filter.Rule>>
+    val replaceFilterActions: MultiReceiveChannel<Pair<Filter, KClass<out Filter>>>
+    val deleteFilterActions: MultiReceiveChannel<Filter>
 
     val filter: State<Filter>
     val filterIsValid: State<IsValid>

@@ -40,8 +40,8 @@ class ImageGalleryPresenter @Inject constructor() : Presenter<ImageGalleryView> 
             currentIndex = -1
             view.imageParams *= ViewImageParams(imageUrl = "", imageUrls = emptyList())
             view.imageParams.forEach { onParamsChanged(it) }
-            view.viewNextImageActions.debounce(100).forEach { onViewNextImage() }
-            view.viewPrevImageActions.debounce(100).forEach { onViewPrevImage() }
+            view.viewNextImageActions.subscribe().debounce(100).forEach { onViewNextImage() }
+            view.viewPrevImageActions.subscribe().debounce(100).forEach { onViewPrevImage() }
         }
 
         private fun onParamsChanged(params: ViewImageParams) {

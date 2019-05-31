@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -28,5 +28,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface ViewCanResyncGames {
     val canResyncGames: State<IsValid>
 
-    val resyncGamesActions: ReceiveChannel<Unit>
+    val resyncGamesActions: MultiReceiveChannel<Unit>
 }

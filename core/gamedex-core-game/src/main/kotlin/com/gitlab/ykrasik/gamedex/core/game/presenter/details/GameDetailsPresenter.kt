@@ -48,8 +48,8 @@ class GameDetailsPresenter @Inject constructor(
             currentIndex = -1
             view.gameParams *= ViewGameParams.Null
             view.gameParams.forEach { onParamsChanged(it) }
-            view.viewNextGameActions.debounce(100).forEach { onViewNextGame() }
-            view.viewPrevGameActions.debounce(100).forEach { onViewPrevGame() }
+            view.viewNextGameActions.subscribe().debounce(100).forEach { onViewNextGame() }
+            view.viewPrevGameActions.subscribe().debounce(100).forEach { onViewPrevGame() }
             view.hideViewActions.forEach { hideView() }
 
             eventBus.forEach<GameEvent.Updated> { e ->

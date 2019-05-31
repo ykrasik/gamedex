@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.api.image
 
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -31,8 +31,8 @@ interface ImageGalleryView {
     val currentImageIndex: State<Int>
 
     val canViewNextImage: State<IsValid>
-    val viewNextImageActions: ReceiveChannel<Unit>
+    val viewNextImageActions: MultiReceiveChannel<Unit>
 
     val canViewPrevImage: State<IsValid>
-    val viewPrevImageActions: ReceiveChannel<Unit>
+    val viewPrevImageActions: MultiReceiveChannel<Unit>
 }

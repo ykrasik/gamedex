@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
 import com.gitlab.ykrasik.gamedex.core.on
@@ -45,7 +45,7 @@ interface SettingsService {
     val versionDisplay: GameOverlayDisplaySettingsRepository
 
     val platforms: Map<Platform, GamePlatformSettingsRepository>
-    val currentPlatformSettingsChannel: BroadcastReceiveChannel<GamePlatformSettingsRepository>
+    val currentPlatformSettingsChannel: MultiReceiveChannel<GamePlatformSettingsRepository>
     val currentPlatformSettings: GamePlatformSettingsRepository
 
     val providerGeneral: ProviderGeneralSettingsRepository

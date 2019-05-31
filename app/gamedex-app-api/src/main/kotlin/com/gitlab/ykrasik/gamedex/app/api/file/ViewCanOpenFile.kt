@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.file
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import java.io.File
 
 /**
@@ -26,5 +26,5 @@ import java.io.File
  * Time: 09:27
  */
 interface ViewCanOpenFile : ViewCanDisplayError {
-    val openFileActions: ReceiveChannel<File>
+    val openFileActions: MultiReceiveChannel<File>
 }

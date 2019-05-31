@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.image
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,7 +24,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 08:59
  */
 interface ViewCanShowImageGallery {
-    val viewImageActions: ReceiveChannel<ViewImageParams>
+    val viewImageActions: MultiReceiveChannel<ViewImageParams>
 }
 
 data class ViewImageParams(val imageUrl: String, val imageUrls: List<String>)

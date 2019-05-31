@@ -35,8 +35,8 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -46,7 +46,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * A required implementation by the view layer that allows showing & hiding views.
  */
 interface ViewManager {
-    val externalCloseRequests: ReceiveChannel<Any>
+    val externalCloseRequests: MultiReceiveChannel<Any>
 
     fun showTaskView(): TaskView
     fun hide(view: TaskView)

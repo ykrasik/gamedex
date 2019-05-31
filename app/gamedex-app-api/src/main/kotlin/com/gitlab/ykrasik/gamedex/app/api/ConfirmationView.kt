@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -26,6 +26,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
  */
 interface ConfirmationView {
     val canAccept: State<IsValid>
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
+    val acceptActions: MultiReceiveChannel<Unit>
+    val cancelActions: MultiReceiveChannel<Unit>
 }

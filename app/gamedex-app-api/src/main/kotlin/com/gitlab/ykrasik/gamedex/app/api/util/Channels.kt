@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.util
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.selects.SelectClause1
 import kotlinx.coroutines.selects.whileSelect
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -28,7 +29,7 @@ import kotlin.reflect.KProperty
  * Date: 02/04/2018
  * Time: 11:15
  */
-interface BroadcastReceiveChannel<T> {
+interface MultiReceiveChannel<T> {
     fun subscribe(): ReceiveChannel<T>
 
     fun subscribe(context: CoroutineContext = EmptyCoroutineContext, f: suspend (T) -> Unit): ReceiveChannel<T>
@@ -37,23 +38,25 @@ interface BroadcastReceiveChannel<T> {
 
     operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()
 
-    fun <R> map(transform: suspend (T) -> R): BroadcastReceiveChannel<R>
+    fun <R> map(transform: suspend (T) -> R): MultiReceiveChannel<R>
 
-    fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastReceiveChannel<R>
+    fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): MultiReceiveChannel<R>
 
-    fun <R> combineLatest(other: BroadcastReceiveChannel<R>): BroadcastReceiveChannel<Pair<T, R>>
+    fun <R> combineLatest(other: MultiReceiveChannel<R>): MultiReceiveChannel<Pair<T, R>>
 
-    fun filter(filter: suspend (T) -> Boolean): BroadcastReceiveChannel<T>
+    fun filter(filter: suspend (T) -> Boolean): MultiReceiveChannel<T>
 
-    fun distinctUntilChanged(): BroadcastReceiveChannel<T>
+    fun distinctUntilChanged(): MultiReceiveChannel<T>
 
-    fun drop(amount: Int): BroadcastReceiveChannel<T>
+    fun drop(amount: Int): MultiReceiveChannel<T>
 }
 
-class BroadcastEventChannel<T>(
+val <T> MultiChannel<T>.onReceive: SelectClause1<T> get() = subscribe().onReceive
+
+class MultiChannel<T>(
     private val capacity: Int = 32,
     override val coroutineContext: CoroutineContext = Dispatchers.Default + Job()
-) : BroadcastReceiveChannel<T>, CoroutineScope {
+) : MultiReceiveChannel<T>, CoroutineScope {
 
     private val channel = BroadcastChannel<T>(capacity)
 
@@ -77,9 +80,9 @@ class BroadcastEventChannel<T>(
         coroutineContext.cancel()
     }
 
-    private fun <R> newChannel() = BroadcastEventChannel<R>(capacity, coroutineContext)
+    private fun <R> newChannel() = MultiChannel<R>(capacity, coroutineContext)
 
-    override fun <R> map(transform: suspend (T) -> R): BroadcastReceiveChannel<R> {
+    override fun <R> map(transform: suspend (T) -> R): MultiReceiveChannel<R> {
         val channel = newChannel<R>()
         subscribe {
             channel.send(transform(it))
@@ -87,7 +90,7 @@ class BroadcastEventChannel<T>(
         return channel
     }
 
-    override fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastReceiveChannel<R> {
+    override fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): MultiReceiveChannel<R> {
         val channel = newChannel<R>()
         var flatMapped: ReceiveChannel<R>? = null
         subscribe {
@@ -102,8 +105,8 @@ class BroadcastEventChannel<T>(
         return channel
     }
 
-    override fun <R> combineLatest(other: BroadcastReceiveChannel<R>): BroadcastReceiveChannel<Pair<T, R>> {
-        val channel = BroadcastEventChannel.conflated<Pair<T, R>>()
+    override fun <R> combineLatest(other: MultiReceiveChannel<R>): MultiReceiveChannel<Pair<T, R>> {
+        val channel = MultiChannel.conflated<Pair<T, R>>()
 
         var latestA: T? = null
         var latestB: R? = null
@@ -125,7 +128,7 @@ class BroadcastEventChannel<T>(
         return channel
     }
 
-    override fun filter(filter: suspend (T) -> Boolean): BroadcastReceiveChannel<T> {
+    override fun filter(filter: suspend (T) -> Boolean): MultiReceiveChannel<T> {
         val channel = newChannel<T>()
         subscribe {
             if (filter(it)) {
@@ -135,7 +138,7 @@ class BroadcastEventChannel<T>(
         return channel
     }
 
-    override fun distinctUntilChanged(): BroadcastReceiveChannel<T> {
+    override fun distinctUntilChanged(): MultiReceiveChannel<T> {
         var last: T? = null
         return filter {
             val keep = it != last
@@ -144,7 +147,7 @@ class BroadcastEventChannel<T>(
         }
     }
 
-    override fun drop(amount: Int): BroadcastReceiveChannel<T> {
+    override fun drop(amount: Int): MultiReceiveChannel<T> {
         val channel = newChannel<T>()
         var dropped = 0
         subscribe {
@@ -161,9 +164,9 @@ class BroadcastEventChannel<T>(
     }
 
     companion object {
-        fun <T> conflated(): BroadcastEventChannel<T> = BroadcastEventChannel(Channel.CONFLATED)
-        fun <T> conflated(initial: T): BroadcastEventChannel<T> = conflated<T>().apply { offer(initial) }
-        inline fun <T> conflated(initial: () -> T): BroadcastEventChannel<T> = conflated(initial())
+        fun <T> conflated(): MultiChannel<T> = MultiChannel(Channel.CONFLATED)
+        fun <T> conflated(initial: T): MultiChannel<T> = conflated<T>().apply { offer(initial) }
+        inline fun <T> conflated(initial: () -> T): MultiChannel<T> = conflated(initial())
     }
 }
 
@@ -173,7 +176,7 @@ fun <T> ReceiveChannel<T>.bind(channel: SendChannel<T>, context: CoroutineContex
     }
 }
 
-fun <T> channel(): Channel<T> = Channel(capacity = 32)
+fun <T> channel(): MultiChannel<T> = MultiChannel(capacity = 32)
 
 fun <A, B> ReceiveChannel<A>.combineLatest(
     other: ReceiveChannel<B>,
@@ -216,7 +219,7 @@ fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Dispa
     }
 }
 
-fun <T> ReceiveChannel<T>.bufferUntilTimeout(millis: Long = 200): ReceiveChannel<List<T>> = channel<List<T>>().also { channel ->
+fun <T> ReceiveChannel<T>.bufferUntilTimeout(millis: Long = 200): ReceiveChannel<List<T>> = Channel<List<T>>(capacity = 32).also { channel ->
     GlobalScope.launch {
         var buffer = emptyList<T>()
         whileSelect {

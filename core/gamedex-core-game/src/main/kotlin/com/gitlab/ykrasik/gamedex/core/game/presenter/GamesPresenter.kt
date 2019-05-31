@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -53,7 +53,7 @@ class GamesPresenter @Inject constructor(
     private val userScoreComparator = compareBy(Game::userScore)
 
     override fun present(view: ViewWithGames) = object : ViewSession() {
-        private val searchText = BroadcastEventChannel.conflated("")
+        private val searchText = MultiChannel.conflated("")
 
         init {
             commonData.platformGames.bind(view.games)

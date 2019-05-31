@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -42,7 +42,7 @@ class ReportPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<ReportView> {
     override fun present(view: ReportView) = object : ViewSession() {
-        private val isReportDirtyChannel = BroadcastEventChannel.conflated(false)
+        private val isReportDirtyChannel = MultiChannel.conflated(false)
         private var isReportDirty by isReportDirtyChannel
 
         init {

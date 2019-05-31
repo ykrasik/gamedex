@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.log
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 08:20
  */
 interface ViewCanShowLogView {
-    val showLogViewActions: ReceiveChannel<Unit>
+    val showLogViewActions: MultiReceiveChannel<Unit>
 }

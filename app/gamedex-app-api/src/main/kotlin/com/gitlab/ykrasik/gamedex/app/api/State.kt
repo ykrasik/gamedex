@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -49,5 +49,5 @@ interface UserMutableState<T> : State<T> {
     /**
      * Reports changes the user made to the value from the view.
      */
-    val changes: ReceiveChannel<T>
+    val changes: MultiReceiveChannel<T>
 }

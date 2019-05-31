@@ -20,13 +20,13 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Modifier
 import com.gitlab.ykrasik.gamedex.util.MultiMap
 import com.gitlab.ykrasik.gamedex.util.modifyLast
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -52,8 +52,8 @@ interface ProviderSearchView {
     val isAllowSmartChooseResults: State<Boolean>
     val canSmartChooseResult: State<Boolean>
 
-    val choiceActions: ReceiveChannel<ProviderSearchChoice>
-    val changeProviderActions: ReceiveChannel<ProviderId>
+    val choiceActions: MultiReceiveChannel<ProviderSearchChoice>
+    val changeProviderActions: MultiReceiveChannel<ProviderId>
 }
 
 data class GameSearchState(

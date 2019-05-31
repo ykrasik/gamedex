@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.web
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:46
  */
 interface ViewCanBrowseUrl {
-    val browseUrlActions: ReceiveChannel<String>
+    val browseUrlActions: MultiReceiveChannel<String>
 }

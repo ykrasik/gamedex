@@ -21,8 +21,8 @@ import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -42,5 +42,5 @@ interface EditReportView : ConfirmationView {
 
     val excludedGames: MutableList<Game>
 
-    val unexcludeGameActions: ReceiveChannel<Game>
+    val unexcludeGameActions: MultiReceiveChannel<Game>
 }

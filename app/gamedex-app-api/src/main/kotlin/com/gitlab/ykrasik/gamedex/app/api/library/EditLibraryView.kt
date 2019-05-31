@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
 import java.io.File
 
 /**
@@ -47,7 +47,7 @@ interface EditLibraryView : ConfirmationView {
     val shouldShowPlatform: State<IsValid>
     val canChangePlatform: State<IsValid>
 
-    val browseActions: ReceiveChannel<Unit>
+    val browseActions: MultiReceiveChannel<Unit>
 
     fun selectDirectory(initialDirectory: File?): File?
 }

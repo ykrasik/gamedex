@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,7 +25,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:39
  */
 interface ViewCanShowGameDetails {
-    val viewGameDetailsActions: ReceiveChannel<ViewGameParams>
+    val viewGameDetailsActions: MultiReceiveChannel<ViewGameParams>
 }
 
 data class ViewGameParams(val game: Game, val games: List<Game>) {
