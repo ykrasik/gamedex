@@ -69,6 +69,13 @@ fun <T> List<T>.replace(source: T, target: T): List<T> {
     }
 }
 
+fun <T> MutableList<T>.replace(source: T, target: T) = forEachIndexed { i, e ->
+    if (e == source) {
+        set(i, target)
+        return@forEachIndexed
+    }
+}
+
 inline fun <T> MutableList<T>.replaceWhere(target: T, predicate: (T) -> Boolean) {
     val index = indexOfFirst(predicate)
     check(index != -1) { "List doesn't contain any elements matching predicate to replace!" }
