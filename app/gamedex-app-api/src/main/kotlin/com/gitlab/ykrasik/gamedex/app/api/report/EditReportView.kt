@@ -30,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:33
  */
 interface EditReportView : ConfirmationView {
-    val report: Report?
+    val report: UserMutableState<Report?>
 
     val name: UserMutableState<String>
     val nameIsValid: State<IsValid>
@@ -41,6 +41,5 @@ interface EditReportView : ConfirmationView {
     val isTag: UserMutableState<Boolean>
 
     val excludedGames: MutableList<Game>
-
     val unexcludeGameActions: MultiReceiveChannel<Game>
 }

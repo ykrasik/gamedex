@@ -138,11 +138,11 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: ReportView) = mainView.showPreviousScreen()
 
     private val editReportView: JavaFxEditReportView by inject()
-    override fun showEditReportView(report: Report?) = editReportView.showOverlay { this.report = report }
+    override fun showEditReportView(report: Report?) = editReportView.showOverlay { this.report.valueFromView = report }
     override fun hide(view: EditReportView) = view.hideOverlay()
 
     private val deleteReportView: JavaFxDeleteReportView by inject()
-    override fun showDeleteReportView(report: Report) = deleteReportView.showOverlay { this.report = report }
+    override fun showDeleteReportView(report: Report) = deleteReportView.showOverlay { this.report.valueFromView = report }
     override fun hide(view: DeleteReportView) = view.hideOverlay()
 
     private val imageView: JavaFxImageGalleryView by inject()

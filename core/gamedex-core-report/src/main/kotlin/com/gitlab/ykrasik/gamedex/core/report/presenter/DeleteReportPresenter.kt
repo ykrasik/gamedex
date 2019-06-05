@@ -43,7 +43,7 @@ class DeleteReportPresenter @Inject constructor(
         }
 
         private suspend fun onAccept() {
-            taskService.execute(reportService.delete(view.report))
+            taskService.execute(reportService.delete(view.report.value))
             hideView()
         }
 

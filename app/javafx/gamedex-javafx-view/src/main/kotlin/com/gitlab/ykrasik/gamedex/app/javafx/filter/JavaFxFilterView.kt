@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
@@ -42,6 +43,7 @@ import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Pane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import org.joda.time.DurationFieldType
@@ -58,14 +60,18 @@ import kotlin.reflect.KClass
  * Time: 13:07
  */
 class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) : PresentableView(), FilterView {
-    override val possibleGenres = mutableListOf<String>()
-    override val possibleTags = mutableListOf<String>()
-    override val possibleReportTags = mutableListOf<String>()
-    override val possibleLibraries = mutableListOf<Library>()
-    override val possibleProviderIds = mutableListOf<ProviderId>().asObservable()
-    override val possibleFilters = mutableListOf<KClass<out Filter.Rule>>().asObservable()
-
+    override val filter = state(Filter.Null)
+    override val filterIsValid = state(IsValid.valid)
     override val setFilterActions = channel<Filter>()
+
+    override val availableFilters = mutableListOf<KClass<out Filter.Rule>>().asObservable()
+
+    override val availableLibraries = mutableListOf<Library>()
+    override val availableGenres = mutableListOf<String>()
+    override val availableTags = mutableListOf<TagId>()
+    override val availableReportTags = mutableListOf<TagId>()
+    override val availableProviderIds = mutableListOf<ProviderId>().asObservable()
+
     override val wrapInAndActions = channel<Filter>()
     override val wrapInOrActions = channel<Filter>()
     override val wrapInNotActions = channel<Filter>()
@@ -75,33 +81,14 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
     override val deleteFilterActions = channel<Filter>()
 
-    override val filter = state<Filter>(Filter.Null)
-    override val filterIsValid = state(IsValid.valid)
-
     private val commonOps: JavaFxCommonOps by di()
 
     private var indent = 0
 
-    private val currentCache: MutableMap<Filter, HBox> = IdentityHashMap()
-    private val prevCache: MutableMap<Filter, HBox> = IdentityHashMap()
+    private val prevCache: MutableMap<Filter, Pane> = IdentityHashMap()
+    private val currentCache: MutableMap<Filter, Pane> = IdentityHashMap()
 
-    override val root = vbox {
-        filter.property.addListener { _, oldValue, newValue -> reRender(newValue, prevFilter = oldValue) }
-        possibleFilters.onChange { reRender(filter.property.value, prevFilter = null) }
-    }
-
-    private fun reRender(filter: Filter, prevFilter: Filter?): Unit = root.replaceChildren {
-        prevCache.clear()
-        prevCache.putAll(currentCache)
-        currentCache.clear()
-        render(filter, parentFilter = Filter.Null, prevFilter = prevFilter)
-    }
-
-    init {
-        register()
-    }
-
-    val externalMutations = object : UserMutableState<Filter> {
+    val userMutableState = object : UserMutableState<Filter> {
         private var prevExternalFilter: Filter? = null
 
         override var value: Filter
@@ -112,29 +99,47 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                 setFilterActions.offer(value)
             }
 
-        override val changes = channel<Filter>()
+        override val changes = MultiChannel<Filter>()
 
         init {
-            filter.property.onInvalidated {
-                val value = filter.value
-                if (value !== prevExternalFilter) {
-                    changes.offer(value)
+            filter.property.onInvalidated { filter ->
+                if (filter !== prevExternalFilter) {
+                    changes.offer(filter)
                 }
                 prevExternalFilter = null
             }
         }
     }
 
-    private fun EventTarget.render(filter: Filter, parentFilter: Filter, prevFilter: Filter?) {
-        when (filter) {
-            is Filter.Compound -> renderCompoundFilter(filter, parentFilter) {
+    override val root = vbox {
+        filter.property.addListener { _, oldValue, newValue -> reRender(newValue, prevFilter = oldValue) }
+        availableFilters.onChange { reRender(filter.property.value, prevFilter = null) }
+    }
+
+    init {
+        // This HAS to be called AFTER registering the above listeners which re-render the filters!!!
+        register()
+    }
+
+    private fun Node.reRender(filter: Filter, prevFilter: Filter?): Unit = replaceChildren {
+        prevCache.clear()
+        prevCache.putAll(currentCache)
+        currentCache.clear()
+        render(filter, parentFilter = Filter.Null, prevFilter = prevFilter)
+    }
+
+    private fun EventTarget.render(filter: Filter, parentFilter: Filter, prevFilter: Filter?): Pane {
+        val pane: Pane = when {
+            filter === prevFilter -> prevCache.getValue(filter).also { add(it) }
+            filter is Filter.Compound -> renderCompoundFilter(filter, parentFilter) {
                 val prevFilters = (prevFilter as? Filter.Compound)?.targets ?: emptyList()
-                filter.targets.forEachIndexed { i, childFilter ->
-                    render(childFilter, parentFilter = filter, prevFilter = prevFilters.getOrNull(i))
+                filter.targets.forEachIndexed { i, targetFilter ->
+                    val prevTargetFilter = prevFilters.find { it === targetFilter } ?: prevFilters.getOrNull(i)
+                    render(targetFilter, parentFilter = filter, prevFilter = prevTargetFilter)
                 }
             }
-            is Filter.Modifier -> render(filter.target, parentFilter = filter, prevFilter = (prevFilter as? Filter.Modifier)?.target)
-            is Filter.Rule -> renderBasicRule(filter, parentFilter, possibleFilters) {
+            filter is Filter.Modifier -> render(filter.target, parentFilter = filter, prevFilter = (prevFilter as? Filter.Modifier)?.target)
+            filter is Filter.Rule -> renderBasicRule(filter, parentFilter, availableFilters) {
                 when (filter) {
                     is Filter.Platform -> renderPlatformFilter(filter)
                     is Filter.Library -> renderLibraryFilter(filter)
@@ -159,12 +164,14 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                     else -> filter.toProperty()
                 }
             }
-            else -> error("Unknown filter: $filter")
+            else -> kotlin.error("Unknown filter: $filter")
         }
+        currentCache[filter] = pane
+        return pane
     }
 
     private fun EventTarget.renderCompoundFilter(metaFilter: Filter.Compound, parentFilter: Filter, op: VBox.() -> Unit) = vbox(spacing = 2) {
-        renderBasicRule(metaFilter, parentFilter, possibleFilters = listOf(Filter.And::class, Filter.Or::class))
+        renderBasicRule(metaFilter, parentFilter, availableFilters = listOf(Filter.And::class, Filter.Or::class))
 
         indent += 1
         op(this)
@@ -174,7 +181,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     private fun EventTarget.renderBasicRule(
         filter: Filter,
         parentFilter: Filter,
-        possibleFilters: List<KClass<out Filter>>,
+        availableFilters: List<KClass<out Filter>>,
         op: HBox.() -> Unit = {}
     ) = defaultHbox {
         useMaxWidth = true
@@ -198,7 +205,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             })
 
             var needGap = false
-            possibleFilters.forEach {
+            availableFilters.forEach {
                 if (needGap) {
                     verticalGap(size = 20)
                 }
@@ -224,9 +231,10 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             tooltip("Reverse filter")
             isDisable = filter.isEmpty
             action {
-                when {
-                    !negated -> wrapInNotActions.event(target)
-                    negated -> unwrapNotActions.event(target as Filter.Not)
+                if (negated) {
+                    unwrapNotActions.event(target as Filter.Not)
+                } else {
+                    wrapInNotActions.event(target)
                 }
             }
         }
@@ -239,7 +247,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     }
 
     private fun HBox.renderAdditionalButtons(filter: Filter) {
-        // FIXME: Use a NodeList
+        // TODO: Use a NodeList?
         buttonWithPopover(graphic = Icons.plus.size(28)) {
             fun operatorButton(name: String, graphic: Node, channel: MultiChannel<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
                 useMaxWidth = true
@@ -264,29 +272,19 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         platformComboBox(platform)
     }
 
-    private fun HBox.renderProviderFilter(filter: Filter.Provider) {
-        val provider = filter.toProperty(Filter.Provider::providerId, Filter::Provider)
-        popoverComboMenu(
-            possibleItems = possibleProviderIds,
-            selectedItemProperty = provider,
-            graphic = { commonOps.providerLogo(it).toImageView(height = 28) },
-            itemOp = { alignment = Pos.CENTER }
-        )
-    }
-
     private fun HBox.renderLibraryFilter(filter: Filter.Library) {
-        // There is a race filter when switching platforms with a library filter active -
+        // There is a race condition when switching platforms with a library filter active -
         // The actual filter & the possible rules are updated by different presenters, which can lead
         // to situations where the possible libraries already point to platform specific libraries
         // but the filter is still the filter for the old platform, which will mean the library isn't found.
         // Currently there's no other solution but to tolerate this situation, as the presenter in charge of
         // the platform filter will call us just a bit later and fix it.
         val library = filter.toProperty(
-            { possibleLibraries.find { it.id == id } ?: Library.Null },
+            { availableLibraries.find { it.id == id } ?: Library.Null },
             { Filter.Library(it.id) }
         )
         popoverComboMenu(
-            possibleItems = possibleLibraries,
+            possibleItems = availableLibraries,
             selectedItemProperty = library,
             text = { it.name },
             graphic = { it.platformOrNull?.logo }
@@ -296,7 +294,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     private fun HBox.renderGenreFilter(filter: Filter.Genre) {
         val genre = filter.toProperty(Filter.Genre::genre, Filter::Genre)
         popoverComboMenu(
-            possibleItems = possibleGenres,
+            possibleItems = availableGenres,
             selectedItemProperty = genre
         )
     }
@@ -304,7 +302,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     private fun HBox.renderTagFilter(filter: Filter.Tag) {
         val tag = filter.toProperty(Filter.Tag::tag, Filter::Tag)
         popoverComboMenu(
-            possibleItems = possibleTags,
+            possibleItems = availableTags,
             selectedItemProperty = tag
         )
     }
@@ -312,9 +310,24 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     private fun HBox.renderReportTagFilter(filter: Filter.ReportTag) {
         val tag = filter.toProperty(Filter.ReportTag::tag, Filter::ReportTag)
         popoverComboMenu(
-            possibleItems = possibleReportTags,
+            possibleItems = availableReportTags,
             selectedItemProperty = tag
         )
+    }
+
+    private fun HBox.renderProviderFilter(filter: Filter.Provider) {
+        val provider = filter.toProperty(Filter.Provider::providerId, Filter::Provider)
+        popoverComboMenu(
+            possibleItems = availableProviderIds,
+            selectedItemProperty = provider,
+            graphic = { commonOps.providerLogo(it).toImageView(height = 28) },
+            itemOp = { alignment = Pos.CENTER }
+        )
+    }
+
+    private fun HBox.renderScoreFilter(filter: Filter.TargetScore, factory: (Double) -> Filter.TargetScore) {
+        val target = filter.toProperty(Filter.TargetScore::score, factory)
+        plusMinusSlider(target, min = 0, max = 100)
     }
 
     private fun HBox.renderTargetDateFilter(filter: Filter.TargetDate, factory: (LocalDate) -> Filter.TargetDate) {
@@ -336,11 +349,6 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         }
     }
 
-    private fun HBox.renderScoreFilter(filter: Filter.TargetScore, factory: (Double) -> Filter.TargetScore) {
-        val target = filter.toProperty(Filter.TargetScore::score, factory)
-        plusMinusSlider(target, min = 0, max = 100)
-    }
-
     private fun HBox.renderFileSizeFilter(filter: Filter.FileSize) {
         val (initialAmount, initialScale) = filter.target.scaled
         val amountProperty = SimpleIntegerProperty(initialAmount.toInt())
@@ -360,8 +368,6 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                 updateFilterActions.event(filter to Filter.FileName(it.pattern))
             }
         }
-        currentCache += filter to this
-
         if (prevFilter is Filter.FileName) {
             val prevTextField = prevCache.getValue(prevFilter).children.find { it is CustomJFXTextField } as CustomJFXTextField
             if (prevTextField.isFocused) {

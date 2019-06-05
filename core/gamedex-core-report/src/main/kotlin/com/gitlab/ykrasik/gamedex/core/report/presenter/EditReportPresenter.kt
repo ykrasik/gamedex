@@ -48,11 +48,13 @@ class EditReportPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<EditReportView> {
     override fun present(view: EditReportView) = object : ViewSession() {
+        private var report by view.report
+
         init {
             view.name.forEach { onNameChanged() }
-            view.isTag.forEach { onIsTagChanged() }
             view.filter.forEach { onFilterChanged() }
-            view.filterIsValid.forEach { setCanAccept() }
+            view.filterIsValid.forEach { onFilterIsValidChanged() }
+            view.isTag.forEach { onIsTagChanged() }
 
             view.unexcludeGameActions.forEach { onUnexcludeGame(it) }
             view.acceptActions.forEach { onAccept() }
@@ -60,7 +62,6 @@ class EditReportPresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            val report = view.report
             view.name *= report?.name ?: ""
             view.filter *= report?.filter ?: Filter.Null
             view.isTag *= report?.data?.isTag ?: true
@@ -76,6 +77,10 @@ class EditReportPresenter @Inject constructor(
             setCanAccept()
         }
 
+        private fun onFilterIsValidChanged() {
+            setCanAccept()
+        }
+
         private fun onIsTagChanged() {
             setCanAccept()
         }
@@ -84,17 +89,18 @@ class EditReportPresenter @Inject constructor(
             view.nameIsValid *= Try {
                 val name = view.name.value
                 if (name.isEmpty()) error("Name is required!")
-                if (name in (reportService.reports.map { it.name } - view.report?.name)) error("Name already in use!")
+                if (name in (reportService.reports.map { it.name } - view.report.value?.name)) error("Name already in use!")
             }
             setCanAccept()
         }
 
         private fun setCanAccept() {
             view.canAccept *= view.nameIsValid and view.filterIsValid and Try {
-                if (view.name.value == view.report?.name &&
-                    view.isTag.value == view.report?.data?.isTag &&
-                    view.filter.value.isEqual(view.report?.filter) &&
-                    view.excludedGames.map { it.id } == view.report?.excludedGames) {
+                if (view.name.value == report?.name &&
+                    view.filter.value.isEqual(report?.filter) &&
+                    view.isTag.value == report?.data?.isTag &&
+                    view.excludedGames.map { it.id } == report?.excludedGames
+                ) {
                     error("Nothing changed!")
                 }
                 if (view.isTag.value && view.filter.value.find(Filter.ReportTag::class) != null) {
@@ -110,6 +116,7 @@ class EditReportPresenter @Inject constructor(
 
         private suspend fun onAccept() {
             view.canAccept.assert()
+
             val newReportData = ReportData(
                 name = view.name.value,
                 filter = view.filter.value,
@@ -118,8 +125,8 @@ class EditReportPresenter @Inject constructor(
                 timestamp = Timestamp.now
             )
             taskService.execute(
-                if (view.report != null) {
-                    reportService.update(view.report!!, newReportData)
+                if (report != null) {
+                    reportService.update(report!!, newReportData)
                 } else {
                     reportService.add(newReportData)
                 }

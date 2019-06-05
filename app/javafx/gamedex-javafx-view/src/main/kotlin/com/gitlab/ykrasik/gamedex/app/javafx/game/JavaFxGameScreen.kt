@@ -77,9 +77,9 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val sortOrder = userMutableState(SortOrder.Asc)
 
     private val gameWallView = GameWallView(games)
-    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = true)
 
-    override val currentPlatformFilter = filterView.externalMutations
+    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = true)
+    override val currentPlatformFilter = filterView.userMutableState
     override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
 
     override val viewGameDetailsActions = channel<ViewGameParams>()

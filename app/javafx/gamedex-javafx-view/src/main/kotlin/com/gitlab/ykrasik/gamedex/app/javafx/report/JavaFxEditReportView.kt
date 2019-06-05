@@ -32,7 +32,6 @@ import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.binding.Bindings
-import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -45,13 +44,12 @@ import tornadofx.*
 class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
     private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = false)
 
-    private val reportProperty = SimpleObjectProperty<Report?>(null)
-    override var report by reportProperty
+    override val report = userMutableState<Report?>(null)
 
     override val name = userMutableState("")
     override val nameIsValid = state(IsValid.valid)
 
-    override val filter = filterView.externalMutations
+    override val filter = filterView.userMutableState
     override val filterIsValid = userMutableState(filterView.filterIsValid)
 
     override val isTag = userMutableState(false)
@@ -61,7 +59,7 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
     override val unexcludeGameActions = channel<Game>()
 
     init {
-        titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report" })
+        titleProperty.bind(report.property.stringBinding { if (it == null) "Add New Report" else "Edit Report" })
 //        iconProperty.bind(reportProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
         register()
     }
@@ -76,6 +74,8 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
                 jfxTextField(name.property, promptText = "Enter Name...") {
                     validWhen(nameIsValid)
                 }
+
+                spacer()
 
                 jfxCheckBox(isTag.property, "Tag matching games")
             }

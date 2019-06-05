@@ -73,13 +73,13 @@ import kotlin.reflect.KClass
 )
 sealed class Filter {
     companion object {
-        val Null = True()
+        val Null: Filter = True()
     }
 
     abstract fun evaluate(game: Game, context: Context): Boolean
 
     abstract fun isEqual(other: Filter): Boolean
-    protected inline fun <reified T> Filter.ifIs(f: (T) -> Boolean) = (this as? T)?.let(f) ?: false
+    protected inline fun <reified T> ifIs(f: (T) -> Boolean) = (this as? T)?.let(f) ?: false
 
     protected open fun evaluateNot(game: Game, context: Context): Boolean = !evaluate(game, context)
 

@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.util.mapping
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.*
@@ -38,11 +37,9 @@ import kotlin.reflect.full.superclasses
  * Date: 02/06/2018
  * Time: 12:17
  */
-// FIXME: This does not live-update possible tags & genres, and possibly libraries
 @Singleton
 class FilterPresenter @Inject constructor(
-    private val commonData: CommonData,
-    private val settingsService: SettingsService
+    private val commonData: CommonData
 ) : Presenter<FilterView> {
     override fun present(view: FilterView) = object : ViewSession() {
         private val excludedRules = if (view.onlyShowFiltersForCurrentPlatform) listOf(Filter.Platform::class) else emptyList()
@@ -59,20 +56,20 @@ class FilterPresenter @Inject constructor(
             FilterBuilder.param<Filter.Or, List<Filter>>(Filter::Or) { listOf(Filter.True()) }
         ).associateBy { it.klass }.toMap()
 
-        private val filters = listOf(
+        private val filterBuilders = listOf(
             FilterBuilder.param(Filter::Platform) { Platform.Windows },
             FilterBuilder.param(Filter::Library) { libraries.first().id },
             FilterBuilder.param(Filter::Genre) { genres.firstOrNull() ?: "" },
             FilterBuilder.param(Filter::Tag) { tags.firstOrNull() ?: "" },
             FilterBuilder.param(Filter::ReportTag) { reportTags.firstOrNull() ?: "" },
-            FilterBuilder.param(Filter::Provider) { commonData.allProviders.first().id },
+            FilterBuilder.param(Filter::Provider) { providers.firstOrNull()?.id ?: "" },
             FilterBuilder.param(Filter::CriticScore) { 60.0 },
             FilterBuilder.param(Filter::UserScore) { 60.0 },
             FilterBuilder.param(Filter::AvgScore) { 60.0 },
             FilterBuilder.param(Filter::MinScore) { 60.0 },
             FilterBuilder.param(Filter::MaxScore) { 60.0 },
             FilterBuilder.param(Filter::TargetReleaseDate) { "2014-01-01".date },
-            FilterBuilder.param(Filter::PeriodReleaseDate) { 1.years },
+            FilterBuilder.param(Filter::PeriodReleaseDate) { 3.years },
             FilterBuilder.noParams(Filter::NullReleaseDate),
             FilterBuilder.param(Filter::TargetCreateDate) { "2014-01-01".date },
             FilterBuilder.param(Filter::PeriodCreateDate) { 2.months },
@@ -82,29 +79,23 @@ class FilterPresenter @Inject constructor(
             FilterBuilder.param(Filter::FileSize) { FileSize(1.gb) }
         ).associateBy { it.klass }.toMap().filterKeys { !excludedRules.contains(it) }
 
-        private val filterList = filters.keys.toList()
+        private val filters = filterBuilders.keys.toList()
 
         init {
-            genres.bind(view.possibleGenres)
-            genres.changesChannel.forEach { setPossibleRules() }
+            genres.bind(view.availableGenres)
+            genres.changesChannel.forEach { setAvailableFilters() }
 
-            tags.bind(view.possibleTags)
-            tags.changesChannel.forEach { setPossibleRules() }
+            tags.bind(view.availableTags)
+            tags.changesChannel.forEach { setAvailableFilters() }
 
-            reportTags.bind(view.possibleReportTags)
-            reportTags.changesChannel.forEach { setPossibleRules() }
+            reportTags.bind(view.availableReportTags)
+            reportTags.changesChannel.forEach { setAvailableFilters() }
 
-            providers.mapping { it.id }.bind(view.possibleProviderIds)
-            providers.changesChannel.forEach { setPossibleRules() }
+            providers.mapping { it.id }.bind(view.availableProviderIds)
+            providers.changesChannel.forEach { setAvailableFilters() }
 
             setState()
             libraries.changesChannel.forEach { setState() }
-
-            if (view.onlyShowFiltersForCurrentPlatform) {
-//            settingsService.game.platformChannel.combineLatest(settingsService.game.platformSettingsChannel).distinctUntilChanged().subscribeOnUi {
-                // FIXME: Also reset the state when importing a database (settingsService.game.platformSettingsChannel is changed but not by the view)
-                settingsService.currentPlatformSettingsChannel.forEach { setState() }
-            }
 
             view.setFilterActions.forEach { setFilter(it) }
             view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(listOf(it, Filter.True()))) }
@@ -118,47 +109,50 @@ class FilterPresenter @Inject constructor(
         }
 
         private fun setState() {
-            setPossibleLibraries()
-            setPossibleRules()
+            setAvailableLibraries()
+            setAvailableFilters()
         }
 
-        private fun setPossibleLibraries() {
-            if (libraries != view.possibleLibraries) {
-                view.possibleLibraries.setAll(libraries)
+        private fun setAvailableLibraries() {
+            if (libraries != view.availableLibraries) {
+                view.availableLibraries.setAll(libraries)
             }
         }
 
-        private fun setPossibleRules() {
+        private fun setAvailableFilters() {
             val filters: List<KClass<out Filter.Rule>> = when {
-                !view.onlyShowFiltersForCurrentPlatform -> filterList
+                !view.onlyShowFiltersForCurrentPlatform -> this.filters
                 commonData.games.size <= 1 -> emptyList()
                 else -> {
-                    val filters = filterList.toMutableList()
-                    if (view.possibleGenres.size <= 1) {
-                        filters -= Filter.Genre::class
-                    }
-                    if (view.possibleTags.size < 1) {
-                        filters -= Filter.Tag::class
-                    }
-                    if (view.possibleReportTags.size < 1) {
-                        filters -= Filter.ReportTag::class
-                    }
-                    if (view.possibleLibraries.size <= 1) {
+                    val filters = this.filters.toMutableList()
+                    if (libraries.isEmpty()) {
                         filters -= Filter.Library::class
                     }
-                    if (view.possibleProviderIds.size <= 1) {
+                    if (genres.isEmpty()) {
+                        filters -= Filter.Genre::class
+                    }
+                    if (tags.isEmpty()) {
+                        filters -= Filter.Tag::class
+                    }
+                    if (reportTags.size < 1) {
+                        filters -= Filter.ReportTag::class
+                    }
+                    if (providers.isEmpty()) {
                         filters -= Filter.Provider::class
                     }
                     filters
                 }
             }
 
-            if (filters != view.possibleFilters) {
-                view.possibleFilters.setAll(filters)
+            if (filters != view.availableFilters) {
+                view.availableFilters.setAll(filters)
             }
         }
 
-        private fun setFilter(filter: Filter) = replaceFilter(view.filter.value, filter)
+        private fun setFilter(filter: Filter) {
+            view.filter *= filter
+            setIsValid()
+        }
 
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
             val filterBuilder = when {
@@ -166,13 +160,13 @@ class FilterPresenter @Inject constructor(
                     @Suppress("UNCHECKED_CAST")
                     newCompoundFilter(from = filter, to = with as KClass<out Filter.Compound>) { it }
                 filter is Filter.TargetScore && with.superclasses.first() == Filter.TargetScore::class ->
-                    filters[with]!!.withParams(filter.score)
+                    filterBuilders[with]!!.withParams(filter.score)
                 filter is Filter.TargetDate && with.superclasses.first() == Filter.TargetDate::class ->
-                    filters[with]!!.withParams(filter.date)
+                    filterBuilders[with]!!.withParams(filter.date)
                 filter is Filter.PeriodDate && with.superclasses.first() == Filter.PeriodDate::class ->
-                    filters[with]!!.withParams(filter.period)
+                    filterBuilders[with]!!.withParams(filter.period)
                 else ->
-                    filters[with]!!
+                    filterBuilders[with]!!
             }
             val newFilter = filterBuilder()
             replaceFilter(filter, newFilter)
@@ -239,6 +233,12 @@ class FilterPresenter @Inject constructor(
                 newModifierFilter(this).withParams(target.flatten())()
             }
             else -> this
+        }.let { newFilter ->
+            if (this.isEqual(newFilter)) {
+                this
+            } else {
+                newFilter
+            }
         }
 
         private fun newCompoundFilter(

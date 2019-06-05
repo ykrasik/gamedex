@@ -20,11 +20,8 @@ import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import javafx.beans.property.SimpleObjectProperty
-import tornadofx.getValue
-import tornadofx.setValue
 import tornadofx.stringBinding
 
 /**
@@ -33,17 +30,16 @@ import tornadofx.stringBinding
  * Time: 13:13
  */
 class JavaFxDeleteReportView : ConfirmationWindow(icon = Icons.delete), DeleteReportView {
-    private val reportProperty = SimpleObjectProperty(Report.Null)
-    override var report: Report by reportProperty
+    override val report = userMutableState(Report.Null)
 
     private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = false)
 
     init {
-        titleProperty.bind(reportProperty.stringBinding { "Delete report '${it!!.name}'?" })
+        titleProperty.bind(report.property.stringBinding { "Delete report '${it!!.name}'?" })
         register()
 
-        reportProperty.typeSafeOnChange {
-            filterView.externalMutations.value = it.filter
+        report.onChange {
+            filterView.userMutableState.value = it.filter
         }
     }
 

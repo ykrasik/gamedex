@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.report
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -24,5 +25,5 @@ import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
  * Time: 13:04
  */
 interface DeleteReportView : ConfirmationView {
-    val report: Report
+    val report: UserMutableState<Report>
 }
