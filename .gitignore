@@ -113,6 +113,7 @@ db/
 cache/thumbnails
 cache/posters
 cache/screenshots
+cache/images
 cache/image
 cache/files
 *.iss

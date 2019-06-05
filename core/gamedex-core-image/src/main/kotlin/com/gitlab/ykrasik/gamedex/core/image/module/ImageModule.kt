@@ -56,7 +56,7 @@ object ImageModule : InternalCoreModule() {
     @Provides
     @Singleton
     @ImageStorage
-    fun imageStorage(): Storage<String, ByteArray> = FileStorage.binary("cache/image").stringId(
+    fun imageStorage(): Storage<String, ByteArray> = FileStorage.binary("cache/images").stringId(
         keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },
         reverseKeyTransform = { fileName -> fileName.substringBeforeLast(".").base64Decoded() }
     )
