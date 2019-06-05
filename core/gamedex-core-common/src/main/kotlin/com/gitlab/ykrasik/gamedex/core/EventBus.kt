@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
  */
 interface EventBus {
     fun <E : CoreEvent> on(
-        event: KClass<E>,
+        eventClass: KClass<E>,
         context: CoroutineContext = EmptyCoroutineContext,
         handler: suspend (E) -> Unit
     ): EventSubscription

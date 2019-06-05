@@ -168,14 +168,12 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
                                     minWidth = 300.0
                                     validWhen(state.isCustomValueValid)
                                 }
-                                cancelButton {
-                                    removeClass(GameDexStyle.toolbarButton)
+                                cancelButton(isToolbarButton = false) {
                                     action(state.customValueRejectActions) {
                                         popOver.hide()
                                     }
                                 }
-                                acceptButton {
-                                    removeClass(GameDexStyle.toolbarButton)
+                                acceptButton(isToolbarButton = false) {
                                     enableWhen(state.isCustomValueValid)
                                     action {
                                         popOver.hide()
@@ -187,7 +185,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
                     }
 
                     // Existing provider data
-                    commonOps.providerLogos.forEach { providerId, logo ->
+                    commonOps.providerLogos.forEach { (providerId, logo) ->
                         val providerValueProperty = state.providerValues.property.binding { it[providerId] }
                         jfxToggleNode(group = toggleGroup) {
                             useMaxWidth = true

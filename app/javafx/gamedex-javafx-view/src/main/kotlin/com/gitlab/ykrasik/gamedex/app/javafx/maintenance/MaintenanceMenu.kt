@@ -92,7 +92,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             }
         }
 
-        popOverSubMenu("Games", Icons.games) {
+        popOverSubMenu("Provider", Icons.cloud) {
             infoButton("Re-Fetch", Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT

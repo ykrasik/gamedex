@@ -34,7 +34,7 @@ import com.gitlab.ykrasik.gamedex.core.plugin.ClasspathPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.DirectoryPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManager
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManagerImpl
-import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderCoreModule
+import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderModule
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
@@ -87,7 +87,7 @@ object CoreModule : InternalCoreModule() {
         install(LibraryModule)
         install(LogModule)
         install(PersistenceModule)
-        install(ProviderCoreModule)
+        install(ProviderModule)
         install(ReportModule)
     }
 

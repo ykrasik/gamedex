@@ -22,7 +22,10 @@ import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.theme.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.color
+import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.value.ObservableValue
 import javafx.scene.layout.Pane
@@ -70,8 +73,7 @@ class JavaFxBrowserView : PresentableView("Browser", Icons.web), BrowserView {
                     this@customToolbar.requestFocus()
                 }
             }
-            confirmButton(graphic = Icons.arrowRightCircle.color(Colors.green)) {
-                removeClass(GameDexStyle.toolbarButton)
+            confirmButton(graphic = Icons.arrowRightCircle.color(Colors.green), isToolbarButton = false) {
                 action { load(textField.text) }
             }
             jfxButton {

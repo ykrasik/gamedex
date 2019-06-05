@@ -53,6 +53,9 @@ sealed class Try<out T> {
 }
 
 typealias IsValid = Try<Any>
+inline fun isValid(condition: Boolean, message: () -> String): IsValid = Try {
+    check(condition, message)
+}
 
 infix fun IsValid.or(other: IsValid): IsValid = if (isError) other else this
 infix fun IsValid.and(other: IsValid): IsValid = if (isSuccess) other else this

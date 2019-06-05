@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.provider.presenter.*
  * Date: 15/10/2018
  * Time: 16:46
  */
-object ProviderCoreModule : InternalCoreModule() {
+object ProviderModule : InternalCoreModule() {
     override fun configure() {
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 

@@ -73,7 +73,7 @@ inline fun View.skipFirstTime(op: () -> Unit) {
 
 fun ObservableValue<out Number>.asPercent() = stringBinding { (it ?: 0).toDouble().asPercent() }
 
-fun Region.enableWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>, wrapInErrorTooltip: Boolean = true): Unit =
+fun Region.enableWhen(isValid: JavaFxObjectState<IsValid>, wrapInErrorTooltip: Boolean = true): Unit =
     enableWhen(isValid.property, wrapInErrorTooltip)
 
 fun Region.enableWhen(isValid: ObservableValue<IsValid>, wrapInErrorTooltip: Boolean = true) {
@@ -88,7 +88,7 @@ fun Region.enableWhen(isValid: ObservableValue<IsValid>, wrapInErrorTooltip: Boo
     }
 }
 
-fun Field.enableWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): Unit = enableWhen(isValid.property)
+fun Field.enableWhen(isValid: JavaFxObjectState<IsValid>): Unit = enableWhen(isValid.property)
 fun Field.enableWhen(isValid: ObservableValue<IsValid>) {
     val enabled = isValid.booleanBinding { it?.isSuccess ?: false }
     label.enableWhen { enabled }
@@ -96,7 +96,7 @@ fun Field.enableWhen(isValid: ObservableValue<IsValid>) {
     labelContainer.errorTooltip(isValid.stringBinding { it?.errorOrNull?.message })
 }
 
-fun Node.showWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): Unit =
+fun Node.showWhen(isValid: JavaFxObjectState<IsValid>): Unit =
     showWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
 
 fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
@@ -105,10 +105,10 @@ fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
     visibleWhen { shouldShow }
 }
 
-fun <T : Node> T.visibleWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): T =
+fun <T : Node> T.visibleWhen(isValid: JavaFxObjectState<IsValid>): T =
     visibleWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
 
-fun <T : Node> T.enableWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): T =
+fun <T : Node> T.enableWhen(isValid: JavaFxObjectState<IsValid>): T =
     enableWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
 
 inline fun Node.wrapInHbox(crossinline op: HBox.() -> Unit = {}) {

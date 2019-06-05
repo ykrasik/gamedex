@@ -259,8 +259,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         }.apply {
             tooltip("Add filter")
         }
-        deleteButton {
-            removeClass(GameDexStyle.toolbarButton)
+        deleteButton(isToolbarButton = false) {
             // Do not allow deleting an empty root
             isDisable = filter === this@JavaFxFilterView.filter.value && filter.isEmpty
             action(deleteFilterActions) { filter }
@@ -442,7 +441,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             FilterDisplayDescriptor(Filter.Genre::class, "Genre", Icons::masks),
             FilterDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
             FilterDisplayDescriptor(Filter.ReportTag::class, "Report Tag", { Icons.tag.color(Color.BLACK) }),
-            FilterDisplayDescriptor(Filter.Provider::class, "Provider", Icons::web, gap = true),
+            FilterDisplayDescriptor(Filter.Provider::class, "Provider", Icons::cloud, gap = true),
 
             score<Filter.CriticScore>("Critic Score", Icons::starFull),
             score<Filter.UserScore>("User Score", Icons::starEmpty),

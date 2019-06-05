@@ -227,8 +227,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                     isFocusTraversable = false
                     hgrow = Priority.ALWAYS
                 }
-                confirmButton(graphic = Icons.search) {
-                    removeClass(GameDexStyle.toolbarButton)
+                confirmButton(graphic = Icons.search, isToolbarButton = false) {
                     minWidth = Region.USE_PREF_SIZE
                     enableWhen(canSearchCurrentQuery)
                     // This becomes the new default button when the search textfield has focus.

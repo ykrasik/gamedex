@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.state
@@ -61,10 +60,9 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
     }
 
     override val root = vbox(spacing = 5) {
-        addButton {
+        addButton(isToolbarButton = false) {
             alignment = Pos.CENTER
             useMaxWidth = true
-            removeClass(GameDexStyle.toolbarButton)
             tooltip("Add a new library")
             enableWhen(canAddOrEditLibraries)
             action(addOrEditLibraryActions) { null }
@@ -80,19 +78,16 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
                             row {
                                 children += if (library.type == LibraryType.Excluded) library.type.icon else library.platform.logo
                                 text(library.name)
-                                jfxButton(library.path.toString()) {
+                                toolbarButton(library.path.toString()) {
                                     useMaxWidth = true
-                                    addClass(GameDexStyle.toolbarButton)
                                     action(openFileActions) { library.path }
                                 }
-                                editButton {
-                                    removeClass(GameDexStyle.toolbarButton)
+                                editButton(isToolbarButton = false) {
                                     enableWhen(canAddOrEditLibraries)
                                     tooltip("Edit library '${library.name}'")
                                     action(addOrEditLibraryActions) { library }
                                 }
-                                deleteButton {
-                                    removeClass(GameDexStyle.toolbarButton)
+                                deleteButton(isToolbarButton = false) {
                                     enableWhen(canDeleteLibraries)
                                     tooltip("Delete library '${library.name}'")
                                     action(deleteLibraryActions) { library }

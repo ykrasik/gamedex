@@ -37,9 +37,9 @@ class EventBusImpl : EventBus, CoroutineScope {
     private val handlers = mutableMapOf<KClass<out CoreEvent>, MutableList<EventHandler>>()
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : CoreEvent> on(event: KClass<E>, context: CoroutineContext, handler: suspend (E) -> Unit): EventSubscription {
-        return if (event.isSealed) {
-            val subscriptions = event.sealedSubclasses.map {
+    override fun <E : CoreEvent> on(eventClass: KClass<E>, context: CoroutineContext, handler: suspend (E) -> Unit): EventSubscription {
+        return if (eventClass.isSealed) {
+            val subscriptions = eventClass.sealedSubclasses.map {
                 on(it, context, handler)
             }
             object : EventSubscription {
@@ -49,10 +49,10 @@ class EventBusImpl : EventBus, CoroutineScope {
             }
         } else {
             val eventHandler = EventHandler(context, handler as (suspend (CoreEvent) -> Unit))
-            handlersFor(event) += eventHandler
+            handlersFor(eventClass) += eventHandler
             object : EventSubscription {
                 override fun cancel() {
-                    handlersFor(event) -= eventHandler
+                    handlersFor(eventClass) -= eventHandler
                 }
             }
         }

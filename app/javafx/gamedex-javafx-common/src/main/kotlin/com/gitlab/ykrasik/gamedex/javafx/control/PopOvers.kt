@@ -49,6 +49,7 @@ inline fun popOverWith(op: PopOver.() -> Unit = {}): PopOver = PopOver().apply {
     isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
     isDetachable = false
     isAutoFix = true
+    isAutoHide = true
     op()
 }
 

@@ -92,7 +92,8 @@ object Icons {
 
     val tag get() = fontIcon(MaterialDesign.MDI_TAG, color = Color.BLUEVIOLET)
     val search get() = fontIcon(MaterialDesign.MDI_MAGNIFY)
-    val sync get() = fontIcon(MaterialDesign.MDI_SYNC, color = Colors.green)
+    val sync get() = fontIcon(MaterialDesign.MDI_CLOUD_SYNC)
+    val syncMenu get() = fontIcon(MaterialDesign.MDI_SYNC, color = Colors.green)
 
     val text get() = fontIcon(MaterialDesign.MDI_FORMAT_COLOR_TEXT)
     val enterText get() = fontIcon(MaterialDesign.MDI_RENAME_BOX, color = Colors.orange)
@@ -148,6 +149,7 @@ object Icons {
     val earth get() = fontIcon(MaterialDesign.MDI_EARTH)
     val earthOff get() = fontIcon(MaterialDesign.MDI_EARTH_OFF)
     val masks get() = fontIcon(MaterialDesign.MDI_DRAMA_MASKS)
+    val cloud get() = fontIcon(MaterialDesign.MDI_CLOUD_OUTLINE)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)

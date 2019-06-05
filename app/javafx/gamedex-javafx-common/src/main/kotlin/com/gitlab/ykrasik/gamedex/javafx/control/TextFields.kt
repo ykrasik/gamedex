@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxState
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxObjectState
 import com.gitlab.ykrasik.gamedex.javafx.binding
 import com.gitlab.ykrasik.gamedex.javafx.padding
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
@@ -340,7 +340,7 @@ inline fun <T> JFXTextField.bindParser(crossinline parser: (String) -> T): Objec
     return value
 }
 
-fun JFXTextField.validWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): Unit = validWhen(isValid.property)
+fun JFXTextField.validWhen(isValid: JavaFxObjectState<IsValid>): Unit = validWhen(isValid.property)
 fun <T> JFXTextField.validWhen(isValid: ObservableValue<Try<T>>) {
     skinProperty().onChangeOnce {
         // The jfx ValidationPane causes our tooltip to be displayed incorrectly.

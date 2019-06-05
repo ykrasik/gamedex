@@ -130,38 +130,39 @@ class MainView : PresentableView("GameDex"),
             shortcut("ctrl+g")
             tooltip("Show Games (ctrl+g)")
         }
+
+        verticalGap(size = 15)
+
         navigationButton("Sync Libraries", Icons.folderSync) {
             tooltip("Scan all libraries for new games and sync them with providers")
             enableWhen(canSyncLibraries)
             action(syncLibrariesActions)
         }
+        subMenu(libraryMenu)
 
         verticalGap(size = 15)
 
-        subMenu(libraryMenu)
         subMenu(reportMenu)
         subMenu(maintenanceMenu) { maintenanceMenu.init(this) }
 
-        verticalGap(size = 15)
-
-        navigationButton("Log", Icons.book) {
-            action(showLogViewActions)
-            shortcut("ctrl+l")
-            tooltip("Show Log (ctrl+l)")
-        }
         navigationButton("Settings", Icons.settings) {
             action(showSettingsActions)
             shortcut("ctrl+o")
             tooltip("Show Settings (ctrl+o)")
         }
-
-        verticalGap(size = 15)
-
+        navigationButton("Log", Icons.book) {
+            action(showLogViewActions)
+            shortcut("ctrl+l")
+            tooltip("Show Log (ctrl+l)")
+        }
         navigationButton("About", Icons.information) {
             action(showAboutActions)
             shortcut("ctrl+i")
             tooltip("Show About (ctrl+i)")
         }
+
+        verticalGap(size = 15)
+
         navigationButton("Quit", Icons.quit) {
             action {
                 System.exit(0)

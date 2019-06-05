@@ -53,10 +53,9 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
     }
 
     override val root = vbox(spacing = 5) {
-        addButton {
+        addButton(isToolbarButton = false) {
             alignment = Pos.CENTER
             useMaxWidth = true
-            removeClass(GameDexStyle.toolbarButton)
             tooltip("Add a new report")
             action(addOrEditReportActions) { null }
         }
@@ -75,12 +74,10 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
                                     alignment = Pos.CENTER_LEFT
                                     action(showReportActions) { report }
                                 }
-                                editButton {
-                                    removeClass(GameDexStyle.toolbarButton)
+                                editButton(isToolbarButton = false) {
                                     action(addOrEditReportActions) { report }
                                 }
-                                deleteButton {
-                                    removeClass(GameDexStyle.toolbarButton)
+                                deleteButton(isToolbarButton = false) {
                                     action(deleteReportActions) { report }
                                 }
                             }

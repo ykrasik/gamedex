@@ -103,7 +103,7 @@ class DirectoryPluginScanner(private val pluginsDir: String = "plugins") : Plugi
     override fun scan(): List<Pair<Class<out Plugin>, ClassLoader>> {
         val files = File(pluginsDir).listFiles()
         if (files == null) {
-            log.error("Error scanning plugin directory: ${File(pluginsDir).absolutePath}")
+            log.error("Plugin directory not found: ${File(pluginsDir).absolutePath}")
             return emptyList()
         }
 

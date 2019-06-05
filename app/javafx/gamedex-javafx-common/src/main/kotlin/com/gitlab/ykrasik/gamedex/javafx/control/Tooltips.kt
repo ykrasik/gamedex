@@ -16,12 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxState
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxObjectState
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.control.Control
@@ -76,5 +75,5 @@ inline fun Node.nullableTooltip(text: ObservableValue<String?>, graphic: Node? =
 inline fun Node.errorTooltip(text: ObservableValue<String?>, crossinline op: Tooltip.() -> Unit = {}) =
     nullableTooltip(text, Icons.validationError.size(20), op)
 
-fun Node.errorTooltip(state: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>) =
+fun Node.errorTooltip(state: JavaFxObjectState<IsValid>) =
     errorTooltip(state.property.stringBinding { it?.errorText() })

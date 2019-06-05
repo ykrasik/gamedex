@@ -52,6 +52,8 @@ private inline fun <S> doublePropertyState(factory: (SimpleObjectProperty<Double
 private inline fun <S> intPropertyState(factory: (SimpleObjectProperty<Int>) -> S, initial: Int): S = factory(SimpleObjectProperty(initial))
 private inline fun <S> stringPropertyState(factory: (SimpleStringProperty) -> S, initial: String): S = factory(SimpleStringProperty(initial))
 
+typealias JavaFxObjectState<T> = JavaFxState<T, SimpleObjectProperty<T>>
+
 class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableState<T> {
     private var ignoreNextChange = false
 
