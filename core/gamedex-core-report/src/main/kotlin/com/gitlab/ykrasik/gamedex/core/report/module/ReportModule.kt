@@ -16,16 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.report.module
 
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
-import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.report.ReportServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.presenter.*
-import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
-import com.gitlab.ykrasik.gamedex.core.storage.Storage
-import com.google.inject.Provides
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -34,6 +26,7 @@ import javax.inject.Singleton
  */
 object ReportModule : InternalCoreModule() {
     override fun configure() {
+        bind(FilterService::class.java).to(FilterServiceImpl::class.java)
         bind(ReportService::class.java).to(ReportServiceImpl::class.java)
 
         bindPresenter(DeleteReportPresenter::class)

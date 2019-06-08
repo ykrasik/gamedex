@@ -21,8 +21,6 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.core.common.*
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
-import com.gitlab.ykrasik.gamedex.core.filter.FilterService
-import com.gitlab.ykrasik.gamedex.core.filter.FilterServiceImpl
 import com.gitlab.ykrasik.gamedex.core.filter.presenter.FilterPresenter
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
 import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
@@ -70,7 +68,6 @@ object CoreModule : InternalCoreModule() {
 
         bind(TaskService::class.java).to(TaskServiceImpl::class.java)
         bind(EventBus::class.java).to(EventBusImpl::class.java)
-        bind(FilterService::class.java).to(FilterServiceImpl::class.java)
 
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
         bind(ViewCommonOps::class.java).to(ViewCommonOpsImpl::class.java)
