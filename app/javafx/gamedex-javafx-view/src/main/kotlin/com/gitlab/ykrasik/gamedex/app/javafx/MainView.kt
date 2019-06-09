@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.app.javafx
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanShowLogView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
-import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
@@ -28,8 +27,6 @@ import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxFolderNameDiffScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxSyncGamesScreen
-import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
-import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -65,13 +62,11 @@ class MainView : PresentableView("GameDex"),
 
     private val gameScreen: JavaFxGameScreen by inject()
     private val syncGamesScreen: JavaFxSyncGamesScreen by inject()
-    private val reportScreen: JavaFxReportScreen by inject()
     private val duplicatesScreen: JavaFxDuplicatesScreen by inject()
     private val folderNameDiffScreen: JavaFxFolderNameDiffScreen by inject()
     private val maintenanceMenu: MaintenanceMenu by inject()
 
     private val libraryMenu: LibraryMenu by inject()
-    private val reportMenu: ReportMenu by inject()
 
     private val overlayPane = OverlayPane()
 
@@ -101,7 +96,6 @@ class MainView : PresentableView("GameDex"),
 
         tab(gameScreen).select()
         tab(syncGamesScreen)
-        tab(reportScreen)
         tab(duplicatesScreen)
         tab(folderNameDiffScreen)
 
@@ -142,7 +136,6 @@ class MainView : PresentableView("GameDex"),
 
         verticalGap(size = 15)
 
-        subMenu(reportMenu)
         subMenu(maintenanceMenu) { maintenanceMenu.init(this) }
 
         navigationButton("Settings", Icons.settings) {
@@ -239,10 +232,6 @@ class MainView : PresentableView("GameDex"),
 
     fun showSyncGamesView(): JavaFxSyncGamesScreen = showScreen(syncGamesScreen)
 
-    fun showReportView(report: Report): JavaFxReportScreen = showScreen(reportScreen) {
-        this.report.valueFromView = report
-    }
-
     fun showDuplicatesReport(): JavaFxDuplicatesScreen = showScreen(duplicatesScreen)
     fun showFolderNameDiffReport(): JavaFxFolderNameDiffScreen = showScreen(folderNameDiffScreen)
 
@@ -256,7 +245,7 @@ class MainView : PresentableView("GameDex"),
         tabPane.selectionModel.select(screen.tab)
     }
 
-    fun showOverlay(view: View, modal: Boolean, onExternalCloseRequested: () -> Unit, customizeOverlay: OverlayPane.OverlayLayer.() -> Unit) =
+    fun showOverlay(view: View, modal: Boolean, onExternalCloseRequested: () -> Unit, customizeOverlay: OverlayPane.OverlayLayer.() -> Unit = {}) =
         overlayPane.show(view, modal, onExternalCloseRequested, customizeOverlay)
 
     fun hideOverlay(view: View) = overlayPane.hide(view)

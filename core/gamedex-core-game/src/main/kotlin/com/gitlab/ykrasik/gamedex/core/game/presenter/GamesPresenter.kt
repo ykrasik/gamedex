@@ -17,22 +17,22 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.and
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
+import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.setAll
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,35 +46,23 @@ class GamesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val filterService: FilterService,
     private val gameSearchService: GameSearchService,
-    private val settingsService: SettingsService
+    private val settingsService: SettingsService,
+    private val repo: CurrentPlatformFilterRepository
 ) : Presenter<ViewWithGames> {
-    private val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
-    private val criticScoreComparator = compareBy(Game::criticScore)
-    private val userScoreComparator = compareBy(Game::userScore)
-
     override fun present(view: ViewWithGames) = object : ViewSession() {
-        private val searchText = MultiChannel.conflated("")
-
         init {
             commonData.platformGames.bind(view.games)
-
-            view.searchText.debounce().forEach { onSearchTextChanged(it) }
 
             settingsService.game.sortByChannel.combineLatest(settingsService.game.sortOrderChannel).forEach { (sortBy, sortOrder) ->
                 setSort(sortBy, sortOrder)
             }
 
-            var platformFilterJob: Job? = null
-            settingsService.currentPlatformSettingsChannel.forEach { settings ->
-                platformFilterJob?.cancelAndJoin()
-                platformFilterJob = searchText.combineLatest(settings.filterChannel).forEach { (search, filter) ->
-                    setSearchAndFilter(search, filter, settings.platform)
-                }
-            }
-        }
+            val searchText = conflatedChannel("")
+            view.searchText.debounce().forEach { searchText.offer(it) }
 
-        private fun onSearchTextChanged(searchText: String) {
-            this.searchText.offer(searchText)
+            searchText.combineLatest(repo.currentPlatformFilter.subscribe()).forEach { (search, filter) ->
+                setSearchAndFilter(search, filter)
+            }
         }
 
         private fun setSort(sortBy: SortBy, sortOrder: SortOrder) {
@@ -98,9 +86,9 @@ class GamesPresenter @Inject constructor(
             }
         }
 
-        private fun setSearchAndFilter(search: String, filter: Filter, platform: Platform) {
-            val searchedGames = gameSearchService.search(search, platform)
-            val matchingGames = filterService.filter(searchedGames, filter)
+        private fun setSearchAndFilter(search: String, filter: Filter) {
+            val searchedGames = gameSearchService.search(search, settingsService.game.platform)
+            val matchingGames = filterService.filter(searchedGames, filter and Filter.Platform(settingsService.game.platform))
 
             val suggestions = if (search.isNotBlank()) matchingGames.take(12) else emptyList()
             view.searchSuggestions.setAll(suggestions)
@@ -111,5 +99,11 @@ class GamesPresenter @Inject constructor(
                 filter.isEmpty && search.isBlank() || matchingGameIds.contains(game.id)
             }
         }
+    }
+
+    private companion object {
+        val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
+        val criticScoreComparator = compareBy(Game::criticScore)
+        val userScoreComparator = compareBy(Game::userScore)
     }
 }

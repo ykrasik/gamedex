@@ -79,6 +79,7 @@ class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableS
 
     override val changes = MultiChannel<T>()
 
+    inline fun perform(crossinline f: (T) -> Unit) = property.perform(f)
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
 

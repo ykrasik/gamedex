@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.RefetchGameService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.provider.RefetchGamesFilterRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,7 +33,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class RefetchGamesPresenter @Inject constructor(
-    private val settingsService: SettingsService,
+    private val repo: RefetchGamesFilterRepository,
     private val refetchGameService: RefetchGameService,
     private val taskService: TaskService,
     private val eventBus: EventBus
@@ -47,7 +47,7 @@ class RefetchGamesPresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            view.refetchGamesFilter *= settingsService.providerGeneral.refetchGamesFilter
+            view.refetchGamesFilter *= repo.refetchGamesFilter.peek()
             setCanAccept()
         }
 
@@ -59,7 +59,7 @@ class RefetchGamesPresenter @Inject constructor(
             view.canAccept.assert()
 
             val filter = view.refetchGamesFilter.value
-            settingsService.providerGeneral.modify { copy(refetchGamesFilter = filter) }
+            repo.update(filter)
 
             hideView()
 

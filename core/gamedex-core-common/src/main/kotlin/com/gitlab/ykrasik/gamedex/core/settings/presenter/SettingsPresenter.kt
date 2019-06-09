@@ -57,7 +57,7 @@ class SettingsPresenter @Inject constructor(
 
         private fun hideView() = eventBus.requestHideView(view)
 
-        private fun onResetDefaults() {
+        private suspend fun onResetDefaults() {
             if (view.confirmResetDefaults()) {
                 settingsService.resetDefaults()
             }

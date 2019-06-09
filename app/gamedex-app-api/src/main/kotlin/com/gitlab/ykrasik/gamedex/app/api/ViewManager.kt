@@ -19,6 +19,9 @@ package com.gitlab.ykrasik.gamedex.app.api
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
+import com.gitlab.ykrasik.gamedex.app.api.filter.DeleteFilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.EditFilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
@@ -29,10 +32,6 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
-import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
-import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
-import com.gitlab.ykrasik.gamedex.app.api.report.Report
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
@@ -75,14 +74,11 @@ interface ViewManager {
     fun showTagGameView(game: Game): TagGameView
     fun hide(view: TagGameView)
 
-    fun showReportView(report: Report): ReportView
-    fun hide(view: ReportView)
+    fun showEditFilterView(filter: NamedFilter): EditFilterView
+    fun hide(view: EditFilterView)
 
-    fun showEditReportView(report: Report?): EditReportView
-    fun hide(view: EditReportView)
-
-    fun showDeleteReportView(report: Report): DeleteReportView
-    fun hide(view: DeleteReportView)
+    fun showDeleteFilterView(filter: NamedFilter): DeleteFilterView
+    fun hide(view: DeleteFilterView)
 
     fun showImageGalleryView(params: ViewImageParams): ImageGalleryView
     fun hide(view: ImageGalleryView)

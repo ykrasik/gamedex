@@ -16,11 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
-import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -44,11 +39,6 @@ interface SettingsService {
     val metaTagDisplay: GameOverlayDisplaySettingsRepository
     val versionDisplay: GameOverlayDisplaySettingsRepository
 
-    val platforms: Map<Platform, GamePlatformSettingsRepository>
-    val currentPlatformSettingsChannel: MultiReceiveChannel<GamePlatformSettingsRepository>
-    val currentPlatformSettings: GamePlatformSettingsRepository
-
-    val providerGeneral: ProviderGeneralSettingsRepository
     val providerOrder: ProviderOrderSettingsRepository
     val providers: Map<ProviderId, ProviderSettingsRepository>
 
@@ -61,8 +51,7 @@ interface SettingsService {
 @Singleton
 class SettingsServiceImpl @Inject constructor(
     private val factory: JsonStorageFactory<String>,
-    gameProviderService: GameProviderService,
-    eventBus: EventBus
+    gameProviderService: GameProviderService
 ) : SettingsService {
     private val log = logger()
     private val all = mutableListOf<SettingsRepository<*>>()
@@ -76,27 +65,10 @@ class SettingsServiceImpl @Inject constructor(
     override val metaTagDisplay = repo { GameOverlayDisplaySettingsRepository.metaTag(settingsStorage("display")) }
     override val versionDisplay = repo { GameOverlayDisplaySettingsRepository.version(settingsStorage("display")) }
 
-    override val platforms = Platform.values().associate { platform ->
-        platform to repo { GamePlatformSettingsRepository(settingsStorage("platform"), platform) }
-    }
-
-    override val currentPlatformSettingsChannel = game.platformChannel.map { platform -> platforms.getValue(platform) }
-    override val currentPlatformSettings by currentPlatformSettingsChannel
-
-    override val providerGeneral = repo { ProviderGeneralSettingsRepository(settingsStorage("provider"), gameProviderService.allProviders) }
     override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorage("provider"), gameProviderService.allProviders) }
     override val providers = gameProviderService.allProviders.map { provider ->
         provider.id to repo { ProviderSettingsRepository(settingsStorage("provider"), provider) }
     }.toMap()
-
-    init {
-        eventBus.on<DatabaseInvalidatedEvent> {
-            // Drop any filters we may currently have - they may be incorrect for the new database (point to non-existing libraries).
-            platforms.forEach { (_, settings) ->
-                settings.resetDefaults()
-            }
-        }
-    }
 
     private fun settingsStorage(basePath: String = "") = SettingsStorageFactory("conf/$basePath", factory)
 

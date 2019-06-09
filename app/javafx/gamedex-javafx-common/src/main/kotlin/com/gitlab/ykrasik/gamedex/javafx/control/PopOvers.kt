@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.boundsInScreen
+import com.gitlab.ykrasik.gamedex.javafx.debounce
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -33,6 +34,7 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
+import kotlinx.coroutines.Job
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -243,6 +245,7 @@ inline fun PopOver.createPopOverMenu(closeOnAction: Boolean, owner: Node, parent
  */
 class PopOverMenu(popOver: PopOver, val owner: Node, val parentMenu: PopOverMenu?, closeOnAction: Boolean) : PopOverContent(popOver) {
     private var unregisterEventHandlers = emptyList<() -> Unit>()
+    private var debounceJob: Job? = null
 
     init {
         addClass(GameDexStyle.popOverMenu)
@@ -250,6 +253,7 @@ class PopOverMenu(popOver: PopOver, val owner: Node, val parentMenu: PopOverMenu
             unregisterEventHandlers.forEach { it() }
             unregisterEventHandlers = children.map { node ->
                 val mouseEnteredHandler = EventHandler<MouseEvent> {
+                    debounceJob?.cancel()
                     val subMenu = node.subMenu
                     if (subMenu != null) {
                         // We're hovering over a subMenu.
@@ -258,8 +262,10 @@ class PopOverMenu(popOver: PopOver, val owner: Node, val parentMenu: PopOverMenu
                         // Otherwise, hide the currently showing subMenu and show this one.
                         val currentlyShowingSubMenu = this.currentlyShowingSubMenu
                         if (subMenu != currentlyShowingSubMenu) {
-                            subMenu.show()
-                            currentlyShowingSubMenu?.hide()
+                            debounceJob = debounce(millis = 200) {
+                                subMenu.show()
+                                currentlyShowingSubMenu?.hide()
+                            }
                         }
                     } else {
                         // We're hovering over a regular control.

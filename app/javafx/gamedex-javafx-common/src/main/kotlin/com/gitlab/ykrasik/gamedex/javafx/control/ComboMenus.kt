@@ -43,6 +43,7 @@ inline fun <T> EventTarget.popoverComboMenu(
     selectedItemProperty: Property<out T?>,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node?)? = null,
+    buttonGraphic: Node? = null,
     menuOp: PopOverContent.(T) -> Unit = {}
 ) = buttonWithPopover {
     possibleItems.forEach { item ->
@@ -61,7 +62,10 @@ inline fun <T> EventTarget.popoverComboMenu(
     }
 }.apply {
     if (text != null) textProperty().bind(selectedItemProperty.stringBinding { it?.let(text) })
-    if (graphic != null) graphicProperty().bind(selectedItemProperty.binding { it?.let(graphic) })
+    when {
+        buttonGraphic != null -> this.graphic = buttonGraphic
+        graphic != null -> graphicProperty().bind(selectedItemProperty.binding { it?.let(graphic) })
+    }
 }
 
 inline fun <T> EventTarget.popoverComboMenu(
@@ -69,6 +73,7 @@ inline fun <T> EventTarget.popoverComboMenu(
     selectedItemProperty: Property<T>,
     noinline text: ((T) -> String)? = null,
     noinline graphic: ((T) -> Node?)? = null,
+    buttonGraphic: Node? = null,
     crossinline itemOp: JFXButton.() -> Unit = {},
     crossinline menuOp: VBox.(T) -> Unit = {}
 ) = buttonWithPopover {
@@ -85,20 +90,25 @@ inline fun <T> EventTarget.popoverComboMenu(
         }
     }
 }.apply {
-    if (text != null) textProperty().bind(selectedItemProperty.stringBinding { if (it != null) text(it) else null })
-    if (graphic != null) graphicProperty().bind(selectedItemProperty.binding { if (it != null) graphic(it) else null })
+    if (text != null) textProperty().bind(selectedItemProperty.stringBinding { it?.let(text) })
+    when {
+        buttonGraphic != null -> this.graphic = buttonGraphic
+        graphic != null -> graphicProperty().bind(selectedItemProperty.binding { it?.let(graphic) })
+    }
 }
 
 inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
     selectedItemProperty: Property<out T?>,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node)? = null,
+    buttonGraphic: Node? = null,
     menuOp: PopOverContent.(T) -> Unit = {}
 ) = popoverComboMenu(
     possibleItems = T::class.java.enumConstants.asList(),
     selectedItemProperty = selectedItemProperty,
     text = text,
     graphic = graphic,
+    buttonGraphic = buttonGraphic,
     menuOp = menuOp
 )
 

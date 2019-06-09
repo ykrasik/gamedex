@@ -326,7 +326,7 @@ project("core:gamedex-core-provider") {
     }
 }
 
-project("core:gamedex-core-report") {
+project("core:gamedex-core-filter") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
     }
@@ -344,7 +344,7 @@ project("core:gamedex-core") {
         implementation project(":core:gamedex-core-log")
         implementation project(":core:gamedex-core-persistence")
         implementation project(":core:gamedex-core-provider")
-        implementation project(":core:gamedex-core-report")
+        implementation project(":core:gamedex-core-filter")
 
         implementation ktor.clientApache
         implementation classGraph

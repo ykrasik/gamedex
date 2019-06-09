@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.PopOverMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.popOverSubMenu
@@ -61,6 +61,8 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
 
     override val showDuplicatesReportActions = channel<Unit>()
     override val showFolderNameDiffReportActions = channel<Unit>()
+
+    private val viewManager: JavaFxViewManager by inject()
 
     init {
         register()
@@ -132,7 +134,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
         }
     }
 
-    override fun confirmClearUserData() = areYouSureDialog("Clear game user data?") {
+    override suspend fun confirmClearUserData() = viewManager.showAreYouSureDialog("Clear game user data?") {
         text("This will remove tags, excluded providers & any custom information entered (like custom names or thumbnails) from all games.") {
             wrappingWidth = 400.0
         }

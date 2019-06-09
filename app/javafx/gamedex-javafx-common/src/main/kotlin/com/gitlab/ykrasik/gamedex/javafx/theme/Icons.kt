@@ -38,6 +38,7 @@ object Icons {
     val wrench get() = fontIcon(MaterialDesign.MDI_WRENCH, color = Color.GRAY)
     val display get() = fontIcon(MaterialDesign.MDI_MONITOR_DASHBOARD, color = Color.DARKBLUE)
     val grid get() = fontIcon(MaterialDesign.MDI_GRID)
+    val list get() = fontIcon(MaterialDesign.MDI_VIEW_LIST)
     val quit get() = fontIcon(MaterialDesign.MDI_LOGOUT)
 
     val accept get() = fontIcon(MaterialDesign.MDI_CHECK_CIRCLE, color = Colors.green)
@@ -124,6 +125,7 @@ object Icons {
     val fileTree get() = fontIcon(MaterialDesign.MDI_FILE_TREE)
     val fileQuestion get() = fontIcon(MaterialDesign.MDI_FILE_QUESTION)
     val file get() = fontIcon(MaterialDesign.MDI_FILE_OUTLINE)
+    val files get() = fontIcon(MaterialDesign.MDI_FILE_MULTIPLE)
     val fileDocument get() = fontIcon(MaterialDesign.MDI_FILE_DOCUMENT_OUTLINE)
     val fileAlert get() = fontIcon(MaterialDesign.MDI_FILE_ALERT_OUTLINE)
     val fileMusic get() = fontIcon(MaterialDesign.MDI_FILE_MUSIC)   // FIXME: Use outline version
@@ -149,6 +151,10 @@ object Icons {
     val earth get() = fontIcon(MaterialDesign.MDI_EARTH)
     val earthOff get() = fontIcon(MaterialDesign.MDI_EARTH_OFF)
     val masks get() = fontIcon(MaterialDesign.MDI_DRAMA_MASKS)
+    val saveMore get() = fontIcon(MaterialDesign.MDI_CONTENT_SAVE_SETTINGS_OUTLINE)
+    val save get() = fontIcon(MaterialDesign.MDI_CONTENT_SAVE_OUTLINE)
+    val saveAs get() = fontIcon(MaterialDesign.MDI_CONTENT_SAVE_EDIT_OUTLINE)
+    val load get() = fontIcon(MaterialDesign.MDI_FILE_UPLOAD_OUTLINE)
     val cloud get() = fontIcon(MaterialDesign.MDI_CLOUD_OUTLINE)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)

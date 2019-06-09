@@ -43,11 +43,9 @@ fun <T> ObservableValue<T>.printChanges(id: String) {
     addListener { _, o, v -> println("$id changed: $o -> $v") }
 }
 
-fun <T, R> ObservableValue<T>.map(f: (T) -> R): ObjectProperty<R> {
-    fun doMap() = f(this.value)
-
-    val property = SimpleObjectProperty(doMap())
-    this.typeSafeOnChange { property.value = doMap() }
+inline fun <T, R> ObservableValue<T>.map(crossinline f: (T) -> R): ObjectProperty<R> {
+    val property = SimpleObjectProperty(f(value))
+    this.typeSafeOnChange { property.value = f(it) }
     return property
 }
 
@@ -93,27 +91,22 @@ fun <T, R> Property<T>.mapBidirectional(extractor: Extractor<T, R>, reverseExtra
     return mapped
 }
 
-fun <T, R> ObservableValue<T>.flatMap(f: (T) -> ObservableValue<R>): ObjectProperty<R> {
-    fun doFlatMap() = f(this.value)
+inline fun <T, R> ObservableValue<T>.flatMap(crossinline f: (T) -> ObservableValue<R>): ObjectProperty<R> {
     val property = SimpleObjectProperty<R>()
-    property.bind(doFlatMap())
-
-    this.typeSafeOnChange { property.cleanBind(doFlatMap()) }
+    property.bind(f(value))
+    this.typeSafeOnChange { property.cleanBind(f(it)) }
     return property
 }
 
 // Perform the action on the initial value of the observable and on each change.
-fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
-    fun doPerform() = f(value)
-    doPerform()
-    this.typeSafeOnChange { doPerform() }
+inline fun <T> ObservableValue<T>.perform(crossinline f: (T) -> Unit): ChangeListener<T> {
+    f(value)
+    return this.typeSafeOnChange { f(it) }
 }
 
-fun <T, R> ObservableValue<T>.mapToList(f: (T) -> List<R>): ObservableList<R> {
-    fun doMap() = f(this.value)
-
-    val list = FXCollections.observableArrayList(doMap())
-    this.typeSafeOnChange { list.setAll(doMap()) }
+inline fun <T, R> ObservableValue<T>.mapToList(crossinline f: (T) -> List<R>): ObservableList<R> {
+    val list = FXCollections.observableArrayList(f(value))
+    this.typeSafeOnChange { list.setAll(f(it)) }
     return list
 }
 

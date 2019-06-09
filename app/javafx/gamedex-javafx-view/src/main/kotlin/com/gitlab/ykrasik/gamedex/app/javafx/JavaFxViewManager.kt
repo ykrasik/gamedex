@@ -20,6 +20,9 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
+import com.gitlab.ykrasik.gamedex.app.api.filter.DeleteFilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.EditFilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
@@ -30,16 +33,15 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
-import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
-import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
-import com.gitlab.ykrasik.gamedex.app.api.report.Report
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.onReceive
 import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxAboutView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxBrowserView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxDeleteFilterView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxEditFilterView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
@@ -54,12 +56,16 @@ import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxExportDatabaseVie
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxImportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxRefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxResyncGamesView
-import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxDeleteReportView
-import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxEditReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
 import com.gitlab.ykrasik.gamedex.javafx.control.OverlayPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import javafx.scene.Node
+import javafx.scene.layout.VBox
+import kotlinx.coroutines.*
+import kotlinx.coroutines.javafx.JavaFx
+import kotlinx.coroutines.selects.select
 import tornadofx.Controller
 import tornadofx.View
 import javax.inject.Singleton
@@ -134,16 +140,13 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun showTagGameView(game: Game) = tagGameView.showOverlay(modal = true) { this.game = game }
     override fun hide(view: TagGameView) = view.hideOverlay()
 
-    override fun showReportView(report: Report) = mainView.showReportView(report)
-    override fun hide(view: ReportView) = mainView.showPreviousScreen()
+    private val editFilterView: JavaFxEditFilterView by inject()
+    override fun showEditFilterView(filter: NamedFilter) = editFilterView.showOverlay { this.namedFilter.valueFromView = filter }
+    override fun hide(view: EditFilterView) = view.hideOverlay()
 
-    private val editReportView: JavaFxEditReportView by inject()
-    override fun showEditReportView(report: Report?) = editReportView.showOverlay { this.report.valueFromView = report }
-    override fun hide(view: EditReportView) = view.hideOverlay()
-
-    private val deleteReportView: JavaFxDeleteReportView by inject()
-    override fun showDeleteReportView(report: Report) = deleteReportView.showOverlay { this.report.valueFromView = report }
-    override fun hide(view: DeleteReportView) = view.hideOverlay()
+    private val deleteFilterView: JavaFxDeleteFilterView by inject()
+    override fun showDeleteFilterView(filter: NamedFilter) = deleteFilterView.showOverlay { this.filter.valueFromView = filter }
+    override fun hide(view: DeleteFilterView) = view.hideOverlay()
 
     private val imageView: JavaFxImageGalleryView by inject()
     override fun showImageGalleryView(params: ViewImageParams) =
@@ -197,6 +200,38 @@ class JavaFxViewManager : Controller(), ViewManager {
     private val aboutView: JavaFxAboutView by inject()
     override fun showAboutView() = aboutView.showOverlay()
     override fun hide(view: AboutView) = view.hideOverlay()
+
+    suspend fun showAreYouSureDialog(text: String = "Are You Sure?", icon: Node? = null, op: (VBox.() -> Unit)? = null): Boolean {
+        val accept = CompletableDeferred<Boolean>()
+        val view = object : ConfirmationWindow(text, icon) {
+            override val root = buildAreYouSure(op = op)
+
+            val job: Job = GlobalScope.launch(Dispatchers.JavaFx) {
+                accept.complete(select {
+                    acceptActions.onReceive { true }
+                    cancelActions.onReceive { false }
+                })
+            }.apply {
+                invokeOnCompletion {
+                    acceptActions.close()
+                    cancelActions.close()
+                }
+            }
+
+            init {
+                skipFirstDock = true
+                skipFirstUndock = true
+            }
+        }
+        mainView.showOverlay(view, modal = false, onExternalCloseRequested = {
+            view.job.cancel()
+            accept.complete(false)
+            view.hideOverlay()
+        })
+        return accept.await().apply {
+            view.hideOverlay()
+        }
+    }
 
     private fun Any.hideOverlay() = mainView.hideOverlay(this as View)
 

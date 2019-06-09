@@ -31,7 +31,8 @@ import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.stage.Screen
 import javafx.stage.Stage
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberFunctions
@@ -168,4 +169,9 @@ fun Bounds.containsDelta(x: Double, y: Double, delta: Double): Boolean {
 
 inline fun <T> MultiReceiveChannel<T>.forEach(crossinline f: (T) -> Unit) = subscribe(Dispatchers.Main) {
     f(it)
+}
+
+inline fun debounce(millis: Long, crossinline f: () -> Unit): Job = GlobalScope.launch(Dispatchers.JavaFx) {
+    delay(millis)
+    f()
 }

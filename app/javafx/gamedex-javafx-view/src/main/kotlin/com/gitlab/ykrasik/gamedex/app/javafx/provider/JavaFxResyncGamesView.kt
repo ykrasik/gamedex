@@ -31,7 +31,7 @@ import tornadofx.scrollpane
  * Time: 16:25
  */
 class JavaFxResyncGamesView : ConfirmationWindow("Re-Sync Games", Icons.sync), ResyncGamesView {
-    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = false)
+    private val filterView = JavaFxFilterView()
 
     override val resyncGamesFilter = filterView.userMutableState
     override val resyncGamesFilterIsValid = userMutableState(filterView.filterIsValid)

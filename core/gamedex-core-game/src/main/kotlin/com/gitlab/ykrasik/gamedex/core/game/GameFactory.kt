@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.minOrder
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
@@ -39,7 +39,7 @@ class GameFactory @Inject constructor(
     private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
     private val settingsService: SettingsService,
-    private val reportService: ReportService
+    private val filterService: FilterService
 ) {
     fun create(rawGame: RawGame): Game {
         val library = libraryService[rawGame.metadata.libraryId]
@@ -53,12 +53,12 @@ class GameFactory @Inject constructor(
             gameData = gameData,
             folderName = folderName,
             fileTree = fileTree,
-            reportTags = emptyList()
+            filterTags = emptyList()
         )
 
-        val reportTags = reportService.calcReportTags(game)
-        return if (reportTags.isNotEmpty()) {
-            game.copy(reportTags = reportTags)
+        val filterTags = filterService.calcFilterTags(game)
+        return if (filterTags.isNotEmpty()) {
+            game.copy(filterTags = filterTags)
         } else {
             game
         }

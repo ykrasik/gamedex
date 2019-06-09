@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithCurrentPlatformFilter
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,18 +30,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class CurrentPlatformFilterPresenter @Inject constructor(
-    private val settingsService: SettingsService
+    private val repo: CurrentPlatformFilterRepository
 ) : Presenter<ViewWithCurrentPlatformFilter> {
     override fun present(view: ViewWithCurrentPlatformFilter) = object : ViewSession() {
         init {
-            view.currentPlatformFilter *= settingsService.currentPlatformSettings.filter
-            settingsService.game.platformChannel.forEach {
-                view.currentPlatformFilter *= settingsService.currentPlatformSettings.filter
+            repo.currentPlatformFilter.forEach { filter ->
+                view.currentPlatformFilter *= filter
             }
 
-            view.currentPlatformFilter.forEach {
+            view.currentPlatformFilter.forEach { filter ->
                 if (view.currentPlatformFilterIsValid.value.isSuccess) {
-                    settingsService.currentPlatformSettings.modify { copy(filter = it) }
+                    repo.update(filter)
                 }
             }
         }

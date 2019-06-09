@@ -36,7 +36,6 @@ import kotlin.reflect.KClass
  * Date: 17/06/2017
  * Time: 16:02
  */
-// TODO: Separate Filters from ReportRules.
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = Filter.And::class, name = "and"),
@@ -65,7 +64,7 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.Library::class, name = "library"),
     JsonSubTypes.Type(value = Filter.Genre::class, name = "genre"),
     JsonSubTypes.Type(value = Filter.Tag::class, name = "tag"),
-    JsonSubTypes.Type(value = Filter.ReportTag::class, name = "reportTag"),
+    JsonSubTypes.Type(value = Filter.FilterTag::class, name = "filterTag"),
     JsonSubTypes.Type(value = Filter.Provider::class, name = "provider"),
 
     JsonSubTypes.Type(value = Filter.FileName::class, name = "fileName"),
@@ -285,10 +284,10 @@ sealed class Filter {
         override fun toString() = "Tag == '$tag'"
     }
 
-    class ReportTag(val tag: String) : Rule() {
-        override fun evaluate(game: Game, context: Context) = game.reportTags.any { it == tag }
-        override fun isEqual(other: Filter) = other.ifIs<ReportTag> { this.tag == it.tag }
-        override fun toString() = "ReportTag == '$tag'"
+    class FilterTag(val tag: String) : Rule() {
+        override fun evaluate(game: Game, context: Context) = game.filterTags.any { it == tag }
+        override fun isEqual(other: Filter) = other.ifIs<FilterTag> { this.tag == it.tag }
+        override fun toString() = "FilterTag == '$tag'"
     }
 
     class Provider(val providerId: ProviderId) : Rule() {

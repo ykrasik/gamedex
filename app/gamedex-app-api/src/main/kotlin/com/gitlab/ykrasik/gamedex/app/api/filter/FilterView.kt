@@ -30,8 +30,6 @@ import kotlin.reflect.KClass
  * Time: 10:20
  */
 interface FilterView {
-    val onlyShowFiltersForCurrentPlatform: Boolean
-
     val filter: State<Filter>
     val filterIsValid: State<IsValid>
     val setFilterActions: MultiReceiveChannel<Filter>
@@ -41,7 +39,7 @@ interface FilterView {
     val availableLibraries: MutableList<Library>
     val availableGenres: MutableList<String>
     val availableTags: MutableList<TagId>
-    val availableReportTags: MutableList<TagId>
+    val availableFilterTags: MutableList<TagId>
     val availableProviderIds: MutableList<ProviderId>
 
     val wrapInAndActions: MultiReceiveChannel<Filter>

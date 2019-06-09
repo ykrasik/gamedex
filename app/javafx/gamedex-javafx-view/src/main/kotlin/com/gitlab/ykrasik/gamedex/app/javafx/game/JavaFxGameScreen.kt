@@ -53,8 +53,9 @@ import tornadofx.*
  */
 class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     ViewWithGames,
-    ViewCanSelectPlatform,
-    ViewCanChangeGameSort,
+    ViewWithPlatform,
+    ViewWithGameDisplayType,
+    ViewWithGameSort,
     ViewWithCurrentPlatformFilter,
     ViewCanShowGameDetails {
 
@@ -69,6 +70,8 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     override val currentPlatform = userMutableState(Platform.Windows)
 
+    override val gameDisplayType = userMutableState(GameDisplayType.Wall)
+
     override val searchText = userMutableState("")
     override val searchSuggestions = mutableListOf<Game>().asObservable()
     override val isShowSearchSuggestions = state(false)
@@ -77,8 +80,9 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val sortOrder = userMutableState(SortOrder.Asc)
 
     private val gameWallView = GameWallView(games)
+    private val gameListView = GameListView(games)
 
-    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = true)
+    private val filterView = JavaFxFilterView()
     override val currentPlatformFilter = filterView.userMutableState
     override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
 
@@ -94,6 +98,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override fun HBox.buildToolbar() {
         filterButton()
         sortButton()
+        displayTypeButton()
         searchField()
 
         spacer()
@@ -101,18 +106,23 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         platformButton()
     }
 
-    override val root = gameWallView.root
+    override val root = stackpane {
+        children += gameWallView.root.apply {
+            showWhen { gameDisplayType.property.isEqualTo(GameDisplayType.Wall) }
+        }
+        children += gameListView.root.apply {
+            showWhen { gameDisplayType.property.isEqualTo(GameDisplayType.List) }
+        }
+    }
 
-    private fun EventTarget.platformButton() = popoverComboMenu(
-        possibleItems = availablePlatforms,
-        selectedItemProperty = currentPlatform.property,
-        text = Platform::displayName,
-        graphic = { it.logo }
-    ).apply {
-        addClass(GameDexStyle.toolbarButton, Style.platformButton)
-        contentDisplay = ContentDisplay.RIGHT
-        textProperty().cleanBind(games.sizeProperty.stringBinding { "Games: ${"%4d".format(it)}" })
-        mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
+    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnAction = false) {
+        addComponent(filterView) {
+            saveFilterActions.forEach { hide() }
+            editFilterActions.forEach { hide() }
+            deleteNamedFilterActions.forEach { hide() }
+        }
+    }.apply {
+        tooltip("Filter")
     }
 
     private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, closeOnAction = false) {
@@ -140,10 +150,14 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         tooltip("Sort")
     }
 
-    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnAction = false) {
-        addComponent(filterView)
-    }.apply {
-        tooltip("Filter")
+    private fun EventTarget.displayTypeButton() = enumComboMenu(
+        selectedItemProperty = gameDisplayType.property,
+        text = null,
+//        text = GameDisplayType::displayName,
+        graphic = { it.icon },
+        buttonGraphic = Icons.view
+    ).apply {
+        tooltip("Display Type")
     }
 
     private fun EventTarget.searchField() = searchTextField(this@JavaFxGameScreen, searchText.property) {
@@ -236,6 +250,18 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         }
     }
 
+    private fun EventTarget.platformButton() = popoverComboMenu(
+        possibleItems = availablePlatforms,
+        selectedItemProperty = currentPlatform.property,
+        text = Platform::displayName,
+        graphic = { it.logo }
+    ).apply {
+        addClass(GameDexStyle.toolbarButton, Style.platformButton)
+        contentDisplay = ContentDisplay.RIGHT
+        textProperty().cleanBind(games.sizeProperty.stringBinding { "Games: ${"%4d".format(it)}" })
+        mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
+    }
+
     private val SortBy.icon
         get() = when (this) {
             SortBy.Name -> Icons.text
@@ -248,6 +274,12 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             SortBy.ReleaseDate -> Icons.date
             SortBy.CreateDate -> Icons.createDate
             SortBy.UpdateDate -> Icons.updateDate
+        }
+
+    private val GameDisplayType.icon
+        get() = when (this) {
+            GameDisplayType.Wall -> Icons.grid
+            GameDisplayType.List -> Icons.list
         }
 
     class Style : Stylesheet() {

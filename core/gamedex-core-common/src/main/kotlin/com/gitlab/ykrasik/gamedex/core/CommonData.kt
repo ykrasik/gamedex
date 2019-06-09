@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryType
-import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -44,16 +41,18 @@ import javax.inject.Singleton
  * Time: 10:32
  */
 @ImplementedBy(CommonDataImpl::class)
-// TODO: not really an interface, but the implementation is more convenient than a data class.
 interface CommonData {
     val games: ListObservable<Game>
-    val genres: ListObservable<String>
-    val tags: ListObservable<String>
-    val reportTags: ListObservable<String>
-
     val platformGames: ListObservable<Game>
+
+    val genres: ListObservable<String>
     val platformGenres: ListObservable<String>
+
+    val tags: ListObservable<TagId>
     val platformTags: ListObservable<String>
+
+    val filterTags: ListObservable<TagId>
+    val platformFilterTags: ListObservable<String>
 
     val libraries: ListObservable<Library>
     val contentLibraries: ListObservable<Library>
@@ -79,21 +78,23 @@ class CommonDataImpl @Inject constructor(
 ) : CommonData {
 
     override val games = gameService.games
-    override val genres = games.genres()
-    override val tags = games.tags()
-    override val reportTags = games.reportTags()
-
-    // The platform doesn't change that often, so an unoptimized filter is acceptable here.
+    // The platform doesn't change often, so an unoptimized filter is acceptable here.
     override val platformGames =
         games.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
             { game: Game -> game.platform == platform }
         })
-    override val platformGenres = platformGames.genres()
-    override val platformTags = platformGames.tags()
 
+    override val genres = games.genres()
+    override val platformGenres = platformGames.genres()
     private fun ListObservable<Game>.genres() = flatMapping { it.genres }.distincting().sortingBy { it }
+
+    override val tags = games.tags()
+    override val platformTags = platformGames.tags()
     private fun ListObservable<Game>.tags() = flatMapping { it.tags }.distincting().sortingBy { it }
-    private fun ListObservable<Game>.reportTags() = flatMapping { it.reportTags }.distincting().sortingBy { it }
+
+    override val filterTags = games.filterTags()
+    override val platformFilterTags = games.filterTags()
+    private fun ListObservable<Game>.filterTags() = flatMapping { it.filterTags }.distincting().sortingBy { it }
 
     override val libraries = libraryService.libraries
     override val contentLibraries = libraries.filtering { it.type != LibraryType.Excluded }

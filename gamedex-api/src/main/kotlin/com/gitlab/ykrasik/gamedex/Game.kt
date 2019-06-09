@@ -37,7 +37,7 @@ data class Game(
     val gameData: GameData,
     val folderName: FolderName,
     val fileTree: Ref<FileTree?>,
-    val reportTags: List<TagId>
+    val filterTags: List<TagId>
 ) {
     val id get() = rawGame.id
     val path by lazy { library.path.resolve(metadata.path) }
@@ -110,7 +110,7 @@ data class Game(
                 version = null
             ),
             fileTree = ref(null),
-            reportTags = emptyList()
+            filterTags = emptyList()
         )
     }
 }

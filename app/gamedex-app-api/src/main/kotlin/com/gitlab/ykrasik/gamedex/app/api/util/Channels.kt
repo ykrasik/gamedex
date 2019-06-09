@@ -46,7 +46,7 @@ interface MultiReceiveChannel<T> {
 
     fun filter(filter: suspend (T) -> Boolean): MultiReceiveChannel<T>
 
-    fun distinctUntilChanged(): MultiReceiveChannel<T>
+    fun distinctUntilChanged(equals: (T, T) -> Boolean = { t1, t2 -> t1 == t2 }): MultiReceiveChannel<T>
 
     fun drop(amount: Int): MultiReceiveChannel<T>
 }
@@ -138,11 +138,12 @@ class MultiChannel<T>(
         return channel
     }
 
-    override fun distinctUntilChanged(): MultiReceiveChannel<T> {
+    override fun distinctUntilChanged(equals: (T, T) -> Boolean): MultiReceiveChannel<T> {
         var last: T? = null
-        return filter {
-            val keep = it != last
-            last = it
+        return filter { value ->
+            val lastValue = last
+            val keep = lastValue == null || !equals(value, lastValue)
+            last = value
             keep
         }
     }
@@ -177,6 +178,7 @@ fun <T> ReceiveChannel<T>.bind(channel: SendChannel<T>, context: CoroutineContex
 }
 
 fun <T> channel(): MultiChannel<T> = MultiChannel(capacity = 32)
+fun <T> conflatedChannel(initial: T) = Channel<T>(Channel.CONFLATED).apply { offer(initial) }
 
 fun <A, B> ReceiveChannel<A>.combineLatest(
     other: ReceiveChannel<B>,
@@ -189,7 +191,7 @@ fun <A, B> ReceiveChannel<A>.combineLatest(
     var latestA: A? = null
     var latestB: B? = null
 
-    GlobalScope.launch(context) {
+    GlobalScope.launch(context, CoroutineStart.UNDISPATCHED) {
         sourceA.consumeEach { a ->
             latestA = a
             if (latestA != null && latestB != null) {
@@ -198,7 +200,7 @@ fun <A, B> ReceiveChannel<A>.combineLatest(
         }
     }
 
-    GlobalScope.launch(context) {
+    GlobalScope.launch(context, CoroutineStart.UNDISPATCHED) {
         sourceB.consumeEach { b ->
             latestB = b
             if (latestA != null && latestB != null) {

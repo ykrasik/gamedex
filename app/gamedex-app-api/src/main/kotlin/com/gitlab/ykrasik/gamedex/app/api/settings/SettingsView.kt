@@ -27,5 +27,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 interface SettingsView : ConfirmationView {
     val resetDefaultsActions: MultiReceiveChannel<Unit>
 
-    fun confirmResetDefaults(): Boolean
+    suspend fun confirmResetDefaults(): Boolean
 }

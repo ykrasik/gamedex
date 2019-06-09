@@ -17,7 +17,14 @@
 package com.gitlab.ykrasik.gamedex.core.filter
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.FilterId
+import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
+import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilterData
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
+import com.gitlab.ykrasik.gamedex.core.task.Task
+import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 
 /**
  * User: ykrasik
@@ -25,7 +32,28 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
  * Time: 22:53
  */
 interface FilterService {
-    fun createContext(): Filter.Context
+    val userFilters: ListObservable<NamedFilter>
+
+    operator fun get(id: FilterId): NamedFilter
+
+    fun add(data: NamedFilterData): Task<NamedFilter>
+
+    fun update(filter: NamedFilter, data: NamedFilterData): Task<NamedFilter>
+
+    fun delete(filter: NamedFilter): Task<Unit>
+
+    fun getSystemFilter(name: String): Filter?
+    fun putSystemFilter(name: String, filter: Filter)
+    fun getOrPutSystemFilter(name: String, default: () -> Filter): Filter =
+        getSystemFilter(name) ?: default().also { putSystemFilter(name, it) }
+
+    fun calcFilterTags(game: Game): List<TagId>
 
     fun filter(games: List<Game>, filter: Filter): List<Game>
+}
+
+sealed class FilterEvent : CoreEvent {
+    data class Added(val filters: List<NamedFilter>) : FilterEvent()
+    data class Deleted(val filters: List<NamedFilter>) : FilterEvent()
+    data class Updated(val filters: List<Pair<NamedFilter, NamedFilter>>) : FilterEvent()
 }

@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.core.common.*
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
-import com.gitlab.ykrasik.gamedex.core.filter.presenter.FilterPresenter
+import com.gitlab.ykrasik.gamedex.core.filter.module.FilterModule
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
 import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
@@ -33,7 +33,6 @@ import com.gitlab.ykrasik.gamedex.core.plugin.DirectoryPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManager
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManagerImpl
 import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderModule
-import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
@@ -85,15 +84,13 @@ object CoreModule : InternalCoreModule() {
         install(LogModule)
         install(PersistenceModule)
         install(ProviderModule)
-        install(ReportModule)
+        install(FilterModule)
     }
 
     private fun bindPresenters() {
         bind(ExternalHidePresenter::class.java)
 
         bindPresenter(TaskPresenter::class)
-
-        bindPresenter(FilterPresenter::class)
 
         bindPresenter(ShowSettingsPresenter::class)
         bindPresenter(SettingsPresenter::class)

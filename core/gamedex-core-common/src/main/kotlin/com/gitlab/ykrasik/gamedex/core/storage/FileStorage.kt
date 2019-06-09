@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.storage
 
 import com.gitlab.ykrasik.gamedex.util.file
+import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.objectMapper
 import java.io.File
 import java.nio.file.Files
@@ -34,6 +35,8 @@ class FileStorage<K, V>(
     private val namingStrategy: FileStorageNamingStrategy<K>,
     private val keyGenerator: FileStorageKeyGenerator<K>?
 ) : Storage<K, V> {
+    private val log = logger()
+
     init {
         keyGenerator?.init(ids())
     }
@@ -70,19 +73,27 @@ class FileStorage<K, V>(
     override fun get(key: K): V? {
         val file = fileFor(key)
         return if (file.isFile) {
-            format.read(file)
+            readFile(file)
         } else {
             null
         }
     }
 
     override fun getAll() = streamFiles { stream ->
-        stream.map { file ->
+        stream.mapNotNull { file ->
             val key = namingStrategy.toKey(file)
-            val value = format.read(file)
-            key to value
+            val value = readFile(file)
+            value?.let { key to it }
         }.toMap()
     } ?: emptyMap()
+
+    private fun readFile(file: File): V? =
+        try {
+            format.read(file)
+        } catch (e: Exception) {
+            log.error("Error reading file: $file", e)
+            null
+        }
 
     override fun delete(key: K) = fileFor(key).delete()
     override fun delete(keys: Iterable<K>) = keys.forEach { delete(it) }
@@ -122,7 +133,7 @@ class FileStorage<K, V>(
             private val basePath: File,
             private val format: FileStorageFormat<V>
         ) {
-            fun intId(): FileStorage<Int, V> = FileStorage(basePath, format, IntIdFileStorageNamingStrategy("json"), IntIdFileStorageKeyGenerator)
+            fun intId(): FileStorage<Int, V> = FileStorage(basePath, format, IntIdFileStorageNamingStrategy("json"), IntIdFileStorageKeyGenerator())
             fun stringId(): FileStorage<String, V> = FileStorage(basePath, format, StringIdFileStorageNamingStrategy("json"), keyGenerator = null)
         }
 
@@ -130,7 +141,7 @@ class FileStorage<K, V>(
             private val basePath: File,
             private val format: FileStorageFormat<ByteArray>
         ) {
-            fun intId(): FileStorage<Int, ByteArray> = FileStorage(basePath, format, IntIdFileStorageNamingStrategy("dat"), IntIdFileStorageKeyGenerator)
+            fun intId(): FileStorage<Int, ByteArray> = FileStorage(basePath, format, IntIdFileStorageNamingStrategy("dat"), IntIdFileStorageKeyGenerator())
             fun stringId(
                 extension: String? = null,
                 keyTransform: (String) -> String = { it },
@@ -180,7 +191,7 @@ interface FileStorageKeyGenerator<K> {
     fun nextKey(): K
 }
 
-object IntIdFileStorageKeyGenerator : FileStorageKeyGenerator<Int> {
+class IntIdFileStorageKeyGenerator : FileStorageKeyGenerator<Int> {
     private val currentId = AtomicInteger()
 
     override fun init(keys: List<Int>) {

@@ -26,5 +26,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 interface ClearUserDataView {
     val clearUserDataActions: MultiReceiveChannel<Unit>
 
-    fun confirmClearUserData(): Boolean
+    suspend fun confirmClearUserData(): Boolean
 }

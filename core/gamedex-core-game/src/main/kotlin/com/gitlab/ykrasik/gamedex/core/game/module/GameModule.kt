@@ -19,9 +19,10 @@ package com.gitlab.ykrasik.gamedex.core.game.module
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
+import com.gitlab.ykrasik.gamedex.core.game.presenter.GameDisplayTypePresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.GameSortPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.GamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.SelectPlatformPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.SortGamesPresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.PlatformPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.DeleteGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.ShowDeleteGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.details.GameDetailsPresenter
@@ -49,9 +50,10 @@ object GameModule : InternalCoreModule() {
         bind(GameService::class.java).to(GameServiceImpl::class.java)
 
         bindPresenter(GamesPresenter::class)
-        bindPresenter(SelectPlatformPresenter::class)
+        bindPresenter(PlatformPresenter::class)
+        bindPresenter(GameDisplayTypePresenter::class)
         bindPresenter(CurrentPlatformFilterPresenter::class)
-        bindPresenter(SortGamesPresenter::class)
+        bindPresenter(GameSortPresenter::class)
 
         bindPresenter(DeleteGamePresenter::class)
         bindPresenter(ShowDeleteGamePresenter::class)

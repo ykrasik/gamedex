@@ -19,18 +19,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.filter
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
-import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
+import com.gitlab.ykrasik.gamedex.app.api.filter.*
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.javafx.combineLatest
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.onInvalidated
-import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
-import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Extractor
@@ -46,6 +41,8 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
+import kotlinx.coroutines.Job
+import org.controlsfx.control.PopOver
 import org.joda.time.DurationFieldType
 import org.joda.time.LocalDate
 import org.joda.time.Period
@@ -59,7 +56,13 @@ import kotlin.reflect.KClass
  * Date: 27/01/2018
  * Time: 13:07
  */
-class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) : PresentableView(), FilterView {
+class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Boolean = false) : PresentableView(),
+    FilterView,
+    ViewWithFilters,
+    ViewCanSaveFilter,
+    ViewCanEditFilter,
+    ViewCanDeleteFilter {
+
     override val filter = state(Filter.Null)
     override val filterIsValid = state(IsValid.valid)
     override val setFilterActions = channel<Filter>()
@@ -69,7 +72,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     override val availableLibraries = mutableListOf<Library>()
     override val availableGenres = mutableListOf<String>()
     override val availableTags = mutableListOf<TagId>()
-    override val availableReportTags = mutableListOf<TagId>()
+    override val availableFilterTags = mutableListOf<TagId>()
     override val availableProviderIds = mutableListOf<ProviderId>().asObservable()
 
     override val wrapInAndActions = channel<Filter>()
@@ -81,7 +84,19 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
     override val deleteFilterActions = channel<Filter>()
 
+    override val savedFilters = mutableListOf<NamedFilter>().asObservable()
+    override val saveFilterActions = channel<Filter>()
+    override val editFilterActions = channel<NamedFilter>()
+    override val deleteNamedFilterActions = channel<NamedFilter>()
+
     private val commonOps: JavaFxCommonOps by di()
+
+    private val savedFilterPreviewContent: JavaFxFilterView by lazy { JavaFxFilterView(allowSaveLoad = false, readOnly = true) }
+    private val savedFilterPreview by lazy {
+        popOver(arrowLocation = PopOver.ArrowLocation.LEFT_TOP) {
+            addComponent(savedFilterPreviewContent)
+        }
+    }
 
     private var indent = 0
 
@@ -95,6 +110,9 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             get() = filter.value
             set(value) {
                 prevExternalFilter = value
+                // We have to set the value of the filter manually before sending an event to setFilterActions,
+                // because due to the async nature of channels, the code that relies on this value to have
+                // been set will actually run before the code of setFilterActions had a chance to run.
                 filter.value = value
                 setFilterActions.offer(value)
             }
@@ -111,14 +129,76 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         }
     }
 
-    override val root = vbox {
-        filter.property.addListener { _, oldValue, newValue -> reRender(newValue, prevFilter = oldValue) }
-        availableFilters.onChange { reRender(filter.property.value, prevFilter = null) }
+    override val root = defaultVbox {
+        isMouseTransparent = readOnly
+        if (allowSaveLoad) {
+            defaultHbox {
+                spacer()
+                buttonWithPopover("Saved", Icons.files.size(22), arrowLocation = PopOver.ArrowLocation.LEFT_TOP) {
+                    savedFilters.perform { filters ->
+                        replaceChildren {
+                            confirmButton("Save", Icons.save.size(22)) {
+                                action(saveFilterActions) { filter.value }
+                                useMaxWidth = true
+                            }
+                            gridpane {
+                                hgap = 5.0
+                                vgap = 3.0
+                                usePrefWidth = true
+                                filters.forEach { filter ->
+                                    row {
+                                        infoButton(filter.name, graphic = Icons.load.size(22)) {
+                                            useMaxWidth = true
+                                            alignment = Pos.CENTER_LEFT
+                                            previewFilterOnHover(filter.filter)
+                                            action(setFilterActions) {
+                                                popOver.hide()
+                                                filter.filter
+                                            }
+                                        }
+                                        editButton(isToolbarButton = false) {
+                                            action(editFilterActions) { filter }
+                                        }
+                                        deleteButton(isToolbarButton = false) {
+                                            action(deleteNamedFilterActions) { filter }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }.apply {
+                    tooltip("Saved Filters")
+                }
+            }
+            verticalGap()
+        }
+        vbox {
+            filter.property.addListener { _, oldValue, newValue -> reRender(newValue, prevFilter = oldValue) }
+            availableFilters.onChange { reRender(filter.property.value, prevFilter = null) }
+        }
     }
 
     init {
         // This HAS to be called AFTER registering the above listeners which re-render the filters!!!
-        register()
+        if (!readOnly) {
+            register()
+        }
+    }
+
+    private fun Node.previewFilterOnHover(filter: Filter) {
+        var debounceJob: Job? = null
+        setOnMouseEntered {
+            debounceJob?.cancel()
+            debounceJob = debounce(millis = 200) {
+                savedFilterPreviewContent.userMutableState.value = filter
+                savedFilterPreview.show(this@previewFilterOnHover)
+            }
+        }
+        setOnMouseExited {
+            debounceJob?.cancel()
+            savedFilterPreview.hide()
+        }
     }
 
     private fun Node.reRender(filter: Filter, prevFilter: Filter?): Unit = replaceChildren {
@@ -145,7 +225,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                     is Filter.Library -> renderLibraryFilter(filter)
                     is Filter.Genre -> renderGenreFilter(filter)
                     is Filter.Tag -> renderTagFilter(filter)
-                    is Filter.ReportTag -> renderReportTagFilter(filter)
+                    is Filter.FilterTag -> renderFilterTagFilter(filter)
                     is Filter.Provider -> renderProviderFilter(filter)
                     is Filter.CriticScore -> renderScoreFilter(filter, Filter::CriticScore)
                     is Filter.UserScore -> renderScoreFilter(filter, Filter::UserScore)
@@ -241,9 +321,11 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
 
         op()
 
-        spacer()
-        gap()
-        renderAdditionalButtons(target)
+        if (!readOnly) {
+            spacer()
+            gap()
+            renderAdditionalButtons(target)
+        }
     }
 
     private fun HBox.renderAdditionalButtons(filter: Filter) {
@@ -306,10 +388,10 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         )
     }
 
-    private fun HBox.renderReportTagFilter(filter: Filter.ReportTag) {
-        val tag = filter.toProperty(Filter.ReportTag::tag, Filter::ReportTag)
+    private fun HBox.renderFilterTagFilter(filter: Filter.FilterTag) {
+        val tag = filter.toProperty(Filter.FilterTag::tag, Filter::FilterTag)
         popoverComboMenu(
-            possibleItems = availableReportTags,
+            possibleItems = availableFilterTags,
             selectedItemProperty = tag
         )
     }
@@ -440,7 +522,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             FilterDisplayDescriptor(Filter.Library::class, "Library", Icons::folder),
             FilterDisplayDescriptor(Filter.Genre::class, "Genre", Icons::masks),
             FilterDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
-            FilterDisplayDescriptor(Filter.ReportTag::class, "Report Tag", { Icons.tag.color(Color.BLACK) }),
+            FilterDisplayDescriptor(Filter.FilterTag::class, "Filter Tag", { Icons.tag.color(Color.BLACK) }),
             FilterDisplayDescriptor(Filter.Provider::class, "Provider", Icons::cloud, gap = true),
 
             score<Filter.CriticScore>("Critic Score", Icons::starFull),

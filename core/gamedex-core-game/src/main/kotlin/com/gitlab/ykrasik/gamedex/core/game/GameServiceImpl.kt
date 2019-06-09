@@ -21,9 +21,9 @@ import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.filter.FilterEvent
 import com.gitlab.ykrasik.gamedex.core.library.LibraryEvent
 import com.gitlab.ykrasik.gamedex.core.on
-import com.gitlab.ykrasik.gamedex.core.report.ReportEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
@@ -62,7 +62,7 @@ class GameServiceImpl @Inject constructor(
         eventBus.on<LibraryEvent.Deleted>(Dispatchers.IO) { repo.invalidate() }
         eventBus.on<LibraryEvent.Updated> { rebuildGames() }
 
-        eventBus.on<ReportEvent> { rebuildGames() }
+        eventBus.on<FilterEvent> { rebuildGames() }
 
         settingsService.providerOrder.dataChannel.drop(1).subscribe {
             rebuildGames()
