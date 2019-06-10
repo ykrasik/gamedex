@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.DeleteFilterView
 import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
-import com.gitlab.ykrasik.gamedex.javafx.addComponent
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
@@ -44,6 +45,11 @@ class JavaFxDeleteFilterView : ConfirmationWindow(icon = Icons.delete), DeleteFi
     }
 
     override val root = buildAreYouSure {
-        addComponent(filterView)
+        prettyScrollPane {
+            maxHeight = screenBounds.height / 2
+            isFitToWidth = true
+            isFitToHeight = true
+            content = filterView.root
+        }
     }
 }

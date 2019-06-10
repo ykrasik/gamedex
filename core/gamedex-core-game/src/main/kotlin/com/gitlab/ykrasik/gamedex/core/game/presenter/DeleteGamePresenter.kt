@@ -14,30 +14,56 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.filter.presenter
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
-import com.gitlab.ykrasik.gamedex.app.api.filter.ViewCanSaveFilter
+import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 13/01/2019
- * Time: 13:27
+ * Date: 02/05/2018
+ * Time: 10:46
  */
 @Singleton
-class ShowSaveFilterPresenter @Inject constructor(
-    private val viewManager: ViewManager
-) : Presenter<ViewCanSaveFilter> {
-    override fun present(view: ViewCanSaveFilter) = object : ViewSession() {
+class DeleteGamePresenter @Inject constructor(
+    private val taskService: TaskService,
+    private val gameService: GameService,
+    private val fileSystemService: FileSystemService,
+    private val eventBus: EventBus
+) : Presenter<DeleteGameView> {
+    override fun present(view: DeleteGameView) = object : ViewSession() {
+        private val game by view.game
+
         init {
-            view.saveFilterActions.forEach {
-                viewManager.showEditFilterView(NamedFilter.anonymous(it))
-            }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
+
+        override suspend fun onShown() {
+            view.fromFileSystem *= false
+        }
+
+        private suspend fun onAccept() {
+            if (view.fromFileSystem.value) {
+                fileSystemService.delete(game.path)
+            }
+
+            taskService.execute(gameService.delete(game))
+
+            hideView()
+        }
+
+        private fun onCancel() {
+            hideView()
+        }
+
+        private fun hideView() = eventBus.requestHideView(view)
     }
 }

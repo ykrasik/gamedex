@@ -14,54 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.delete
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/05/2018
- * Time: 10:46
+ * Date: 08/06/2018
+ * Time: 09:38
  */
 @Singleton
-class DeleteGamePresenter @Inject constructor(
-    private val taskService: TaskService,
-    private val gameService: GameService,
-    private val fileSystemService: FileSystemService,
-    private val eventBus: EventBus
-) : Presenter<DeleteGameView> {
-    override fun present(view: DeleteGameView) = object : ViewSession() {
+class ShowGameDetailsViewPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanShowGameDetails> {
+    init {
+        eventBus.onHideViewRequested<GameDetailsView> { viewManager.hide(it) }
+    }
+
+    override fun present(view: ViewCanShowGameDetails) = object : ViewSession() {
         init {
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            view.fromFileSystem *= false
-        }
-
-        private suspend fun onAccept() {
-            if (view.fromFileSystem.value) {
-                fileSystemService.delete(view.game.path)
+            view.viewGameDetailsActions.forEach { params ->
+                viewManager.showGameDetailsView(params)
             }
-
-            taskService.execute(gameService.delete(view.game))
-
-            hideView()
         }
-
-        private fun onCancel() {
-            hideView()
-        }
-
-        private fun hideView() = eventBus.requestHideView(view)
     }
 }

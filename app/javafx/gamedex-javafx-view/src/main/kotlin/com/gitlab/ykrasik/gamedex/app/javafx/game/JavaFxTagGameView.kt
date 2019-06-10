@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.game.tag
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
@@ -25,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.plusButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
 import tornadofx.*
@@ -36,8 +35,7 @@ import tornadofx.*
  * Time: 10:12
  */
 class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
-    private val gameProperty = SimpleObjectProperty(Game.Null)
-    override var game by gameProperty
+    override val game = userMutableState(Game.Null)
 
     override val tags = mutableListOf<String>().asObservable()
     override val checkedTags = mutableSetOf<String>().asObservable()
@@ -53,7 +51,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
     override val addNewTagActions = channel<Unit>()
 
     init {
-        titleProperty.bind(gameProperty.stringBinding { "Tag '${it!!.name}'" })
+        titleProperty.bind(game.property.stringBinding { "Tag '${it!!.name}'" })
         checkedTags.onChange { tags.invalidate() }
         register()
     }

@@ -14,8 +14,9 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.details
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.util.debounce
@@ -101,8 +102,10 @@ class GameDetailsPresenter @Inject constructor(
             // This is a workaround to cover the case where the game is re-synced.
             // Re-syncing will hide this view (which will make it not update the gameParams on GameEvent.Updated)
             // this view will then be re-opened again after syncing, but will show the old game, unless we run this code.
-            val game = gameService[gameParams.game.id]
-            gameParams = gameParams.copy(game = game)
+            if (gameParams.game.id != Game.Null.id) {
+                val game = gameService[gameParams.game.id]
+                gameParams = gameParams.copy(game = game)
+            }
         }
 
         private fun hideView() {

@@ -47,6 +47,7 @@ class RenameMoveGamePresenter @Inject constructor(
 ) : Presenter<RenameMoveGameView> {
     override fun present(view: RenameMoveGameView) = object : ViewSession() {
         private val log = logger()
+        private val game by view.game
         private var library by view.library
         private var path by view.path
         private var name by view.name
@@ -63,7 +64,6 @@ class RenameMoveGamePresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            val game = view.game
             library = game.library
             name = view.initialName ?: game.rawGame.metadata.path.file.name
             path = game.rawGame.metadata.path.file.let { it.parentFile?.path ?: "" }
@@ -103,7 +103,7 @@ class RenameMoveGamePresenter @Inject constructor(
                 val file = basePath.resolve(name)
                 if (file.exists()) {
                     // Windows is case insensitive.
-                    val gamePath = view.game.path.path
+                    val gamePath = game.path.path
                     if (file.path == gamePath || !file.path.equals(gamePath, ignoreCase = true)) {
                         error("Already exists!")
                     }
@@ -114,7 +114,6 @@ class RenameMoveGamePresenter @Inject constructor(
 
         private suspend fun onAccept() {
             view.canAccept.assert()
-            val game = view.game
             val newPath = path.file.resolve(name)
             val fullPath = library.path.resolve(newPath)
             log.info("Renaming/Moving: ${game.path} -> $fullPath")

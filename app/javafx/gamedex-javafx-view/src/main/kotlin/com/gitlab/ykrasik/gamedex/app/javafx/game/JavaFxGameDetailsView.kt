@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.game.details
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
@@ -101,12 +101,6 @@ class JavaFxGameDetailsView(
     private val noBackgroundProperty = noBackground.toProperty()
 
     private var slideDirection = ViewTransition.Direction.LEFT
-
-    init {
-        register()
-
-        titleProperty.bind(game.stringBinding { it?.name })
-    }
 
     val customizeOverlay: OverlayPane.OverlayLayer.() -> Unit = {
         val overlayPane = this
@@ -514,6 +508,15 @@ class JavaFxGameDetailsView(
         add(icon.size(size).apply {
             gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
         })
+
+    init {
+        // This view must call init manually because it is not created via 'inject'
+        init()
+
+        register()
+
+        titleProperty.bind(game.stringBinding { it?.name })
+    }
 
     class Style : Stylesheet() {
         companion object {

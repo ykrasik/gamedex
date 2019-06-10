@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
@@ -28,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.HPos
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -42,8 +41,7 @@ import java.io.File
 class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView, ViewCanOpenFile {
     override var initialName: String? = null
 
-    private val gameProperty = SimpleObjectProperty(Game.Null)
-    override var game by gameProperty
+    override val game = userMutableState(Game.Null)
 
     override val possibleLibraries = mutableListOf<Library>().asObservable()
 
@@ -56,7 +54,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     override val openFileActions = channel<File>()
 
     init {
-        titleProperty.bind(gameProperty.stringBinding { "Rename/Move '${it!!.name}'" })
+        titleProperty.bind(game.property.stringBinding { "Rename/Move '${it!!.name}'" })
         register()
     }
 
@@ -70,8 +68,8 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                 fieldset("From") {
                     horizontalField {
                         jfxButton {
-                            textProperty().bind(gameProperty.stringBinding { it!!.path.toString() })
-                            action(openFileActions) { game.path }
+                            textProperty().bind(game.property.stringBinding { it!!.path.toString() })
+                            action(openFileActions) { game.value.path }
                         }
                     }
                 }

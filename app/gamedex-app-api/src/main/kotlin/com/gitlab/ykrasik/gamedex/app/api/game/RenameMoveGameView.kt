@@ -32,7 +32,7 @@ import java.io.File
  */
 interface RenameMoveGameView : ConfirmationView {
     val initialName: String?
-    val game: Game
+    val game: UserMutableState<Game>
 
     val possibleLibraries: MutableList<Library>
 

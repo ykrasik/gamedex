@@ -14,11 +14,11 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.delete
+package com.gitlab.ykrasik.gamedex.core.filter.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
+import com.gitlab.ykrasik.gamedex.app.api.filter.EditFilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.ViewCanAddOrEditFilter
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -28,22 +28,22 @@ import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/06/2018
- * Time: 09:27
+ * Date: 24/06/2018
+ * Time: 18:08
  */
 @Singleton
-class ShowDeleteGamePresenter @Inject constructor(
+class ShowAddOrEditFilterPresenter @Inject constructor(
     private val viewManager: ViewManager,
     eventBus: EventBus
-) : Presenter<ViewCanDeleteGame> {
+) : Presenter<ViewCanAddOrEditFilter> {
     init {
-        eventBus.onHideViewRequested<DeleteGameView> { viewManager.hide(it) }
+        eventBus.onHideViewRequested<EditFilterView> { viewManager.hide(it) }
     }
 
-    override fun present(view: ViewCanDeleteGame) = object : ViewSession() {
+    override fun present(view: ViewCanAddOrEditFilter) = object : ViewSession() {
         init {
-            view.deleteGameActions.forEach { game ->
-                viewManager.showDeleteGameView(game)
+            view.addOrEditFilterActions.forEach {
+                viewManager.showEditFilterView(it)
             }
         }
     }

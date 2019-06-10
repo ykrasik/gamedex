@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
  * Time: 10:42
  */
 interface DeleteGameView : ConfirmationView {
-    val game: Game
+    val game: UserMutableState<Game>
 
     val fromFileSystem: UserMutableState<Boolean>
 }

@@ -44,8 +44,7 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-// TODO: Allow adding extra buttons, like for report screen.
-class GameContextMenu : InstallableContextMenu<ViewGameParams>(),
+class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGameParams>(),
     ViewCanShowGameDetails,
     ViewCanEditGame,
     ViewCanDeleteGame,
@@ -64,14 +63,12 @@ class GameContextMenu : InstallableContextMenu<ViewGameParams>(),
     override val canResyncGame = state(IsValid.valid)
     override val resyncGameActions = channel<Game>()
 
-    init {
-        register()
-    }
-
     override val root = vbox {
         addClass(GameDexStyle.popOverMenu)
-        item("View", Icons.view) { action(viewGameDetailsActions) { data } }
-        verticalGap()
+        if (canView) {
+            item("View", Icons.view) { action(viewGameDetailsActions) { data } }
+            verticalGap()
+        }
         item("Edit", Icons.edit) { action { editGame(GameDataType.Name) } }
         item("Change Thumbnail", Icons.thumbnail) { action { editGame(GameDataType.Thumbnail) } }
         verticalGap()
@@ -102,4 +99,11 @@ class GameContextMenu : InstallableContextMenu<ViewGameParams>(),
     }
 
     private fun editGame(initialView: GameDataType) = editGameActions.event(EditGameParams(data.game, initialView))
+
+    init {
+        // This view must call init manually because it is not created via 'inject'
+        init()
+
+        register()
+    }
 }

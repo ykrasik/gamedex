@@ -29,7 +29,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 18:10
  */
 interface TagGameView : ConfirmationView {
-    val game: Game
+    val game: UserMutableState<Game>
 
     val tags: MutableList<String>
     val checkedTags: MutableSet<String>

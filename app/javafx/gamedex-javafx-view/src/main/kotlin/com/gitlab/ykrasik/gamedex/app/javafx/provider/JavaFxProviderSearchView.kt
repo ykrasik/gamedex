@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchChoice
 import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
+import com.gitlab.ykrasik.gamedex.app.javafx.game.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*

@@ -317,7 +317,7 @@ class GameDexStyle : Stylesheet() {
         }
 
         scrollPane {
-            backgroundColor = multi(Color.WHITE)
+            backgroundColor = multi(Color.TRANSPARENT)
             viewport {
                 backgroundColor = multi(Color.TRANSPARENT)
             }

@@ -36,9 +36,8 @@ object FilterModule : InternalCoreModule() {
         bindPresenter(EditFilterPresenter::class)
         bindPresenter(FilterPresenter::class)
         bindPresenter(FiltersPresenter::class)
+        bindPresenter(ShowAddOrEditFilterPresenter::class)
         bindPresenter(ShowDeleteFilterPresenter::class)
-        bindPresenter(ShowEditFilterPresenter::class)
-        bindPresenter(ShowSaveFilterPresenter::class)
     }
 
     @Provides

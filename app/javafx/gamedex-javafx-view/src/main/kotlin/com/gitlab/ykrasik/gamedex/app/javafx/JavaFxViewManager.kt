@@ -42,11 +42,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxAboutView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxBrowserView
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxDeleteFilterView
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxEditFilterView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.game.*
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageGalleryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
@@ -125,19 +121,19 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: EditGameView) = view.hideOverlay()
 
     private val deleteGameView: JavaFxDeleteGameView by inject()
-    override fun showDeleteGameView(game: Game) = deleteGameView.showOverlay { this.game = game }
+    override fun showDeleteGameView(game: Game) = deleteGameView.showOverlay { this.game.valueFromView = game }
     override fun hide(view: DeleteGameView) = view.hideOverlay()
 
     private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
     override fun showRenameMoveGameView(params: RenameMoveGameParams) = renameMoveGameView.showOverlay {
-        this.game = params.game
+        this.game.valueFromView = params.game
         this.initialName = params.initialSuggestion
     }
 
     override fun hide(view: RenameMoveGameView) = view.hideOverlay()
 
     private val tagGameView: JavaFxTagGameView by inject()
-    override fun showTagGameView(game: Game) = tagGameView.showOverlay(modal = true) { this.game = game }
+    override fun showTagGameView(game: Game) = tagGameView.showOverlay(modal = true) { this.game.valueFromView = game }
     override fun hide(view: TagGameView) = view.hideOverlay()
 
     private val editFilterView: JavaFxEditFilterView by inject()
@@ -165,7 +161,7 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: ResyncGamesView) = view.hideOverlay()
 
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
-    override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showOverlay(modal = true) { this.staleData = staleData }
+    override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showOverlay(modal = true) { this.staleData.valueFromView = staleData }
     override fun hide(view: CleanupDatabaseView) = view.hideOverlay()
 
     private val importDatabaseView: JavaFxImportDatabaseView by inject()

@@ -14,15 +14,32 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.filter
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import tornadofx.stringBinding
 
 /**
  * User: ykrasik
- * Date: 13/01/2019
- * Time: 12:55
+ * Date: 02/05/2018
+ * Time: 22:08
  */
-interface ViewCanSaveFilter {
-    val saveFilterActions: MultiReceiveChannel<Filter>
+class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGameView {
+    override val game = userMutableState(Game.Null)
+
+    override val fromFileSystem = userMutableState(false)
+
+    init {
+        titleProperty.bind(game.property.stringBinding { "Delete '${it!!.name}'?" })
+        register()
+    }
+
+    override val root = buildAreYouSure {
+        jfxCheckBox(fromFileSystem.property, "From File System")
+    }
 }

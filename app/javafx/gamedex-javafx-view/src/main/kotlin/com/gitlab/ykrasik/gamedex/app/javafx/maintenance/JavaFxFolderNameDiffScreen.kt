@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffs
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
+import com.gitlab.ykrasik.gamedex.app.javafx.game.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -56,7 +56,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     ViewCanShowGameDetails,
     ViewCanRenameMoveGame {
 
-    private val gameContextMenu: GameContextMenu by inject()
+    private val gameContextMenu = GameContextMenu()
     private val commonOps: JavaFxCommonOps by di()
 
     override val diffs = mutableListOf<FolderNameDiffs>().asObservable()

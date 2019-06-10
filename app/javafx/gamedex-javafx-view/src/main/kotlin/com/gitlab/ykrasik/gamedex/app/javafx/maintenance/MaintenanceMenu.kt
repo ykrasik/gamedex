@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.popOverSubMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
 import tornadofx.hbox
@@ -40,7 +40,7 @@ import tornadofx.useMaxWidth
  * Date: 05/06/2017
  * Time: 14:57
  */
-class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
+class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     ViewCanExportDatabase,
     ViewCanImportDatabase,
     ClearUserDataView,

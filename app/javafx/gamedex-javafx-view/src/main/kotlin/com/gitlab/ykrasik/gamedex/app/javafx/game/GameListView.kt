@@ -20,8 +20,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsSummaryBuilder
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyListCell
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyListView
@@ -42,6 +40,7 @@ import java.io.File
  * Time: 16:25
  */
 class GameListView(games: ObservableList<Game>) : PresentableView("Game List"), ViewCanOpenFile {
+    private val gameContextMenu = GameContextMenu(canView = false)
 
     private val gameDetailsView = JavaFxGameDetailsView(
         canClose = false,
@@ -56,6 +55,7 @@ class GameListView(games: ObservableList<Game>) : PresentableView("Game List"), 
         prefWidth = 900.0
         maxWidth = prefWidth
         prettyListCell { game ->
+            gameContextMenu.install(this) { ViewGameParams(game, emptyList()) }
             text = null
             graphic = GameDetailsSummaryBuilder(game) {
                 nameOp = { maxWidth = 550.0 }
@@ -83,6 +83,9 @@ class GameListView(games: ObservableList<Game>) : PresentableView("Game List"), 
     }
 
     init {
+        // This view must call init manually because it is not created via 'inject'
+        init()
+
         register()
     }
 }

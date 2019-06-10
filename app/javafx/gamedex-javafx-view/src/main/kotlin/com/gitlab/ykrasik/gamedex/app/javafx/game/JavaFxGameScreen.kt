@@ -107,18 +107,19 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     }
 
     override val root = stackpane {
-        children += gameWallView.root.apply {
-            showWhen { gameDisplayType.property.isEqualTo(GameDisplayType.Wall) }
-        }
-        children += gameListView.root.apply {
-            showWhen { gameDisplayType.property.isEqualTo(GameDisplayType.List) }
+        gameDisplayType.perform { type ->
+            replaceChildren {
+                when (type!!) {
+                    GameDisplayType.Wall -> addComponent(gameWallView)
+                    GameDisplayType.List -> addComponent(gameListView)
+                }
+            }
         }
     }
 
     private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnAction = false) {
         addComponent(filterView) {
-            saveFilterActions.forEach { hide() }
-            editFilterActions.forEach { hide() }
+            addOrEditFilterActions.forEach { hide() }
             deleteNamedFilterActions.forEach { hide() }
         }
     }.apply {

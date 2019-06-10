@@ -31,7 +31,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 12:29
  */
 interface CleanupDatabaseView : ConfirmationView {
-    val staleData: StaleData
+    val staleData: UserMutableState<StaleData>
 
     val librariesAndGames: StaleDataCategory
     val images: StaleDataCategory

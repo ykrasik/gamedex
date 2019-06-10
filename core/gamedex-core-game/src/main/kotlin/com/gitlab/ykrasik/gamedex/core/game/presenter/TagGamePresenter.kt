@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.tag
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
 import com.gitlab.ykrasik.gamedex.core.CommonData
@@ -41,6 +41,8 @@ class TagGamePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<TagGameView> {
     override fun present(view: TagGameView) = object : ViewSession() {
+        private val game by view.game
+
         init {
             view.toggleAll.forEach { onToggleAllChanged(it) }
             view.checkTagChanges.forEach { (tag, checked) -> onCheckTagChanged(tag, checked) }
@@ -52,7 +54,6 @@ class TagGamePresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            val game = view.game
             view.tags.setAll(commonData.tags)
             view.checkedTags.setAll(game.tags)
             view.toggleAll *= view.tags.toSet() == game.tags.toSet()
@@ -85,7 +86,7 @@ class TagGamePresenter @Inject constructor(
 
         private fun setCanAccept() {
             view.canAccept *= Try {
-                check(view.checkedTags != view.game.tags.toSet()) { "Nothing changed!" }
+                check(view.checkedTags != game.tags.toSet()) { "Nothing changed!" }
             }
         }
 
@@ -110,9 +111,9 @@ class TagGamePresenter @Inject constructor(
 
         private suspend fun onAccept() {
             view.canAccept.assert()
-            val newUserData = view.game.rawGame.userData.copy(tags = view.checkedTags.toList().sorted())
-            val newRawGame = view.game.rawGame.copy(userData = newUserData)
-            taskService.execute(gameService.replace(view.game, newRawGame))
+            val newUserData = game.rawGame.userData.copy(tags = view.checkedTags.toList().sorted())
+            val newRawGame = game.rawGame.copy(userData = newUserData)
+            taskService.execute(gameService.replace(game, newRawGame))
 
             hideView()
         }

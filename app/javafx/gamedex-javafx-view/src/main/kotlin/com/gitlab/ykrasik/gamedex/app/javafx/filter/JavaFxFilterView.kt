@@ -59,8 +59,7 @@ import kotlin.reflect.KClass
 class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Boolean = false) : PresentableView(),
     FilterView,
     ViewWithFilters,
-    ViewCanSaveFilter,
-    ViewCanEditFilter,
+    ViewCanAddOrEditFilter,
     ViewCanDeleteFilter {
 
     override val filter = state(Filter.Null)
@@ -85,8 +84,7 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
     override val deleteFilterActions = channel<Filter>()
 
     override val savedFilters = mutableListOf<NamedFilter>().asObservable()
-    override val saveFilterActions = channel<Filter>()
-    override val editFilterActions = channel<NamedFilter>()
+    override val addOrEditFilterActions = channel<NamedFilter>()
     override val deleteNamedFilterActions = channel<NamedFilter>()
 
     private val commonOps: JavaFxCommonOps by di()
@@ -137,9 +135,11 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
                 buttonWithPopover("Saved", Icons.files.size(22), arrowLocation = PopOver.ArrowLocation.LEFT_TOP) {
                     savedFilters.perform { filters ->
                         replaceChildren {
-                            confirmButton("Save", Icons.save.size(22)) {
-                                action(saveFilterActions) { filter.value }
+                            addButton(isToolbarButton = false) {
+                                alignment = Pos.CENTER
                                 useMaxWidth = true
+                                tooltip("Add a new filter")
+                                action(addOrEditFilterActions) { NamedFilter.anonymous(filter.value) }
                             }
                             gridpane {
                                 hgap = 5.0
@@ -157,7 +157,7 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
                                             }
                                         }
                                         editButton(isToolbarButton = false) {
-                                            action(editFilterActions) { filter }
+                                            action(addOrEditFilterActions) { filter }
                                         }
                                         deleteButton(isToolbarButton = false) {
                                             action(deleteNamedFilterActions) { filter }

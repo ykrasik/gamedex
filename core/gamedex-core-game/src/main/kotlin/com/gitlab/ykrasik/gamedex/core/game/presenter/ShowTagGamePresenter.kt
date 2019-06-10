@@ -14,11 +14,11 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.details
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -28,22 +28,22 @@ import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 08/06/2018
- * Time: 09:38
+ * Date: 01/06/2018
+ * Time: 10:16
  */
 @Singleton
-class ShowGameDetailsViewPresenter @Inject constructor(
+class ShowTagGamePresenter @Inject constructor(
     private val viewManager: ViewManager,
     eventBus: EventBus
-) : Presenter<ViewCanShowGameDetails> {
+) : Presenter<ViewCanTagGame> {
     init {
-        eventBus.onHideViewRequested<GameDetailsView> { viewManager.hide(it) }
+        eventBus.onHideViewRequested<TagGameView> { viewManager.hide(it) }
     }
 
-    override fun present(view: ViewCanShowGameDetails) = object : ViewSession() {
+    override fun present(view: ViewCanTagGame) = object : ViewSession() {
         init {
-            view.viewGameDetailsActions.forEach { params ->
-                viewManager.showGameDetailsView(params)
+            view.tagGameActions.forEach { game ->
+                viewManager.showTagGameView(game)
             }
         }
     }

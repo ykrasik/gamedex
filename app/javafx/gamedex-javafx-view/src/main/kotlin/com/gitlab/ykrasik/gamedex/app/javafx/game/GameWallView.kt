@@ -56,11 +56,7 @@ class GameWallView(private val games: ObservableList<Game>) : PresentableView("G
 
     private val commonOps: JavaFxCommonOps by di()
 
-    private val gameContextMenu: GameContextMenu by inject()
-
-    init {
-        register()
-    }
+    private val gameContextMenu = GameContextMenu()
 
     override val root = prettyGridView(games) {
         cellHeightProperty().bind(gameWallDisplaySettings.height.property)
@@ -80,6 +76,13 @@ class GameWallView(private val games: ObservableList<Game>) : PresentableView("G
         }
 
         resetCellFactory()
+    }
+
+    init {
+        // This view must call init manually because it is not created via 'inject'
+        init()
+
+        register()
     }
 
     private inner class GameWallCell : GridCell<Game>() {

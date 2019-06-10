@@ -35,8 +35,8 @@ class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings, OverlayDispl
     override val fontSize = userMutableState(0)
     override val boldFont = userMutableState(false)
     override val italicFont = userMutableState(false)
-    override val textColor = userMutableState("")
-    override val backgroundColor = userMutableState("")
+    override val textColor = userMutableState("#000000")
+    override val backgroundColor = userMutableState("#000000")
     override val opacity = userMutableState(0.0)
 
     inline fun onChange(crossinline f: () -> Unit) = listOf(

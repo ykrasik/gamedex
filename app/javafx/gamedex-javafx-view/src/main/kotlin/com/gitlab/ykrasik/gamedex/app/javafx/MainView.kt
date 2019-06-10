@@ -113,10 +113,6 @@ class MainView : PresentableView("GameDex"),
         children += overlayPane
     }
 
-    init {
-        shortcut("ctrl+q", overlayPane::hideAll)
-    }
-
     private fun TabPane.tab(screen: PresentableScreen) = tab(screen) { userData = screen }
 
     private val mainNavigationButton = popOverMenu(graphic = Icons.menu) {
@@ -176,6 +172,8 @@ class MainView : PresentableView("GameDex"),
                 log.info("Total application start time: ${applicationStartTime.humanReadableDuration}")
             }
         }
+
+        shortcut("ctrl+q", overlayPane::hideAll)
     }
 
     private fun cleanupClosedTab(tab: Tab) {

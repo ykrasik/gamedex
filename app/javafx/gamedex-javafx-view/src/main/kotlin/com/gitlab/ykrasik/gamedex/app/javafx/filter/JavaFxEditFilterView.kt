@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
 import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
@@ -62,23 +63,27 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
 
     override val root = borderpane {
         top = confirmationToolbar()
-        center = vbox(spacing = 10) {
-            paddingAll = 10
-            defaultHbox(spacing = 10) {
-                header("Name")
+        center = prettyScrollPane {
+            maxHeight = screenBounds.height / 2
+            isFitToWidth = true
+            isFitToHeight = true
+            vbox(spacing = 10) {
+                paddingAll = 10
+                defaultHbox(spacing = 10) {
+                    header("Name")
 
-                jfxTextField(name.property, promptText = "Enter Name...") {
-                    validWhen(nameIsValid)
+                    jfxTextField(name.property, promptText = "Enter Name...") {
+                        validWhen(nameIsValid)
+                    }
+
+                    spacer()
+
+                    jfxCheckBox(isTag.property, "Tag matching games")
                 }
 
-                spacer()
+                verticalGap()
 
-                jfxCheckBox(isTag.property, "Tag matching games")
-            }
-
-            verticalGap()
-
-            addComponent(filterView)
+                addComponent(filterView)
 
 //            defaultHbox {
 //                vbox(spacing = 10) {
@@ -93,6 +98,7 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
 //                    renderExcludedGames()
 //                }
 //            }
+            }
         }
     }
 
@@ -100,7 +106,12 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
         overwriteFilterView.userMutableState.value = filterToOverwrite.filter
 
         return viewManager.showAreYouSureDialog("Overwrite filter '${filterToOverwrite.name}'?", Icons.warning) {
-            addComponent(overwriteFilterView)
+            prettyScrollPane {
+                maxHeight = screenBounds.height / 2
+                isFitToWidth = true
+                isFitToHeight = true
+                content = overwriteFilterView.root
+            }
         }
     }
 

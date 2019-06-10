@@ -14,15 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.filter
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 24/06/2018
- * Time: 18:07
+ * Date: 01/06/2018
+ * Time: 09:27
  */
-interface ViewCanEditFilter {
-    val editFilterActions: MultiReceiveChannel<NamedFilter>
+@Singleton
+class ShowDeleteGamePresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanDeleteGame> {
+    init {
+        eventBus.onHideViewRequested<DeleteGameView> { viewManager.hide(it) }
+    }
+
+    override fun present(view: ViewCanDeleteGame) = object : ViewSession() {
+        init {
+            view.deleteGameActions.forEach { game ->
+                viewManager.showDeleteGameView(game)
+            }
+        }
+    }
 }

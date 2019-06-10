@@ -28,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.color
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.scene.control.ScrollPane
@@ -42,8 +41,7 @@ import tornadofx.*
  * Time: 09:57
  */
 class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.databaseCleanup), CleanupDatabaseView {
-    val staleDataProperty = SimpleObjectProperty(StaleData(emptyList(), emptyList(), emptyMap(), emptyMap()))
-    override var staleData by staleDataProperty
+    override val staleData = userMutableState(StaleData(emptyList(), emptyList(), emptyMap(), emptyMap()))
 
     override val librariesAndGames = JavaFxStaleDataCategory()
     override val images = JavaFxStaleDataCategory()
@@ -65,29 +63,29 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
                     showWhen(librariesAndGames.canDelete)
                     jfxCheckBox(librariesAndGames.shouldDelete.property)
 
-                    viewButton(staleDataProperty.stringBinding { "${it!!.libraries.size} Libraries" }) {
-                        prettyListView(staleDataProperty.mapToList { it.libraries.map { it.path } })
+                    viewButton(staleData.property.stringBinding { "${it!!.libraries.size} Libraries" }) {
+                        prettyListView(staleData.property.mapToList { it.libraries.map { it.path } })
                     }.apply {
-                        showWhen { staleDataProperty.booleanBinding { it!!.libraries.isNotEmpty() } }
+                        showWhen { staleData.property.booleanBinding { it!!.libraries.isNotEmpty() } }
                     }
 
-                    viewButton(staleDataProperty.stringBinding { "${it!!.games.size} Games" }) {
-                        prettyListView(staleDataProperty.mapToList { it.games.map { it.path } })
+                    viewButton(staleData.property.stringBinding { "${it!!.games.size} Games" }) {
+                        prettyListView(staleData.property.mapToList { it.games.map { it.path } })
                     }.apply {
-                        showWhen { staleDataProperty.booleanBinding { it!!.games.isNotEmpty() } }
+                        showWhen { staleData.property.booleanBinding { it!!.games.isNotEmpty() } }
                     }
                 }
                 horizontalField("Images") {
                     label.graphic = Icons.thumbnail
                     showWhen(images.canDelete)
                     jfxCheckBox(images.shouldDelete.property)
-                    label(staleDataProperty.stringBinding { "${it!!.images.size} Images: ${it.staleImagesSizeTaken.humanReadable}" })
+                    label(staleData.property.stringBinding { "${it!!.images.size} Images: ${it.staleImagesSizeTaken.humanReadable}" })
                 }
                 horizontalField("File Cache") {
                     label.graphic = Icons.fileQuestion
                     showWhen(fileCache.canDelete)
                     jfxCheckBox(fileCache.shouldDelete.property)
-                    label(staleDataProperty.stringBinding { "${it!!.fileTrees.size} File Cache Entries: ${it.staleFileTreesSizeTaken.humanReadable}" })
+                    label(staleData.property.stringBinding { "${it!!.fileTrees.size} File Cache Entries: ${it.staleFileTreesSizeTaken.humanReadable}" })
                 }
             }
         }

@@ -38,6 +38,8 @@ class CleanupDatabasePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<CleanupDatabaseView> {
     override fun present(view: CleanupDatabaseView) = object : ViewSession() {
+        private val staleData by view.staleData
+
         init {
             view.librariesAndGames.shouldDelete.forEach { onLibrariesAndGamesShouldDeleteChanged() }
             view.images.shouldDelete.forEach { onImagesShouldDeleteChanged() }
@@ -48,17 +50,17 @@ class CleanupDatabasePresenter @Inject constructor(
 
         override suspend fun onShown() {
             view.librariesAndGames.canDelete *= Try {
-                check(view.staleData.libraries.isNotEmpty() || view.staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" }
+                check(staleData.libraries.isNotEmpty() || staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" }
             }
             view.librariesAndGames.shouldDelete *= view.librariesAndGames.canDelete.value.isSuccess
 
             view.images.canDelete *= Try {
-                check(view.staleData.images.isNotEmpty()) { "No stale images to delete!" }
+                check(staleData.images.isNotEmpty()) { "No stale images to delete!" }
             }
             view.images.shouldDelete *= view.images.canDelete.value.isSuccess
 
             view.fileCache.canDelete *= Try {
-                check(view.staleData.fileTrees.isNotEmpty()) { "No stale file cache to delete!" }
+                check(staleData.fileTrees.isNotEmpty()) { "No stale file cache to delete!" }
             }
             view.fileCache.shouldDelete *= view.fileCache.canDelete.value.isSuccess
 
@@ -91,13 +93,13 @@ class CleanupDatabasePresenter @Inject constructor(
         private suspend fun onAccept() {
             hideView()
 
-            val staleData = view.staleData.copy(
-                libraries = if (view.librariesAndGames.shouldDelete.value) view.staleData.libraries else emptyList(),
-                games = if (view.librariesAndGames.shouldDelete.value) view.staleData.games else emptyList(),
-                images = if (view.images.shouldDelete.value) view.staleData.images else emptyMap(),
-                fileTrees = if (view.fileCache.shouldDelete.value) view.staleData.fileTrees else emptyMap()
+            val staleDataToDelete = staleData.copy(
+                libraries = if (view.librariesAndGames.shouldDelete.value) staleData.libraries else emptyList(),
+                games = if (view.librariesAndGames.shouldDelete.value) staleData.games else emptyList(),
+                images = if (view.images.shouldDelete.value) staleData.images else emptyMap(),
+                fileTrees = if (view.fileCache.shouldDelete.value) staleData.fileTrees else emptyMap()
             )
-            taskService.execute(maintenanceService.deleteStaleData(staleData))
+            taskService.execute(maintenanceService.deleteStaleData(staleDataToDelete))
         }
 
         private fun onCancel() {

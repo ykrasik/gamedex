@@ -18,18 +18,19 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.filter.and
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.CommonData
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
+import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.setAll
@@ -47,7 +48,8 @@ class GamesPresenter @Inject constructor(
     private val filterService: FilterService,
     private val gameSearchService: GameSearchService,
     private val settingsService: SettingsService,
-    private val repo: CurrentPlatformFilterRepository
+    private val repo: CurrentPlatformFilterRepository,
+    private val eventBus: EventBus
 ) : Presenter<ViewWithGames> {
     override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
@@ -57,11 +59,15 @@ class GamesPresenter @Inject constructor(
                 setSort(sortBy, sortOrder)
             }
 
-            val searchText = conflatedChannel("")
+            val searchText = MultiChannel.conflated("")
             view.searchText.debounce().forEach { searchText.offer(it) }
 
-            searchText.combineLatest(repo.currentPlatformFilter.subscribe()).forEach { (search, filter) ->
+            searchText.subscribe().combineLatest(repo.currentPlatformFilter.subscribe()).forEach { (search, filter) ->
                 setSearchAndFilter(search, filter)
+            }
+
+            eventBus.forEach<GameEvent> {
+                setSearchAndFilter(searchText.peek(), repo.currentPlatformFilter.peek())
             }
         }
 
@@ -88,7 +94,7 @@ class GamesPresenter @Inject constructor(
 
         private fun setSearchAndFilter(search: String, filter: Filter) {
             val searchedGames = gameSearchService.search(search, settingsService.game.platform)
-            val matchingGames = filterService.filter(searchedGames, filter and Filter.Platform(settingsService.game.platform))
+            val matchingGames = filterService.filter(searchedGames, filter)
 
             val suggestions = if (search.isNotBlank()) matchingGames.take(12) else emptyList()
             view.searchSuggestions.setAll(suggestions)
