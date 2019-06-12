@@ -96,9 +96,9 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     }
 
     override fun HBox.buildToolbar() {
-        filterButton()
-        sortButton()
         displayTypeButton()
+        sortButton()
+        filterButton()
         searchField()
 
         spacer()
