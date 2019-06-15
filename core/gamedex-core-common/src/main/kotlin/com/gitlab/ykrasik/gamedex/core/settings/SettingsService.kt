@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
+import com.gitlab.ykrasik.gamedex.core.log.LogService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -51,7 +52,8 @@ interface SettingsService {
 @Singleton
 class SettingsServiceImpl @Inject constructor(
     private val factory: JsonStorageFactory<String>,
-    gameProviderService: GameProviderService
+    gameProviderService: GameProviderService,
+    logService: LogService
 ) : SettingsService {
     private val log = logger()
     private val all = mutableListOf<SettingsRepository<*>>()
@@ -69,6 +71,16 @@ class SettingsServiceImpl @Inject constructor(
     override val providers = gameProviderService.allProviders.map { provider ->
         provider.id to repo { ProviderSettingsRepository(settingsStorage("provider"), provider) }
     }.toMap()
+
+    init {
+        providers.values.forEach { repo ->
+            repo.accountChannel.subscribe { account ->
+                account.values.forEach {
+                    logService.addBlacklistValue(it)
+                }
+            }
+        }
+    }
 
     private fun settingsStorage(basePath: String = "") = SettingsStorageFactory("conf/$basePath", factory)
 

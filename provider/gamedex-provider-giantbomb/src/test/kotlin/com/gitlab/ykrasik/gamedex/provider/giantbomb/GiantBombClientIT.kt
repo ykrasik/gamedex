@@ -135,8 +135,7 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                 accountUrl = "",
                 defaultOrder = ProviderOrderPriorities.default,
                 platforms = mapOf(platform.name to platformId)
-            ),
-            testHttpClient
+            )
         )
     }
 

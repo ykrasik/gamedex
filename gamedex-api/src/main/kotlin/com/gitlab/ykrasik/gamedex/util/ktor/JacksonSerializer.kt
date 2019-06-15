@@ -14,40 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.log
+package com.gitlab.ykrasik.gamedex.util.ktor
 
-import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
-import com.gitlab.ykrasik.gamedex.core.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.util.objectMapper
+import io.ktor.client.call.TypeInfo
+import io.ktor.client.features.json.JsonSerializer
+import io.ktor.http.ContentType
+import io.ktor.http.content.OutgoingContent
+import io.ktor.http.content.TextContent
+import kotlinx.io.core.Input
+import kotlinx.io.core.readText
 
 /**
  * User: ykrasik
- * Date: 13/04/2018
- * Time: 20:47
+ * Date: 16/06/2019
+ * Time: 08:38
  */
-class LogRepository(private val maxLogEntries: Int) {
-    private val _entries = ListObservableImpl<LogEntry>()
-    val entries: ListObservable<LogEntry> = _entries
+object JacksonSerializer : JsonSerializer {
+    override fun write(data: Any, contentType: ContentType): OutgoingContent =
+        TextContent(objectMapper.writeValueAsString(data), contentType)
 
-    private val blacklist = mutableSetOf<String>()
-
-    operator fun plusAssign(entry: LogEntry) {
-        _entries += censorEntry(entry)
-
-        if (entries.size > maxLogEntries) {
-            _entries -= _entries.subList(0, entries.size - maxLogEntries)
-        }
-    }
-
-    fun addBlacklistValue(value: String) {
-        blacklist += value
-        _entries.setAll(_entries.map(::censorEntry))
-    }
-
-    private fun censorEntry(entry: LogEntry): LogEntry {
-        val censored = blacklist.fold(entry.message) { acc, blacklistedValue ->
-            acc.replace(blacklistedValue, "****")
-        }
-        return entry.copy(message = censored)
+    override fun read(type: TypeInfo, body: Input): Any {
+        return objectMapper.readValue(body.readText(), objectMapper.typeFactory.constructType(type.reifiedType))
     }
 }

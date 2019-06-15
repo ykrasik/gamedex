@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
-import com.gitlab.ykrasik.gamedex.test.testHttpClient
 import com.typesafe.config.ConfigFactory
 import io.kotlintest.matchers.shouldBe
 
@@ -33,7 +32,7 @@ import io.kotlintest.matchers.shouldBe
  */
 class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTest.Scope>() {
     val config = GiantBombConfig(ConfigFactory.load("com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.conf"))
-    val provider = GiantBombProvider(config, GiantBombClient(config, testHttpClient))
+    val provider = GiantBombProvider(config, GiantBombClient(config))
     val account = GiantBombUserAccount(apiKey = System.getProperty("gameDex.giantBomb.apiKey"))
 
     override fun scope() = Scope()

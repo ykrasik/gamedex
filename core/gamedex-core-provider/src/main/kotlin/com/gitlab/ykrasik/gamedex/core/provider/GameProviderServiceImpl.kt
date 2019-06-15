@@ -112,7 +112,7 @@ class GameProviderServiceImpl @Inject constructor(
             enabledProviders.find { it.id == providerId }!!.search(query, platform)
         }
 
-    override fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Downloading '$name'...") {
+    override fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Fetching '$name'...") {
         totalItems = headers.size
         headers.map { header ->
             // TODO: Link to task scope.

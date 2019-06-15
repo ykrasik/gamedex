@@ -17,10 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance
 
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -71,8 +70,7 @@ class MaintenanceServiceImpl @Inject constructor(
     private val persistenceService: PersistenceService,
     private val eventBus: EventBus
 ) : MaintenanceService {
-    private val objectMapper = ObjectMapper()
-        .registerModule(KotlinModule())
+    private val objectMapper = jacksonObjectMapper()
         .registerModule(JodaModule())
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
         .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)

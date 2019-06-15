@@ -23,38 +23,24 @@ import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.core.UnsynchronizedAppenderBase
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
-import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 07/02/2019
  * Time: 08:33
  */
-interface LogService {
-    val entries: ListObservable<LogEntry>
-
-    fun init()
-}
-
-@Singleton
 class LogServiceImpl(maxLogEntries: Int = 100000) : LogService {
     private val repo = LogRepository(maxLogEntries)
     override val entries = repo.entries
 
-    override fun init() {
-        SLF4JBridgeHandler.removeHandlersForRootLogger()
-        SLF4JBridgeHandler.install()
-        with(LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger) {
-            addAppender(GameDexLogAppender().apply { start() })
-            level = Level.TRACE
+    private val gameDexLogAppender = object : UnsynchronizedAppenderBase<ILoggingEvent>() {
+        init {
+            start()
         }
-    }
 
-    inner class GameDexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
         override fun append(e: ILoggingEvent) {
             repo += LogEntry(
                 level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
@@ -65,4 +51,15 @@ class LogServiceImpl(maxLogEntries: Int = 100000) : LogService {
             )
         }
     }
+
+    init {
+        SLF4JBridgeHandler.removeHandlersForRootLogger()
+        SLF4JBridgeHandler.install()
+        with(LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger) {
+            addAppender(gameDexLogAppender)
+            level = Level.TRACE
+        }
+    }
+
+    override fun addBlacklistValue(value: String) = repo.addBlacklistValue(value)
 }

@@ -21,9 +21,9 @@ import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
+import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.BindingAnnotation
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.*
 import java.util.*
 import javax.inject.Inject
@@ -38,7 +38,6 @@ import javax.inject.Singleton
 class ImageServiceImpl @Inject constructor(
     @ImageStorage private val storage: Storage<String, ByteArray>,
     private val imageFactory: ImageFactory,
-    private val httpClient: HttpClient,
     config: ImageConfig
 ) : ImageService {
     private val log = logger()

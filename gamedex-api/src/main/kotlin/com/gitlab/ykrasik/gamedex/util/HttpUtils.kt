@@ -16,8 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.util
 
+import com.gitlab.ykrasik.gamedex.util.ktor.JacksonSerializer
+import com.gitlab.ykrasik.gamedex.util.ktor.Logging
 import com.google.common.net.UrlEscapers
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
+import io.ktor.client.features.UserAgent
+import io.ktor.client.features.json.Json
 import io.ktor.client.request.get
 import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readBytes
@@ -33,6 +38,24 @@ import java.util.*
  * Date: 10/02/2017
  * Time: 10:24
  */
+val httpClient = HttpClient(Apache) {
+    install(UserAgent)
+    Logging {
+        logger = logger("HttpClient")
+    }
+    Json {
+        serializer = JacksonSerializer
+    }
+    engine {
+        followRedirects = true  // Follow HTTP Location redirects - default false. It uses the default number of redirects defined by Apache's HttpClient that is 50.
+
+        // For timeouts: 0 means infinite, while negative value mean to use the system's default value
+        socketTimeout = 30_000  // Max time between TCP packets - default 10 seconds
+        connectTimeout = 30_000 // Max time to establish an HTTP connection - default 10 seconds
+        connectionRequestTimeout = 30_000 // Max time for the connection manager to start a request - 20 seconds
+    }
+}
+
 suspend fun HttpClient.download(url: String, progressHandler: ((downloaded: Int, total: Int) -> Unit)? = null): ByteArray {
     val response = get<HttpResponse>(url)
     if (!response.status.isSuccess()) throw IllegalStateException("Download '$url': ${response.status}")

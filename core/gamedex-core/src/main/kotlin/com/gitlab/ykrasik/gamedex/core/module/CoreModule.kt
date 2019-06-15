@@ -48,9 +48,6 @@ import com.google.inject.TypeLiteral
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import io.github.config4k.extract
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.features.UserAgent
 import javax.inject.Singleton
 
 /**
@@ -131,27 +128,6 @@ object CoreModule : InternalCoreModule() {
                 val resource = checkNotNull(javaClass.getResource(file)) { "Config file not found: $file" }
                 config.withFallback(ConfigFactory.parseURL(resource))
             }
-    }
-
-    @Provides
-    @Singleton
-    fun httpClient(): HttpClient = HttpClient(Apache) {
-        install(UserAgent)
-//        install(Logging) {
-//            logger = object : Logger {
-//                private val log = com.gitlab.ykrasik.gamedex.util.logger("HttpClient")
-//                override fun log(message: String) = log.trace(message)
-//            }
-//            level = LogLevel.BODY
-//        }
-        engine {
-            followRedirects = true  // Follow HTTP Location redirects - default false. It uses the default number of redirects defined by Apache's HttpClient that is 50.
-
-            // For timeouts: 0 means infinite, while negative value mean to use the system's default value
-            socketTimeout = 30_000  // Max time between TCP packets - default 10 seconds
-            connectTimeout = 30_000 // Max time to establish an HTTP connection - default 10 seconds
-            connectionRequestTimeout = 30_000 // Max time for the connection manager to start a request - 20 seconds
-        }
     }
 
     @Provides

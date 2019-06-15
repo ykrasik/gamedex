@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -33,8 +33,7 @@ import kotlin.reflect.KClass
  * Date: 08/10/2016
  * Time: 09:21
  */
-val objectMapper: ObjectMapper = ObjectMapper()
-    .registerModule(KotlinModule())
+val objectMapper: ObjectMapper = jacksonObjectMapper()
     .registerModule(JodaModule())
     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
     .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)

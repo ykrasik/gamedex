@@ -46,7 +46,6 @@ class PreloaderImpl : Preloader {
     override suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector = withContext(Dispatchers.IO) {
         val (injector, millisTaken) = millisTaken {
             val logService = LogServiceImpl()
-            logService.init()
 
             withContext(Dispatchers.Main) {
                 view.progress = 0.0

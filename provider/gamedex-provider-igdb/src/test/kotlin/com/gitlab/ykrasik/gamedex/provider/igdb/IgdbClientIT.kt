@@ -62,7 +62,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
             "throw IllegalStateException on invalid http response status" test {
                 server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
-                val e = shouldThrow<IllegalStateException> {
+                val e = shouldThrow<ClientRequestException> {
                     client.search(name, platform, account)
                 }
                 e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
@@ -83,10 +83,10 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 )
             }
 
-            "throw ClientRequestException on empty response" test {
+            "throw IllegalStateException on empty response" test {
                 server.aFetchRequest(id) willReturn emptyList()
 
-                val e = shouldThrow<ClientRequestException> {
+                val e = shouldThrow<IllegalStateException> {
                     client.fetch(detailUrl, account)
                 }
                 e.message!! shouldHave substring("Not Found!")
@@ -161,8 +161,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 defaultOrder = ProviderOrderPriorities.default,
                 platforms = mapOf(platform.name to platformId),
                 genres = emptyMap()
-            ),
-            testHttpClient
+            )
         )
     }
 

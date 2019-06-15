@@ -98,7 +98,7 @@ object TestApplication {
                         val providerServers = providerFakeServers.toMutableList()
                         val path = randomPath(maxElements = 6, minElements = 3)
                         persistenceService.insertGame(
-                            metadata = com.gitlab.ykrasik.gamedex.Metadata(
+                            metadata = Metadata(
                                 libraryId = libraries.randomElement().id,
                                 path = path,
                                 timestamp = Timestamp.now
@@ -149,9 +149,5 @@ object TestApplication {
         @Provides
         @Singleton
         fun config(): Config = ConfigFactory.load()
-
-        @Provides
-        @Singleton
-        fun httpClient() = testHttpClient
     }
 }

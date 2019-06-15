@@ -20,15 +20,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.listFromJson
-import com.gitlab.ykrasik.gamedex.util.logger
-import io.ktor.client.HttpClient
 import io.ktor.client.call.call
-import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.response.readText
-import io.ktor.http.ContentType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,13 +35,11 @@ import javax.inject.Singleton
  * Time: 15:13
  */
 @Singleton
-open class IgdbClient @Inject constructor(private val config: IgdbConfig, private val client: HttpClient) {
-    private val log = logger()
+open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
 
     open suspend fun search(query: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> = get(
         endpoint = "${config.baseUrl}/",
         account = account,
-        initialMessage = "[$platform] Searching '$query'...",
         params = mapOf(
             "search" to query,
             "filter[release_dates.platform][eq]" to platform.id,
@@ -56,7 +51,6 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig, privat
     open suspend fun fetch(apiUrl: String, account: IgdbUserAccount): DetailsResult = get<DetailsResult>(
         endpoint = apiUrl,
         account = account,
-        initialMessage = "Fetching '$apiUrl'...",
         params = mapOf("fields" to fetchDetailsFieldsStr)
     ) {
         // IGDB returns a list, even though we're fetching by id :/
@@ -64,16 +58,12 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig, privat
         return result.firstOrNull() ?: throw IllegalStateException("Fetch '$apiUrl': Not Found!")
     }
 
-    private suspend inline fun <reified T : Any> get(endpoint: String, account: IgdbUserAccount, initialMessage: String, params: Map<String, Any>, transform: (String) -> T): T {
-        log.trace(initialMessage)
-        val response = client.call(endpoint) {
+    private suspend inline fun <reified T : Any> get(endpoint: String, account: IgdbUserAccount, params: Map<String, Any>, transform: (String) -> T): T {
+        val response = httpClient.call(endpoint) {
             header("user-key", account.apiKey)
-            accept(ContentType.Application.Json)
             params.forEach { parameter(it.key, it.value) }
         }.response
         val text = response.readText()
-        val message = "$initialMessage Done: [${response.status}] $text"
-        log.trace(message)
         return transform(text)
     }
 

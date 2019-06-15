@@ -14,26 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.test
+package com.gitlab.ykrasik.gamedex.core.log
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.features.UserAgent
+import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
+import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 
 /**
  * User: ykrasik
- * Date: 12/01/2019
- * Time: 09:50
+ * Date: 15/06/2019
+ * Time: 22:01
  */
-val testHttpClient = HttpClient(Apache) {
-    install(UserAgent)
+interface LogService {
+    val entries: ListObservable<LogEntry>
 
-    engine {
-        followRedirects = true  // Follow HTTP Location redirects - default false. It uses the default number of redirects defined by Apache's HttpClient that is 50.
-
-        // For timeouts: 0 means infinite, while negative value mean to use the system's default value
-        socketTimeout = 30_000  // Max time between TCP packets - default 10 seconds
-        connectTimeout = 30_000 // Max time to establish an HTTP connection - default 10 seconds
-        connectionRequestTimeout = 30_000 // Max time for the connection manager to start a request - 20 seconds
-    }
+    fun addBlacklistValue(value: String)
 }

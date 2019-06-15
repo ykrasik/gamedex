@@ -77,8 +77,9 @@ buildscript {
             core = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
             clientCore = [group: 'io.ktor', name: 'ktor-client-core-jvm', version: v]
-//            clientLogging = [group: 'io.ktor', name: 'ktor-client-logging-jvm', version: v]
             clientApache = [group: 'io.ktor', name: 'ktor-client-apache', version: v]
+            clientJson = [group: 'io.ktor', name: 'ktor-client-json', version: v]
+//            clientLogging = [group: 'io.ktor', name: 'ktor-client-logging-jvm', version: v]
             clientJackson = [group: 'io.ktor', name: 'ktor-client-jackson', version: v]
             delegate
         }
@@ -203,18 +204,18 @@ project("gamedex-api") {
         api jodaTime
 
         api ktor.clientCore
+        implementation ktor.clientApache
+        implementation ktor.clientJackson
 
         api jackson.core
-        api jackson.kotlin
-        api jackson.joda
+        implementation jackson.kotlin
+        implementation jackson.joda
 
         testCompile kotlinTest
         testCompile mockK
 
         testCompile coroutines.debug
         testCompile coroutines.test
-
-        testCompile ktor.clientApache
 
         testCompile wiremock
         testCompile ktor.core
@@ -264,6 +265,9 @@ project("core:gamedex-core-common") {
 
     dependencies {
         fullDependency ":app:gamedex-app-api"
+
+        api jackson.kotlin
+        api jackson.joda
     }
 }
 
@@ -346,7 +350,6 @@ project("core:gamedex-core") {
         implementation project(":core:gamedex-core-provider")
         implementation project(":core:gamedex-core-filter")
 
-        implementation ktor.clientApache
         implementation classGraph
     }
 }

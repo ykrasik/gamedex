@@ -22,12 +22,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.util.fromJson
-import com.gitlab.ykrasik.gamedex.util.logger
-import io.ktor.client.HttpClient
-import io.ktor.client.call.call
+import com.gitlab.ykrasik.gamedex.util.httpClient
+import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.response.readText
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,13 +36,10 @@ import javax.inject.Singleton
  */
 // TODO: GiantBomb can return a number of user reviews
 @Singleton
-open class GiantBombClient @Inject constructor(private val config: GiantBombConfig, private val client: HttpClient) {
-    private val log = logger()
-
+open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
     open suspend fun search(query: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
         endpoint = config.baseUrl,
         account = account,
-        initialMessage = "Searching [$platform] '$query'...",
         params = mapOf(
             "filter" to "name:$query,platforms:${platform.id}",
             "field_list" to searchFieldsStr
@@ -55,24 +49,17 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     open suspend fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse = get(
         endpoint = apiUrl,
         account = account,
-        initialMessage = "Fetching '$apiUrl'...",
         params = mapOf("field_list" to fetchDetailsFieldsStr)
     )
 
     private val Platform.id: Int get() = config.getPlatformId(this)
 
-    private suspend inline fun <reified T : Any> get(endpoint: String, account: GiantBombUserAccount, initialMessage: String, params: Map<String, String>): T {
-        log.trace(initialMessage)
-        val response = client.call(endpoint) {
+    private suspend inline fun <reified T : Any> get(endpoint: String, account: GiantBombUserAccount, params: Map<String, String>): T =
+        httpClient.get(endpoint) {
             parameter("api_key", account.apiKey)
             parameter("format", "json")
             params.forEach { parameter(it.key, it.value) }
-        }.response
-        val text = response.readText()
-        val message = "$initialMessage Done: [${response.status}] $text"
-        log.trace(message)
-        return text.fromJson()
-    }
+        }
 
     private companion object {
         val searchFields = listOf(
