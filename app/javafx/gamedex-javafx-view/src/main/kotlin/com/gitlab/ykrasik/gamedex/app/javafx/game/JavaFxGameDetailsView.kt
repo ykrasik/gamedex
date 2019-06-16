@@ -72,6 +72,7 @@ class JavaFxGameDetailsView(
     private val commonOps: JavaFxCommonOps by di()
 
     override val gameParams = userMutableState(ViewGameParams(Game.Null, emptyList()))
+    override val gameChannel = gameParams.changes.map { it.game }
     private val game = gameParams.property.binding { it.game }
 
     override val currentGameIndex = state(-1)
@@ -89,6 +90,8 @@ class JavaFxGameDetailsView(
     override val deleteGameActions = channel<Game>()
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
+
+    override val canRefetchGame = state(IsValid.valid)
     override val refetchGameActions = channel<Game>()
 
     override val canResyncGame = state(IsValid.valid)
@@ -178,6 +181,7 @@ class JavaFxGameDetailsView(
             infoButton("Re-Fetch", graphic = Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
+                enableWhen(canRefetchGame)
                 action(refetchGameActions) { game.value }
             }
             infoButton("Re-Sync", graphic = Icons.sync) {

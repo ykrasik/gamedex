@@ -53,11 +53,15 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
     ViewCanRefetchGame,
     ViewCanResyncGame {
 
+    override val gameChannel = dataChannel.map { it.game }
+
     override val viewGameDetailsActions = channel<ViewGameParams>()
     override val editGameActions = channel<EditGameParams>()
     override val deleteGameActions = channel<Game>()
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
+
+    override val canRefetchGame = state(IsValid.valid)
     override val refetchGameActions = channel<Game>()
 
     override val canResyncGame = state(IsValid.valid)
@@ -76,6 +80,7 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
         verticalGap()
         item("Re-Fetch", Icons.download) {
             addClass(GameDexStyle.infoButton)
+            enableWhen(canRefetchGame)
             action(refetchGameActions) { data.game }
         }
         item("Re-Sync", Icons.sync) {

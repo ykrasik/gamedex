@@ -27,6 +27,8 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:43
  */
 interface ViewCanResyncGame {
+    val gameChannel: MultiReceiveChannel<Game>
+
     val canResyncGame: State<IsValid>
 
     val resyncGameActions: MultiReceiveChannel<Game>

@@ -18,10 +18,13 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
+import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.ResyncGameService
+import com.gitlab.ykrasik.gamedex.provider.supports
+import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,7 +40,19 @@ class ResyncGamePresenter @Inject constructor(
 ) : Presenter<ViewCanResyncGame> {
     override fun present(view: ViewCanResyncGame) = object : ViewSession() {
         init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canResyncGame) { "Game sync in progress!" }
+            commonData.enabledProviders.itemsChannel.subscribe()
+                .combineLatest(view.gameChannel.subscribe())
+                .combineLatest(commonData.isGameSyncRunning.subscribe())
+                .forEach {
+                    val (enabledProviders, game) = it.first
+                    val isGameSyncRunning = it.second
+
+                    view.canResyncGame *= Try {
+                        check(!isGameSyncRunning) { "Game sync in progress!" }
+                        check(enabledProviders.any { it.supports(game.platform) }) { "Please enable at least 1 provider which supports the platform '${game.platform}'!" }
+                    }
+                }
+
             view.resyncGameActions.forEach { resyncGame(it) }
         }
 

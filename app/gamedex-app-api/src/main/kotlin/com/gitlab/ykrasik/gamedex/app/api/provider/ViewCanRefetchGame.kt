@@ -17,7 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
@@ -25,5 +27,9 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 14:23
  */
 interface ViewCanRefetchGame {
+    val gameChannel: MultiReceiveChannel<Game>
+
+    val canRefetchGame: State<IsValid>
+
     val refetchGameActions: MultiReceiveChannel<Game>
 }

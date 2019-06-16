@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
 import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import javafx.scene.Node
@@ -28,6 +29,7 @@ import javafx.scene.input.MouseEvent
  */
 abstract class InstallableContextMenu<T : Any> : PresentableView() {
     protected lateinit var data: T
+    protected val dataChannel = MultiChannel.conflated<T>()
 
     private val popover by lazy {
         popOver { children += root }.apply { isAutoFix = false }
@@ -46,6 +48,7 @@ abstract class InstallableContextMenu<T : Any> : PresentableView() {
         node.setOnContextMenuRequested { e ->
 //            contextMenuRequested = true
             this.data = data()
+            dataChannel.offer(this.data)
             popover.determineArrowLocation(e.screenX, e.screenY).show(node, e.screenX, e.screenY)
         }
     }
