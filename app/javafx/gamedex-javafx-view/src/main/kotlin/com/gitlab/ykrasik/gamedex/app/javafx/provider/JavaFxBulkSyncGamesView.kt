@@ -14,39 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider.presenter
+package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
-import com.gitlab.ykrasik.gamedex.core.*
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import tornadofx.borderpane
+import tornadofx.paddingAll
+import tornadofx.scrollpane
 
 /**
  * User: ykrasik
  * Date: 31/12/2018
- * Time: 15:48
+ * Time: 16:25
  */
-@Singleton
-class ShowResyncGamesPresenter @Inject constructor(
-    private val commonData: CommonData,
-    private val viewManager: ViewManager,
-    eventBus: EventBus
-) : Presenter<ViewCanResyncGames> {
+class JavaFxBulkSyncGamesView : ConfirmationWindow("Bulk Sync Games", Icons.sync), BulkSyncGamesView {
+    private val filterView = JavaFxFilterView()
+
+    override val bulkSyncGamesFilter = filterView.userMutableState
+    override val bulkSyncGamesFilterIsValid = userMutableState(filterView.filterIsValid)
+
     init {
-        eventBus.onHideViewRequested<ResyncGamesView> { viewManager.hide(it) }
+        register()
     }
 
-    override fun present(view: ViewCanResyncGames) = object : ViewSession() {
-        init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canResyncGames) { "Game sync in progress!" }
-
-            view.resyncGamesActions.forEach {
-                view.canResyncGames.assert()
-
-                viewManager.showResyncGamesView()
-            }
+    override val root = borderpane {
+        top = confirmationToolbar()
+        center = scrollpane {
+            paddingAll = 10
+            add(filterView.root)
         }
     }
 }

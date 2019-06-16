@@ -14,37 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.provider
+package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
-import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import tornadofx.borderpane
-import tornadofx.paddingAll
-import tornadofx.scrollpane
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
- * Date: 31/12/2018
- * Time: 16:25
+ * Date: 06/05/2018
+ * Time: 09:43
  */
-class JavaFxResyncGamesView : ConfirmationWindow("Re-Sync Games", Icons.sync), ResyncGamesView {
-    private val filterView = JavaFxFilterView()
+interface ViewCanSyncGame {
+    val gameChannel: MultiReceiveChannel<Game>
 
-    override val resyncGamesFilter = filterView.userMutableState
-    override val resyncGamesFilterIsValid = userMutableState(filterView.filterIsValid)
+    val canSyncGame: State<IsValid>
 
-    init {
-        register()
-    }
-
-    override val root = borderpane {
-        top = confirmationToolbar()
-        center = scrollpane {
-            paddingAll = 10
-            add(filterView.root)
-        }
-    }
+    val syncGameActions: MultiReceiveChannel<Game>
 }

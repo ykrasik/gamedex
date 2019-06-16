@@ -16,12 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.provider.ResyncGameService
-import com.gitlab.ykrasik.gamedex.core.provider.ResyncGamesFilterRepository
+import com.gitlab.ykrasik.gamedex.core.provider.BulkSyncGamesFilterRepository
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,36 +32,36 @@ import javax.inject.Singleton
  * Time: 09:51
  */
 @Singleton
-class ResyncGamesPresenter @Inject constructor(
-    private val repo: ResyncGamesFilterRepository,
-    private val resyncGameService: ResyncGameService,
+class BulkSyncGamesPresenter @Inject constructor(
+    private val repo: BulkSyncGamesFilterRepository,
+    private val syncGameService: SyncGameService,
     private val taskService: TaskService,
     private val eventBus: EventBus
-) : Presenter<ResyncGamesView> {
-    override fun present(view: ResyncGamesView) = object : ViewSession() {
+) : Presenter<BulkSyncGamesView> {
+    override fun present(view: BulkSyncGamesView) = object : ViewSession() {
         init {
-//            view.resyncGamesFilter.forEach { setCanAccept() }
-            view.resyncGamesFilterIsValid.forEach { setCanAccept() }
+//            view.bulkSyncGamesFilter.forEach { setCanAccept() }
+            view.bulkSyncGamesFilterIsValid.forEach { setCanAccept() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShown() {
-            view.resyncGamesFilter *= repo.resyncGamesFilter.peek()
+            view.bulkSyncGamesFilter *= repo.bulkSyncGamesFilter.peek()
             setCanAccept()
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.resyncGamesFilterIsValid.value
+            view.canAccept *= view.bulkSyncGamesFilterIsValid.value
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val filter = view.resyncGamesFilter.value
+            val filter = view.bulkSyncGamesFilter.value
             repo.update(filter)
 
-            taskService.execute(resyncGameService.resyncGames(filter))
+            taskService.execute(syncGameService.bulkSyncGames(filter))
 
             hideView()
         }

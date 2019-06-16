@@ -16,20 +16,17 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:43
+ * Date: 31/12/2018
+ * Time: 15:49
  */
-interface ViewCanResyncGame {
-    val gameChannel: MultiReceiveChannel<Game>
-
-    val canResyncGame: State<IsValid>
-
-    val resyncGameActions: MultiReceiveChannel<Game>
+interface BulkSyncGamesView : ConfirmationView {
+    val bulkSyncGamesFilter: UserMutableState<Filter>
+    val bulkSyncGamesFilterIsValid: UserMutableState<IsValid>
 }

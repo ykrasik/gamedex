@@ -51,7 +51,3 @@ class EnabledGameProvider(private val provider: GameProvider, private val accoun
 
     override fun toString() = provider.toString()
 }
-
-fun GameProviderService.assertHasEnabledProvider() = check(enabledProviders.isNotEmpty()) {
-    "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
-}

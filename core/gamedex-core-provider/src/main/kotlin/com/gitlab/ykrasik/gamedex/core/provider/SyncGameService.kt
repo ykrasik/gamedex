@@ -33,31 +33,31 @@ import javax.inject.Singleton
  * Date: 31/12/2018
  * Time: 16:00
  */
-@ImplementedBy(ResyncGameServiceImpl::class)
-interface ResyncGameService {
-    fun resyncGame(game: Game)
-    fun resyncGames(filter: Filter): Task<Unit>
+@ImplementedBy(SyncGameServiceImpl::class)
+interface SyncGameService {
+    fun syncGame(game: Game)
+    fun bulkSyncGames(filter: Filter): Task<Unit>
 }
 
 @Singleton
-class ResyncGameServiceImpl @Inject constructor(
+class SyncGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
     private val filterService: FilterService,
     private val eventBus: EventBus
-) : ResyncGameService {
-    override fun resyncGame(game: Game) = resyncGames(listOf(game))
+) : SyncGameService {
+    override fun syncGame(game: Game) = syncGames(listOf(game))
 
-    override fun resyncGames(filter: Filter) = task("Detecting games to re-sync...") {
+    override fun bulkSyncGames(filter: Filter) = task("Detecting games to sync...") {
         val games = filterService.filter(gameService.games, filter).sortedBy { it.path }
         if (games.isNotEmpty()) {
-            resyncGames(games)
+            syncGames(games)
         } else {
-            successMessage = { "No games matching re-sync filter detected!" }
+            successMessage = { "No games matching sync filter detected!" }
         }
     }
 
-    private fun resyncGames(games: List<Game>) {
+    private fun syncGames(games: List<Game>) {
         gameProviderService.assertHasEnabledProvider()
 
         val paths = games.map { game ->

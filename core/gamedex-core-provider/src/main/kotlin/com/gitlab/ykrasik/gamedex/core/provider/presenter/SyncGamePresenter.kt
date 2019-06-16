@@ -17,12 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.provider.ResyncGameService
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
@@ -34,11 +34,11 @@ import javax.inject.Singleton
  * Time: 10:05
  */
 @Singleton
-class ResyncGamePresenter @Inject constructor(
-    private val resyncGameService: ResyncGameService,
+class SyncGamePresenter @Inject constructor(
+    private val syncGameService: SyncGameService,
     private val commonData: CommonData
-) : Presenter<ViewCanResyncGame> {
-    override fun present(view: ViewCanResyncGame) = object : ViewSession() {
+) : Presenter<ViewCanSyncGame> {
+    override fun present(view: ViewCanSyncGame) = object : ViewSession() {
         init {
             commonData.enabledProviders.itemsChannel.subscribe()
                 .combineLatest(view.gameChannel.subscribe())
@@ -47,18 +47,18 @@ class ResyncGamePresenter @Inject constructor(
                     val (enabledProviders, game) = it.first
                     val isGameSyncRunning = it.second
 
-                    view.canResyncGame *= Try {
+                    view.canSyncGame *= Try {
                         check(!isGameSyncRunning) { "Game sync in progress!" }
                         check(enabledProviders.any { it.supports(game.platform) }) { "Please enable at least 1 provider which supports the platform '${game.platform}'!" }
                     }
                 }
 
-            view.resyncGameActions.forEach { resyncGame(it) }
+            view.syncGameActions.forEach { syncGame(it) }
         }
 
-        private fun resyncGame(game: Game) {
-            view.canResyncGame.assert()
-            resyncGameService.resyncGame(game)
+        private fun syncGame(game: Game) {
+            view.canSyncGame.assert()
+            syncGameService.syncGame(game)
         }
     }
 }

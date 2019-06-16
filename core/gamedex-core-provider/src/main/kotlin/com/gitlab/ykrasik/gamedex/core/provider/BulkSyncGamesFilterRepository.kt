@@ -32,16 +32,16 @@ import javax.inject.Singleton
  * Time: 15:12
  */
 @Singleton
-class ResyncGamesFilterRepository @Inject constructor(
+class BulkSyncGamesFilterRepository @Inject constructor(
     private val filterService: FilterService,
     private val gameProviderService: GameProviderService
 ) {
-    private val _resyncGamesFilter = MultiChannel.conflated(Filter.Null)
-    val resyncGamesFilter: MultiReceiveChannel<Filter> = _resyncGamesFilter.distinctUntilChanged(Filter::isEqual)
+    private val _bulkSyncGamesFilter = MultiChannel.conflated(Filter.Null)
+    val bulkSyncGamesFilter: MultiReceiveChannel<Filter> = _bulkSyncGamesFilter.distinctUntilChanged(Filter::isEqual)
 
     init {
         // Init default filter.
-        _resyncGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) {
+        _bulkSyncGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) {
             val providers = gameProviderService.allProviders
             if (providers.isNotEmpty()) {
                 Filter.And(providers.map { Filter.Provider(it.id) }).not
@@ -53,10 +53,10 @@ class ResyncGamesFilterRepository @Inject constructor(
 
     fun update(filter: Filter) {
         filterService.putSystemFilter(filterName, filter)
-        _resyncGamesFilter.offer(filter)
+        _bulkSyncGamesFilter.offer(filter)
     }
 
     private companion object {
-        val filterName = ResyncGamesFilterRepository::class.qualifiedName!!
+        val filterName = BulkSyncGamesFilterRepository::class.qualifiedName!!
     }
 }

@@ -38,9 +38,9 @@ object ProviderModule : InternalCoreModule() {
         bindPresenter(UpdateGamePresenter::class)
         bindPresenter(BulkUpdateGamesPresenter::class)
 
-        bindPresenter(ShowResyncGamesPresenter::class)
-        bindPresenter(ResyncGamePresenter::class)
-        bindPresenter(ResyncGamesPresenter::class)
+        bindPresenter(ShowBulkSyncGamesPresenter::class)
+        bindPresenter(SyncGamePresenter::class)
+        bindPresenter(BulkSyncGamesPresenter::class)
 
         bind(ShowSyncGamesPresenter::class.java)
     }

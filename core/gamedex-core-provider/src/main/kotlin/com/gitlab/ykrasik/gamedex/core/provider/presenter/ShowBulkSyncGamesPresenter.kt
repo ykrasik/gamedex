@@ -14,19 +14,39 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.provider
+package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkSyncGames
+import com.gitlab.ykrasik.gamedex.core.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:43
+ * Date: 31/12/2018
+ * Time: 15:48
  */
-interface ViewCanResyncGames {
-    val canResyncGames: State<IsValid>
+@Singleton
+class ShowBulkSyncGamesPresenter @Inject constructor(
+    private val commonData: CommonData,
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanBulkSyncGames> {
+    init {
+        eventBus.onHideViewRequested<BulkSyncGamesView> { viewManager.hide(it) }
+    }
 
-    val resyncGamesActions: MultiReceiveChannel<Unit>
+    override fun present(view: ViewCanBulkSyncGames) = object : ViewSession() {
+        init {
+            commonData.isGameSyncRunning.disableWhenTrue(view.canBulkSyncGames) { "Game sync in progress!" }
+
+            view.bulkSyncGamesActions.forEach {
+                view.canBulkSyncGames.assert()
+
+                viewManager.showBulkSyncGamesView()
+            }
+        }
+    }
 }

@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
@@ -65,7 +65,7 @@ class JavaFxGameDetailsView(
     ViewCanRenameMoveGame,
     ViewCanTagGame,
     ViewCanUpdateGame,
-    ViewCanResyncGame,
+    ViewCanSyncGame,
     ViewCanOpenFile,
     ViewCanBrowseUrl {
 
@@ -94,8 +94,8 @@ class JavaFxGameDetailsView(
     override val canUpdateGame = state(IsValid.valid)
     override val updateGameActions = channel<Game>()
 
-    override val canResyncGame = state(IsValid.valid)
-    override val resyncGameActions = channel<Game>()
+    override val canSyncGame = state(IsValid.valid)
+    override val syncGameActions = channel<Game>()
 
     override val openFileActions = channel<File>()
     override val browseUrlActions = channel<String>()
@@ -184,11 +184,11 @@ class JavaFxGameDetailsView(
                 enableWhen(canUpdateGame)
                 action(updateGameActions) { game.value }
             }
-            infoButton("Re-Sync", graphic = Icons.sync) {
+            infoButton("Sync", graphic = Icons.sync) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                enableWhen(canResyncGame)
-                action(resyncGameActions) { game.value }
+                enableWhen(canSyncGame)
+                action(syncGameActions) { game.value }
             }
 
             verticalGap()

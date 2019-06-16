@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
@@ -51,7 +51,7 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
     ViewCanRenameMoveGame,
     ViewCanTagGame,
     ViewCanUpdateGame,
-    ViewCanResyncGame {
+    ViewCanSyncGame {
 
     override val gameChannel = dataChannel.map { it.game }
 
@@ -64,8 +64,8 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
     override val canUpdateGame = state(IsValid.valid)
     override val updateGameActions = channel<Game>()
 
-    override val canResyncGame = state(IsValid.valid)
-    override val resyncGameActions = channel<Game>()
+    override val canSyncGame = state(IsValid.valid)
+    override val syncGameActions = channel<Game>()
 
     override val root = vbox {
         addClass(GameDexStyle.popOverMenu)
@@ -83,10 +83,10 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
             enableWhen(canUpdateGame)
             action(updateGameActions) { data.game }
         }
-        item("Re-Sync", Icons.sync) {
+        item("Sync", Icons.sync) {
             addClass(GameDexStyle.infoButton)
-            enableWhen(canResyncGame)
-            action(resyncGameActions) { data.game }
+            enableWhen(canSyncGame)
+            action(syncGameActions) { data.game }
         }
         verticalGap()
         item("Rename/Move Folder", Icons.folderEdit) {
