@@ -16,12 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.util.urlEncoded
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
 import io.kotlintest.matchers.shouldBe
@@ -44,23 +43,28 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
     init {
         "search" should {
             "search by name & platform" test {
-                server.anySearchRequest() willReturn listOf(searchResult)
+                server.anyRequest() willReturnSearch listOf(searchResult)
 
-                client.search(name, platform, account) shouldBe listOf(searchResult)
+                val search = client.search(name, platform, account)
+                search shouldBe listOf(searchResult)
 
                 server.verify(
-                    getRequestedFor(urlPathEqualTo("/"))
+                    postRequestedFor(urlPathEqualTo("/"))
                         .withHeader("Accept", "application/json")
                         .withHeader("user-key", apiKey)
-                        .withQueryParam("search", name)
-                        .withQueryParam("filter[release_dates.platform][eq]".urlEncoded(), platformId.toString())
-                        .withQueryParam("limit", maxSearchResults.toString())
-                        .withQueryParam("fields", searchFields.joinToString(","))
+                        .withBody(
+                            """
+                                search "$name";
+                                fields ${searchFields.joinToString(",")};
+                                where name ~ *"$name"* & release_dates.platform = $platformId;
+                                limit $maxSearchResults;
+                            """.trimIndent()
+                        )
                 )
             }
 
             "throw IllegalStateException on invalid http response status" test {
-                server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
+                server.anyRequest() willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<ClientRequestException> {
                     client.search(name, platform, account)
@@ -71,29 +75,31 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
 
         "fetch" should {
             "fetch by providerGameId" test {
-                server.aFetchRequest(id) willReturn detailsResult
+                server.anyRequest() willReturnFetch listOf(detailsResult)
 
                 client.fetch(id, account) shouldBe detailsResult
 
                 server.verify(
-                    getRequestedFor(urlPathEqualTo("/$id"))
+                    postRequestedFor(urlPathEqualTo("/"))
                         .withHeader("Accept", "application/json")
                         .withHeader("user-key", apiKey)
-                        .withQueryParam("fields", fetchDetailsFields.joinToString(","))
+                        .withBody(
+                            """
+                                fields ${fetchDetailsFields.joinToString(",")};
+                                where id = $id;
+                            """.trimIndent()
+                        )
                 )
             }
 
-            "throw IllegalStateException on empty response" test {
-                server.aFetchRequest(id) willReturn emptyList()
+            "return null on empty response" test {
+                server.anyRequest() willReturnFetch emptyList()
 
-                val e = shouldThrow<IllegalStateException> {
-                    client.fetch(id, account)
-                }
-                e.message!! shouldHave substring("Not Found!")
+                client.fetch(id, account) shouldBe null
             }
 
             "throw ClientRequestException on invalid http response status" test {
-                server.aFetchRequest(id) willFailWith HttpStatusCode.BadRequest
+                server.anyRequest() willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<ClientRequestException> {
                     client.fetch(id, account)
@@ -144,7 +150,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
             human = randomLocalDate().toString("YYYY-MMM-dd")
         )
 
-        private fun randomImage() = IgdbClient.Image(cloudinaryId = randomWord())
+        private fun randomImage() = IgdbClient.Image(imageId = randomString())
 
         val account = IgdbUserAccount(apiKey = apiKey)
 
@@ -174,12 +180,12 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
         "release_dates.category",
         "release_dates.human",
         "release_dates.platform",
-        "cover.cloudinary_id"
+        "cover.image_id"
     )
 
     val fetchDetailsFields = searchFields + listOf(
         "url",
-        "screenshots.cloudinary_id",
+        "screenshots.image_id",
         "genres"
     )
 

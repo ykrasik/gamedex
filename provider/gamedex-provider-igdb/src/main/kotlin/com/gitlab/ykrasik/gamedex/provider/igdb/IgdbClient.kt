@@ -22,10 +22,8 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.listFromJson
-import io.ktor.client.call.call
 import io.ktor.client.request.header
-import io.ktor.client.request.parameter
-import io.ktor.client.response.readText
+import io.ktor.client.request.post
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,44 +34,32 @@ import javax.inject.Singleton
  */
 @Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
-    open suspend fun search(query: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> = get(
-        endpoint = "${config.baseUrl}/",
-        account = account,
-        params = mapOf(
-            "search" to query,
-            "filter[release_dates.platform][eq]" to platform.id,
-            "limit" to config.maxSearchResults,
-            "fields" to searchFieldsStr
-        )
-    ) { it.listFromJson() }
+    open suspend fun search(query: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> =
+        post(account) {
+            """
+                search "$query";
+                fields $searchFieldsStr;
+                where name ~ *"$query"* & release_dates.platform = ${platform.id};
+                limit ${config.maxSearchResults};
+            """.trimIndent()
+        }
 
-    open suspend fun fetch(providerGameId: String, account: IgdbUserAccount): DetailsResult = get<DetailsResult>(
-        endpoint = "${config.baseUrl}/$providerGameId",
-        account = account,
-        params = mapOf("fields" to fetchDetailsFieldsStr)
-    ) {
-        // IGDB returns a list, even though we're fetching by id :/
-        val result = it.listFromJson<DetailsResult>()
-        return result.firstOrNull() ?: throw IllegalStateException("Fetch '$providerGameId': Not Found!")
-    }
+    open suspend fun fetch(providerGameId: String, account: IgdbUserAccount): DetailsResult? =
+        post<DetailsResult>(account) {
+            """
+                fields $fetchDetailsFieldsStr;
+                where id = $providerGameId;
+            """.trimIndent()
+        }.firstOrNull()
 
-    private suspend inline fun <reified T : Any> get(endpoint: String, account: IgdbUserAccount, params: Map<String, Any>, transform: (String) -> T): T {
-        val response = httpClient.call(endpoint) {
+    private suspend inline fun <reified T : Any> post(account: IgdbUserAccount, body: () -> String): List<T> {
+        // Ktor fails to correctly parse a list of data classes, we have to do it manually.
+        val response = httpClient.post<ByteArray>(config.baseUrl) {
             header("user-key", account.apiKey)
-            params.forEach { parameter(it.key, it.value) }
-        }.response
-        val text = response.readText()
-        return transform(text)
+            this.body = body()
+        }
+        return response.listFromJson()
     }
-
-//    private fun parseError(raw: String): String {
-//        return if (raw.startsWith("{")) {
-//            val errors: List<Error> = raw.listFromJson()
-//            return errors.first().error.first()
-//        } else {
-//            raw
-//        }
-//    }
 
     private val Platform.id: Int get() = config.getPlatformId(this)
 
@@ -88,13 +74,13 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
             "release_dates.category",
             "release_dates.human",
             "release_dates.platform",
-            "cover.cloudinary_id"
+            "cover.image_id"
         )
         val searchFieldsStr = searchFields.joinToString(",")
 
         val fetchDetailsFields = searchFields + listOf(
             "url",
-            "screenshots.cloudinary_id",
+            "screenshots.image_id",
             "genres"
         )
         val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
@@ -140,12 +126,6 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
-        val cloudinaryId: String?
-    )
-
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Error(
-        val error: List<String>
+        val imageId: String?
     )
 }

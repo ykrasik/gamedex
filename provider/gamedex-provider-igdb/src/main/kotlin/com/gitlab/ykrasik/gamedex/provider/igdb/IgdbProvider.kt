@@ -44,22 +44,10 @@ class IgdbProvider @Inject constructor(
 
     override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount): List<ProviderSearchResult> {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
-            client.search(query, platform, account as IgdbUserAccount).toProviderSearchResults(query, platform)
+            client.search(query, platform, account as IgdbUserAccount).map { it.toSearchResult(platform) }
         }
         results.forEach { log.trace(it.toString()) }
         return results
-    }
-
-    private fun List<IgdbClient.SearchResult>.toProviderSearchResults(name: String, platform: Platform): List<ProviderSearchResult> {
-        // IGBD search sucks. It returns way more results then it should.
-        // Since I couldn't figure out how to make it not return irrelevant results, I had to filter results myself.
-        val searchWords = name.split("[^a-zA-Z\\d']".toRegex())
-        val filteredResults = this.asSequence().filter { (_, name) ->
-            searchWords.all { word ->
-                name.contains(word, ignoreCase = true)
-            }
-        }
-        return filteredResults.map { it.toSearchResult(platform) }.toList()
     }
 
     private fun IgdbClient.SearchResult.toSearchResult(platform: Platform) = ProviderSearchResult(
@@ -69,12 +57,14 @@ class IgdbProvider @Inject constructor(
         releaseDate = releaseDates?.findReleaseDate(platform),
         criticScore = toScore(aggregatedRating, aggregatedRatingCount),
         userScore = toScore(rating, ratingCount),
-        thumbnailUrl = cover?.cloudinaryId?.toImageUrl(config.thumbnailImageType)
+        thumbnailUrl = cover?.imageId?.toImageUrl(config.thumbnailImageType)
     )
 
     override suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
         log.logResult("[$platform] Fetching IGDB game '$providerGameId'...", log = Logger::debug) {
-            client.fetch(providerGameId, account as IgdbUserAccount).toProviderData(platform)
+            checkNotNull(client.fetch(providerGameId, account as IgdbUserAccount)?.toProviderData(platform)) {
+                "Not found: IGDB game '$providerGameId'!"
+            }
         }
 
     private fun IgdbClient.DetailsResult.toProviderData(platform: Platform) = ProviderFetchData(
@@ -86,9 +76,9 @@ class IgdbProvider @Inject constructor(
             userScore = toScore(rating, ratingCount),
             genres = this.genres?.map { it.genreName } ?: emptyList(),
             imageUrls = ImageUrls(
-                thumbnailUrl = this.cover?.cloudinaryId?.toThumbnailUrl(),
-                posterUrl = this.cover?.cloudinaryId?.toPosterUrl(),
-                screenshotUrls = this.screenshots?.mapNotNull { it.cloudinaryId?.toScreenshotUrl() } ?: emptyList()
+                thumbnailUrl = this.cover?.imageId?.toThumbnailUrl(),
+                posterUrl = this.cover?.imageId?.toPosterUrl(),
+                screenshotUrls = this.screenshots?.mapNotNull { it.imageId?.toScreenshotUrl() } ?: emptyList()
             )
         ),
         siteUrl = this.url

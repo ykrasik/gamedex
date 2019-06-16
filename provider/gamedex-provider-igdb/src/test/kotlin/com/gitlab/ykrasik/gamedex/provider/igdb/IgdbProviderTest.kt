@@ -51,7 +51,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
                         releaseDate = releaseDate,
                         criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
                         userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
-                        thumbnailUrl = thumbnailUrl(searchResult.cover!!.cloudinaryId!!)
+                        thumbnailUrl = thumbnailUrl(searchResult.cover!!.imageId!!)
                     )
                 )
             }
@@ -70,29 +70,6 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
                 search(name) should have2SearchResultsThat { first, second ->
                     first.name shouldBe searchResult1.name
                     second.name shouldBe searchResult2.name
-                }
-            }
-
-            "filter search results that do not contain all words of the original search term" test {
-                val name = "must contain all words"
-
-                val searchResult1 = searchResult("must contain all")
-                val searchResult2 = searchResult("contain all words")
-                val searchResult3 = searchResult("must all words")
-                val searchResult4 = searchResult("must contain")
-                val searchResult5 = searchResult("case Insensitive must additions ContAin possibly ALL WorDs stuff")
-                val searchResult6 = searchResult("words all contain must")
-
-                givenClientSearchReturns(
-                    listOf(
-                        searchResult1, searchResult2, searchResult3,
-                        searchResult4, searchResult5, searchResult6
-                    ), name
-                )
-
-                search(name) should have2SearchResultsThat { first, second ->
-                    first.name shouldBe searchResult5.name
-                    second.name shouldBe searchResult6.name
                 }
             }
 
@@ -153,7 +130,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             }
 
             "handle null cover cloudinaryId" test {
-                givenClientSearchReturns(listOf(searchResult().copy(cover = image(cloudinaryId = null))))
+                givenClientSearchReturns(listOf(searchResult().copy(cover = image(imageId = null))))
 
                 search() should haveASingleSearchResultThat {
                     it.thumbnailUrl shouldBe null
@@ -184,9 +161,9 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
                         userScore = Score(detailsResult.rating!!, detailsResult.ratingCount!!),
                         genres = listOf(genre),
                         imageUrls = ImageUrls(
-                            thumbnailUrl = thumbnailUrl(detailsResult.cover!!.cloudinaryId!!),
-                            posterUrl = posterUrl(detailsResult.cover!!.cloudinaryId!!),
-                            screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.cloudinaryId!!) }
+                            thumbnailUrl = thumbnailUrl(detailsResult.cover!!.imageId!!),
+                            posterUrl = posterUrl(detailsResult.cover!!.imageId!!),
+                            screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.imageId!!) }
                         )
                     ),
                     siteUrl = detailsResult.url
@@ -242,7 +219,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             }
 
             "handle null cover cloudinaryId" test {
-                givenClientFetchReturns(detailsResult().copy(cover = image(cloudinaryId = null)))
+                givenClientFetchReturns(detailsResult().copy(cover = image(imageId = null)))
 
                 fetch().gameData.imageUrls.thumbnailUrl shouldBe null
                 fetch().gameData.imageUrls.posterUrl shouldBe null
@@ -256,16 +233,16 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             }
 
             "handle null screenshot cloudinaryId" test {
-                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null))))
+                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(imageId = null))))
 
                 fetch().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
             }
 
             "handle null & non-null screenshot cloudinaryId" test {
                 val image = image()
-                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null), image)))
+                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(imageId = null), image)))
 
-                fetch().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.cloudinaryId!!))
+                fetch().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.imageId!!))
             }
 
             "handle null screenshots" test {
@@ -331,7 +308,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             human = releaseDate
         )
 
-        fun image(cloudinaryId: String? = randomWord()) = IgdbClient.Image(cloudinaryId = cloudinaryId)
+        fun image(imageId: String? = randomString()) = IgdbClient.Image(imageId = imageId)
 
         fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
             coEvery { client.search(name, platform, account) } returns results

@@ -29,11 +29,13 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.request.receiveText
 import io.ktor.response.respond
 import io.ktor.response.respondText
-import io.ktor.routing.*
+import io.ktor.routing.get
+import io.ktor.routing.post
+import io.ktor.routing.routing
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import java.io.Closeable
@@ -54,25 +56,17 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
 
     fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
 
-    abstract inner class BaseRequest {
+    @Suppress("ClassName")
+    inner class anyRequest {
+        infix fun willReturnSearch(results: List<IgdbClient.SearchResult>) = returns(results)
+        infix fun willReturnFetch(response: List<IgdbClient.DetailsResult>) = returns(response)
+
+        private fun <T> returns(results: List<T>) {
+            wiremock.givenThat(post(urlPathEqualTo("/")).willReturn(aJsonResponse(results)))
+        }
+
         infix fun willFailWith(status: HttpStatusCode) {
-            wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status.value)))
-        }
-    }
-
-    @Suppress("ClassName")
-    inner class anySearchRequest : BaseRequest() {
-        infix fun willReturn(results: List<IgdbClient.SearchResult>) {
-            wiremock.givenThat(get(urlPathEqualTo("/")).willReturn(aJsonResponse(results)))
-        }
-    }
-
-    @Suppress("ClassName")
-    inner class aFetchRequest(private val gameId: String) : BaseRequest() {
-        infix fun willReturn(response: IgdbClient.DetailsResult) = willReturn(listOf(response))
-
-        infix fun willReturn(response: List<IgdbClient.DetailsResult>) {
-            wiremock.givenThat(get(urlPathEqualTo("/$gameId")).willReturn(aJsonResponse(response)))
+            wiremock.givenThat(post(anyUrl()).willReturn(aResponse().withStatus(status.value)))
         }
     }
 }
@@ -91,23 +85,16 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
 
     override fun Application.setupServer() {
         routing {
-            route("/") {
-                method(HttpMethod.Get) {
-                    param("search") {
-                        handle {
-                            authorized {
-                                val name = call.parameters["search"]!!
-                                delay(50, 1000)
-                                call.respondText(randomSearchResults(name), ContentType.Application.Json)
-                            }
-                        }
-                    }
-                }
-            }
-            get("/{id}") {
+            post("/") {
                 authorized {
-                    delay(200, 800)
-                    call.respondText(randomDetailResponse(), ContentType.Application.Json)
+                    val body = call.receiveText()
+                    delay(50, 800)
+                    val response = if (body.contains("search")) {
+                        randomSearchResults()
+                    } else {
+                        randomDetailResponse()
+                    }
+                    call.respondText(response, ContentType.Application.Json)
                 }
             }
             get("$imagePath/$thumbnailPath/{imageName}") {
@@ -131,10 +118,10 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
 
     private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis).toLong())
 
-    private fun randomSearchResults(name: String): String = randomList(10) {
+    private fun randomSearchResults(): String = randomList(10) {
         IgdbClient.SearchResult(
             id = randomInt(),
-            name = "$name ${randomName()}",
+            name = randomName(),
             summary = randomParagraph(),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
@@ -156,7 +143,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
         aggregatedRatingCount = randomScore().numReviews,
         rating = randomScore().score,
         ratingCount = randomScore().numReviews,
-        cover = IgdbClient.Image(cloudinaryId = randomWord()),
+        cover = IgdbClient.Image(imageId = randomWord()),
         screenshots = randomList(10) { randomImage() },
         genres = randomList(4) {
             listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
@@ -186,7 +173,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
         )
     }
 
-    private fun randomImage() = IgdbClient.Image(cloudinaryId = randomWord())
+    private fun randomImage() = IgdbClient.Image(imageId = randomWord())
 
     override fun setupEnv() {
         System.setProperty("gameDex.provider.igdb.baseUrl", baseUrl)
