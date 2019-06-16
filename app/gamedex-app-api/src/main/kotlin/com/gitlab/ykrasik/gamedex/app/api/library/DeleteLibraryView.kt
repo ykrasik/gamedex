@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 
 /**
  * User: ykrasik
@@ -26,7 +28,7 @@ import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
  * Time: 12:45
  */
 interface DeleteLibraryView : ConfirmationView {
-    val library: Library
+    val library: UserMutableState<Library>
 
-    val gamesToBeDeleted: MutableList<Game>
+    val gamesToBeDeleted: SettableList<Game>
 }

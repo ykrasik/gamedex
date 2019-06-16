@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.settableList
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
@@ -43,7 +44,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
 
     override val game = userMutableState(Game.Null)
 
-    override val possibleLibraries = mutableListOf<Library>().asObservable()
+    override val possibleLibraries = settableList<Library>()
 
     override val library = userMutableState(Library.Null)
     override val path = userMutableState("")

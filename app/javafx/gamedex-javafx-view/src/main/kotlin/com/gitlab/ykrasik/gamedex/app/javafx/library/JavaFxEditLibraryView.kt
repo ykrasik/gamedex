@@ -29,7 +29,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
 import java.io.File
 
@@ -39,8 +38,7 @@ import java.io.File
  * Time: 10:56
  */
 class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibraryView {
-    private val libraryProperty = SimpleObjectProperty<Library?>(null)
-    override var library by libraryProperty
+    override val library = userMutableState<Library?>(null)
 
     override val name = userMutableState("")
     override val nameIsValid = state(IsValid.valid)
@@ -58,8 +56,8 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
     override val browseActions = channel<Unit>()
 
     init {
-        titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library" })
-        iconProperty.bind(libraryProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
+        titleProperty.bind(library.property.stringBinding { if (it == null) "Add New Library" else "Edit Library" })
+        iconProperty.bind(library.property.objectBinding { if (it == null) Icons.add else Icons.edit })
         register()
     }
 

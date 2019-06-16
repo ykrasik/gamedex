@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.IsValid
 

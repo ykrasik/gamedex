@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.*
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -66,13 +66,13 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
     override val filterIsValid = state(IsValid.valid)
     override val setFilterActions = channel<Filter>()
 
-    override val availableFilters = mutableListOf<KClass<out Filter.Rule>>().asObservable()
+    override val availableFilters = settableList<KClass<out Filter.Rule>>()
 
-    override val availableLibraries = mutableListOf<Library>()
-    override val availableGenres = mutableListOf<String>()
-    override val availableTags = mutableListOf<TagId>()
-    override val availableFilterTags = mutableListOf<TagId>()
-    override val availableProviderIds = mutableListOf<ProviderId>().asObservable()
+    override val availableLibraries = settableList<Library>()
+    override val availableGenres = settableList<String>()
+    override val availableTags = settableList<TagId>()
+    override val availableFilterTags = settableList<TagId>()
+    override val availableProviderIds = settableList<ProviderId>()
 
     override val wrapInAndActions = channel<Filter>()
     override val wrapInOrActions = channel<Filter>()
@@ -83,7 +83,7 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
     override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
     override val deleteFilterActions = channel<Filter>()
 
-    override val savedFilters = mutableListOf<NamedFilter>().asObservable()
+    override val savedFilters = settableList<NamedFilter>()
     override val addOrEditFilterActions = channel<NamedFilter>()
     override val deleteNamedFilterActions = channel<NamedFilter>()
 

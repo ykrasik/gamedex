@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 
 /**
  * User: ykrasik
@@ -24,5 +25,5 @@ import com.gitlab.ykrasik.gamedex.Library
  * Time: 12:37
  */
 interface ViewWithLibraries {
-    val libraries: MutableList<Library>
+    val libraries: SettableList<Library>
 }

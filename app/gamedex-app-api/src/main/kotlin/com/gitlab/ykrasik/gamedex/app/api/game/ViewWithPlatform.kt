@@ -17,7 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 
 /**
  * User: ykrasik
@@ -25,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
  * Time: 09:43
  */
 interface ViewWithPlatform {
-    val availablePlatforms: MutableList<Platform>
+    val availablePlatforms: SettableList<Platform>
 
     val currentPlatform: UserMutableState<Platform>
 }

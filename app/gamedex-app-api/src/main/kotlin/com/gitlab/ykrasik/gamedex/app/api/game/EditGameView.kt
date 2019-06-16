@@ -20,9 +20,9 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
@@ -32,7 +32,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 08:08
  */
 interface EditGameView : ConfirmationView {
-    val game: Game
+    val game: UserMutableState<Game>
 
     val nameOverride: GameDataOverrideState<String>
     val descriptionOverride: GameDataOverrideState<String>

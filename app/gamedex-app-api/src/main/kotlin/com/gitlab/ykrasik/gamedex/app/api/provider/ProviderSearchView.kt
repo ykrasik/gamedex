@@ -18,9 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -38,7 +39,7 @@ interface ProviderSearchView {
 
     val query: UserMutableState<String>
 
-    val searchResults: MutableList<ProviderSearchResult>
+    val searchResults: SettableList<ProviderSearchResult>
     val selectedSearchResult: UserMutableState<ProviderSearchResult?>
 
     val canChangeState: State<IsValid>

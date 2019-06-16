@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.settableList
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
@@ -45,7 +46,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
     ViewCanDeleteLibrary,
     ViewCanOpenFile {
 
-    override val libraries = mutableListOf<Library>().asObservable()
+    override val libraries = settableList<Library>()
 
     override val canAddOrEditLibraries = state(IsValid.valid)
     override val addOrEditLibraryActions = channel<Library?>()

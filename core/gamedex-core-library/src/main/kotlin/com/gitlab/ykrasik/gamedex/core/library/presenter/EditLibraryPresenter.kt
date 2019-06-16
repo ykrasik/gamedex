@@ -46,6 +46,8 @@ class EditLibraryPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<EditLibraryView> {
     override fun present(view: EditLibraryView) = object : ViewSession() {
+        private val library by view.library
+
         init {
             view.name.forEach { onNameChanged() }
             view.path.forEach { onPathChanged() }
@@ -61,8 +63,6 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            val library = view.library
-
             view.platform *= library?.platformOrNull ?: Platform.Windows
 
             view.name *= library?.name ?: ""
@@ -135,20 +135,20 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private inline fun isAvailableNewLibrary(findExisting: () -> Library?): Boolean =
-            view.library == null && findExisting() == null
+            library == null && findExisting() == null
 
         private inline fun isAvailableUpdatedLibrary(findExisting: (Library) -> Library?): Boolean =
-            view.library?.let { library -> (findExisting(library) ?: library) == library } ?: false
+            library?.let { library -> (findExisting(library) ?: library) == library } ?: false
 
         private fun setCanAccept() {
             view.canAccept *= view.pathIsValid and view.nameIsValid and Try {
-                val existingLibrary = view.library
-                if (existingLibrary != null) {
+                val library = library
+                if (library != null) {
                     check(
-                        existingLibrary.path.toString() != view.path.value ||
-                            existingLibrary.name != view.name.value ||
-                            existingLibrary.type != view.type.value ||
-                            existingLibrary.platformOrNull != view.platform.value
+                        library.path.toString() != view.path.value ||
+                            library.name != view.name.value ||
+                            library.type != view.type.value ||
+                            library.platformOrNull != view.platform.value
                     ) { "Nothing changed!" }
                 }
             }
@@ -168,7 +168,7 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun assertEmptyLibrary(name: String) {
-            val library = view.library
+            val library = library
             check(library == null || gameService.games.none { it.library.id == library.id }) { "Cannot change the $name of a library with games!" }
         }
 
@@ -180,10 +180,12 @@ class EditLibraryPresenter @Inject constructor(
                 type = view.type.value,
                 platform = view.platform.value.takeIf { view.type.value != LibraryType.Excluded }
             )
-            val task = if (view.library == null) {
+
+            val library = library
+            val task = if (library == null) {
                 libraryService.add(libraryData)
             } else {
-                libraryService.replace(view.library!!, libraryData)
+                libraryService.replace(library, libraryData)
             }
 
             taskService.execute(task)

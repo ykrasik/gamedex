@@ -16,9 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 
 /**
  * User: ykrasik
@@ -33,7 +34,7 @@ interface SyncGamesView {
     val isGameSyncRunning: State<Boolean>
     val numProcessed: State<Int>
 
-    val state: MutableList<GameSearchState>
+    val state: SettableList<GameSearchState>
 
     val currentState: UserMutableState<GameSearchState?>
     val restartStateActions: MultiReceiveChannel<GameSearchState>

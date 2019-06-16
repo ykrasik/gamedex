@@ -20,11 +20,16 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.javafx.control.fitAtMost
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyListView
 import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.settableList
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import javafx.beans.property.SimpleObjectProperty
-import tornadofx.*
+import tornadofx.asObservable
+import tornadofx.label
+import tornadofx.replaceChildren
+import tornadofx.stringBinding
 
 /**
  * User: ykrasik
@@ -32,13 +37,12 @@ import tornadofx.*
  * Time: 10:03
  */
 class JavaFxDeleteLibraryView : ConfirmationWindow(icon = Icons.delete), DeleteLibraryView {
-    private val libraryProperty = SimpleObjectProperty(Library.Null)
-    override var library: Library by libraryProperty
+    override val library = userMutableState(Library.Null)
 
-    override val gamesToBeDeleted = mutableListOf<Game>().asObservable()
+    override val gamesToBeDeleted = settableList<Game>()
 
     init {
-        titleProperty.bind(libraryProperty.stringBinding { "Delete library '${it!!.name}'?" })
+        titleProperty.bind(library.property.stringBinding { "Delete library '${it!!.name}'?" })
         register()
     }
 
@@ -47,7 +51,7 @@ class JavaFxDeleteLibraryView : ConfirmationWindow(icon = Icons.delete), DeleteL
             this.replaceChildren {
                 if (gamesToBeDeleted.isNotEmpty()) {
                     label("The following ${gamesToBeDeleted.size} games will also be deleted:")
-                    listview(gamesToBeDeleted.map { it.name }.asObservable()) { fitAtMost(10) }
+                    prettyListView(gamesToBeDeleted.map { it.name }.asObservable()) { fitAtMost(10) }
                 }
             }
         }

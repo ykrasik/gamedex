@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty

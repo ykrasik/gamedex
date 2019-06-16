@@ -18,8 +18,9 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
-import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.State
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlin.reflect.KClass
@@ -34,13 +35,13 @@ interface FilterView {
     val filterIsValid: State<IsValid>
     val setFilterActions: MultiReceiveChannel<Filter>
 
-    val availableFilters: MutableList<KClass<out Filter.Rule>>
+    val availableFilters: SettableList<KClass<out Filter.Rule>>
 
-    val availableLibraries: MutableList<Library>
-    val availableGenres: MutableList<String>
-    val availableTags: MutableList<TagId>
-    val availableFilterTags: MutableList<TagId>
-    val availableProviderIds: MutableList<ProviderId>
+    val availableLibraries: SettableList<Library>
+    val availableGenres: SettableList<String>
+    val availableTags: SettableList<TagId>
+    val availableFilterTags: SettableList<TagId>
+    val availableProviderIds: SettableList<ProviderId>
 
     val wrapInAndActions: MultiReceiveChannel<Filter>
     val wrapInOrActions: MultiReceiveChannel<Filter>

@@ -48,7 +48,7 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
 
     override val isGameSyncRunning = state(false)
 
-    override val state = mutableListOf<GameSearchState>().asObservable()
+    override val state = settableList<GameSearchState>()
     private val pathsToProcessSize = state.sizeProperty
     override val numProcessed = state(0)
 

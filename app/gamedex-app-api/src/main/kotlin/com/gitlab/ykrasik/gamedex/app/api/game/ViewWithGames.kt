@@ -17,8 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 
 /**
  * User: ykrasik
@@ -26,11 +27,11 @@ import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
  * Time: 09:51
  */
 interface ViewWithGames {
-    val games: MutableList<Game>
+    val games: SettableList<Game>
     val sort: State<Comparator<Game>>
     val filter: State<(Game) -> Boolean>
 
     val searchText: UserMutableState<String>
-    val searchSuggestions: MutableList<Game>
+    val searchSuggestions: SettableList<Game>
     val isShowSearchSuggestions: State<Boolean>
 }

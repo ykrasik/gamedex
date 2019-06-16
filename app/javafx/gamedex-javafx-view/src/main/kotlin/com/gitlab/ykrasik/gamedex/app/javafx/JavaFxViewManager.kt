@@ -105,16 +105,16 @@ class JavaFxViewManager : Controller(), ViewManager {
     }
 
     private val editLibraryView: JavaFxEditLibraryView by inject()
-    override fun showEditLibraryView(library: Library?) = editLibraryView.showOverlay(modal = true) { this.library = library }
+    override fun showEditLibraryView(library: Library?) = editLibraryView.showOverlay(modal = true) { this.library.valueFromView = library }
     override fun hide(view: EditLibraryView) = view.hideOverlay()
 
     private val deleteLibraryView: JavaFxDeleteLibraryView by inject()
-    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.showOverlay { this.library = library }
+    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.showOverlay { this.library.valueFromView = library }
     override fun hide(view: DeleteLibraryView) = view.hideOverlay()
 
     private val editGameView: JavaFxEditGameView by inject()
     override fun showEditGameView(params: EditGameParams) = editGameView.showOverlay(modal = true) {
-        this.game = params.game
+        this.game.valueFromView = params.game
         this.initialView = params.initialView
     }
 

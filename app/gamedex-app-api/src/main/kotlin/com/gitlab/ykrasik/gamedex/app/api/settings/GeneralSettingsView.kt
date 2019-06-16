@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 
 /**
  * User: ykrasik

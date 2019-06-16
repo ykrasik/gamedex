@@ -44,6 +44,8 @@ class EditGamePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<EditGameView> {
     override fun present(view: EditGameView) = object : ViewSession() {
+        private val game by view.game
+
         private val allOverrides = with(view) {
             listOf(
                 nameOverride,
@@ -86,7 +88,7 @@ class EditGamePresenter @Inject constructor(
         private fun setCanAccept() {
             view.canAccept *= Try {
                 val updatedGame = gameService.buildGame(calcUpdatedGame())
-                check(updatedGame.gameData != view.game.gameData) { "Nothing changed!" }
+                check(updatedGame.gameData != game.gameData) { "Nothing changed!" }
             }
         }
 
@@ -122,18 +124,18 @@ class EditGamePresenter @Inject constructor(
         override suspend fun onShown() {
             allOverrides.forEach { it.initStateOnShow() }
 
-            gameWithoutOverrides = gameService.buildGame(view.game.rawGame.copy(userData = UserData.Null))
+            gameWithoutOverrides = gameService.buildGame(game.rawGame.copy(userData = UserData.Null))
 
             view.canAccept *= IsValid.invalid("Nothing changed!")
         }
 
         @Suppress("UNCHECKED_CAST")
         private fun <T> GameDataOverrideState<T>.initStateOnShow() {
-            providerValues *= view.game.rawGame.providerData
+            providerValues *= game.rawGame.providerData
                 .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.header.providerId to value } }
                 .toMap()
 
-            when (val currentOverride = view.game.rawGame.userData.overrides[type]) {
+            when (val currentOverride = game.rawGame.userData.overrides[type]) {
                 is GameDataOverride.Custom -> {
                     selection *= OverrideSelectionType.Custom
                     canSelectCustomOverride *= IsValid.valid
@@ -145,7 +147,7 @@ class EditGamePresenter @Inject constructor(
                     selection *= if (currentOverride is GameDataOverride.Provider) {
                         OverrideSelectionType.Provider(currentOverride.provider)
                     } else {
-                        val value = type.extractValue<T>(view.game.gameData)
+                        val value = type.extractValue<T>(game.gameData)
                         if (value != null) {
                             findProviderWithValue(value)
                         } else {
@@ -188,7 +190,7 @@ class EditGamePresenter @Inject constructor(
         private suspend fun onAccept() {
             view.canAccept.assert()
             val newRawGame = calcUpdatedGame()
-            taskService.execute(gameService.replace(view.game, newRawGame))
+            taskService.execute(gameService.replace(game, newRawGame))
             hideView()
         }
 
@@ -221,8 +223,8 @@ class EditGamePresenter @Inject constructor(
                 }
             }.toMap()
 
-            val userData = view.game.rawGame.userData.copy(overrides = overrides)
-            return view.game.rawGame.copy(userData = userData)
+            val userData = game.rawGame.userData.copy(overrides = overrides)
+            return game.rawGame.copy(userData = userData)
         }
     }
 

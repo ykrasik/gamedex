@@ -16,11 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+
 /**
  * User: ykrasik
  * Date: 28/06/2018
  * Time: 09:19
  */
 interface ViewWithFilters {
-    val savedFilters: MutableList<NamedFilter>
+    val savedFilters: SettableList<NamedFilter>
 }

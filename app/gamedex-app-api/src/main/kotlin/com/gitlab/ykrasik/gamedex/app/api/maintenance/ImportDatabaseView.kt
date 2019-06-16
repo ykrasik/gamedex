@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import java.io.File
 

@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.task
 
-import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.State
 import kotlinx.coroutines.Job
 
 /**

@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.log.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
+import com.gitlab.ykrasik.gamedex.javafx.settableSortedFilteredList
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -36,8 +36,11 @@ import java.io.StringWriter
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogView : PresentableView("Log", Icons.book), LogView, ViewCanChangeLogLevel, ViewCanChangeLogTail {
-    override val entries = mutableListOf<LogEntry>().asObservable().sortedFiltered()
+class JavaFxLogView : PresentableView("Log", Icons.book),
+    LogView,
+    ViewCanChangeLogLevel,
+    ViewCanChangeLogTail {
+    override val entries = settableSortedFilteredList<LogEntry>()
 
     override var level = userMutableState(LogLevel.Info)
     override var logTail = userMutableState(false)

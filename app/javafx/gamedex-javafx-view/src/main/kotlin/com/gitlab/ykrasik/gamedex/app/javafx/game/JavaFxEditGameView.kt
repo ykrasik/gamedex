@@ -55,8 +55,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     private val initialViewProperty = SimpleObjectProperty(GameDataType.Name)
     var initialView: GameDataType by initialViewProperty
 
-    private val gameProperty = SimpleObjectProperty(Game.Null)
-    override var game by gameProperty
+    override val game = userMutableState(Game.Null)
 
     // TODO: Consider representing this as a CustomProvider in the UserData
     override val nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.Name, Icons.text)
@@ -85,7 +84,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     }
 
     init {
-        titleProperty.bind(gameProperty.stringBinding { "Edit '${it!!.name}'" })
+        titleProperty.bind(game.property.stringBinding { "Edit '${it!!.name}'" })
         register()
     }
 

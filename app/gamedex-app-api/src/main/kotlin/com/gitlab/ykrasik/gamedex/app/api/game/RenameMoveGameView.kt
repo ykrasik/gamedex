@@ -19,9 +19,10 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import java.io.File
 
@@ -34,7 +35,7 @@ interface RenameMoveGameView : ConfirmationView {
     val initialName: String?
     val game: UserMutableState<Game>
 
-    val possibleLibraries: MutableList<Library>
+    val possibleLibraries: SettableList<Library>
 
     val library: UserMutableState<Library>
     val path: UserMutableState<String>

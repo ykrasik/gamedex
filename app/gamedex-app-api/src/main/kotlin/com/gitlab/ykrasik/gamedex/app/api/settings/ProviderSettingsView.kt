@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.util.IsValid
 

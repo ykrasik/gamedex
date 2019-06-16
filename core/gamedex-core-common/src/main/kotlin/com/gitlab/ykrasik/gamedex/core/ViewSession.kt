@@ -16,14 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
+import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Modifier
+import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.and
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -108,7 +108,7 @@ abstract class ViewSession : CoroutineScope {
 
     inline fun <T> MultiReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) = subscribe().forEachImmediately(f)
 
-    fun <T> ListObservable<T>.bind(list: MutableList<T>) {
+    fun <T> ListObservable<T>.bind(list: SettableList<T>) {
         list.setAll(this)
         changesChannel.forEach { event ->
             when (event) {

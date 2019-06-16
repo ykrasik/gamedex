@@ -61,19 +61,19 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val games = mutableListOf<Game>().sortedFiltered()
+    override val games = settableSortedFilteredList<Game>()
 
     override val sort = state(Comparator.comparing(Game::name))
     override val filter = state { _: Game -> true }
 
-    override val availablePlatforms = mutableListOf<Platform>().asObservable()
+    override val availablePlatforms = settableList<Platform>()
 
     override val currentPlatform = userMutableState(Platform.Windows)
 
     override val gameDisplayType = userMutableState(GameDisplayType.Wall)
 
     override val searchText = userMutableState("")
-    override val searchSuggestions = mutableListOf<Game>().asObservable()
+    override val searchSuggestions = settableList<Game>()
     override val isShowSearchSuggestions = state(false)
 
     override val sortBy = userMutableState(SortBy.Name)

@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -39,6 +39,6 @@ interface EditFilterView : ConfirmationView {
 
     suspend fun confirmOverwrite(filterToOverwrite: NamedFilter): Boolean
 
-//    val excludedGames: MutableList<Game>
+//    val excludedGames: SettableList<Game>
 //    val unexcludeGameActions: BroadcastReceiveChannel<Game>
 }

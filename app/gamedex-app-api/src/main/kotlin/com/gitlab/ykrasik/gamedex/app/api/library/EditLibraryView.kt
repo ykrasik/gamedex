@@ -20,9 +20,9 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import java.io.File
 
@@ -32,7 +32,7 @@ import java.io.File
  * Time: 07:05
  */
 interface EditLibraryView : ConfirmationView {
-    val library: Library?
+    val library: UserMutableState<Library?>
 
     val name: UserMutableState<String>
     val nameIsValid: State<IsValid>

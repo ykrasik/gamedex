@@ -18,9 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -31,7 +32,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
 interface TagGameView : ConfirmationView {
     val game: UserMutableState<Game>
 
-    val tags: MutableList<String>
+    val tags: SettableList<String>
     val checkedTags: MutableSet<String>
 
     val toggleAll: UserMutableState<Boolean>

@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.log
 
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import org.joda.time.DateTime
 
 /**
@@ -24,7 +25,7 @@ import org.joda.time.DateTime
  * Time: 12:53
  */
 interface LogView {
-    val entries: MutableList<LogEntry>
+    val entries: SettableList<LogEntry>
 }
 
 data class LogEntry(val level: LogLevel, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
