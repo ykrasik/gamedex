@@ -184,7 +184,7 @@ class MaintenanceServiceImpl @Inject constructor(
                 val duplicates = gameIdsToDuplicates.getOrPut(game1.id) { mutableListOf() }
                 games.forEach { game2 ->
                     if (game1.id != game2.id) {
-                        duplicates += game2 to header.id
+                        duplicates += game2 to header.providerId
                     }
                 }
                 incProgress()
@@ -212,7 +212,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         val patch = DiffUtils.diff(folderName.rawName.toList(), expectedFolderName.toList())
         return FolderNameDiff(
-            providerId = providerData.header.id,
+            providerId = providerData.header.providerId,
             folderName = folderName.rawName,
             expectedFolderName = expectedFolderName,
             patch = patch

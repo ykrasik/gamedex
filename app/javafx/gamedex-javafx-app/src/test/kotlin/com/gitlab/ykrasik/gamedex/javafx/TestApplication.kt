@@ -120,8 +120,8 @@ object TestApplication {
 
     private fun randomProviderData(provider: GameProviderFakeServer) = ProviderData(
         header = ProviderHeader(
-            id = provider.id,
-            apiUrl = provider.apiDetailsUrl
+            providerId = provider.id,
+            providerGameId = provider.randomProviderGameId()
         ),
         gameData = GameData(
             name = randomName(),

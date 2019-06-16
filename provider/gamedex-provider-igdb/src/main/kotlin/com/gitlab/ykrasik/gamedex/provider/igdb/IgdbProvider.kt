@@ -36,7 +36,10 @@ import javax.inject.Singleton
  * Time: 11:14
  */
 @Singleton
-class IgdbProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
+class IgdbProvider @Inject constructor(
+    private val config: IgdbConfig,
+    private val client: IgdbClient
+) : GameProvider {
     private val log = logger()
 
     override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount): List<ProviderSearchResult> {
@@ -60,7 +63,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     }
 
     private fun IgdbClient.SearchResult.toSearchResult(platform: Platform) = ProviderSearchResult(
-        apiUrl = "${config.baseUrl}/$id",
+        providerGameId = id.toString(),
         name = name,
         description = summary,
         releaseDate = releaseDates?.findReleaseDate(platform),
@@ -69,9 +72,9 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(config.thumbnailImageType)
     )
 
-    override suspend fun fetch(apiUrl: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
-        log.logResult("[$platform] Fetching $apiUrl...", log = Logger::debug) {
-            client.fetch(apiUrl, account as IgdbUserAccount).toProviderData(platform)
+    override suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
+        log.logResult("[$platform] Fetching IGDB game '$providerGameId'...", log = Logger::debug) {
+            client.fetch(providerGameId, account as IgdbUserAccount).toProviderData(platform)
         }
 
     private fun IgdbClient.DetailsResult.toProviderData(platform: Platform) = ProviderFetchData(

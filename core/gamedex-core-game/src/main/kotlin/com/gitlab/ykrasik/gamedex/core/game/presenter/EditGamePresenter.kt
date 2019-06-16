@@ -130,7 +130,7 @@ class EditGamePresenter @Inject constructor(
         @Suppress("UNCHECKED_CAST")
         private fun <T> GameDataOverrideState<T>.initStateOnShow() {
             providerValues *= view.game.rawGame.providerData
-                .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.header.id to value } }
+                .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.header.providerId to value } }
                 .toMap()
 
             when (val currentOverride = view.game.rawGame.userData.overrides[type]) {

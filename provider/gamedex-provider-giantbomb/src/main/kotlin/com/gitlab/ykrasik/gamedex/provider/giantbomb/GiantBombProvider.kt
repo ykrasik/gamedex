@@ -33,7 +33,10 @@ import javax.inject.Singleton
  * Time: 10:53
  */
 @Singleton
-class GiantBombProvider @Inject constructor(private val config: GiantBombConfig, private val client: GiantBombClient) : GameProvider {
+class GiantBombProvider @Inject constructor(
+    private val config: GiantBombConfig,
+    private val client: GiantBombClient
+) : GameProvider {
     private val log = logger()
 
     override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount): List<ProviderSearchResult> {
@@ -47,18 +50,19 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
     }
 
     private fun GiantBombClient.SearchResult.toProviderSearchResult() = ProviderSearchResult(
+        providerGameId = apiDetailUrl,
         name = name,
         description = deck,
         releaseDate = originalReleaseDate?.toString(),
         criticScore = null,
         userScore = null,
-        thumbnailUrl = image?.thumbUrl?.filterEmptyImage(),
-        apiUrl = apiDetailUrl
+        thumbnailUrl = image?.thumbUrl?.filterEmptyImage()
     )
 
-    override suspend fun fetch(apiUrl: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
-        log.logResult("[$platform] Fetching $apiUrl...", log = Logger::debug) {
-            val response = client.fetch(apiUrl, account as GiantBombUserAccount)
+    override suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
+        log.logResult("[$platform] Fetching GiantBomb url $providerGameId...", log = Logger::debug) {
+            // providerGameId is the actual api url
+            val response = client.fetch(providerGameId, account as GiantBombUserAccount)
             assertOk(response.statusCode)
             // When result is found - GiantBomb returns a Json object.
             // When result is not found, GiantBomb returns an empty Json array [].

@@ -77,12 +77,11 @@ class GiantBombMockServer(port: Int = freePort) : Closeable {
 }
 
 class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : KtorFakeServer(port), GameProviderFakeServer {
-    private val apiDetailPath = "details"
     private val thumbnailPath = "images/thumbnail"
     private val superPath = "images/super"
 
     override val id = "GiantBomb"
-    override val apiDetailsUrl = "$baseUrl/$apiDetailPath"
+    override fun randomProviderGameId() = "$baseUrl/3030-${randomInt()}/"
     override val thumbnailUrl = "$baseUrl/$thumbnailPath"
     override val posterUrl = "$baseUrl/$superPath"
     override val screenshotUrl = posterUrl
@@ -103,7 +102,7 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
                 delay(300, 800)
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Return a different set of images
             }
-            get(apiDetailPath) {
+            get("{id}") {
                 authorized {
                     delay(400, 1400)
                     call.respondText(randomDetailResponse().toMap().toJsonStr(), ContentType.Application.Json)
@@ -126,7 +125,7 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
         statusCode = GiantBombClient.Status.OK,
         results = randomList(10) {
             GiantBombClient.SearchResult(
-                apiDetailUrl = apiDetailsUrl,
+                apiDetailUrl = "$baseUrl/${randomProviderGameId()}/",
                 name = randomName(),
                 deck = randomParagraph(),
                 originalReleaseDate = randomLocalDate(),

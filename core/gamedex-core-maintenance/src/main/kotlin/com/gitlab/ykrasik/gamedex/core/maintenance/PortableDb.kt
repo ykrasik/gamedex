@@ -73,10 +73,10 @@ internal object PortableDb {
     data class Game(
         val libraryId: Int,
         val path: String,
-        val createDate: Long,
-        val updateDate: Long,
         val providerData: List<ProviderData>,
-        val userData: UserData?
+        val userData: UserData?,
+        val createDate: Long,
+        val updateDate: Long
     ) {
         fun toGameRequest(libraries: Map<Int, DomainLibrary>) = AddGameRequest(
             metadata = Metadata(
@@ -103,9 +103,7 @@ internal object PortableDb {
 
     data class ProviderData(
         val providerId: ProviderId,
-        val createDate: Long,
-        val updateDate: Long,
-        val apiUrl: String,
+        val providerGameId: String,
         val name: String,
         val description: String?,
         val releaseDate: String?,
@@ -117,12 +115,14 @@ internal object PortableDb {
         val thumbnailUrl: String?,
         val posterUrl: String?,
         val screenshotUrls: List<String>,
-        val siteUrl: String
+        val siteUrl: String,
+        val createDate: Long,
+        val updateDate: Long
     ) {
         fun toProviderData() = DomainProviderData(
             header = ProviderHeader(
-                id = providerId,
-                apiUrl = apiUrl
+                providerId = providerId,
+                providerGameId = providerGameId
             ),
             gameData = GameData(
                 name = name,
@@ -148,10 +148,8 @@ internal object PortableDb {
     }
 
     private fun DomainProviderData.toPortable() = ProviderData(
-        providerId = header.id,
-        createDate = timestamp.createDate.millis,
-        updateDate = timestamp.updateDate.millis,
-        apiUrl = header.apiUrl,
+        providerId = header.providerId,
+        providerGameId = header.providerGameId,
         name = gameData.name,
         description = gameData.description,
         releaseDate = gameData.releaseDate,
@@ -163,7 +161,9 @@ internal object PortableDb {
         thumbnailUrl = gameData.imageUrls.thumbnailUrl,
         posterUrl = gameData.imageUrls.posterUrl,
         screenshotUrls = gameData.imageUrls.screenshotUrls,
-        siteUrl = siteUrl
+        siteUrl = siteUrl,
+        createDate = timestamp.createDate.millis,
+        updateDate = timestamp.updateDate.millis
     )
 
     data class UserData(

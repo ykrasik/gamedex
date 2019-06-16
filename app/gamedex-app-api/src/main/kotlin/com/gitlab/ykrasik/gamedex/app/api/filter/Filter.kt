@@ -291,8 +291,8 @@ sealed class Filter {
     }
 
     class Provider(val providerId: ProviderId) : Rule() {
-        override fun evaluate(game: Game, context: Context) = eval(game, context) { it.any { it.header.id == providerId } }
-        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it.none { it.header.id == providerId } }
+        override fun evaluate(game: Game, context: Context) = eval(game, context) { it.any { it.header.providerId == providerId } }
+        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it.none { it.header.providerId == providerId } }
 
         private inline fun eval(game: Game, context: Context, f: (List<ProviderData>) -> Boolean): Boolean {
             return context.providerSupports(providerId, game.platform) &&

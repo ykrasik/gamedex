@@ -28,17 +28,8 @@ import com.gitlab.ykrasik.gamedex.Score
 interface GameProvider {
     val metadata: GameProviderMetadata
 
-    suspend fun search(
-        query: String,
-        platform: Platform,
-        account: ProviderUserAccount = ProviderUserAccount.Null
-    ): List<ProviderSearchResult>
-
-    suspend fun fetch(
-        apiUrl: String,
-        platform: Platform,
-        account: ProviderUserAccount = ProviderUserAccount.Null
-    ): ProviderFetchData
+    suspend fun search(query: String, platform: Platform, account: ProviderUserAccount = ProviderUserAccount.Null): List<ProviderSearchResult>
+    suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount = ProviderUserAccount.Null): ProviderFetchData
 }
 
 typealias ProviderId = String
@@ -103,13 +94,13 @@ data class ProviderOrderPriorities(
 }
 
 data class ProviderSearchResult(
+    val providerGameId: String,
     val name: String,
     val description: String?,
     val releaseDate: String?,
     val criticScore: Score?,
     val userScore: Score?,
-    val thumbnailUrl: String?,
-    val apiUrl: String
+    val thumbnailUrl: String?
 )
 
 data class ProviderFetchData(

@@ -126,7 +126,7 @@ class GameFactory @Inject constructor(
 
     private fun RawGame.sortDataBy(order: Order, override: GameDataOverride.Provider?): List<ProviderData> =
         providerData.sortedBy {
-            val providerId = it.header.id
+            val providerId = it.header.providerId
             if (providerId == override?.provider) {
                 minOrder
             } else {

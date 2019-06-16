@@ -68,8 +68,8 @@ abstract class AbstractPersistenceTest<Scope> : ScopedWordSpec<Scope>() {
 
         fun randomProviderData() = ProviderData(
             header = ProviderHeader(
-                id = randomWord(),
-                apiUrl = randomUrl()
+                providerId = randomWord(),
+                providerGameId = randomUrl()
             ),
             gameData = GameData(
                 name = randomName(),

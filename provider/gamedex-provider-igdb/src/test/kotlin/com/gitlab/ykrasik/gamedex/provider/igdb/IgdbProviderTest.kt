@@ -45,7 +45,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
 
                 search(name) shouldBe listOf(
                     ProviderSearchResult(
-                        apiUrl = "$baseUrl/${searchResult.id}",
+                        providerGameId = searchResult.id.toString(),
                         name = name,
                         description = searchResult.summary,
                         releaseDate = releaseDate,
@@ -173,7 +173,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             "fetch details" test {
                 val detailsResult = detailsResult(releaseDate = releaseDate)
 
-                givenClientFetchReturns(detailsResult, apiUrl = baseUrl)
+                givenClientFetchReturns(detailsResult, providerGameId = baseUrl)
 
                 fetch(baseUrl) shouldBe ProviderFetchData(
                     gameData = GameData(
@@ -337,12 +337,12 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             coEvery { client.search(name, platform, account) } returns results
         }
 
-        fun givenClientFetchReturns(result: IgdbClient.DetailsResult, apiUrl: String = baseUrl) {
-            coEvery { client.fetch(apiUrl, account) } returns result
+        fun givenClientFetchReturns(result: IgdbClient.DetailsResult, providerGameId: String = baseUrl) {
+            coEvery { client.fetch(providerGameId, account) } returns result
         }
 
         suspend fun search(name: String = this.name) = provider.search(name, platform, account)
-        suspend fun fetch(apiUrl: String = baseUrl) = provider.fetch(apiUrl, platform, account)
+        suspend fun fetch(providerGameId: String = baseUrl) = provider.fetch(providerGameId, platform, account)
 
         private val client = mockk<IgdbClient>()
         val provider = IgdbProvider(

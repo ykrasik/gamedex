@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.now
+import kotlinx.coroutines.repackaged.net.bytebuddy.utility.RandomString
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import org.reflections.Reflections
@@ -43,6 +44,8 @@ private object TestResources {
 }
 
 val rnd = Random()
+
+fun randomString(length: Int = 8): String = RandomString.make(length)
 
 /**
  * [max] is inclusive.

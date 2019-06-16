@@ -473,8 +473,8 @@ class JavaFxGameDetailsView(
                 tooltip(url)
                 setOnMouseClicked { browseUrlActions.offer(url) }
             }
-            game.rawGame.providerData.sortedBy { it.header.id }.forEach {
-                val providerId = it.header.id
+            game.rawGame.providerData.sortedBy { it.header.providerId }.forEach {
+                val providerId = it.header.providerId
                 val url = it.siteUrl
                 label(graphic = commonOps.providerLogo(providerId).toImageView(height = 70, width = 100)) {
                     useMaxHeight = true

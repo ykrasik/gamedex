@@ -49,7 +49,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
 
                 val result = results.first()
                 result shouldBe ProviderSearchResult(
-                    apiUrl = apiUrl,
+                    providerGameId = providerGameId,
                     name = name,
                     description = description,
                     releaseDate = releaseDate,
@@ -60,7 +60,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
             }
 
             "fetch game details" test {
-                val result = provider.fetch(apiUrl, Platform.Windows, account)
+                val result = provider.fetch(providerGameId, Platform.Windows, account)
                 result shouldBe ProviderFetchData(
                     gameData = GameData(
                         name = name,
@@ -83,7 +83,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
 
     class Scope {
         val name = "No Man's Sky"
-        val apiUrl = "https://api-endpoint.igdb.com/games/3225"
+        val providerGameId = "3225"
         val releaseDate = "2016-08-12"
         val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 42)
         val Score?.verifiedUserScore get() = assertScore(min = 62, max = 67, numReviews = 142)

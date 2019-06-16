@@ -70,10 +70,10 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
         }
 
         "fetch" should {
-            "fetch by url" test {
+            "fetch by providerGameId" test {
                 server.aFetchRequest(id) willReturn detailsResult
 
-                client.fetch(detailUrl, account) shouldBe detailsResult
+                client.fetch(id, account) shouldBe detailsResult
 
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/$id"))
@@ -87,7 +87,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 server.aFetchRequest(id) willReturn emptyList()
 
                 val e = shouldThrow<IllegalStateException> {
-                    client.fetch(detailUrl, account)
+                    client.fetch(id, account)
                 }
                 e.message!! shouldHave substring("Not Found!")
             }
@@ -96,7 +96,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 server.aFetchRequest(id) willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<ClientRequestException> {
-                    client.fetch(detailUrl, account)
+                    client.fetch(id, account)
                 }
                 e.response.status shouldBe HttpStatusCode.BadRequest
             }
@@ -105,8 +105,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
 
     inner class Scope {
         val baseImageUrl = "${server.baseUrl}/images"
-        val id = randomInt()
-        val detailUrl = "${server.baseUrl}/$id"
+        val id = randomInt().toString()
         val apiKey = randomWord()
         val maxSearchResults = randomInt()
         val platform = randomEnum<Platform>()

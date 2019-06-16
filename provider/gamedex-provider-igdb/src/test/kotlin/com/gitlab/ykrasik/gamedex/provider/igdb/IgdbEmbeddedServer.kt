@@ -68,7 +68,7 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
     }
 
     @Suppress("ClassName")
-    inner class aFetchRequest(private val gameId: Int) : BaseRequest() {
+    inner class aFetchRequest(private val gameId: String) : BaseRequest() {
         infix fun willReturn(response: IgdbClient.DetailsResult) = willReturn(listOf(response))
 
         infix fun willReturn(response: List<IgdbClient.DetailsResult>) {
@@ -84,7 +84,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
     private val posterPath = "t_screenshot_huge"
 
     override val id = "Igdb"
-    override val apiDetailsUrl get() = "$baseUrl/${randomInt()}"
+    override fun randomProviderGameId() = randomInt().toString()
     override val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
     override val posterUrl = "$baseImageUrl/$posterPath"
     override val screenshotUrl = posterUrl

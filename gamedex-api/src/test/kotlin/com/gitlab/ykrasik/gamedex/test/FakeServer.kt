@@ -45,7 +45,7 @@ interface FakeServer : Closeable {
 
 interface GameProviderFakeServer : FakeServer {
     val id: ProviderId
-    val apiDetailsUrl: String
+    fun randomProviderGameId(): String
     val thumbnailUrl: String?
     val posterUrl: String?
     val screenshotUrl: String?

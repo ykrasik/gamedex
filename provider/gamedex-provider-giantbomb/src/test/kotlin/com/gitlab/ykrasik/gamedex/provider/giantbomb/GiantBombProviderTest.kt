@@ -44,7 +44,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
 
                 search(name) shouldBe listOf(
                     ProviderSearchResult(
-                        apiUrl = searchResult.apiDetailUrl,
+                        providerGameId = searchResult.apiDetailUrl,
                         name = name,
                         description = description,
                         releaseDate = searchResult.originalReleaseDate?.toString(),

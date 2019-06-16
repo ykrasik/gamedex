@@ -69,7 +69,7 @@ data class Game(
     val tags get() = rawGame.userData.tags
 
     val providerHeaders get() = rawGame.providerData.asSequence().map { it.header }
-    val existingProviders get() = providerHeaders.map { it.id }
+    val existingProviders get() = providerHeaders.map { it.providerId }
     val excludedProviders get() = userData.excludedProviders
 
     fun isProviderExcluded(providerId: ProviderId) = excludedProviders.contains(providerId)
@@ -156,8 +156,8 @@ data class Score(
 }
 
 data class ProviderHeader(
-    val id: ProviderId,
-    val apiUrl: String
+    val providerId: ProviderId,
+    val providerGameId: String
 )
 
 // TODO: This is a redundant class.

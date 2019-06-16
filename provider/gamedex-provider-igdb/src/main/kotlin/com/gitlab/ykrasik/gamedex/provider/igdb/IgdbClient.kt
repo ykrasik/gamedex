@@ -36,7 +36,6 @@ import javax.inject.Singleton
  */
 @Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
-
     open suspend fun search(query: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> = get(
         endpoint = "${config.baseUrl}/",
         account = account,
@@ -48,14 +47,14 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         )
     ) { it.listFromJson() }
 
-    open suspend fun fetch(apiUrl: String, account: IgdbUserAccount): DetailsResult = get<DetailsResult>(
-        endpoint = apiUrl,
+    open suspend fun fetch(providerGameId: String, account: IgdbUserAccount): DetailsResult = get<DetailsResult>(
+        endpoint = "${config.baseUrl}/$providerGameId",
         account = account,
         params = mapOf("fields" to fetchDetailsFieldsStr)
     ) {
         // IGDB returns a list, even though we're fetching by id :/
         val result = it.listFromJson<DetailsResult>()
-        return result.firstOrNull() ?: throw IllegalStateException("Fetch '$apiUrl': Not Found!")
+        return result.firstOrNull() ?: throw IllegalStateException("Fetch '$providerGameId': Not Found!")
     }
 
     private suspend inline fun <reified T : Any> get(endpoint: String, account: IgdbUserAccount, params: Map<String, Any>, transform: (String) -> T): T {

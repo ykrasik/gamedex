@@ -47,7 +47,7 @@ interface GameProviderService {
 
 class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount) : GameProvider by provider {
     suspend fun search(query: String, platform: Platform): List<ProviderSearchResult> = provider.search(query, platform, account)
-    suspend fun fetch(apiUrl: String, platform: Platform): ProviderFetchData = provider.fetch(apiUrl, platform, account)
+    suspend fun fetch(providerGameId: String, platform: Platform): ProviderFetchData = provider.fetch(providerGameId, platform, account)
 
     override fun toString() = provider.toString()
 }

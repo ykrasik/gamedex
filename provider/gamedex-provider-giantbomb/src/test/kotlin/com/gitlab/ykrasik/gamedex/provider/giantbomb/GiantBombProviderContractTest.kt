@@ -42,7 +42,7 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
             "search & retrieve a single search result" test {
                 provider.search(name, Platform.Windows, account) shouldBe listOf(
                     ProviderSearchResult(
-                        apiUrl = apiUrl,
+                        providerGameId = apiUrl,
                         name = name,
                         description = deck,
                         releaseDate = releaseDate,

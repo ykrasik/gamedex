@@ -117,7 +117,7 @@ class GameProviderServiceImpl @Inject constructor(
         headers.map { header ->
             // TODO: Link to task scope.
             GlobalScope.async {
-                val data = enabledProviders.find { it.id == header.id }!!.fetch(header.apiUrl, platform)
+                val data = enabledProviders.find { it.id == header.providerId }!!.fetch(header.providerGameId, platform)
                 incProgress()
                 ProviderData(
                     header = header,
