@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.preloader
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.log.LogService
 import com.gitlab.ykrasik.gamedex.core.log.LogServiceImpl
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
@@ -32,6 +33,7 @@ import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -63,15 +65,22 @@ class PreloaderImpl : Preloader {
 
             val preloaderSettings = PreloaderSettingsRepository(SettingsStorageFactory("conf", StringIdJsonStorageFactory))
 
-            var componentCount = 0
+            val progressChannel = conflatedChannel(0.0)
+            launch(Dispatchers.Main) {
+                progressChannel.consumeEach {
+                    view.progress = it
+                }
+            }
 
+            var numClassesToInit = 0
             val loadProgressModule = object : AbstractModule() {
                 override fun configure() {
                     bindListener(Matchers.any(), object : ProvisionListener {
                         override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
-                            componentCount++
-                            launch(Dispatchers.Main) {
-                                view.progress = componentCount.toDouble() / preloaderSettings.diComponents
+                            numClassesToInit++
+                            log.trace("[$numClassesToInit] Initializing ${provision!!.binding.key.typeLiteral}...")
+                            if (!progressChannel.isClosedForSend) {
+                                progressChannel.offer(numClassesToInit.toDouble() / preloaderSettings.numClassesToInit)
                             }
                         }
                     })
@@ -81,10 +90,11 @@ class PreloaderImpl : Preloader {
             }
             val injector = Guice.createInjector(Stage.PRODUCTION, CoreModule, loadProgressModule, *extraModules)
 
+            progressChannel.close()
             subscription.cancel()
 
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-            preloaderSettings.modify { copy(diComponents = componentCount) }
+            preloaderSettings.modify { copy(numClassesToInit = numClassesToInit) }
 
             withContext(Dispatchers.Main) {
                 view.message = "Done loading."
