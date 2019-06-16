@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.GameData
-import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.*
@@ -75,11 +74,9 @@ class IgdbProvider @Inject constructor(
             criticScore = toScore(aggregatedRating, aggregatedRatingCount),
             userScore = toScore(rating, ratingCount),
             genres = this.genres?.map { it.genreName } ?: emptyList(),
-            imageUrls = ImageUrls(
-                thumbnailUrl = this.cover?.imageId?.toThumbnailUrl(),
-                posterUrl = this.cover?.imageId?.toPosterUrl(),
-                screenshotUrls = this.screenshots?.mapNotNull { it.imageId?.toScreenshotUrl() } ?: emptyList()
-            )
+            thumbnailUrl = this.cover?.imageId?.toThumbnailUrl(),
+            posterUrl = this.cover?.imageId?.toPosterUrl(),
+            screenshotUrls = this.screenshots?.mapNotNull { it.imageId?.toScreenshotUrl() } ?: emptyList()
         ),
         siteUrl = this.url
     )

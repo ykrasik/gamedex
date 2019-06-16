@@ -130,16 +130,12 @@ object TestApplication {
             criticScore = randomScore(),
             userScore = randomScore(),
             genres = randomList(4) { randomGenre() },
-            imageUrls = imageUrls(provider)
+            thumbnailUrl = provider.thumbnailUrl?.let { "$it/${randomWord()}.jpg".sometimesNull() },
+            posterUrl = provider.posterUrl?.let { "$it/${randomWord()}.jpg".sometimesNull() },
+            screenshotUrls = if (provider.screenshotUrl != null) randomList(10) { "${provider.screenshotUrl}/${randomWord()}.jpg" } else emptyList()
         ),
         siteUrl = randomUrl(),
         timestamp = Timestamp.now
-    )
-
-    private fun imageUrls(server: GameProviderFakeServer) = ImageUrls(
-        thumbnailUrl = server.thumbnailUrl?.let { "$it/${randomWord()}.jpg".sometimesNull() },
-        posterUrl = server.posterUrl?.let { "$it/${randomWord()}.jpg".sometimesNull() },
-        screenshotUrls = if (server.screenshotUrl != null) randomList(10) { "${server.screenshotUrl}/${randomWord()}.jpg" } else emptyList()
     )
 
     // 9/10 chance.

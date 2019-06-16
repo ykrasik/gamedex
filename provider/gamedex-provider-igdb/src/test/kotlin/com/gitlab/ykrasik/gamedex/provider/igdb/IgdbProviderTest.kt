@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.GameData
-import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
@@ -160,11 +159,9 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
                         criticScore = Score(detailsResult.aggregatedRating!!, detailsResult.aggregatedRatingCount!!),
                         userScore = Score(detailsResult.rating!!, detailsResult.ratingCount!!),
                         genres = listOf(genre),
-                        imageUrls = ImageUrls(
-                            thumbnailUrl = thumbnailUrl(detailsResult.cover!!.imageId!!),
-                            posterUrl = posterUrl(detailsResult.cover!!.imageId!!),
-                            screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.imageId!!) }
-                        )
+                        thumbnailUrl = thumbnailUrl(detailsResult.cover!!.imageId!!),
+                        posterUrl = posterUrl(detailsResult.cover!!.imageId!!),
+                        screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.imageId!!) }
                     ),
                     siteUrl = detailsResult.url
                 )
@@ -221,34 +218,34 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             "handle null cover cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(cover = image(imageId = null)))
 
-                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
-                fetch().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.thumbnailUrl shouldBe null
+                fetch().gameData.posterUrl shouldBe null
             }
 
             "handle null cover" test {
                 givenClientFetchReturns(detailsResult().copy(cover = null))
 
-                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
-                fetch().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.thumbnailUrl shouldBe null
+                fetch().gameData.posterUrl shouldBe null
             }
 
             "handle null screenshot cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(imageId = null))))
 
-                fetch().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
+                fetch().gameData.screenshotUrls shouldBe emptyList<String>()
             }
 
             "handle null & non-null screenshot cloudinaryId" test {
                 val image = image()
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(imageId = null), image)))
 
-                fetch().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.imageId!!))
+                fetch().gameData.screenshotUrls shouldBe listOf(screenshotUrl(image.imageId!!))
             }
 
             "handle null screenshots" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = null))
 
-                fetch().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
+                fetch().gameData.screenshotUrls shouldBe emptyList<String>()
             }
         }
     }

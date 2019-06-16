@@ -78,11 +78,9 @@ abstract class AbstractPersistenceTest<Scope> : ScopedWordSpec<Scope>() {
                 criticScore = randomScore(),
                 userScore = randomScore(),
                 genres = listOf(randomWord(), randomWord()),
-                imageUrls = ImageUrls(
-                    thumbnailUrl = randomUrl(),
-                    posterUrl = randomUrl(),
-                    screenshotUrls = listOf(randomUrl(), randomUrl())
-                )
+                thumbnailUrl = randomUrl(),
+                posterUrl = randomUrl(),
+                screenshotUrls = listOf(randomUrl(), randomUrl())
             ),
             siteUrl = randomUrl(),
             timestamp = randomTimestamp()

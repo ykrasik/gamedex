@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.GameData
-import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
@@ -62,11 +61,9 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
                         criticScore = null,
                         userScore = null,
                         genres = genres,
-                        imageUrls = ImageUrls(
-                            thumbnailUrl = thumbnailUrl,
-                            posterUrl = posterUrl,
-                            screenshotUrls = screenshotUrls
-                        )
+                        thumbnailUrl = thumbnailUrl,
+                        posterUrl = posterUrl,
+                        screenshotUrls = screenshotUrls
                     ),
                     siteUrl = url
                 )

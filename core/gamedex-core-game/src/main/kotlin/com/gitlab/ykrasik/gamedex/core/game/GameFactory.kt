@@ -64,34 +64,31 @@ class GameFactory @Inject constructor(
         }
     }
 
-    private fun RawGame.toGameData(): GameData = GameData(
-        name = firstBy(settingsService.providerOrder.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
-        description = firstBy(settingsService.providerOrder.description, userData.descriptionOverride()) { it.gameData.description },
-        releaseDate = firstBy(settingsService.providerOrder.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
-        // TODO: Choose score with most votes.
-        criticScore = firstBy(settingsService.providerOrder.criticScore, userData.criticScoreOverride(), converter = ::asCustomScore) {
-            it.gameData.criticScore.minOrNull()
-        },
-        userScore = firstBy(settingsService.providerOrder.userScore, userData.userScoreOverride(), converter = ::asCustomScore) {
-            it.gameData.userScore.minOrNull()
-        },
-        genres = unsortedListBy(userData.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),
-        imageUrls = toImageUrls()
-    )
+    private fun RawGame.toGameData(): GameData {
+        val thumbnailUrl = firstBy(settingsService.providerOrder.thumbnail, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
+        val posterUrl = firstBy(settingsService.providerOrder.poster, userData.posterOverride()) { it.gameData.posterUrl }
+        val screenshotUrls = listBy(settingsService.providerOrder.screenshot, userData.screenshotsOverride()) { it.gameData.screenshotUrls }.take(config.maxScreenshots)
 
-    private fun asCustomScore(value: Any) = Score(value as Double, numReviews = 0)
-    private fun Score?.minOrNull() = this?.let { if (it.numReviews >= 4) it else null }
-
-    private fun RawGame.toImageUrls(): ImageUrls {
-        val thumbnailUrl = firstBy(settingsService.providerOrder.thumbnail, userData.thumbnailOverride()) { it.gameData.imageUrls.thumbnailUrl }
-        val posterUrl = firstBy(settingsService.providerOrder.poster, userData.posterOverride()) { it.gameData.imageUrls.posterUrl }
-        val screenshotUrls = listBy(settingsService.providerOrder.screenshot, userData.screenshotsOverride()) { it.gameData.imageUrls.screenshotUrls }.take(config.maxScreenshots)
-        return ImageUrls(
+        return GameData(
+            name = firstBy(settingsService.providerOrder.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
+            description = firstBy(settingsService.providerOrder.description, userData.descriptionOverride()) { it.gameData.description },
+            releaseDate = firstBy(settingsService.providerOrder.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
+            // TODO: Choose score with most votes.
+            criticScore = firstBy(settingsService.providerOrder.criticScore, userData.criticScoreOverride(), converter = ::asCustomScore) {
+                it.gameData.criticScore.minOrNull()
+            },
+            userScore = firstBy(settingsService.providerOrder.userScore, userData.userScoreOverride(), converter = ::asCustomScore) {
+                it.gameData.userScore.minOrNull()
+            },
+            genres = unsortedListBy(userData.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),
             thumbnailUrl = thumbnailUrl ?: posterUrl,
             posterUrl = posterUrl ?: thumbnailUrl,
             screenshotUrls = screenshotUrls
         )
     }
+
+    private fun asCustomScore(value: Any) = Score(value as Double, numReviews = 0)
+    private fun Score?.minOrNull() = this?.let { if (it.numReviews >= 4) it else null }
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <T> RawGame.firstBy(

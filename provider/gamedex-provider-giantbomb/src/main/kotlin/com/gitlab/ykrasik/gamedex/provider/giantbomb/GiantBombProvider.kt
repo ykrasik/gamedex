@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.GameData
-import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.*
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
@@ -78,11 +77,9 @@ class GiantBombProvider @Inject constructor(
             criticScore = null,
             userScore = null,
             genres = genres?.map { it.name } ?: emptyList(),
-            imageUrls = ImageUrls(
-                thumbnailUrl = image?.thumbUrl?.filterEmptyImage(),
-                posterUrl = image?.superUrl?.filterEmptyImage(),
-                screenshotUrls = images.mapNotNull { it.superUrl.filterEmptyImage() }
-            )
+            thumbnailUrl = image?.thumbUrl?.filterEmptyImage(),
+            posterUrl = image?.superUrl?.filterEmptyImage(),
+            screenshotUrls = images.mapNotNull { it.superUrl.filterEmptyImage() }
         ),
         siteUrl = siteDetailUrl
     )

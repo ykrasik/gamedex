@@ -61,10 +61,9 @@ data class Game(
 
     val genres get() = gameData.genres
 
-    val imageUrls get() = gameData.imageUrls
-    val thumbnailUrl get() = imageUrls.thumbnailUrl
-    val posterUrl get() = imageUrls.posterUrl
-    val screenshotUrls get() = imageUrls.screenshotUrls
+    val thumbnailUrl get() = gameData.thumbnailUrl
+    val posterUrl get() = gameData.posterUrl
+    val screenshotUrls get() = gameData.screenshotUrls
 
     val tags get() = rawGame.userData.tags
 
@@ -96,11 +95,9 @@ data class Game(
                 criticScore = null,
                 userScore = null,
                 genres = emptyList(),
-                imageUrls = ImageUrls(
-                    thumbnailUrl = null,
-                    posterUrl = null,
-                    screenshotUrls = emptyList()
-                )
+                thumbnailUrl = null,
+                posterUrl = null,
+                screenshotUrls = emptyList()
             ),
             folderName = FolderName(
                 rawName = "",
@@ -141,12 +138,10 @@ data class GameData(
     val criticScore: Score?,
     val userScore: Score?,
     val genres: List<String>,
-    val imageUrls: ImageUrls
-) {
-    val thumbnailUrl get() = imageUrls.thumbnailUrl
-    val posterUrl get() = imageUrls.posterUrl
-    val screenshotUrls get() = imageUrls.screenshotUrls
-}
+    val thumbnailUrl: String?,
+    val posterUrl: String?,
+    val screenshotUrls: List<String>
+)
 
 data class Score(
     val score: Double,
@@ -158,13 +153,6 @@ data class Score(
 data class ProviderHeader(
     val providerId: ProviderId,
     val providerGameId: String
-)
-
-// TODO: This is a redundant class.
-data class ImageUrls(
-    val thumbnailUrl: String?,
-    val posterUrl: String?,
-    val screenshotUrls: List<String>
 )
 
 data class Metadata(

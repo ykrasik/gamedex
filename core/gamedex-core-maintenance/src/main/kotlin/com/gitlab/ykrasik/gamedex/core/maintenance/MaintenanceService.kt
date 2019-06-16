@@ -111,7 +111,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         val images = run {
             val usedImages = gameService.games.flatMapWithProgress { game ->
-                game.imageUrls.screenshotUrls + listOfNotNull(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl)
+                game.screenshotUrls + listOfNotNull(game.thumbnailUrl, game.posterUrl)
             }
             imageService.fetchImageSizesExcept(usedImages)
         }

@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.GameData
-import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
@@ -69,11 +68,9 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
                         criticScore = result.gameData.criticScore.verifiedCriticScore,
                         userScore = result.gameData.userScore.verifiedUserScore,
                         genres = genres,
-                        imageUrls = ImageUrls(
-                            thumbnailUrl = thumbnailUrl,
-                            posterUrl = posterUrl,
-                            screenshotUrls = screenshotUrls
-                        )
+                        thumbnailUrl = thumbnailUrl,
+                        posterUrl = posterUrl,
+                        screenshotUrls = screenshotUrls
                     ),
                     siteUrl = url
                 )

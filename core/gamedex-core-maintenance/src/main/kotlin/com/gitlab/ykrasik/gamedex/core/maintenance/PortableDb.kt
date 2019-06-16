@@ -131,11 +131,9 @@ internal object PortableDb {
                 criticScore = toScore(criticScore, numCriticReviews),
                 userScore = toScore(userScore, numUserReviews),
                 genres = genres,
-                imageUrls = ImageUrls(
-                    thumbnailUrl = thumbnailUrl,
-                    posterUrl = posterUrl,
-                    screenshotUrls = screenshotUrls
-                )
+                thumbnailUrl = thumbnailUrl,
+                posterUrl = posterUrl,
+                screenshotUrls = screenshotUrls
             ),
             siteUrl = siteUrl,
             timestamp = Timestamp(
@@ -158,9 +156,9 @@ internal object PortableDb {
         userScore = gameData.userScore?.score,
         numUserReviews = gameData.userScore?.numReviews,
         genres = gameData.genres,
-        thumbnailUrl = gameData.imageUrls.thumbnailUrl,
-        posterUrl = gameData.imageUrls.posterUrl,
-        screenshotUrls = gameData.imageUrls.screenshotUrls,
+        thumbnailUrl = gameData.thumbnailUrl,
+        posterUrl = gameData.posterUrl,
+        screenshotUrls = gameData.screenshotUrls,
         siteUrl = siteUrl,
         createDate = timestamp.createDate.millis,
         updateDate = timestamp.updateDate.millis

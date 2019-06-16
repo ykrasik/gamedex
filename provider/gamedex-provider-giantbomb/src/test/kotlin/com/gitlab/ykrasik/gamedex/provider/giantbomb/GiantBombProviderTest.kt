@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.GameData
-import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
@@ -135,11 +134,9 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                         criticScore = null,
                         userScore = null,
                         genres = listOf(detailsResult.genres!!.first().name),
-                        imageUrls = ImageUrls(
-                            thumbnailUrl = detailsResult.image!!.thumbUrl,
-                            posterUrl = detailsResult.image!!.superUrl,
-                            screenshotUrls = detailsResult.images.map { it.superUrl }
-                        )
+                        thumbnailUrl = detailsResult.image!!.thumbUrl,
+                        posterUrl = detailsResult.image!!.superUrl,
+                        screenshotUrls = detailsResult.images.map { it.superUrl }
                     ),
                     siteUrl = detailsResult.siteDetailUrl
                 )
@@ -166,32 +163,32 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             "handle null image" test {
                 givenClientFetchReturns(detailsResult().copy(image = null))
 
-                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
-                fetch().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.thumbnailUrl shouldBe null
+                fetch().gameData.posterUrl shouldBe null
             }
 
             "consider noImageUrl1 as absent thumbnail" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1")))
 
-                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
+                fetch().gameData.thumbnailUrl shouldBe null
             }
 
             "consider noImageUrl2 as absent thumbnail" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2")))
 
-                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
+                fetch().gameData.thumbnailUrl shouldBe null
             }
 
             "consider noImageUrl1 as absent poster" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage1")))
 
-                fetch().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.posterUrl shouldBe null
             }
 
             "consider noImageUrl1 as absent poster" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage2")))
 
-                fetch().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.posterUrl shouldBe null
             }
 
             "filter out no image urls from screenshots" test {
@@ -206,7 +203,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                     )
                 )
 
-                fetch().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
+                fetch().gameData.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
 
             "throw IllegalStateException on invalid response status" test {
