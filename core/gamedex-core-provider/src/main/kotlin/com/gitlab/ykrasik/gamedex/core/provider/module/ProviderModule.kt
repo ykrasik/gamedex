@@ -34,9 +34,9 @@ object ProviderModule : InternalCoreModule() {
         bindPresenter(SyncGamesPresenter::class)
         bindPresenter(ProviderSearchPresenter::class)
 
-        bindPresenter(ShowRefetchGamesPresenter::class)
-        bindPresenter(RefetchGamePresenter::class)
-        bindPresenter(RefetchGamesPresenter::class)
+        bindPresenter(ShowBulkUpdateGamesPresenter::class)
+        bindPresenter(UpdateGamePresenter::class)
+        bindPresenter(BulkUpdateGamesPresenter::class)
 
         bindPresenter(ShowResyncGamesPresenter::class)
         bindPresenter(ResyncGamePresenter::class)

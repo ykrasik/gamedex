@@ -33,30 +33,30 @@ import javax.inject.Singleton
  * Date: 29/04/2018
  * Time: 15:54
  */
-@ImplementedBy(RefetchGameServiceImpl::class)
-interface RefetchGameService {
-    fun refetchGame(game: Game): Task<Unit>
-    fun refetchGames(filter: Filter): Task<Unit>
+@ImplementedBy(UpdateGameServiceImpl::class)
+interface UpdateGameService {
+    fun updateGame(game: Game): Task<Unit>
+    fun bulkUpdateGames(filter: Filter): Task<Unit>
 }
 
 @Singleton
-class RefetchGameServiceImpl @Inject constructor(
+class UpdateGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
     private val filterService: FilterService
-) : RefetchGameService {
-    override fun refetchGame(game: Game) = refetchGames(listOf(game))
+) : UpdateGameService {
+    override fun updateGame(game: Game) = updateGames(listOf(game))
 
-    override fun refetchGames(filter: Filter): Task<Unit> {
+    override fun bulkUpdateGames(filter: Filter): Task<Unit> {
         val games = filterService.filter(gameService.games, filter).sortedBy { it.name }
-        return refetchGames(games)
+        return updateGames(games)
     }
 
-    private fun refetchGames(games: List<Game>) = task("Re-Fetching ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}", isCancellable = true) {
+    private fun updateGames(games: List<Game>) = task("Updating ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}", isCancellable = true) {
         gameProviderService.assertHasEnabledProvider()
 
         successOrCancelledMessage { success ->
-            "${if (success) "Done" else "Cancelled"}: Re-Fetched ${if (games.size == 1) "'${games.firstOrNull()?.name}'." else "$processedItems / $totalItems Games."}"
+            "${if (success) "Done" else "Cancelled"}: Updated ${if (games.size == 1) "'${games.firstOrNull()?.name}'." else "$processedItems / $totalItems Games."}"
         }
 
         games.forEachWithProgress { game ->

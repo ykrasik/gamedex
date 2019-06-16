@@ -14,19 +14,40 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.provider
+package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.filter.not
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.core.filter.FilterService
+import com.gitlab.ykrasik.gamedex.util.months
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:38
+ * Date: 18/06/2018
+ * Time: 18:24
  */
-interface RefetchGamesView : ConfirmationView {
-    val refetchGamesFilter: UserMutableState<Filter>
-    val refetchGamesFilterIsValid: UserMutableState<IsValid>
+@Singleton
+class BulkUpdateGamesFilterRepository @Inject constructor(
+    private val filterService: FilterService
+) {
+    private val _bulkUpdateGamesFilter = MultiChannel.conflated(Filter.Null)
+    val bulkUpdateGamesFilter: MultiReceiveChannel<Filter> = _bulkUpdateGamesFilter.distinctUntilChanged(Filter::isEqual)
+
+    init {
+        // Init default filter.
+        _bulkUpdateGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) { Filter.PeriodUpdateDate(2.months).not })
+    }
+
+    fun update(filter: Filter) {
+        filterService.putSystemFilter(filterName, filter)
+        _bulkUpdateGamesFilter.offer(filter)
+    }
+
+    private companion object {
+        val filterName = BulkUpdateGamesFilterRepository::class.qualifiedName!!
+    }
 }

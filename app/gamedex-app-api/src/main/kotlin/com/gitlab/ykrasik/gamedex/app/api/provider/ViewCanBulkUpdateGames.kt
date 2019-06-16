@@ -14,37 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.provider
+package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
-import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import tornadofx.borderpane
-import tornadofx.paddingAll
-import tornadofx.scrollpane
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 05/06/2017
- * Time: 10:57
+ * Date: 15/12/2018
+ * Time: 18:44
  */
-class JavaFxRefetchGamesView : ConfirmationWindow("Re-Fetch Games", Icons.download), RefetchGamesView {
-    private val filterView = JavaFxFilterView()
-
-    override val refetchGamesFilter = filterView.userMutableState
-    override val refetchGamesFilterIsValid = userMutableState(filterView.filterIsValid)
-
-    init {
-        register()
-    }
-
-    override val root = borderpane {
-        top = confirmationToolbar()
-        center = scrollpane {
-            paddingAll = 10
-            add(filterView.root)
-        }
-    }
+interface ViewCanBulkUpdateGames {
+    val bulkUpdateGamesActions: MultiReceiveChannel<Unit>
 }

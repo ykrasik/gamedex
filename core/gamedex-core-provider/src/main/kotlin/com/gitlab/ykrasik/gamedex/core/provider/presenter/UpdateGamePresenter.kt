@@ -17,12 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
 import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.RefetchGameService
+import com.gitlab.ykrasik.gamedex.core.provider.UpdateGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.Try
@@ -30,29 +30,29 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RefetchGamePresenter @Inject constructor(
-    private val refetchGameService: RefetchGameService,
+class UpdateGamePresenter @Inject constructor(
+    private val updateGameService: UpdateGameService,
     private val gameProviderService: GameProviderService,
     private val taskService: TaskService
-) : Presenter<ViewCanRefetchGame> {
-    override fun present(view: ViewCanRefetchGame) = object : ViewSession() {
+) : Presenter<ViewCanUpdateGame> {
+    override fun present(view: ViewCanUpdateGame) = object : ViewSession() {
         init {
             gameProviderService.enabledProviders.itemsChannel.subscribe()
                 .combineLatest(view.gameChannel.subscribe())
                 .forEach {
                     val (enabledProviders, game) = it
 
-                    view.canRefetchGame *= Try {
+                    view.canUpdateGame *= Try {
                         check(enabledProviders.any { it.supports(game.platform) }) { "Please enable at least 1 provider which supports the platform '${game.platform}'!" }
                     }
                 }
 
-            view.refetchGameActions.forEach { refetchGame(it) }
+            view.updateGameActions.forEach { updateGame(it) }
         }
 
-        private suspend fun refetchGame(game: Game) {
-            view.canRefetchGame.assert()
-            taskService.execute(refetchGameService.refetchGame(game))
+        private suspend fun updateGame(game: Game) {
+            view.canUpdateGame.assert()
+            taskService.execute(updateGameService.updateGame(game))
         }
     }
 }

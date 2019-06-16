@@ -14,40 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider
+package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.filter.not
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.filter.FilterService
-import com.gitlab.ykrasik.gamedex.util.months
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import tornadofx.borderpane
+import tornadofx.paddingAll
+import tornadofx.scrollpane
 
 /**
  * User: ykrasik
- * Date: 18/06/2018
- * Time: 18:24
+ * Date: 05/06/2017
+ * Time: 10:57
  */
-@Singleton
-class RefetchGamesFilterRepository @Inject constructor(
-    private val filterService: FilterService
-) {
-    private val _refetchGamesFilter = MultiChannel.conflated(Filter.Null)
-    val refetchGamesFilter: MultiReceiveChannel<Filter> = _refetchGamesFilter.distinctUntilChanged(Filter::isEqual)
+class JavaFxBulkUpdateGamesView : ConfirmationWindow("Bulk Update Games", Icons.download), BulkUpdateGamesView {
+    private val filterView = JavaFxFilterView()
+
+    override val bulkUpdateGamesFilter = filterView.userMutableState
+    override val bulkUpdateGamesFilterIsValid = userMutableState(filterView.filterIsValid)
 
     init {
-        // Init default filter.
-        _refetchGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) { Filter.PeriodUpdateDate(2.months).not })
+        register()
     }
 
-    fun update(filter: Filter) {
-        filterService.putSystemFilter(filterName, filter)
-        _refetchGamesFilter.offer(filter)
-    }
-
-    private companion object {
-        val filterName = RefetchGamesFilterRepository::class.qualifiedName!!
+    override val root = borderpane {
+        top = confirmationToolbar()
+        center = scrollpane {
+            paddingAll = 10
+            add(filterView.root)
+        }
     }
 }

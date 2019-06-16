@@ -14,15 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.provider
+package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkUpdateGames
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 15/12/2018
- * Time: 18:44
+ * Date: 16/12/2018
+ * Time: 08:09
  */
-interface ViewCanRefetchGames {
-    val refetchGamesActions: MultiReceiveChannel<Unit>
+@Singleton
+class ShowBulkUpdateGamesPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanBulkUpdateGames> {
+    init {
+        eventBus.onHideViewRequested<BulkUpdateGamesView> { viewManager.hide(it) }
+    }
+
+    override fun present(view: ViewCanBulkUpdateGames) = object : ViewSession() {
+        init {
+            view.bulkUpdateGamesActions.forEach {
+                viewManager.showBulkUpdateGamesView()
+            }
+        }
+    }
 }

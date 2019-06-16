@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkUpdateGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
@@ -45,7 +45,7 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     ViewCanImportDatabase,
     ClearUserDataView,
     ViewCanCleanupDatabase,
-    ViewCanRefetchGames,
+    ViewCanBulkUpdateGames,
     ViewCanResyncGames,
     ViewCanShowDuplicatesReport,
     ViewCanShowFolderNameDiffReport {
@@ -54,7 +54,7 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     override val exportDatabaseActions = channel<Unit>()
     override val clearUserDataActions = channel<Unit>()
     override val cleanupDatabaseActions = channel<Unit>()
-    override val refetchGamesActions = channel<Unit>()
+    override val bulkUpdateGamesActions = channel<Unit>()
 
     override val canResyncGames = state(IsValid.valid)
     override val resyncGamesActions = channel<Unit>()
@@ -95,10 +95,10 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
         }
 
         popOverSubMenu("Provider", Icons.cloud) {
-            infoButton("Re-Fetch", Icons.download) {
+            infoButton("Bulk Update Games", Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                action(refetchGamesActions)
+                action(bulkUpdateGamesActions)
             }
             infoButton("Re-Sync", Icons.sync) {
                 useMaxWidth = true

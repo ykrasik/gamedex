@@ -16,12 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.provider.RefetchGameService
-import com.gitlab.ykrasik.gamedex.core.provider.RefetchGamesFilterRepository
+import com.gitlab.ykrasik.gamedex.core.provider.BulkUpdateGamesFilterRepository
+import com.gitlab.ykrasik.gamedex.core.provider.UpdateGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,38 +32,38 @@ import javax.inject.Singleton
  * Time: 13:08
  */
 @Singleton
-class RefetchGamesPresenter @Inject constructor(
-    private val repo: RefetchGamesFilterRepository,
-    private val refetchGameService: RefetchGameService,
+class BulkUpdateGamesPresenter @Inject constructor(
+    private val repo: BulkUpdateGamesFilterRepository,
+    private val updateGameService: UpdateGameService,
     private val taskService: TaskService,
     private val eventBus: EventBus
-) : Presenter<RefetchGamesView> {
-    override fun present(view: RefetchGamesView) = object : ViewSession() {
+) : Presenter<BulkUpdateGamesView> {
+    override fun present(view: BulkUpdateGamesView) = object : ViewSession() {
         init {
-//            view.refetchGamesFilter.forEach { setCanAccept() }
-            view.refetchGamesFilterIsValid.forEach { setCanAccept() }
+//            view.bulkUpdateGamesFilter.forEach { setCanAccept() }
+            view.bulkUpdateGamesFilterIsValid.forEach { setCanAccept() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShown() {
-            view.refetchGamesFilter *= repo.refetchGamesFilter.peek()
+            view.bulkUpdateGamesFilter *= repo.bulkUpdateGamesFilter.peek()
             setCanAccept()
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.refetchGamesFilterIsValid.value
+            view.canAccept *= view.bulkUpdateGamesFilterIsValid.value
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val filter = view.refetchGamesFilter.value
+            val filter = view.bulkUpdateGamesFilter.value
             repo.update(filter)
 
             hideView()
 
-            taskService.execute(refetchGameService.refetchGames(filter))
+            taskService.execute(updateGameService.bulkUpdateGames(filter))
         }
 
         private fun onCancel() {

@@ -30,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
@@ -50,7 +50,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxCleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxImportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxRefetchGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxBulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
@@ -152,9 +152,9 @@ class JavaFxViewManager : Controller(), ViewManager {
 
     override fun hide(view: ImageGalleryView) = view.hideOverlay()
 
-    private val refetchGamesView: JavaFxRefetchGamesView by inject()
-    override fun showRefetchGamesView() = refetchGamesView.showOverlay()
-    override fun hide(view: RefetchGamesView) = view.hideOverlay()
+    private val bulkUpdateGamesView: JavaFxBulkUpdateGamesView by inject()
+    override fun showBulkUpdateGamesView() = bulkUpdateGamesView.showOverlay()
+    override fun hide(view: BulkUpdateGamesView) = view.hideOverlay()
 
     private val resyncGamesView: JavaFxResyncGamesView by inject()
     override fun showResyncGamesView() = resyncGamesView.showOverlay()

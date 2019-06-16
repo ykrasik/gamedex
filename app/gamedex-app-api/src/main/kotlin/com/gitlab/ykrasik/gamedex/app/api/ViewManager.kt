@@ -29,7 +29,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
@@ -83,8 +83,8 @@ interface ViewManager {
     fun showImageGalleryView(params: ViewImageParams): ImageGalleryView
     fun hide(view: ImageGalleryView)
 
-    fun showRefetchGamesView(): RefetchGamesView
-    fun hide(view: RefetchGamesView)
+    fun showBulkUpdateGamesView(): BulkUpdateGamesView
+    fun hide(view: BulkUpdateGamesView)
 
     fun showResyncGamesView(): ResyncGamesView
     fun hide(view: ResyncGamesView)

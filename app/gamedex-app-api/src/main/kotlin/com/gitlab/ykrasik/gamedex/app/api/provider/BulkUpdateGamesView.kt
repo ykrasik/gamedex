@@ -14,37 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider.presenter
+package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
- * Date: 16/12/2018
- * Time: 08:09
+ * Date: 06/05/2018
+ * Time: 09:38
  */
-@Singleton
-class ShowRefetchGamesPresenter @Inject constructor(
-    private val viewManager: ViewManager,
-    eventBus: EventBus
-) : Presenter<ViewCanRefetchGames> {
-    init {
-        eventBus.onHideViewRequested<RefetchGamesView> { viewManager.hide(it) }
-    }
-
-    override fun present(view: ViewCanRefetchGames) = object : ViewSession() {
-        init {
-            view.refetchGamesActions.forEach {
-                viewManager.showRefetchGamesView()
-            }
-        }
-    }
+interface BulkUpdateGamesView : ConfirmationView {
+    val bulkUpdateGamesFilter: UserMutableState<Filter>
+    val bulkUpdateGamesFilterIsValid: UserMutableState<IsValid>
 }

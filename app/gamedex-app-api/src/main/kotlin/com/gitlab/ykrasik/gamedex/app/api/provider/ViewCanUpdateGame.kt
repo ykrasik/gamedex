@@ -26,10 +26,10 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Date: 06/05/2018
  * Time: 14:23
  */
-interface ViewCanRefetchGame {
+interface ViewCanUpdateGame {
     val gameChannel: MultiReceiveChannel<Game>
 
-    val canRefetchGame: State<IsValid>
+    val canUpdateGame: State<IsValid>
 
-    val refetchGameActions: MultiReceiveChannel<Game>
+    val updateGameActions: MultiReceiveChannel<Game>
 }

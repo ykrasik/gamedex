@@ -19,7 +19,7 @@ There is currently no tutorial (yet).
 * Create reports on your game collection to easily see all games that answer certain criteria in one place.
 * Special reports for duplications in your collection and reports that show you how you should have named the game folder to be consistent with online information.
 * Add tags (labels) to games and use these tags as filters.
-* Supports re-fetching game information from providers, so you always have the most up-to-date game information locally.
+* Supports updating game information from providers, so you always have the most up-to-date game information locally.
 
 # Build Distribution:
 `gradlew dist`

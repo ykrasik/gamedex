@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
@@ -50,7 +50,7 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
     ViewCanDeleteGame,
     ViewCanRenameMoveGame,
     ViewCanTagGame,
-    ViewCanRefetchGame,
+    ViewCanUpdateGame,
     ViewCanResyncGame {
 
     override val gameChannel = dataChannel.map { it.game }
@@ -61,8 +61,8 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
 
-    override val canRefetchGame = state(IsValid.valid)
-    override val refetchGameActions = channel<Game>()
+    override val canUpdateGame = state(IsValid.valid)
+    override val updateGameActions = channel<Game>()
 
     override val canResyncGame = state(IsValid.valid)
     override val resyncGameActions = channel<Game>()
@@ -78,10 +78,10 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
         verticalGap()
         item("Tag", Icons.tag) { action(tagGameActions) { data.game } }
         verticalGap()
-        item("Re-Fetch", Icons.download) {
+        item("Update", Icons.download) {
             addClass(GameDexStyle.infoButton)
-            enableWhen(canRefetchGame)
-            action(refetchGameActions) { data.game }
+            enableWhen(canUpdateGame)
+            action(updateGameActions) { data.game }
         }
         item("Re-Sync", Icons.sync) {
             addClass(GameDexStyle.infoButton)

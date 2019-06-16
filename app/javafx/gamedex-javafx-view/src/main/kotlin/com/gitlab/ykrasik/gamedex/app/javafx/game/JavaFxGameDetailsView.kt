@@ -23,8 +23,8 @@ import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
@@ -64,7 +64,7 @@ class JavaFxGameDetailsView(
     ViewCanDeleteGame,
     ViewCanRenameMoveGame,
     ViewCanTagGame,
-    ViewCanRefetchGame,
+    ViewCanUpdateGame,
     ViewCanResyncGame,
     ViewCanOpenFile,
     ViewCanBrowseUrl {
@@ -91,8 +91,8 @@ class JavaFxGameDetailsView(
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
 
-    override val canRefetchGame = state(IsValid.valid)
-    override val refetchGameActions = channel<Game>()
+    override val canUpdateGame = state(IsValid.valid)
+    override val updateGameActions = channel<Game>()
 
     override val canResyncGame = state(IsValid.valid)
     override val resyncGameActions = channel<Game>()
@@ -178,11 +178,11 @@ class JavaFxGameDetailsView(
         toolbarButton("Tag", Icons.tag) { action(tagGameActions) { game.value } }
         gap()
         extraMenu {
-            infoButton("Re-Fetch", graphic = Icons.download) {
+            infoButton("Update", graphic = Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                enableWhen(canRefetchGame)
-                action(refetchGameActions) { game.value }
+                enableWhen(canUpdateGame)
+                action(updateGameActions) { game.value }
             }
             infoButton("Re-Sync", graphic = Icons.sync) {
                 useMaxWidth = true
