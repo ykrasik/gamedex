@@ -115,51 +115,52 @@ class MainView : PresentableView("GameDex"),
 
     private fun TabPane.tab(screen: PresentableScreen) = tab(screen) { userData = screen }
 
-    private val mainNavigationButton = popOverMenu(graphic = Icons.menu) {
-        navigationButton(gameScreen) {
-            shortcut("ctrl+g")
-            tooltip("Show Games (ctrl+g)")
-        }
+    private val mainNavigationButton = stackpane {
+        addClass(Style.navigationButton)
+        
+        popOverMenu(graphic = Icons.menu) {
+//            navigationButton(gameScreen) {
+//                shortcut("ctrl+g")
+//                tooltip("Show Games (ctrl+g)")
+//            }
+//
+//            verticalGap(size = 15)
 
-        verticalGap(size = 15)
+            navigationButton("Sync Libraries", Icons.folderSync) {
+                tooltip("Scan all libraries for new games and sync them with providers")
+                enableWhen(canSyncLibraries)
+                action(syncLibrariesActions)
+            }
+            subMenu(libraryMenu)
 
-        navigationButton("Sync Libraries", Icons.folderSync) {
-            tooltip("Scan all libraries for new games and sync them with providers")
-            enableWhen(canSyncLibraries)
-            action(syncLibrariesActions)
-        }
-        subMenu(libraryMenu)
+            verticalGap(size = 15)
 
-        verticalGap(size = 15)
+            subMenu(maintenanceMenu) { maintenanceMenu.init(this) }
 
-        subMenu(maintenanceMenu) { maintenanceMenu.init(this) }
+            navigationButton("Settings", Icons.settings) {
+                action(showSettingsActions)
+                shortcut("ctrl+o")
+                tooltip("Show Settings (ctrl+o)")
+            }
+            navigationButton("Log", Icons.book) {
+                action(showLogViewActions)
+                shortcut("ctrl+l")
+                tooltip("Show Log (ctrl+l)")
+            }
+            navigationButton("About", Icons.information) {
+                action(showAboutActions)
+                shortcut("ctrl+i")
+                tooltip("Show About (ctrl+i)")
+            }
 
-        navigationButton("Settings", Icons.settings) {
-            action(showSettingsActions)
-            shortcut("ctrl+o")
-            tooltip("Show Settings (ctrl+o)")
-        }
-        navigationButton("Log", Icons.book) {
-            action(showLogViewActions)
-            shortcut("ctrl+l")
-            tooltip("Show Log (ctrl+l)")
-        }
-        navigationButton("About", Icons.information) {
-            action(showAboutActions)
-            shortcut("ctrl+i")
-            tooltip("Show About (ctrl+i)")
-        }
+            verticalGap(size = 15)
 
-        verticalGap(size = 15)
-
-        navigationButton("Quit", Icons.quit) {
-            action {
-                System.exit(0)
+            navigationButton("Quit", Icons.quit) {
+                action {
+                    System.exit(0)
+                }
             }
         }
-    }.apply {
-        addClass(GameDexStyle.toolbarButton, Style.navigationButton)
-        textProperty().bind(tabPane.selectionModel.selectedItemProperty().stringBinding { it!!.text })
     }
 
     init {
@@ -211,11 +212,11 @@ class MainView : PresentableView("GameDex"),
         }
     }
 
-    private inline fun PopOverContent.navigationButton(screen: PresentableScreen, crossinline op: JFXButton.() -> Unit = {}) =
-        navigationButton(screen.title, screen.icon) {
-            action { showScreen(screen) }
-            op()
-        }
+//    private inline fun PopOverContent.navigationButton(screen: PresentableScreen, crossinline op: JFXButton.() -> Unit = {}) =
+//        navigationButton(screen.title, screen.icon) {
+//            action { showScreen(screen) }
+//            op()
+//        }
 
     private inline fun PopOverContent.navigationButton(text: String, icon: Node, crossinline op: JFXButton.() -> Unit = {}) =
         jfxButton(text, icon, alignment = Pos.CENTER_LEFT) {
@@ -267,6 +268,7 @@ class MainView : PresentableView("GameDex"),
         init {
             navigationButton {
                 fontWeight = FontWeight.BOLD
+                padding = box(top = 0.px, bottom = 0.px, left = 10.px, right = 40.px)
             }
         }
     }
