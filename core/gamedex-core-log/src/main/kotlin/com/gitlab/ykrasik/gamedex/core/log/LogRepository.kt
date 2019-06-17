@@ -19,29 +19,40 @@ package com.gitlab.ykrasik.gamedex.core.log
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import java.util.concurrent.Executors
 
 /**
  * User: ykrasik
  * Date: 13/04/2018
  * Time: 20:47
  */
-class LogRepository(private val maxLogEntries: Int) {
+class LogRepository(private val maxLogEntries: Int) : CoroutineScope {
+    override val coroutineContext = dispatcher
+
     private val _entries = ListObservableImpl<LogEntry>()
     val entries: ListObservable<LogEntry> = _entries
 
     private val blacklist = mutableSetOf<String>()
 
     operator fun plusAssign(entry: LogEntry) {
-        _entries += censorEntry(entry)
+        launch {
+            _entries += censorEntry(entry)
 
-        if (entries.size > maxLogEntries) {
-            _entries -= _entries.subList(0, entries.size - maxLogEntries)
+            if (entries.size > maxLogEntries) {
+                _entries -= _entries.subList(0, entries.size - maxLogEntries)
+            }
         }
     }
 
     fun addBlacklistValue(value: String) {
         blacklist += value
-        _entries.setAll(_entries.map(::censorEntry))
+
+        launch {
+            _entries.setAll(_entries.map(::censorEntry))
+        }
     }
 
     private fun censorEntry(entry: LogEntry): LogEntry {
@@ -49,5 +60,11 @@ class LogRepository(private val maxLogEntries: Int) {
             acc.replace(blacklistedValue, "****")
         }
         return entry.copy(message = censored)
+    }
+
+    companion object {
+        private val dispatcher = Executors.newSingleThreadScheduledExecutor {
+            Thread(it, "LogDispatcher").apply { isDaemon = true }
+        }.asCoroutineDispatcher()
     }
 }

@@ -27,6 +27,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.jfoenix.controls.JFXListCell
+import javafx.scene.layout.Region
 import tornadofx.*
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -165,6 +166,13 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
                     }
                     and(error) {
                         textFill = Icons.logError.iconColor
+                    }
+
+                    maxHeight = 36.px
+                    prefHeight = 36.px
+                    and(selected) {
+                        prefHeight = Region.USE_COMPUTED_SIZE.px
+                        maxHeight = Double.MAX_VALUE.px
                     }
                 }
             }

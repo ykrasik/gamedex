@@ -61,7 +61,7 @@ class SettingsStorage<T : Any>(
     private val default: T,
     private val storage: Storage<String, T>
 ) : CoroutineScope {
-    override val coroutineContext = settingsHandler
+    override val coroutineContext = dispatcher
 
     private val log = logger()
     private val displayName = File("$basePath/$name").normalize().toString()
@@ -119,7 +119,7 @@ class SettingsStorage<T : Any>(
             }
         }
         return channel.distinctUntilChanged().apply {
-            subscribe(settingsHandler) {
+            subscribe(dispatcher) {
                 log.debug("[$displayName] ${extractor.name} = ${it.toString()}")
             }
         }
@@ -158,7 +158,7 @@ class SettingsStorage<T : Any>(
     }
 
     companion object {
-        private val settingsHandler = Executors.newSingleThreadScheduledExecutor {
+        private val dispatcher = Executors.newSingleThreadScheduledExecutor {
             Thread(it, "SettingsHandler").apply { isDaemon = true }
         }.asCoroutineDispatcher()
     }
