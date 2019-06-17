@@ -34,11 +34,13 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import kotlinx.coroutines.Job
@@ -49,6 +51,7 @@ import org.joda.time.Period
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import java.util.*
+import java.util.function.Predicate
 import kotlin.reflect.KClass
 
 /**
@@ -84,10 +87,10 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
     override val deleteFilterActions = channel<Filter>()
 
     override val savedFilters = settableList<NamedFilter>()
+    private val sortedFilteredSavedFilters = SortedFilteredList(savedFilters)
+
     override val addOrEditFilterActions = channel<NamedFilter>()
     override val deleteNamedFilterActions = channel<NamedFilter>()
-
-    private val commonOps: JavaFxCommonOps by di()
 
     private val savedFilterPreviewContent: JavaFxFilterView by lazy { JavaFxFilterView(allowSaveLoad = false, readOnly = true) }
     private val savedFilterPreview by lazy {
@@ -95,6 +98,8 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
             addComponent(savedFilterPreviewContent)
         }
     }
+
+    private val commonOps: JavaFxCommonOps by di()
 
     private var indent = 0
 
@@ -132,35 +137,48 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
         if (allowSaveLoad) {
             defaultHbox {
                 spacer()
-                buttonWithPopover("Saved", Icons.files.size(22), arrowLocation = PopOver.ArrowLocation.LEFT_TOP) {
-                    savedFilters.perform { filters ->
-                        replaceChildren {
-                            addButton(isToolbarButton = false) {
-                                alignment = Pos.CENTER
-                                useMaxWidth = true
-                                tooltip("Add a new filter")
-                                action(addOrEditFilterActions) { NamedFilter.anonymous(filter.value) }
-                            }
-                            gridpane {
-                                hgap = 5.0
-                                vgap = 3.0
-                                usePrefWidth = true
-                                filters.forEach { filter ->
-                                    row {
-                                        infoButton(filter.name, graphic = Icons.load.size(22)) {
-                                            useMaxWidth = true
-                                            alignment = Pos.CENTER_LEFT
-                                            previewFilterOnHover(filter.filter)
-                                            action(setFilterActions) {
-                                                popOver.hide()
-                                                filter.filter
+                buttonWithPopover("Saved Filters", Icons.files.size(22), arrowLocation = PopOver.ArrowLocation.LEFT_TOP, closeOnAction = false) {
+                    setFilterActions.forEach { hide() }
+                    addOrEditFilterActions.forEach { hide() }
+                    deleteNamedFilterActions.forEach { hide() }
+
+                    val searchProperty = SimpleStringProperty("")
+                    searchTextField(this@JavaFxFilterView, searchProperty)
+                    sortedFilteredSavedFilters.filteredItems.predicateProperty().bind(searchProperty.binding { text ->
+                        Predicate<NamedFilter> { filter ->
+                            text.isEmpty() || filter.name.contains(text, ignoreCase = true)
+                        }
+                    })
+                    sortedFilteredSavedFilters.sortedItems.comparator = Comparator { o1, o2 -> o1.name.compareTo(o2.name) }
+
+                    addButton(isToolbarButton = false) {
+                        alignment = Pos.CENTER
+                        useMaxWidth = true
+                        tooltip("Add a new filter")
+                        action(addOrEditFilterActions) { NamedFilter.anonymous(filter.value) }
+                    }
+                    defaultVbox {
+                        sortedFilteredSavedFilters.perform { filters ->
+                            replaceChildren {
+                                gridpane {
+                                    hgap = 5.0
+                                    vgap = 3.0
+                                    usePrefWidth = true
+                                    filters.forEach { filter ->
+                                        row {
+                                            infoButton(filter.name, graphic = Icons.load.size(22)) {
+                                                useMaxWidth = true
+                                                gridpaneColumnConstraints { hgrow = Priority.ALWAYS }
+                                                alignment = Pos.CENTER_LEFT
+                                                previewFilterOnHover(filter.filter)
+                                                action(setFilterActions) { filter.filter }
                                             }
-                                        }
-                                        editButton(isToolbarButton = false) {
-                                            action(addOrEditFilterActions) { filter }
-                                        }
-                                        deleteButton(isToolbarButton = false) {
-                                            action(deleteNamedFilterActions) { filter }
+                                            editButton(isToolbarButton = false) {
+                                                action(addOrEditFilterActions) { filter }
+                                            }
+                                            deleteButton(isToolbarButton = false) {
+                                                action(deleteNamedFilterActions) { filter }
+                                            }
                                         }
                                     }
                                 }
