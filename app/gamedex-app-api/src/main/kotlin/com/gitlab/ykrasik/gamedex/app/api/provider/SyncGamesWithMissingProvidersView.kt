@@ -14,23 +14,21 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider
+package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.LibraryPath
-import com.gitlab.ykrasik.gamedex.core.CoreEvent
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
- * Date: 02/12/2018
- * Time: 12:49
+ * Date: 31/12/2018
+ * Time: 15:49
  */
-sealed class SyncGamesEvent : CoreEvent {
-    data class Requested(
-        val paths: List<Pair<LibraryPath, Game?>>,
-        val isAllowSmartChooseResults: Boolean
-    ) : SyncGamesEvent()
+interface SyncGamesWithMissingProvidersView : ConfirmationView {
+    val bulkSyncGamesFilter: UserMutableState<Filter>
+    val bulkSyncGamesFilterIsValid: UserMutableState<IsValid>
 
-    object Started : SyncGamesEvent()
-    object Finished : SyncGamesEvent()
+    val syncOnlyMissingProviders: UserMutableState<Boolean>
 }

@@ -68,6 +68,7 @@ enum class Platform(val displayName: String) {
 }
 
 data class LibraryPath(val library: Library, val path: File) {
+    val platform get() = library.platform
     val relativePath: File get() = path.relativeTo(library.path)
 
     companion object {

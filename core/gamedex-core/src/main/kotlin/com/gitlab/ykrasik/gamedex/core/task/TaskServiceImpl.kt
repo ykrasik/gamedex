@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.task
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.awaitEvent
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,16 +34,14 @@ class TaskServiceImpl @Inject constructor(
     private val viewManager: ViewManager,
     private val eventBus: EventBus
 ) : TaskService {
-    override suspend fun <T> execute(task: Task<T>): T = withTaskView {
-        eventBus.send(TaskEvent.Started(task))
-        val event = eventBus.awaitEvent<TaskEvent.Finished<T>> { it.task == task }
-        return event.result.get()
-    }
+    private val mutex = Mutex()
 
-    private inline fun <T> withTaskView(f: () -> T): T {
+    override suspend fun <T> execute(task: Task<T>): T = mutex.withLock {
         val view = viewManager.showTaskView()
-        return try {
-            f()
+        try {
+            eventBus.send(TaskEvent.RequestStart(task))
+            val event = eventBus.awaitEvent<TaskEvent.Finished<T>> { it.task === task }
+            event.result.get()
         } finally {
             viewManager.hide(view)
         }

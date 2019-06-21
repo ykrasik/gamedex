@@ -63,7 +63,7 @@ class OverlayPane : StackPane() {
         show(OverlayLayer(view, modal, onExternalCloseRequested).also(customizeOverlay))
 
     private fun show(layer: OverlayLayer) {
-        log.trace("Showing overlay: ${layer.view}")
+        log.trace("Showing overlay: $layer")
         layer.content.isVisible = true
         layer.content.children += layer.view.root
         visibleLayers += layer
@@ -75,12 +75,14 @@ class OverlayPane : StackPane() {
     fun hide(view: View) = hide(checkNotNull(visibleLayers.findLast { it.view === view }) { "View not showing: $view" })
 
     private fun hide(layer: OverlayLayer) {
-        log.trace("Hiding overlay: ${layer.view}")
+        if (layer.isHiding) return
+        layer.isHiding = true
+        log.trace("Hiding overlay: $layer")
+
         // Immediately hide the content
         layer.content.isVisible = false
         layer.content.children -= layer.view.root
 
-        layer.isHiding = true
         layer.fillTransition(0.2.seconds, from = visibleColor, to = invisibleColor) {
             setOnFinished {
                 visibleLayers -= layer
@@ -146,6 +148,8 @@ class OverlayPane : StackPane() {
             clipRectangle(arc = 20)
             addEventHandler(MouseEvent.MOUSE_CLICKED) { it.consume() }
         }
+
+        override fun toString() = view.toString()
     }
 
     private companion object {

@@ -32,7 +32,10 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Modifier
+import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.and
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -251,8 +254,12 @@ class ProviderSearchPresenter @Inject constructor(
             val excludedProviders = state.choicesOfType<ProviderSearchChoice.Exclude>().map { (providerId, _) -> providerId }.toList()
             val name = acceptedResults.map { (_, result) -> result.name }.firstOrNull() ?: libraryPath.path.name
             val providerHeaders = acceptedResults.map { (providerId, result) -> ProviderHeader(providerId, result.providerGameId) }.toList()
-            val providerData = taskService.execute(gameProviderService.fetch(name, libraryPath.library.platform, providerHeaders))
-            val task = state.game.let { existingGame ->
+            val passthroughProviderData = state.existingGame?.rawGame?.providerData?.filterNot { providerData ->
+                providerHeaders.any { it.providerId == providerData.header.providerId }
+            } ?: emptyList()
+            val newProviderData = taskService.execute(gameProviderService.fetch(name, libraryPath.library.platform, providerHeaders))
+            val providerData = newProviderData + passthroughProviderData
+            val task = state.existingGame.let { existingGame ->
                 if (existingGame == null) {
                     gameService.add(
                         AddGameRequest(
@@ -275,7 +282,7 @@ class ProviderSearchPresenter @Inject constructor(
             }
 
             val game = taskService.execute(task)
-            modifyState { copy(game = game, status = GameSearchStatus.Success) }
+            modifyState { copy(existingGame = game, status = GameSearchStatus.Success) }
         }
 
         private fun onQueryChanged(query: String) {

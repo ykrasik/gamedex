@@ -25,8 +25,8 @@ import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Rectangle2D
 import javafx.scene.Node
+import javafx.scene.Parent
 import javafx.scene.control.*
-import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.stage.Screen
@@ -117,8 +117,8 @@ fun Node.mouseTransparentWhen(expr: () -> ObservableValue<Boolean>) {
     mouseTransparentProperty().cleanBind(expr())
 }
 
-inline fun <T : UIComponent> Pane.addComponent(component: T, f: T.() -> Unit = {}) {
-    children += component.root
+inline fun <T : UIComponent> Parent.addComponent(component: T, f: T.() -> Unit = {}) {
+    add(component.root)
     f(component)
 }
 

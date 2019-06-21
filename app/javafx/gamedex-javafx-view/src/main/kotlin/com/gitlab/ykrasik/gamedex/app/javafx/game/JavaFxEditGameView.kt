@@ -128,7 +128,8 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
                 disallowDeselection()
                 bind(state.selection.property)
             }
-            scrollpane(fitToWidth = false) {
+            prettyScrollPane {
+                isFitToWidth = false
                 paddingAll = 10
                 vbox(spacing = 10) {
                     defaultHbox {

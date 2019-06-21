@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkSyncGames
+import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGamesWithMissingProviders
 import com.gitlab.ykrasik.gamedex.core.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,23 +29,23 @@ import javax.inject.Singleton
  * Time: 15:48
  */
 @Singleton
-class ShowBulkSyncGamesPresenter @Inject constructor(
+class ShowSyncGamesWithMissingProviders @Inject constructor(
     private val commonData: CommonData,
     private val viewManager: ViewManager,
     eventBus: EventBus
-) : Presenter<ViewCanBulkSyncGames> {
+) : Presenter<ViewCanSyncGamesWithMissingProviders> {
     init {
-        eventBus.onHideViewRequested<BulkSyncGamesView> { viewManager.hide(it) }
+        eventBus.onHideViewRequested<SyncGamesWithMissingProvidersView> { viewManager.hide(it) }
     }
 
-    override fun present(view: ViewCanBulkSyncGames) = object : ViewSession() {
+    override fun present(view: ViewCanSyncGamesWithMissingProviders) = object : ViewSession() {
         init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canBulkSyncGames) { "Game sync in progress!" }
+            commonData.isGameSyncRunning.disableWhenTrue(view.canSyncGamesWithMissingProviders) { "Game sync in progress!" }
 
-            view.bulkSyncGamesActions.forEach {
-                view.canBulkSyncGames.assert()
+            view.syncGamesWithMissingProvidersActions.forEach {
+                view.canSyncGamesWithMissingProviders.assert()
 
-                viewManager.showBulkSyncGamesView()
+                viewManager.showSyncGamesWithMissingProvidersView()
             }
         }
     }

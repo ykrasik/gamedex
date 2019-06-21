@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.app.javafx.common
 
 import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
-import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -53,7 +53,7 @@ class JavaFxBrowserView : PresentableView("Browser", Icons.web), BrowserView {
         prefWidth = screenBounds.width * 9 / 10
         prefHeight = screenBounds.height * 9 / 10
         clipRectangle(arc = 20)
-        top = customToolbar {
+        top = prettyToolbar {
             jfxButton(graphic = Icons.arrowLeft) {
                 enableWhen { canNavigate(back = true) }
                 action { navigate(back = true) }
@@ -70,7 +70,7 @@ class JavaFxBrowserView : PresentableView("Browser", Icons.web), BrowserView {
                 }
                 setOnAction {
                     load(text)
-                    this@customToolbar.requestFocus()
+                    this@prettyToolbar.requestFocus()
                 }
             }
             confirmButton(graphic = Icons.arrowRightCircle.color(Colors.green), isToolbarButton = false) {

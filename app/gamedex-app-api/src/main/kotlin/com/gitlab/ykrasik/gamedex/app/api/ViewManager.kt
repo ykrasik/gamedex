@@ -29,9 +29,9 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
@@ -86,8 +86,8 @@ interface ViewManager {
     fun showBulkUpdateGamesView(): BulkUpdateGamesView
     fun hide(view: BulkUpdateGamesView)
 
-    fun showBulkSyncGamesView(): BulkSyncGamesView
-    fun hide(view: BulkSyncGamesView)
+    fun showSyncGamesWithMissingProvidersView(): SyncGamesWithMissingProvidersView
+    fun hide(view: SyncGamesWithMissingProvidersView)
 
     fun showImportDatabaseView(): ImportDatabaseView
     fun hide(view: ImportDatabaseView)

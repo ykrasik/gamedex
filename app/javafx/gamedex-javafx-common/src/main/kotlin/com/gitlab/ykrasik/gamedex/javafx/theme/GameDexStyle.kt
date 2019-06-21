@@ -54,11 +54,12 @@ class GameDexStyle : Stylesheet() {
         val headerLabel by cssclass()
         val subHeaderLabel by cssclass()
 
-        val gamedexWindow by cssclass()
+        val toggleButtonCheckedText by cssclass()
+        val toggleButtonUncheckedText by cssclass()
 
-        val customToolbar by cssclass()
+        val prettyToolbar by cssclass()
 
-        val customHoverable by cssclass()
+        val clearButton by cssclass()
 
         val prettyList by cssclass()
         val prettyListCellContent by cssclass()
@@ -193,22 +194,26 @@ class GameDexStyle : Stylesheet() {
             fontWeight = FontWeight.BOLD
         }
 
-        gamedexWindow {
-            backgroundColor = multi(Color.WHITE)
-            backgroundRadius = multi(box(10.px))
-//            unsafe("-fx-effect", raw("dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 0.0, 0.0)"))
-//            backgroundInsets = multi(box(6.px))
-//            effect = DropShadow()
+        toggleButtonCheckedText {
+            and(checked) {
+                fontWeight = FontWeight.BOLD
+            }
         }
 
-        customToolbar {
+        toggleButtonUncheckedText {
+            and(checked) {
+                fontWeight = FontWeight.BOLD
+            }
+        }
+
+        prettyToolbar {
             backgroundColor = multi(Colors.cloudyKnoxville)
             padding = box(6.px)
             borderWidth = multi(box(top = 0.px, bottom = 0.5.px, left = 0.px, right = 0.px))
             borderColor = multi(box(Color.GRAY))
         }
 
-        customHoverable {
+        clearButton {
             cursor = Cursor.DEFAULT
             backgroundRadius = multi(box(10.px))
             padding = box(0.px)

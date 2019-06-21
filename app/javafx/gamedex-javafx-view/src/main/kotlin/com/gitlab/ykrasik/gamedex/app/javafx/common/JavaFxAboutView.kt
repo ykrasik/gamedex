@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.common
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
-import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
@@ -44,7 +44,7 @@ class JavaFxAboutView : PresentableView("About"), AboutView, ViewCanBrowseUrl {
     override val browseUrlActions = channel<String>()
 
     override val root = borderpane {
-        top = customToolbar {
+        top = prettyToolbar {
             spacer()
             acceptButton {
                 isCancelButton = true

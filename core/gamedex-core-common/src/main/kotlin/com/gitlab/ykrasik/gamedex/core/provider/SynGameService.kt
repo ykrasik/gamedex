@@ -14,27 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.control
+package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
-import javafx.event.EventTarget
-import javafx.geometry.Pos
-import javafx.scene.layout.HBox
-import javafx.scene.layout.Priority
-import tornadofx.addClass
-import tornadofx.hgrow
-import tornadofx.useMaxWidth
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.LibraryPath
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.core.task.Task
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 
 /**
  * User: ykrasik
- * Date: 23/12/2018
- * Time: 17:12
+ * Date: 22/06/2019
+ * Time: 15:43
  */
+interface SyncGameService {
+    val isGameSyncRunning: MultiReceiveChannel<Boolean>
 
-inline fun EventTarget.customToolbar(spacing: Number = 10, crossinline op: HBox.() -> Unit) = defaultHbox(spacing) {
-    addClass(GameDexStyle.customToolbar)
-    useMaxWidth = true
-    hgrow = Priority.ALWAYS
-    alignment = Pos.CENTER_LEFT
-    op()
+    fun syncGame(game: Game)
+
+    fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean): Task<List<SyncPathRequest>>
+
+    fun syncGames(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean)
+}
+
+data class SyncPathRequest(
+    val libraryPath: LibraryPath,
+    val existingGame: Game? = null,
+    val syncOnlyTheseProviders: List<ProviderId> = emptyList()  // If empty, sync all providers.
+) {
+    val library get() = libraryPath.library
+    val path get() = libraryPath.path
+    val platform get() = libraryPath.platform
 }

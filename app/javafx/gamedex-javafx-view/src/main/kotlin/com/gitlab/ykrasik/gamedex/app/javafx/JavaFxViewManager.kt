@@ -30,9 +30,9 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -50,8 +50,8 @@ import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxCleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxImportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxBulkSyncGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxBulkUpdateGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxSyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
 import com.gitlab.ykrasik.gamedex.javafx.control.OverlayPane
@@ -156,9 +156,9 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun showBulkUpdateGamesView() = bulkUpdateGamesView.showOverlay()
     override fun hide(view: BulkUpdateGamesView) = view.hideOverlay()
 
-    private val bulkSyncGamesView: JavaFxBulkSyncGamesView by inject()
-    override fun showBulkSyncGamesView() = bulkSyncGamesView.showOverlay()
-    override fun hide(view: BulkSyncGamesView) = view.hideOverlay()
+    private val syncGamesWithMissingProvidersView: JavaFxSyncGamesWithMissingProvidersView by inject()
+    override fun showSyncGamesWithMissingProvidersView() = syncGamesWithMissingProvidersView.showOverlay()
+    override fun hide(view: SyncGamesWithMissingProvidersView) = view.hideOverlay()
 
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
     override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showOverlay(modal = true) { this.staleData.valueFromView = staleData }

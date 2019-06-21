@@ -251,7 +251,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         }
     }
 
-    private fun EventTarget.platformButton() = popoverComboMenu(
+    private fun EventTarget.platformButton() = popoverDynamicComboMenu(
         possibleItems = availablePlatforms,
         selectedItemProperty = currentPlatform.property,
         text = Platform::displayName,

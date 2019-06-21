@@ -101,7 +101,9 @@ data class ProviderSearchResult(
     val criticScore: Score?,
     val userScore: Score?,
     val thumbnailUrl: String?
-)
+) {
+    override fun toString() = "ProviderSearchResult(providerGameId=$providerGameId, name=$name, releaseDate=$releaseDate)"
+}
 
 data class ProviderFetchData(
     val gameData: GameData,

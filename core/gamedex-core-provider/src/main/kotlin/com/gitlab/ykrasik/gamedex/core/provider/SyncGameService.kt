@@ -19,12 +19,16 @@ package com.gitlab.ykrasik.gamedex.core.provider
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.task.Task
+import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.task.task
-import com.google.inject.ImplementedBy
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.id
+import com.gitlab.ykrasik.gamedex.provider.supports
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,12 +37,6 @@ import javax.inject.Singleton
  * Date: 31/12/2018
  * Time: 16:00
  */
-@ImplementedBy(SyncGameServiceImpl::class)
-interface SyncGameService {
-    fun syncGame(game: Game)
-    fun bulkSyncGames(filter: Filter): Task<Unit>
-}
-
 @Singleton
 class SyncGameServiceImpl @Inject constructor(
     private val gameService: GameService,
@@ -46,23 +44,54 @@ class SyncGameServiceImpl @Inject constructor(
     private val filterService: FilterService,
     private val eventBus: EventBus
 ) : SyncGameService {
-    override fun syncGame(game: Game) = syncGames(listOf(game))
-
-    override fun bulkSyncGames(filter: Filter) = task("Detecting games to sync...") {
-        val games = filterService.filter(gameService.games, filter).sortedBy { it.path }
-        if (games.isNotEmpty()) {
-            syncGames(games)
-        } else {
-            successMessage = { "No games matching sync filter detected!" }
-        }
+    override val isGameSyncRunning = MultiChannel.conflated(false).apply {
+        eventBus.on<SyncGamesEvent.Started> { send(true) }
+        eventBus.on<SyncGamesEvent.Finished> { send(false) }
     }
 
-    private fun syncGames(games: List<Game>) {
+    override fun syncGame(game: Game) = syncGames(listOf(toRequest(game, emptyList())), isAllowSmartChooseResults = false)
+
+    override fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean) = task("Detecting games to sync...") {
+        val games = filterService.filter(gameService.games, filter).asSequence()
+            .map { it to it.getMissingProviders() }
+            .filter { (_, missingProviders) -> missingProviders.isNotEmpty() }
+            .map { (game, missingProviders) -> game to missingProviders.takeIf { syncOnlyMissingProviders }.orEmpty() }
+            .toList()
+            .sortedBy { (game, _) -> game.path }
+
+        if (games.isNotEmpty()) {
+            message = "Detecting games to sync... ${games.size} games."
+        } else {
+            successMessage = { "No games with missing providers detected!" }
+        }
+        games.map { (game, missingProviders) -> toRequest(game, missingProviders) }
+    }
+
+    private fun toRequest(game: Game, providersToSync: List<ProviderId>) = SyncPathRequest(
+        libraryPath = LibraryPath(game.library, game.path),
+        existingGame = game,
+        syncOnlyTheseProviders = providersToSync
+    )
+
+    override fun syncGames(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean) {
         gameProviderService.assertHasEnabledProvider()
 
-        val paths = games.map { game ->
-            LibraryPath(game.library, game.path) to game
+        if (requests.isNotEmpty()) {
+            eventBus.send(SyncGamesEvent.RequestSync(requests, isAllowSmartChooseResults))
         }
-        eventBus.send(SyncGamesEvent.Requested(paths, isAllowSmartChooseResults = false))
     }
+
+    private fun Game.getMissingProviders(): List<ProviderId> {
+        val existingProviders = existingProviders.toList() + excludedProviders
+        return gameProviderService.enabledProviders.asSequence()
+            .filterNot { provider -> provider.supports(platform) && provider.id in existingProviders }
+            .map { it.id }
+            .toList()
+    }
+}
+
+sealed class SyncGamesEvent : CoreEvent {
+    data class RequestSync(val requests: List<SyncPathRequest>, val isAllowSmartChooseResults: Boolean) : SyncGamesEvent()
+    object Started : SyncGamesEvent()
+    object Finished : SyncGamesEvent()
 }

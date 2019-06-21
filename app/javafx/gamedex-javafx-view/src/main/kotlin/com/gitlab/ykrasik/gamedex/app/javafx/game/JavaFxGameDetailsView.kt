@@ -168,7 +168,7 @@ class JavaFxGameDetailsView(
         }
     }
 
-    private fun createToolbar() = customToolbar {
+    private fun createToolbar() = prettyToolbar {
         if (canClose) {
             cancelButton("Close") { action(hideViewActions) }
         }

@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -46,7 +46,7 @@ abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : P
     override val acceptActions = channel<Unit>()
     override val cancelActions = channel<Unit>()
 
-    protected inline fun confirmationToolbar(crossinline toolbarOp: HBox.() -> Unit = { centeredWindowHeader() }) = customToolbar {
+    protected inline fun confirmationToolbar(crossinline toolbarOp: HBox.() -> Unit = { centeredWindowHeader() }) = prettyToolbar {
         cancelButton { action(cancelActions) }
         toolbarOp()
         acceptButton {

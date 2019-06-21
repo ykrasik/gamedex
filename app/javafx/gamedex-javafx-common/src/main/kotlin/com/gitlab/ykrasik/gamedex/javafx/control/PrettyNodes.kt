@@ -23,6 +23,7 @@ import javafx.animation.Transition
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Control
 import javafx.scene.control.ListView
@@ -30,6 +31,8 @@ import javafx.scene.control.ScrollBar
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.ScrollEvent
+import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import org.controlsfx.control.GridView
 import tornadofx.*
@@ -288,4 +291,13 @@ private fun Control.makePrettyScroll(scrollBarClass: String, children: Observabl
     }
 
     return vBar to hBar
+}
+
+
+inline fun EventTarget.prettyToolbar(spacing: Number = 10, crossinline op: HBox.() -> Unit) = defaultHbox(spacing) {
+    addClass(GameDexStyle.prettyToolbar)
+    useMaxWidth = true
+    hgrow = Priority.ALWAYS
+    alignment = Pos.CENTER_LEFT
+    op()
 }

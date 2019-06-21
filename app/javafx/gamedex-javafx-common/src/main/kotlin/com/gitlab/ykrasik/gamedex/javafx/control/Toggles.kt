@@ -26,10 +26,7 @@ import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.ToggleButton
 import javafx.scene.control.ToggleGroup
-import tornadofx.addClass
-import tornadofx.getToggleGroup
-import tornadofx.opcr
-import tornadofx.useMaxWidth
+import tornadofx.*
 import kotlin.collections.set
 
 /**
@@ -43,14 +40,41 @@ inline fun EventTarget.jfxToggleButton(op: JFXToggleButton.() -> Unit = {}) =
 inline fun EventTarget.jfxToggleButton(
     property: Property<Boolean>,
     text: String? = null,
+    group: ToggleGroup? = getToggleGroup(),
     crossinline op: JFXToggleButton.() -> Unit = {}
 ) = jfxToggleButton {
     selectedProperty().bindBidirectional(property)
     this.text = text
+    this.toggleGroup = group
     op(this)
 }
 
-inline fun Node.jfxToggleNode(
+inline fun EventTarget.jfx2SideToggleButton(
+    property: Property<Boolean>,
+    checkedText: String,
+    uncheckedText: String,
+    group: ToggleGroup? = getToggleGroup(),
+    crossinline op: JFXToggleButton.() -> Unit = {}
+) = defaultHbox {
+    label(uncheckedText) {
+        addClass(GameDexStyle.toggleButtonUncheckedText)
+        toggleClass(Stylesheet.checked, property.booleanBinding { !it!! })
+        widthProperty().onChange {
+            minWidth = prefWidth(-1.0) + 10
+        }
+    }
+    jfxToggleButton(property, group = group, op = op)
+    label(checkedText) {
+        addClass(GameDexStyle.toggleButtonCheckedText)
+        toggleClass(Stylesheet.checked, property)
+        paddingLeft = 10
+        widthProperty().onChange {
+            minWidth = prefWidth(-1.0) + 10
+        }
+    }
+}
+
+inline fun EventTarget.jfxToggleNode(
     text: String? = null,
     graphic: Node? = null,
     group: ToggleGroup? = getToggleGroup(),
@@ -65,7 +89,7 @@ inline fun Node.jfxToggleNode(
     op()
 }
 
-inline fun Node.jfxToggleNode(
+inline fun EventTarget.jfxToggleNode(
     text: String? = null,
     graphic: Node? = null,
     value: Any? = null,

@@ -17,13 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -73,8 +72,8 @@ class CommonDataImpl @Inject constructor(
     gameService: GameService,
     libraryService: LibraryService,
     gameProviderService: GameProviderService,
-    settingsService: SettingsService,
-    eventBus: EventBus
+    syncGameService: SyncGameService,
+    settingsService: SettingsService
 ) : CommonData {
 
     override val games = gameService.games
@@ -113,8 +112,5 @@ class CommonDataImpl @Inject constructor(
     override val platformsWithLibraries = contentLibraries.mapping { it.platform }.distincting()
     override val platformsWithEnabledProviders = enabledProviders.flatMapping { provider -> provider.supportedPlatforms }.distincting()
 
-    override val isGameSyncRunning = MultiChannel.conflated(false).apply {
-        eventBus.on<SyncGamesEvent.Started> { send(true) }
-        eventBus.on<SyncGamesEvent.Finished> { send(false) }
-    }
+    override val isGameSyncRunning = syncGameService.isGameSyncRunning
 }

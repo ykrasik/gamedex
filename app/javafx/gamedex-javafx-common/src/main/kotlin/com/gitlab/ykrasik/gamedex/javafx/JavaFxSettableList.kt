@@ -31,7 +31,11 @@ import tornadofx.setValue
  * Date: 17/06/2019
  * Time: 08:16
  */
-class JavaFxSettableList<E>(private val list: ObservableList<E>) : SettableList<E>, ObservableList<E> by list
+class JavaFxSettableList<E>(private val list: ObservableList<E>) : SettableList<E>, ObservableList<E> by list {
+    override fun equals(other: Any?) = list == other
+    override fun hashCode() = list.hashCode()
+    override fun toString() = list.toString()
+}
 
 class JavaFxSettableSortedFilteredList<E>(private val list: SortedFilteredList<E>) : SettableList<E>, ObservableList<E> by list {
     init {
@@ -50,6 +54,10 @@ class JavaFxSettableSortedFilteredList<E>(private val list: SortedFilteredList<E
     fun bindTo(listView: ListView<E>): SortedFilteredList<E> = list.bindTo(listView)
 
     fun <Q> filterWhen(observable: ObservableValue<Q>, filterExpr: (Q, E) -> Boolean) = list.filterWhen(observable, filterExpr)
+
+    override fun equals(other: Any?) = list == other
+    override fun hashCode() = list.hashCode()
+    override fun toString() = list.toString()
 }
 
 fun <E> settableList(list: ObservableList<E> = observableListOf()) = JavaFxSettableList(list)

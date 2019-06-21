@@ -82,7 +82,7 @@ class MainView : PresentableView("GameDex"),
     private val maxNavigationHistory = 5
     private val navigationHistory = ArrayDeque<Tab>(maxNavigationHistory)
 
-    private val toolbar = customToolbar {
+    private val toolbar = prettyToolbar {
         children.onChange {
             fade(0.6.seconds, 1.0) {
                 fromValue = 0.0

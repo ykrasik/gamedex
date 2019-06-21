@@ -79,7 +79,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                         gridpane {
                             hgap = 5.0
                             header("Library") { gridpaneConstraints { columnRowIndex(0, 0); hAlignment = HPos.CENTER } }
-                            popoverComboMenu(
+                            popoverDynamicComboMenu(
                                 possibleItems = possibleLibraries,
                                 selectedItemProperty = library.property,
                                 text = { it.path.path }

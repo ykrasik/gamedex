@@ -156,7 +156,7 @@ inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: Cust
     useMaxWidth = true
 
     val clearButton = jfxButton {
-        addClass(GameDexStyle.customHoverable)
+        addClass(GameDexStyle.clearButton)
         isCancelButton = true
         opacity = 0.0
         showWhen { editableProperty() }

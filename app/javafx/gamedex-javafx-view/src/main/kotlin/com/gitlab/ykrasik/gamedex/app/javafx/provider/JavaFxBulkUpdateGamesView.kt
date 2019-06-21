@@ -18,12 +18,14 @@ package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.addComponent
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import tornadofx.borderpane
 import tornadofx.paddingAll
-import tornadofx.scrollpane
 
 /**
  * User: ykrasik
@@ -41,10 +43,12 @@ class JavaFxBulkUpdateGamesView : ConfirmationWindow("Bulk Update Games", Icons.
     }
 
     override val root = borderpane {
+        maxHeight = screenBounds.height * 2 / 3
         top = confirmationToolbar()
-        center = scrollpane {
-            paddingAll = 10
-            add(filterView.root)
+        center = prettyScrollPane {
+            addComponent(filterView) {
+                paddingAll = 20
+            }
         }
     }
 }

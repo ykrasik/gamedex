@@ -16,13 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.BulkSyncGamesFilterRepository
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,16 +33,18 @@ import javax.inject.Singleton
  * Time: 09:51
  */
 @Singleton
-class BulkSyncGamesPresenter @Inject constructor(
+class SyncGamesWithMissingProvidersPresenter @Inject constructor(
     private val repo: BulkSyncGamesFilterRepository,
     private val syncGameService: SyncGameService,
     private val taskService: TaskService,
     private val eventBus: EventBus
-) : Presenter<BulkSyncGamesView> {
-    override fun present(view: BulkSyncGamesView) = object : ViewSession() {
+) : Presenter<SyncGamesWithMissingProvidersView> {
+    override fun present(view: SyncGamesWithMissingProvidersView) = object : ViewSession() {
         init {
 //            view.bulkSyncGamesFilter.forEach { setCanAccept() }
             view.bulkSyncGamesFilterIsValid.forEach { setCanAccept() }
+            view.canAccept *= IsValid.valid
+            view.syncOnlyMissingProviders *= true
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
@@ -61,9 +64,10 @@ class BulkSyncGamesPresenter @Inject constructor(
             val filter = view.bulkSyncGamesFilter.value
             repo.update(filter)
 
-            taskService.execute(syncGameService.bulkSyncGames(filter))
-
             hideView()
+
+            val requests = taskService.execute(syncGameService.detectGamesWithMissingProviders(filter, view.syncOnlyMissingProviders.value))
+            syncGameService.syncGames(requests, isAllowSmartChooseResults = false)
         }
 
         private fun onCancel() {

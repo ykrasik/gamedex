@@ -25,6 +25,6 @@ import com.gitlab.ykrasik.gamedex.util.Try
  * Time: 14:54
  */
 sealed class TaskEvent : CoreEvent {
-    data class Started<T>(val task: Task<T>) : TaskEvent()
+    data class RequestStart<T>(val task: Task<T>) : TaskEvent()
     data class Finished<T>(val task: Task<T>, val result: Try<T>) : TaskEvent()
 }

@@ -16,8 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.provider.*
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -25,12 +23,14 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.findCircular
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -50,22 +50,33 @@ class SyncGamesPresenter @Inject constructor(
     override fun present(view: SyncGamesView) = object : ViewSession() {
         init {
             // TODO: Consider launching a job here that can be cancelled.
-            eventBus.forEach<SyncGamesEvent.Requested> { onSyncGamesStarted(it.paths, it.isAllowSmartChooseResults) }
+            eventBus.forEach<SyncGamesEvent.RequestSync> { onSyncGamesRequested(it.requests, it.isAllowSmartChooseResults) }
             eventBus.forEach<GameSearchEvent.Updated> { onGameSearchStateUpdated(it.state) }
             view.currentState.forEach { onCurrentStateChanged(it) }
             view.restartStateActions.forEach { onRestart(it) }
             view.cancelActions.forEach { onCancel() }
         }
 
-        private fun onSyncGamesStarted(paths: List<Pair<LibraryPath, Game?>>, isAllowSmartChooseResults: Boolean) {
-            check(paths.isNotEmpty()) { "No games to sync!" }
-            val platformsWithEnabledProviders = commonData.platformsWithEnabledProviders
-            val pathsWithEnabledProviders = paths.filter { (path, _) -> platformsWithEnabledProviders.contains(path.library.platform) }
+        private fun onSyncGamesRequested(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean) {
+            check(requests.isNotEmpty()) { "No games to sync!" }
+            val state = requests.asSequence()
+                .mapNotNull(::initState)
+                .mapIndexed { i, state -> state.copy(index = i) }
+                .toList()
+            if (state.isEmpty()) {
+                val message = if (requests.size == 1) {
+                    "Error syncing game: No providers enabled for platform '${requests.first().platform}'!"
+                } else {
+                    "Error syncing ${requests.size} games: No providers enabled that support their platform!"
+                }
+                view.cancelledMessage(message)
+                return
+            }
 
             start()
             view.isAllowSmartChooseResults *= isAllowSmartChooseResults
             view.numProcessed *= 0
-            view.state.setAll(pathsWithEnabledProviders.mapIndexed { i, (path, game) -> initState(i, path, game) })
+            view.state.setAll(state)
             view.currentState *= null
             startGameSearch(view.state.first())
         }
@@ -113,7 +124,7 @@ class SyncGamesPresenter @Inject constructor(
             ) { accState, providerId ->
                 // Set the choice of all provider searches to null
                 val search = accState.lastSearchFor(providerId)
-                if (search != null && state.game?.isProviderExcluded(providerId) != true) {
+                if (search != null && state.existingGame?.isProviderExcluded(providerId) != true) {
                     accState.modifyHistory(providerId) { this + search.copy(choice = null) }
                 } else {
                     accState
@@ -155,32 +166,76 @@ class SyncGamesPresenter @Inject constructor(
             eventBus.send(GameSearchEvent.Started(state, view.isAllowSmartChooseResults.value))
         }
 
-        private fun initState(index: Int, libraryPath: LibraryPath, game: Game?): GameSearchState {
-            // TODO: Move this logic inside GameProviderService?
-            val providersToSearch = commonData.enabledProviders
-                .sortedBy { settingsService.providerOrder.search.indexOf(it.id) }
-                .filter { provider -> provider.supports(libraryPath.library.platform) }
+        private fun initState(request: SyncPathRequest): GameSearchState? {
+            val providersToSync = commonData.enabledProviders.asSequence()
+                .filter { it.supports(request.platform) }
                 .map { it.id }
+                .toList()
+                .sortedBy { settingsService.providerOrder.search.indexOf(it) }
 
-            val initialHistory = (game?.excludedProviders ?: emptyList()).map { providerId ->
-                providerId to listOf(
-                    GameSearch(
-                        provider = providerId,
-                        query = "",
-                        results = emptyList(),
-                        choice = ProviderSearchChoice.Exclude
+            if (providersToSync.isEmpty()) {
+                log.debug("Skipping ${request.libraryPath}, game=${request.existingGame} because no enabled providers support the platform '${request.platform}'.")
+                return null
+            }
+
+            val initialHistory = mutableMapOf<ProviderId, List<GameSearch>>()
+            request.existingGame?.let { existingGame ->
+                if (request.syncOnlyTheseProviders.isNotEmpty()) {
+                    providersToSync.forEach { providerId ->
+                        if (providerId !in request.syncOnlyTheseProviders) {
+                            // This provider is not in the list of exclusive providers we want to sync.
+                            // Set the initial history to contain the existing game data for this provider.
+                            val providerGameData = existingGame.rawGame.providerData.find { it.header.providerId == providerId } ?: return@forEach
+                            val syntheticSearchResult = ProviderSearchResult(
+                                providerGameId = providerGameData.header.providerGameId,
+                                name = providerGameData.gameData.name,
+                                description = providerGameData.gameData.description,
+                                releaseDate = providerGameData.gameData.releaseDate,
+                                criticScore = providerGameData.gameData.criticScore,
+                                userScore = providerGameData.gameData.userScore,
+                                thumbnailUrl = providerGameData.gameData.thumbnailUrl
+                            )
+                            initialHistory[providerId] = listOf(
+                                GameSearch(
+                                    provider = providerId,
+                                    query = "",
+                                    results = listOf(syntheticSearchResult),
+                                    choice = ProviderSearchChoice.Skip
+                                )
+                            )
+                        }
+                    }
+                }
+
+                existingGame.excludedProviders.forEach { providerId ->
+                    initialHistory[providerId] = listOf(
+                        GameSearch(
+                            provider = providerId,
+                            query = "",
+                            results = emptyList(),
+                            choice = ProviderSearchChoice.Exclude
+                        )
                     )
-                )
-            }.toMap()
+                }
+            }
+
+            if (providersToSync.all { initialHistory.containsKey(it) }) {
+                // We already have a choice for each of the providers to sync.
+                // This choice can be that the provider is excluded or that it already has a result.
+                // In either case, there are no providers left to sync for this game
+                log.debug("Skipping ${request.libraryPath}, game=${request.existingGame} because all providers have an initial state: " +
+                    providersToSync.map { it to initialHistory.getValue(it).first().choice })
+                return null
+            }
 
             return GameSearchState(
-                index = index,
-                libraryPath = libraryPath,
-                providerOrder = providersToSearch,
+                index = -1,
+                libraryPath = request.libraryPath,
+                providerOrder = providersToSync,
                 currentProvider = null,
                 history = initialHistory,
                 status = GameSearchStatus.Running,
-                game = game
+                existingGame = request.existingGame
             )
         }
 

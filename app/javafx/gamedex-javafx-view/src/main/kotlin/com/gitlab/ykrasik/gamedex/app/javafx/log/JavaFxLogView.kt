@@ -57,7 +57,7 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
     }
 
     override val root = borderpane {
-        top = customToolbar {
+        top = prettyToolbar {
             enumComboMenu(level.property, text = LogLevel::displayName, graphic = { it.icon }).apply {
                 addClass(GameDexStyle.toolbarButton)
             }

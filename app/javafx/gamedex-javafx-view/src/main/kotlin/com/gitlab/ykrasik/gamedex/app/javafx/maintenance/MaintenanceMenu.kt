@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkSyncGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkUpdateGames
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGamesWithMissingProviders
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.PopOverMenu
@@ -46,7 +46,7 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     ClearUserDataView,
     ViewCanCleanupDatabase,
     ViewCanBulkUpdateGames,
-    ViewCanBulkSyncGames,
+    ViewCanSyncGamesWithMissingProviders,
     ViewCanShowDuplicatesReport,
     ViewCanShowFolderNameDiffReport {
 
@@ -56,8 +56,8 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     override val cleanupDatabaseActions = channel<Unit>()
     override val bulkUpdateGamesActions = channel<Unit>()
 
-    override val canBulkSyncGames = state(IsValid.valid)
-    override val bulkSyncGamesActions = channel<Unit>()
+    override val canSyncGamesWithMissingProviders = state(IsValid.valid)
+    override val syncGamesWithMissingProvidersActions = channel<Unit>()
 
     override val showDuplicatesReportActions = channel<Unit>()
     override val showFolderNameDiffReportActions = channel<Unit>()
@@ -100,11 +100,11 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
                 alignment = Pos.CENTER_LEFT
                 action(bulkUpdateGamesActions)
             }
-            infoButton("Bulk Sync Games", Icons.sync) {
+            infoButton("Sync Games with Missing Providers", Icons.sync) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                enableWhen(canBulkSyncGames)
-                action(bulkSyncGamesActions)
+                enableWhen(canSyncGamesWithMissingProviders)
+                action(syncGamesWithMissingProvidersActions)
             }
         }
 

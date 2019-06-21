@@ -120,5 +120,9 @@ inline fun <T, R> List<T>.findLastTransform(transform: (T) -> R, predicate: (R) 
     return null
 }
 
+
+inline fun <T, R : Any> List<T>.filterTransform(transform: (T) -> R, predicate: (R) -> Boolean): List<R> =
+    mapNotNull { transform(it).takeIf(predicate) }
+
 fun <T> MutableList<T>.push(t: T) = add(t)
 fun <T> MutableList<T>.pop() = removeAt(size - 1)

@@ -16,35 +16,53 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.BulkSyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.addComponent
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultVbox
+import com.gitlab.ykrasik.gamedex.javafx.control.jfx2SideToggleButton
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import tornadofx.borderpane
 import tornadofx.paddingAll
-import tornadofx.scrollpane
+import tornadofx.tooltip
 
 /**
  * User: ykrasik
  * Date: 31/12/2018
  * Time: 16:25
  */
-class JavaFxBulkSyncGamesView : ConfirmationWindow("Bulk Sync Games", Icons.sync), BulkSyncGamesView {
+class JavaFxSyncGamesWithMissingProvidersView : ConfirmationWindow("Sync Games with Missing Providers", Icons.sync), SyncGamesWithMissingProvidersView {
     private val filterView = JavaFxFilterView()
 
     override val bulkSyncGamesFilter = filterView.userMutableState
     override val bulkSyncGamesFilterIsValid = userMutableState(filterView.filterIsValid)
+
+    override val syncOnlyMissingProviders = userMutableState(false)
 
     init {
         register()
     }
 
     override val root = borderpane {
+        maxHeight = screenBounds.height * 2 / 3
         top = confirmationToolbar()
-        center = scrollpane {
-            paddingAll = 10
-            add(filterView.root)
+        center = defaultVbox(spacing = 20) {
+            paddingAll = 20
+            jfx2SideToggleButton(
+                syncOnlyMissingProviders.property,
+                checkedText = "Sync only missing providers",
+                uncheckedText = "Sync all providers"
+            ) {
+                tooltip("If checked, only the missing providers of the game will be synced. Otherwise, all providers in a game that has missing providers will be synced.")
+            }
+            prettyScrollPane {
+                isFitToWidth = true
+                addComponent(filterView)
+            }
         }
     }
 }

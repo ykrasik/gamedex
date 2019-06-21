@@ -16,14 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryService
-import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
+import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
@@ -38,8 +37,8 @@ import javax.inject.Singleton
 class SyncLibrariesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val syncLibraryService: SyncLibraryService,
-    private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val syncGameService: SyncGameService,
+    private val taskService: TaskService
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
@@ -62,14 +61,8 @@ class SyncLibrariesPresenter @Inject constructor(
         private suspend fun onSyncLibrariesStarted() {
             view.canSyncLibraries.assert()
 
-            val newPaths = taskService.execute(syncLibraryService.detectNewPaths())
-            if (newPaths.isNotEmpty()) {
-                startGameSync(newPaths)
-            }
-        }
-
-        private fun startGameSync(paths: List<LibraryPath>) {
-            eventBus.send(SyncGamesEvent.Requested(paths.map { it to null }, isAllowSmartChooseResults = true))
+            val paths = taskService.execute(syncLibraryService.detectNewPaths())
+            syncGameService.syncGames(paths.map { SyncPathRequest(it) }, isAllowSmartChooseResults = true)
         }
     }
 }

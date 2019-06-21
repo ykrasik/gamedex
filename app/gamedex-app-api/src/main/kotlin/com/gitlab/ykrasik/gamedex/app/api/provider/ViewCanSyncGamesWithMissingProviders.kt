@@ -25,8 +25,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Date: 06/05/2018
  * Time: 09:43
  */
-interface ViewCanBulkSyncGames {
-    val canBulkSyncGames: State<IsValid>
-
-    val bulkSyncGamesActions: MultiReceiveChannel<Unit>
+interface ViewCanSyncGamesWithMissingProviders {
+    val canSyncGamesWithMissingProviders: State<IsValid>
+    val syncGamesWithMissingProvidersActions: MultiReceiveChannel<Unit>
 }

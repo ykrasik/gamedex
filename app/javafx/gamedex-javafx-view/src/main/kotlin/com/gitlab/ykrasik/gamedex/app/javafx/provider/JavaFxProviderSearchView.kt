@@ -119,7 +119,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
         errorTooltip(canChangeState)
 
         // Buttons
-        customToolbar {
+        prettyToolbar {
             enableWhen(canChangeState, wrapInErrorTooltip = false)
             cancelButton("Cancel") {
                 action(choiceActions) { ProviderSearchChoice.Cancel }

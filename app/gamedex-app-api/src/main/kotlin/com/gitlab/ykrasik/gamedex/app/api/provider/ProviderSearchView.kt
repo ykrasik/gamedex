@@ -64,7 +64,7 @@ data class GameSearchState(
     val currentProvider: ProviderId?,
     val history: MultiMap<ProviderId, GameSearch>,
     val status: GameSearchStatus,
-    val game: Game?
+    val existingGame: Game?
 ) {
     val isFinished: Boolean get() = status != GameSearchStatus.Running
     fun historyFor(providerId: ProviderId): List<GameSearch> = history.getOrDefault(providerId, emptyList())
@@ -95,7 +95,7 @@ data class GameSearchState(
             currentProvider = "",
             history = emptyMap(),
             status = GameSearchStatus.Cancelled,
-            game = null
+            existingGame = null
         )
     }
 }

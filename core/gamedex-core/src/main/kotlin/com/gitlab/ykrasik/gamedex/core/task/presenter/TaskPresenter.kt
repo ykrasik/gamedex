@@ -47,7 +47,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
 
     override fun present(view: TaskView) = object : ViewSession() {
         init {
-            eventBus.forEach<TaskEvent.Started<*>> { execute(it.task) }
+            eventBus.forEach<TaskEvent.RequestStart<*>> { execute(it.task) }
             view.cancelTaskActions.forEach { cancelTask() }
         }
 

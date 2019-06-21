@@ -125,7 +125,7 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
         statusCode = GiantBombClient.Status.OK,
         results = randomList(10) {
             GiantBombClient.SearchResult(
-                apiDetailUrl = "$baseUrl/${randomProviderGameId()}/",
+                apiDetailUrl = randomProviderGameId(),
                 name = randomName(),
                 deck = randomParagraph(),
                 originalReleaseDate = randomLocalDate(),
