@@ -124,16 +124,16 @@ class OverlayPane : StackPane() {
             // This stackPane extends over the whole screen and will be darkened.
             // It catches clicks outside of the content area and hides the content.
             useMaxSize = true
-            addEventHandler(MouseEvent.MOUSE_CLICKED) {
-                if (!modal) {
+            addEventHandler(MouseEvent.MOUSE_RELEASED) { e ->
+                if (!modal && e.source == this && e.target == this) {
                     onExternalCloseRequested()
                 }
-                it.consume()
+                e.consume()
             }
-            addEventFilter(KeyEvent.KEY_PRESSED) {
-                if (it.code == KeyCode.ESCAPE) {
+            addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                if (e.code == KeyCode.ESCAPE) {
                     onExternalCloseRequested()
-                    it.consume()
+                    e.consume()
                 }
             }
             addEventHandler(KeyEvent.KEY_PRESSED) { it.consume() }
