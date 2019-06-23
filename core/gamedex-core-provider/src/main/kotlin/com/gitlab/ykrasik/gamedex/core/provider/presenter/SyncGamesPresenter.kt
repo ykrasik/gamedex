@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.app.api.provider.*
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -185,22 +186,14 @@ class SyncGamesPresenter @Inject constructor(
                         if (providerId !in request.syncOnlyTheseProviders) {
                             // This provider is not in the list of exclusive providers we want to sync.
                             // Set the initial history to contain the existing game data for this provider.
-                            val providerGameData = existingGame.rawGame.providerData.find { it.header.providerId == providerId } ?: return@forEach
-                            val syntheticSearchResult = ProviderSearchResult(
-                                providerGameId = providerGameData.header.providerGameId,
-                                name = providerGameData.gameData.name,
-                                description = providerGameData.gameData.description,
-                                releaseDate = providerGameData.gameData.releaseDate,
-                                criticScore = providerGameData.gameData.criticScore,
-                                userScore = providerGameData.gameData.userScore,
-                                thumbnailUrl = providerGameData.gameData.thumbnailUrl
-                            )
+                            val providerData = existingGame.providerData.find { it.providerId == providerId } ?: return@forEach
+                            val syntheticSearchResult = providerData.toSearchResult()
                             initialHistory[providerId] = listOf(
                                 GameSearch(
                                     provider = providerId,
-                                    query = "",
+                                    query = syntheticSearchResult.name,
                                     results = listOf(syntheticSearchResult),
-                                    choice = ProviderSearchChoice.Skip
+                                    choice = ProviderSearchChoice.Preset(syntheticSearchResult, providerData)
                                 )
                             )
                         }
@@ -243,5 +236,15 @@ class SyncGamesPresenter @Inject constructor(
             val numSuccessful = view.state.count { it.status == GameSearchStatus.Success }
             return "Successfully synced $numSuccessful / ${view.state.size} games."
         }
+
+        private fun ProviderData.toSearchResult() = ProviderSearchResult(
+            providerGameId = providerGameId,
+            name = gameData.name,
+            description = gameData.description,
+            releaseDate = gameData.releaseDate,
+            criticScore = gameData.criticScore,
+            userScore = gameData.userScore,
+            thumbnailUrl = gameData.thumbnailUrl
+        )
     }
 }

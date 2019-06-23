@@ -182,7 +182,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                                     }
 
                                     val choiceIcon = when (choices[providerId]) {
-                                        is ProviderSearchChoice.Accept -> {
+                                        is ProviderSearchChoice.Accept, is ProviderSearchChoice.Preset -> {
                                             tooltip("$providerId has an accepted result.")
                                             Icons.accept
                                         }

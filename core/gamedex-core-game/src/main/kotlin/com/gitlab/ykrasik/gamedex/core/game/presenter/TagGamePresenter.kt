@@ -111,7 +111,7 @@ class TagGamePresenter @Inject constructor(
 
         private suspend fun onAccept() {
             view.canAccept.assert()
-            val newUserData = game.rawGame.userData.copy(tags = view.checkedTags.toList().sorted())
+            val newUserData = game.userData.copy(tags = view.checkedTags.toList().sorted())
             val newRawGame = game.rawGame.copy(userData = newUserData)
             taskService.execute(gameService.replace(game, newRawGame))
 

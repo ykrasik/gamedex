@@ -291,13 +291,13 @@ sealed class Filter {
     }
 
     class Provider(val providerId: ProviderId) : Rule() {
-        override fun evaluate(game: Game, context: Context) = eval(game, context) { it.any { it.header.providerId == providerId } }
-        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it.none { it.header.providerId == providerId } }
+        override fun evaluate(game: Game, context: Context) = eval(game, context) { it.any { it.providerId == providerId } }
+        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it.none { it.providerId == providerId } }
 
         private inline fun eval(game: Game, context: Context, f: (List<ProviderData>) -> Boolean): Boolean {
             return context.providerSupports(providerId, game.platform) &&
                 !game.isProviderExcluded(providerId) &&
-                f(game.rawGame.providerData)
+                f(game.providerData)
         }
 
         override fun isEqual(other: Filter) = other.ifIs<Provider> { this.providerId == it.providerId }

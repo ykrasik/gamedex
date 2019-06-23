@@ -198,7 +198,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
     override fun detectFolderNameDiffs() = task("Detecting game folder name diffs...") {
         gameService.games.mapNotNull { game ->
-            val diffs = game.rawGame.providerData.mapNotNull { providerData ->
+            val diffs = game.providerData.mapNotNull { providerData ->
                 diff(game.folderName, providerData)
             }
             // TODO: If a majority of the providers agree on the name, this should not be a diff.
@@ -212,7 +212,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         val patch = DiffUtils.diff(folderName.rawName.toList(), expectedFolderName.toList())
         return FolderNameDiff(
-            providerId = providerData.header.providerId,
+            providerId = providerData.providerId,
             folderName = folderName.rawName,
             expectedFolderName = expectedFolderName,
             patch = patch

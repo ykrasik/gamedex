@@ -72,7 +72,7 @@ class UpdateGameServiceImpl @Inject constructor(
     }
 
     private fun RawGame.withProviderData(providerData: List<ProviderData>): RawGame = copy(
-        providerData = this.providerData.filterNot { d -> providerData.any { it.header.providerId == d.header.providerId } } +
+        providerData = this.providerData.filterNot { d -> providerData.any { it.providerId == d.providerId } } +
             providerData.map { it.updatedNow() }
     )
 }

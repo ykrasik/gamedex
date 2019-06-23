@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.Metadata
-import com.gitlab.ykrasik.gamedex.ProviderHeader
-import com.gitlab.ykrasik.gamedex.Timestamp
-import com.gitlab.ykrasik.gamedex.UserData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.*
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -97,7 +94,7 @@ class ProviderSearchPresenter @Inject constructor(
 
             val lastSearch = state.lastSearchFor(providerId)
             when {
-                lastSearch != null -> displaySearch(lastSearch, isFilterPreviouslyDiscardedResults = true)
+                lastSearch != null -> displaySearch(lastSearch)
                 !state.isFinished -> search(providerId, query = lastGoodQuery)
                 else -> {
                     view.searchResults.clear()
@@ -115,7 +112,7 @@ class ProviderSearchPresenter @Inject constructor(
                 // We have results for this search in the history. Re-add this search as the latest in the history and display it.
                 val searchToAdd = previousSearch.copy(choice = null)
                 modifyState { modifyHistory(providerId) { this + searchToAdd } }
-                displaySearch(searchToAdd, isFilterPreviouslyDiscardedResults = true)
+                displaySearch(searchToAdd)
             } else {
                 search(providerId, query)
             }
@@ -125,7 +122,7 @@ class ProviderSearchPresenter @Inject constructor(
             val results = taskService.execute(gameProviderService.search(provider, query, state.libraryPath.library.platform))
             val currentSearch = GameSearch(provider = provider, query = query, results = results, choice = null)
             modifyState { modifyHistory(provider) { this + currentSearch } }
-            displaySearch(currentSearch, isFilterPreviouslyDiscardedResults = true)
+            displaySearch(currentSearch)
         }
 
         private suspend fun onChoice(choice: ProviderSearchChoice, isUserAction: Boolean) {
@@ -156,6 +153,7 @@ class ProviderSearchPresenter @Inject constructor(
                 is ProviderSearchChoice.Cancel -> {
                     shouldCancel = true
                 }
+                else -> error("Invalid choice: $choice")
             }
 
             modifyState {
@@ -186,15 +184,15 @@ class ProviderSearchPresenter @Inject constructor(
             }
         }
 
-        private suspend fun displaySearch(gameSearch: GameSearch, isFilterPreviouslyDiscardedResults: Boolean) {
+        private suspend fun displaySearch(gameSearch: GameSearch) {
             view.query *= gameSearch.query
             onQueryChanged(gameSearch.query)
 
-            setSearchResults(gameSearch, isFilterPreviouslyDiscardedResults)
+            setSearchResults(gameSearch, isFilterPreviouslyDiscardedResults = true)
             view.canToggleFilterPreviouslyDiscardedResults *= Try {
                 check(view.searchResults != gameSearch.results) { "No previous results to filter!" }
             }
-            view.isFilterPreviouslyDiscardedResults *= isFilterPreviouslyDiscardedResults && view.canToggleFilterPreviouslyDiscardedResults.value.isSuccess
+            view.isFilterPreviouslyDiscardedResults *= view.canToggleFilterPreviouslyDiscardedResults.value.isSuccess
 
             view.selectedSearchResult *= (gameSearch.choice as? ProviderSearchChoice.Accept)?.result
             onSelectedSearchResultChanged(view.selectedSearchResult.value)
@@ -234,11 +232,12 @@ class ProviderSearchPresenter @Inject constructor(
             val resultsToShow = if (isFilterPreviouslyDiscardedResults) {
                 val resultsWithoutQuery = state.history.asSequence().flatMap { (_, results) ->
                     results.asSequence()
-                        .filter { it.query != result.query }
+                        .filter { it.query != result.query && it.choice != null }
                         .flatMap { it.results.asSequence() }
                 }
                 val acceptedResults = state.choicesOfType<ProviderSearchChoice.Accept>().map { (_, choice) -> choice.result }
-                val previouslyDiscardedResults = (resultsWithoutQuery - acceptedResults).map { it.name to it.releaseDate }.toSet()
+                val presetResults = state.choicesOfType<ProviderSearchChoice.Preset>().map { (_, choice) -> choice.result }
+                val previouslyDiscardedResults = (resultsWithoutQuery - acceptedResults - presetResults).map { it.name to it.releaseDate }.toSet()
                 result.results.filter { !previouslyDiscardedResults.contains(it.name to it.releaseDate) }
             } else {
                 result.results
@@ -250,37 +249,51 @@ class ProviderSearchPresenter @Inject constructor(
 
         private suspend fun onFinished() {
             val libraryPath = state.libraryPath
+            val existingGame = state.existingGame
+
+            // Init providerData with the existing game data
+            val providerData = mutableMapOf<ProviderId, ProviderData>()
+            existingGame?.providerData?.associateByTo(providerData) { it.providerId }
+
+            // Copy preset results to providerData, overwriting any existing data.
+            state.choicesOfType<ProviderSearchChoice.Preset>().associateByTo(providerData, { it.first }) { it.second.data }
+
             val acceptedResults = state.choicesOfType<ProviderSearchChoice.Accept>().map { (providerId, choice) -> providerId to choice.result }
             val excludedProviders = state.choicesOfType<ProviderSearchChoice.Exclude>().map { (providerId, _) -> providerId }.toList()
-            val name = acceptedResults.map { (_, result) -> result.name }.firstOrNull() ?: libraryPath.path.name
-            val providerHeaders = acceptedResults.map { (providerId, result) -> ProviderHeader(providerId, result.providerGameId) }.toList()
-            val passthroughProviderData = state.existingGame?.rawGame?.providerData?.filterNot { providerData ->
-                providerHeaders.any { it.providerId == providerData.header.providerId }
-            } ?: emptyList()
-            val newProviderData = taskService.execute(gameProviderService.fetch(name, libraryPath.library.platform, providerHeaders))
-            val providerData = newProviderData + passthroughProviderData
-            val task = state.existingGame.let { existingGame ->
-                if (existingGame == null) {
-                    gameService.add(
-                        AddGameRequest(
-                            metadata = Metadata(
-                                libraryId = libraryPath.library.id,
-                                path = libraryPath.relativePath.toString(),
-                                timestamp = Timestamp.now
-                            ),
-                            providerData = providerData,
-                            userData = UserData(excludedProviders = excludedProviders)
-                        )
-                    )
-                } else {
-                    val rawGame = existingGame.rawGame.copy(
-                        providerData = providerData,
-                        userData = existingGame.userData.copy(excludedProviders = excludedProviders)
-                    )
-                    gameService.replace(existingGame, rawGame)
-                }
-            }
 
+            val providerHeadersToFetch = acceptedResults
+                .map { (providerId, result) -> ProviderHeader(providerId, result.providerGameId) }
+                .toList()
+
+            val name = providerData.values.firstOrNull()?.gameData?.name
+                ?: acceptedResults.firstOrNull()?.second?.name
+                ?: libraryPath.path.name
+
+            // Fetch providerData from accepted search results
+            val fetchedProviderData = taskService.execute(gameProviderService.fetch(name, libraryPath.library.platform, providerHeadersToFetch))
+            fetchedProviderData.associateByTo(providerData) { it.providerId }
+
+            val finalProviderData = providerData.values.sortedBy { it.providerId }
+
+            val task = if (existingGame == null) {
+                gameService.add(
+                    AddGameRequest(
+                        metadata = Metadata(
+                            libraryId = libraryPath.library.id,
+                            path = libraryPath.relativePath.toString(),
+                            timestamp = Timestamp.now
+                        ),
+                        providerData = finalProviderData,
+                        userData = UserData(excludedProviders = excludedProviders)
+                    )
+                )
+            } else {
+                val rawGame = existingGame.rawGame.copy(
+                    providerData = finalProviderData,
+                    userData = existingGame.userData.copy(excludedProviders = excludedProviders)
+                )
+                gameService.replace(existingGame, rawGame)
+            }
             val game = taskService.execute(task)
             modifyState { copy(existingGame = game, status = GameSearchStatus.Success) }
         }
@@ -314,7 +327,9 @@ class ProviderSearchPresenter @Inject constructor(
                 .firstOrNull()
 
         private val lastGoodQuery: String
-            get() = firstAcceptedResult?.name ?: state.history.asSequence().map { (_, results) -> results.last().query }.first()
+            get() = firstAcceptedResult?.name
+                ?: state.history.asSequence().mapNotNull { (_, results) -> results.last().query.takeIf { it.isNotBlank() } }.firstOrNull()
+                ?: ""
 
         private val GameSearchState.nextPossibleProviderWithoutChoice: ProviderId?
             get() = providerOrder.firstOrNull {

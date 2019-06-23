@@ -65,8 +65,8 @@ class RenameMoveGamePresenter @Inject constructor(
 
         override suspend fun onShown() {
             library = game.library
-            name = view.initialName ?: game.rawGame.metadata.path.file.name
-            path = game.rawGame.metadata.path.file.let { it.parentFile?.path ?: "" }
+            name = view.initialName ?: game.metadata.path.file.name
+            path = game.metadata.path.file.let { it.parentFile?.path ?: "" }
             validate()
         }
 

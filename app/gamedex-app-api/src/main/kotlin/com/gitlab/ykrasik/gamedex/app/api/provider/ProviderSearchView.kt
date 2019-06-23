@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.State
@@ -118,6 +119,9 @@ sealed class ProviderSearchChoice {
     object Exclude : ProviderSearchChoice()
     object Cancel : ProviderSearchChoice()
 
+    // Should never be sent by the view, this is a synthetic choice used in syncing missing providers.
+    data class Preset(val result: ProviderSearchResult, val data: ProviderData) : ProviderSearchChoice()
+
     val isResult: Boolean get() = this !is NewSearch && this !is Cancel
-    val isNonExcludeResult: Boolean get() = this is Accept || this is Skip
+    val isNonExcludeResult: Boolean get() = this is Accept || this is Preset || this is Skip
 }

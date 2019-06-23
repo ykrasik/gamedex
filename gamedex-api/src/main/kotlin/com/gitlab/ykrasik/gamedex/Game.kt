@@ -67,7 +67,8 @@ data class Game(
 
     val tags get() = rawGame.userData.tags
 
-    val providerHeaders get() = rawGame.providerData.asSequence().map { it.header }
+    val providerData get() = rawGame.providerData
+    val providerHeaders get() = providerData.asSequence().map { it.header }
     val existingProviders get() = providerHeaders.map { it.providerId }
     val excludedProviders get() = userData.excludedProviders
 
@@ -128,6 +129,9 @@ data class ProviderData(
     val siteUrl: String,
     val timestamp: Timestamp
 ) {
+    val providerId get() = header.providerId
+    val providerGameId get() = header.providerGameId
+    
     fun updatedNow() = copy(timestamp = timestamp.updatedNow())
 }
 

@@ -94,10 +94,10 @@ internal object PortableDb {
 
     fun DomainGame.toPortable() = Game(
         libraryId = library.id,
-        path = rawGame.metadata.path,
+        path = metadata.path,
         createDate = createDate.millis,
         updateDate = updateDate.millis,
-        providerData = rawGame.providerData.map { it.toPortable() },
+        providerData = providerData.map { it.toPortable() },
         userData = userData.takeIf { it != DomainUserData.Null }?.toPortable()
     )
 
@@ -146,8 +146,8 @@ internal object PortableDb {
     }
 
     private fun DomainProviderData.toPortable() = ProviderData(
-        providerId = header.providerId,
-        providerGameId = header.providerGameId,
+        providerId = providerId,
+        providerGameId = providerGameId,
         name = gameData.name,
         description = gameData.description,
         releaseDate = gameData.releaseDate,

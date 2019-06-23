@@ -131,11 +131,11 @@ class EditGamePresenter @Inject constructor(
 
         @Suppress("UNCHECKED_CAST")
         private fun <T> GameDataOverrideState<T>.initStateOnShow() {
-            providerValues *= game.rawGame.providerData
-                .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.header.providerId to value } }
+            providerValues *= game.providerData
+                .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.providerId to value } }
                 .toMap()
 
-            when (val currentOverride = game.rawGame.userData.overrides[type]) {
+            when (val currentOverride = game.userData.overrides[type]) {
                 is GameDataOverride.Custom -> {
                     selection *= OverrideSelectionType.Custom
                     canSelectCustomOverride *= IsValid.valid
@@ -223,7 +223,7 @@ class EditGamePresenter @Inject constructor(
                 }
             }.toMap()
 
-            val userData = game.rawGame.userData.copy(overrides = overrides)
+            val userData = game.userData.copy(overrides = overrides)
             return game.rawGame.copy(userData = userData)
         }
     }

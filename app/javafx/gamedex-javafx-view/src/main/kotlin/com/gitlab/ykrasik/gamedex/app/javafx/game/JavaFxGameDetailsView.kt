@@ -473,10 +473,9 @@ class JavaFxGameDetailsView(
                 tooltip(url)
                 setOnMouseClicked { browseUrlActions.offer(url) }
             }
-            game.rawGame.providerData.sortedBy { it.header.providerId }.forEach {
-                val providerId = it.header.providerId
+            game.providerData.sortedBy { it.providerId }.forEach {
                 val url = it.siteUrl
-                label(graphic = commonOps.providerLogo(providerId).toImageView(height = 70, width = 100)) {
+                label(graphic = commonOps.providerLogo(it.providerId).toImageView(height = 70, width = 100)) {
                     useMaxHeight = true
                     addClass(Style.externalLinkItem)
                     scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
