@@ -19,10 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkUpdateGames
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,6 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowBulkUpdateGamesPresenter @Inject constructor(
+    private val commonData: CommonData,
     private val viewManager: ViewManager,
     eventBus: EventBus
 ) : Presenter<ViewCanBulkUpdateGames> {
@@ -42,6 +40,7 @@ class ShowBulkUpdateGamesPresenter @Inject constructor(
 
     override fun present(view: ViewCanBulkUpdateGames) = object : ViewSession() {
         init {
+            commonData.canSyncOrUpdateGames.bind(view.canBulkUpdateGames)
             view.bulkUpdateGamesActions.forEach {
                 viewManager.showBulkUpdateGamesView()
             }

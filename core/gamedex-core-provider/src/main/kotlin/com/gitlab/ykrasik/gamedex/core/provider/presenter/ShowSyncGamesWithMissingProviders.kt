@@ -40,7 +40,7 @@ class ShowSyncGamesWithMissingProviders @Inject constructor(
 
     override fun present(view: ViewCanSyncGamesWithMissingProviders) = object : ViewSession() {
         init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canSyncGamesWithMissingProviders) { "Game sync in progress!" }
+            commonData.canSyncOrUpdateGames.bind(view.canSyncGamesWithMissingProviders)
 
             view.syncGamesWithMissingProvidersActions.forEach {
                 view.canSyncGamesWithMissingProviders.assert()

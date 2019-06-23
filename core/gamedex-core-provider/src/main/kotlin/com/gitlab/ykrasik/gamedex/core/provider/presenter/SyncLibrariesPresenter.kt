@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,19 +41,7 @@ class SyncLibrariesPresenter @Inject constructor(
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
-            commonData.contentLibraries.itemsChannel
-                .combineLatest(commonData.platformsWithEnabledProviders.itemsChannel)
-                .combineLatest(commonData.isGameSyncRunning)
-                .forEach {
-                    val (libraries, platformsWithEnabledProviders) = it.first
-                    val isGameSyncRunning = it.second
-                    view.canSyncLibraries *= Try {
-                        check(!isGameSyncRunning) { "Game sync in progress!" }
-                        check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
-                        check(platformsWithEnabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
-                        check(libraries.any { it.platform in platformsWithEnabledProviders }) { "Please enable a provider that supports your platform!" }
-                    }
-                }
+            commonData.canSyncOrUpdateGames.bind(view.canSyncLibraries)
             view.syncLibrariesActions.forEach { onSyncLibrariesStarted() }
         }
 

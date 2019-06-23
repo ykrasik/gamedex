@@ -28,6 +28,8 @@ import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.supportedPlatforms
 import com.gitlab.ykrasik.gamedex.provider.supports
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.google.inject.ImplementedBy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.map
@@ -65,6 +67,7 @@ interface CommonData {
     val platformsWithEnabledProviders: ListObservable<Platform>
 
     val isGameSyncRunning: MultiReceiveChannel<Boolean>
+    val canSyncOrUpdateGames: MultiReceiveChannel<IsValid>
 }
 
 @Singleton
@@ -113,4 +116,17 @@ class CommonDataImpl @Inject constructor(
     override val platformsWithEnabledProviders = enabledProviders.flatMapping { provider -> provider.supportedPlatforms }.distincting()
 
     override val isGameSyncRunning = syncGameService.isGameSyncRunning
+    override val canSyncOrUpdateGames: MultiReceiveChannel<IsValid> = contentLibraries.itemsChannel
+        .combineLatest(platformsWithEnabledProviders.itemsChannel)
+        .combineLatest(isGameSyncRunning)
+        .map {
+            val (libraries, platformsWithEnabledProviders) = it.first
+            val isGameSyncRunning = it.second
+            Try {
+                check(!isGameSyncRunning) { "Game sync in progress!" }
+                check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
+                check(platformsWithEnabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
+                check(libraries.any { it.platform in platformsWithEnabledProviders }) { "Please enable a provider that supports your platform!" }
+            }
+        }
 }

@@ -54,6 +54,8 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     override val exportDatabaseActions = channel<Unit>()
     override val clearUserDataActions = channel<Unit>()
     override val cleanupDatabaseActions = channel<Unit>()
+
+    override val canBulkUpdateGames = state(IsValid.valid)
     override val bulkUpdateGamesActions = channel<Unit>()
 
     override val canSyncGamesWithMissingProviders = state(IsValid.valid)
@@ -98,6 +100,7 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
             infoButton("Bulk Update Games", Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
+                enableWhen(canBulkUpdateGames)
                 action(bulkUpdateGamesActions)
             }
             infoButton("Sync Games with Missing Providers", Icons.sync) {
