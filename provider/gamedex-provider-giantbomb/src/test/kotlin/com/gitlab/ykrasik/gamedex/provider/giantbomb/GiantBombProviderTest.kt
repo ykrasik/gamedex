@@ -46,7 +46,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                         providerGameId = searchResult.apiDetailUrl,
                         name = name,
                         description = description,
-                        releaseDate = searchResult.originalReleaseDate?.toString(),
+                        releaseDate = searchResult.originalReleaseDate!!.toString(),
                         criticScore = null,
                         userScore = null,
                         thumbnailUrl = searchResult.image!!.thumbUrl
@@ -79,11 +79,95 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 }
             }
 
-            "handle null originalReleaseDate" test {
-                givenClientSearchReturns(listOf(searchResult().copy(originalReleaseDate = null)))
+            "handle null originalReleaseDate & null expectedReleaseDates" test {
+                givenClientSearchReturns(
+                    listOf(
+                        searchResult().copy(
+                            originalReleaseDate = null,
+                            expectedReleaseYear = null,
+                            expectedReleaseMonth = null,
+                            expectedReleaseDay = null,
+                            expectedReleaseQuarter = null
+                        )
+                    )
+                )
 
                 search() should haveASingleSearchResultThat {
-                    it.criticScore shouldBe null
+                    it.releaseDate shouldBe null
+                }
+            }
+
+            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay when originalReleaseDate is null and those are present" test {
+                givenClientSearchReturns(
+                    listOf(
+                        searchResult().copy(
+                            originalReleaseDate = null,
+                            expectedReleaseYear = 2019,
+                            expectedReleaseMonth = 7,
+                            expectedReleaseDay = 12,
+                            expectedReleaseQuarter = null
+                        )
+                    )
+                )
+
+                search() should haveASingleSearchResultThat {
+                    it.releaseDate shouldBe "2019-07-12"
+                }
+            }
+
+            "use expectedReleaseYear & expectedReleaseMonth when originalReleaseDate is null and those are present" test {
+                givenClientSearchReturns(
+                    listOf(
+                        searchResult().copy(
+                            originalReleaseDate = null,
+                            expectedReleaseYear = 1998,
+                            expectedReleaseMonth = 10,
+                            expectedReleaseDay = null,
+                            expectedReleaseQuarter = null
+                        )
+                    )
+                )
+
+                search() should haveASingleSearchResultThat {
+                    it.releaseDate shouldBe "1998-10-01"
+                }
+            }
+
+            "use expectedReleaseYear & expectedReleaseQuarter when originalReleaseDate is null and those are present, " +
+                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                givenClientSearchReturns(
+                    listOf(
+                        searchResult().copy(
+                            originalReleaseDate = null,
+                            expectedReleaseYear = 1998,
+                            expectedReleaseMonth = 10,
+                            expectedReleaseDay = 12,
+                            expectedReleaseQuarter = 1
+                        )
+                    )
+                )
+
+                search() should haveASingleSearchResultThat {
+                    it.releaseDate shouldBe "1998 Q1"
+                }
+            }
+
+            "use return null release date if originalReleaseDate & expectedReleaseYear are null," +
+                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                givenClientSearchReturns(
+                    listOf(
+                        searchResult().copy(
+                            originalReleaseDate = null,
+                            expectedReleaseYear = null,
+                            expectedReleaseMonth = 10,
+                            expectedReleaseDay = 12,
+                            expectedReleaseQuarter = 1
+                        )
+                    )
+                )
+
+                search() should haveASingleSearchResultThat {
+                    it.releaseDate shouldBe null
                 }
             }
 
@@ -148,8 +232,74 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.description shouldBe null
             }
 
-            "handle null originalReleaseDate" test {
-                givenClientFetchReturns(detailsResult().copy(originalReleaseDate = null))
+            "handle null originalReleaseDate & null expectedReleaseDates" test {
+                givenClientFetchReturns(
+                    detailsResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = null,
+                        expectedReleaseMonth = null,
+                        expectedReleaseDay = null,
+                        expectedReleaseQuarter = null
+                    )
+                )
+
+                fetch().gameData.releaseDate shouldBe null
+            }
+
+            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay when originalReleaseDate is null and those are present" test {
+                givenClientFetchReturns(
+                    detailsResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = 2019,
+                        expectedReleaseMonth = 7,
+                        expectedReleaseDay = 12,
+                        expectedReleaseQuarter = null
+                    )
+                )
+
+                fetch().gameData.releaseDate shouldBe "2019-07-12"
+            }
+
+            "use expectedReleaseYear & expectedReleaseMonth when originalReleaseDate is null and those are present" test {
+                givenClientFetchReturns(
+                    detailsResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = 1998,
+                        expectedReleaseMonth = 10,
+                        expectedReleaseDay = null,
+                        expectedReleaseQuarter = null
+                    )
+                )
+
+                fetch().gameData.releaseDate shouldBe "1998-10-01"
+            }
+
+            "use expectedReleaseYear & expectedReleaseQuarter when originalReleaseDate is null and those are present, " +
+                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                givenClientFetchReturns(
+                    detailsResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = 1998,
+                        expectedReleaseMonth = 10,
+                        expectedReleaseDay = 12,
+                        expectedReleaseQuarter = 1
+                    )
+                )
+
+                fetch().gameData.releaseDate shouldBe "1998 Q1"
+            }
+
+            "use return null release date if originalReleaseDate & expectedReleaseYear are null," +
+                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                givenClientFetchReturns(
+                    detailsResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = null,
+                        expectedReleaseMonth = 10,
+                        expectedReleaseDay = 12,
+                        expectedReleaseQuarter = 1
+                    )
+                )
 
                 fetch().gameData.releaseDate shouldBe null
             }
@@ -232,6 +382,10 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             name = name,
             deck = description,
             originalReleaseDate = randomLocalDate(),
+            expectedReleaseYear = randomInt(min = 1980, max = 2050),
+            expectedReleaseQuarter = randomInt(min = 1, max = 4),
+            expectedReleaseMonth = randomInt(min = 1, max = 12),
+            expectedReleaseDay = randomInt(min = 1, max = 28),
             image = randomImage()
         )
 
@@ -240,6 +394,10 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             name = name,
             deck = randomParagraph(),
             originalReleaseDate = randomLocalDate(),
+            expectedReleaseYear = randomInt(min = 1980, max = 2050),
+            expectedReleaseQuarter = randomInt(min = 1, max = 4),
+            expectedReleaseMonth = randomInt(min = 1, max = 12),
+            expectedReleaseDay = randomInt(min = 1, max = 28),
             image = randomImage(),
             images = listOf(randomImage(), randomImage()),
             genres = listOf(GiantBombClient.Genre(randomWord()))

@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.provider.*
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
+import org.joda.time.LocalDate
 import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,7 +53,7 @@ class GiantBombProvider @Inject constructor(
         providerGameId = apiDetailUrl,
         name = name,
         description = deck,
-        releaseDate = originalReleaseDate?.toString(),
+        releaseDate = parseReleaseDate(),
         criticScore = null,
         userScore = null,
         thumbnailUrl = image?.thumbUrl?.filterEmptyImage()
@@ -73,7 +74,7 @@ class GiantBombProvider @Inject constructor(
         gameData = GameData(
             name = name,
             description = deck,
-            releaseDate = originalReleaseDate?.toString(),
+            releaseDate = parseReleaseDate(),
             criticScore = null,
             userScore = null,
             genres = genres?.map { it.name } ?: emptyList(),
@@ -85,6 +86,18 @@ class GiantBombProvider @Inject constructor(
     )
 
     private fun String.filterEmptyImage(): String? = takeUnless { config.noImageFileNames.any { this.endsWith(it) } }
+
+    private fun GiantBombClient.HasReleaseDate.parseReleaseDate(): String? {
+        originalReleaseDate?.let { return it.toString() }
+
+        val expectedReleaseYear = this.expectedReleaseYear ?: return null
+        if (expectedReleaseQuarter != null) return "$expectedReleaseYear Q$expectedReleaseQuarter"
+
+        var date = LocalDate(0).withYear(expectedReleaseYear)
+        expectedReleaseMonth?.let { date = date.withMonthOfYear(it) }
+        expectedReleaseDay?.let { date = date.withDayOfMonth(it) }
+        return date.toString()
+    }
 
     private fun assertOk(status: GiantBombClient.Status) {
         if (status != GiantBombClient.Status.OK) {

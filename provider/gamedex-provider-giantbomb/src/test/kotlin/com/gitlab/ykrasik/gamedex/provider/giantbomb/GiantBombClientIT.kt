@@ -106,6 +106,10 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                     name = randomName(),
                     deck = randomParagraph(),
                     originalReleaseDate = randomLocalDate(),
+                    expectedReleaseYear = randomInt(min = 1980, max = 2050),
+                    expectedReleaseQuarter = randomInt(min = 1, max = 4),
+                    expectedReleaseMonth = randomInt(min = 1, max = 12),
+                    expectedReleaseDay = randomInt(min = 1, max = 28),
                     image = randomImage()
                 )
             )
@@ -119,6 +123,10 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                     name = randomName(),
                     deck = randomParagraph(),
                     originalReleaseDate = randomLocalDate(),
+                    expectedReleaseYear = randomInt(min = 1980, max = 2050),
+                    expectedReleaseQuarter = randomInt(min = 1, max = 4),
+                    expectedReleaseMonth = randomInt(min = 1, max = 12),
+                    expectedReleaseDay = randomInt(min = 1, max = 28),
                     image = randomImage(),
                     images = listOf(randomImage(), randomImage()),
                     genres = listOf(GiantBombClient.Genre(name = randomName()))
@@ -139,7 +147,17 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
         )
     }
 
-    val searchFields = listOf("api_detail_url", "name", "deck", "original_release_date", "image")
+    val searchFields = listOf(
+        "api_detail_url",
+        "name",
+        "deck",
+        "original_release_date",
+        "expected_release_year",
+        "expected_release_quarter",
+        "expected_release_month",
+        "expected_release_day",
+        "image"
+    )
     val fetchDetailsFields = searchFields - "api_detail_url" + listOf("site_detail_url", "genres", "images")
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {

@@ -129,6 +129,10 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
                 name = randomName(),
                 deck = randomParagraph(),
                 originalReleaseDate = randomLocalDate(),
+                expectedReleaseYear = randomInt(min = 1980, max = 2050),
+                expectedReleaseQuarter = randomInt(min = 1, max = 4),
+                expectedReleaseMonth = randomInt(min = 1, max = 12),
+                expectedReleaseDay = randomInt(min = 1, max = 28),
                 image = randomImage()
             )
         }
@@ -141,6 +145,10 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
             name = randomName(),
             deck = randomParagraph(),
             originalReleaseDate = randomLocalDate(),
+            expectedReleaseYear = randomInt(min = 1980, max = 2050),
+            expectedReleaseQuarter = randomInt(min = 1, max = 4),
+            expectedReleaseMonth = randomInt(min = 1, max = 12),
+            expectedReleaseDay = randomInt(min = 1, max = 28),
             image = randomImage(),
             images = randomList(10) { randomImage() },
             genres = randomList(4) {
@@ -191,6 +199,10 @@ private fun GiantBombClient.SearchResult.toMap(): Map<String, Any> = mapOf(
     "name" to name,
     "deck" to deck,
     "original_release_date" to originalReleaseDate?.let { "$it 00:00:00" },
+    "expected_release_year" to expectedReleaseYear,
+    "expected_release_month" to expectedReleaseMonth,
+    "expected_release_day" to expectedReleaseDay,
+    "expected_release_quarter" to expectedReleaseQuarter,
     "image" to image?.toMap()
 ).filterNullValues()
 
@@ -211,6 +223,10 @@ private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> = mapOf(
     "images" to images,
     "deck" to deck,
     "original_release_date" to originalReleaseDate?.let { "$it 00:00:00" },
+    "expected_release_year" to expectedReleaseYear,
+    "expected_release_month" to expectedReleaseMonth,
+    "expected_release_day" to expectedReleaseDay,
+    "expected_release_quarter" to expectedReleaseQuarter,
     "image" to image?.toMap(),
     "genres" to genres?.map { it.toMap() }
 ).filterNullValues()

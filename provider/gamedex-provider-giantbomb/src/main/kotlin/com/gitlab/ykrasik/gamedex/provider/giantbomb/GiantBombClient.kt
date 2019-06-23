@@ -34,7 +34,6 @@ import javax.inject.Singleton
  * Date: 19/04/2017
  * Time: 09:33
  */
-// TODO: GiantBomb can return a number of user reviews
 @Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
     open suspend fun search(query: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
@@ -67,6 +66,10 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
             "name",
             "deck",
             "original_release_date",
+            "expected_release_year",
+            "expected_release_quarter",
+            "expected_release_month",
+            "expected_release_day",
             "image"
         )
         val searchFieldsStr = searchFields.joinToString(",")
@@ -91,10 +94,14 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val apiDetailUrl: String,
         val name: String,
         val deck: String?,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")   // TODO: Can I just use a string and split by space?
-        val originalReleaseDate: LocalDate?,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        override val originalReleaseDate: LocalDate?,
+        override val expectedReleaseYear: Int?,
+        override val expectedReleaseQuarter: Int?,
+        override val expectedReleaseMonth: Int?,
+        override val expectedReleaseDay: Int?,
         val image: Image?
-    )
+    ) : HasReleaseDate
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -112,11 +119,15 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val name: String,
         val deck: String?,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-        val originalReleaseDate: LocalDate?,
+        override val originalReleaseDate: LocalDate?,
+        override val expectedReleaseYear: Int?,
+        override val expectedReleaseQuarter: Int?,
+        override val expectedReleaseMonth: Int?,
+        override val expectedReleaseDay: Int?,
         val image: Image?,
         val images: List<Image>,
         val genres: List<Genre>?
-    )
+    ) : HasReleaseDate
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -130,6 +141,14 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val thumbUrl: String,
         val superUrl: String
     )
+
+    interface HasReleaseDate {
+        val originalReleaseDate: LocalDate?
+        val expectedReleaseYear: Int?
+        val expectedReleaseQuarter: Int?
+        val expectedReleaseMonth: Int?
+        val expectedReleaseDay: Int?
+    }
 
     enum class Status(val statusCode: Int) {
         OK(1),
