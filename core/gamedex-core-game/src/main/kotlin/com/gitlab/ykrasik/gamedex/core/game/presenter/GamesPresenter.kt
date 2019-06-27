@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
@@ -33,7 +34,6 @@ import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,8 +59,10 @@ class GamesPresenter @Inject constructor(
                 setSort(sortBy, sortOrder)
             }
 
+            view.searchText.debounce().forEach { onSearchTextChanged(it) }
+
             val searchText = MultiChannel.conflated("")
-            view.searchText.debounce().forEach { searchText.offer(it) }
+            view.searchActions.forEach { searchText.offer(view.searchText.value) }
 
             searchText.subscribe().combineLatest(repo.currentPlatformFilter.subscribe()).forEach { (search, filter) ->
                 setSearchAndFilter(search, filter)
@@ -92,18 +94,26 @@ class GamesPresenter @Inject constructor(
             }
         }
 
+        private fun onSearchTextChanged(search: String) {
+            val suggestions = if (search.isNotBlank()) {
+                val matchingGames = gameSearchService.search(search, settingsService.game.platform)
+                matchingGames.take(20)
+            } else {
+                emptyList()
+            }
+            view.searchSuggestions.setAll(suggestions)
+        }
+
         private fun setSearchAndFilter(search: String, filter: Filter) {
             val searchedGames = gameSearchService.search(search, settingsService.game.platform)
             val matchingGames = filterService.filter(searchedGames, filter)
-
-            val suggestions = if (search.isNotBlank()) matchingGames.take(12) else emptyList()
-            view.searchSuggestions.setAll(suggestions)
-            view.isShowSearchSuggestions *= suggestions.isNotEmpty()
-
-            val matchingGameIds = matchingGames.mapTo(mutableSetOf()) { it.id }
+            val isEmpty = filter.isEmpty && search.isBlank()
+            val matchingGameIds: Set<GameId> = if (!isEmpty) matchingGames.mapTo(mutableSetOf()) { it.id } else emptySet()
             view.filter *= { game: Game ->
-                filter.isEmpty && search.isBlank() || matchingGameIds.contains(game.id)
+                isEmpty || matchingGameIds.contains(game.id)
             }
+
+            view.searchSuggestions.clear()
         }
     }
 

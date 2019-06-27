@@ -32,17 +32,18 @@ import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.util.toPredicate
 import com.gitlab.ykrasik.gamedex.util.toString
 import com.jfoenix.controls.JFXListCell
+import javafx.beans.binding.Bindings
+import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
-import javafx.scene.layout.Background
-import javafx.scene.layout.BackgroundFill
-import javafx.scene.layout.CornerRadii
-import javafx.scene.layout.HBox
+import javafx.scene.layout.*
 import javafx.scene.text.FontWeight
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.javafx.JavaFx
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -72,9 +73,16 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     override val gameDisplayType = userMutableState(GameDisplayType.Wall)
 
+    private val lastSearchProperty = SimpleStringProperty("")
     override val searchText = userMutableState("")
+    override val searchActions = channel<Unit>().apply {
+        subscribe(Dispatchers.JavaFx) {
+            lastSearchProperty.value = searchText.value
+        }
+    }
+
     override val searchSuggestions = settableList<Game>()
-    override val isShowSearchSuggestions = state(false)
+    private val isShowSearchSuggestions = Bindings.isNotEmpty(searchSuggestions)
 
     override val sortBy = userMutableState(SortBy.Name)
     override val sortOrder = userMutableState(SortOrder.Asc)
@@ -99,6 +107,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         displayTypeButton()
         sortButton()
         filterButton()
+        gap(size = 40)
         searchField()
 
         spacer()
@@ -161,94 +170,122 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         tooltip("Display Type")
     }
 
-    private fun EventTarget.searchField() = searchTextField(this@JavaFxGameScreen, searchText.property) {
-        val textField = this
-        prefWidth = 400.0
-
-        popOver(PopOver.ArrowLocation.TOP_LEFT) {
-            prettyListView(searchSuggestions) {
-                maxHeight = 12 * 23.0
-                prefWidth = textField.prefWidth - 10
-
-                fun showGameDetails(game: Game) {
-                    popOver.hide()
-                    viewGameDetailsActions.event(ViewGameParams(game, games))
+    private fun Pane.searchField() {
+        val searchButton = jfxButton(graphic = Icons.search) {
+            tooltip("Search")
+            action(searchActions)
+            searchText.onChange {
+                if (it.isEmpty()) {
+                    fire()
                 }
+            }
+            disableWhen(searchText.property.isEqualTo(lastSearchProperty))
+        }
+        clearableTextField(searchText.property) {
+            prefWidth = 400.0
+            promptText = "Search"
+            tooltip("Ctrl+f")
+            shortcut("ctrl+f") { requestFocus() }
+            val textField = this
 
-                setCellFactory {
-                    object : JFXListCell<Game>() {
-                        init {
-                            setOnMouseClicked { showGameDetails(item) }
-                        }
+            addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                if (e.code == KeyCode.ENTER) {
+                    searchButton.fire()
+                }
+            }
 
-                        override fun updateItem(game: Game?, empty: Boolean) {
-                            super.updateItem(game, empty)
-                            if (game == null) return
-                            text = null
-                            graphic = HBox().apply {
-                                alignment = Pos.CENTER_LEFT
-                                spacing = 10.0
+            popOver(PopOver.ArrowLocation.TOP_LEFT) {
+                prettyListView(searchSuggestions) {
+                    maxHeight = 12 * 23.0
+                    prefWidth = textField.prefWidth - 10
 
-                                imageview(commonOps.fetchThumbnail(game)) {
-                                    fitHeight = 30.0
-                                    fitWidth = 30.0
-                                }
-                                label(game.name) {
-                                    maxWidth = 270.0
-                                    isWrapText = true
-                                }
-                                spacer()
-                                vbox {
-                                    alignment = Pos.TOP_CENTER
-                                    paddingAll = 5.0
-                                    clipRectangle(arc = 10)
-                                    background = Background(BackgroundFill(game.criticScore.ratingColor, CornerRadii.EMPTY, Insets.EMPTY))
-                                    label(game.criticScore?.score?.toString(decimalDigits = 1) ?: "N/A")
-                                    tooltip("Critic Score")
+                    fun showGameDetails(game: Game) {
+                        popOver.hide()
+                        viewGameDetailsActions.event(ViewGameParams(game, games))
+                    }
+
+                    setCellFactory {
+                        object : JFXListCell<Game>() {
+                            init {
+                                setOnMouseClicked { showGameDetails(item) }
+                            }
+
+                            override fun updateItem(game: Game?, empty: Boolean) {
+                                super.updateItem(game, empty)
+                                if (game == null) return
+                                text = null
+                                graphic = HBox().apply {
+                                    alignment = Pos.CENTER_LEFT
+                                    spacing = 10.0
+
+                                    imageview(commonOps.fetchThumbnail(game)) {
+                                        fitHeight = 30.0
+                                        fitWidth = 30.0
+                                    }
+                                    label(game.name) {
+                                        maxWidth = 270.0
+                                        isWrapText = true
+                                    }
+                                    spacer()
+                                    vbox {
+                                        alignment = Pos.TOP_CENTER
+                                        paddingAll = 5.0
+                                        clipRectangle(arc = 10)
+                                        background = Background(BackgroundFill(game.criticScore.ratingColor, CornerRadii.EMPTY, Insets.EMPTY))
+                                        label(game.criticScore?.score?.toString(decimalDigits = 1) ?: "N/A")
+                                        tooltip("Critic Score")
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                setOnKeyPressed {
-                    when (it.code) {
-                        KeyCode.ENTER -> if (selectedItem != null) showGameDetails(selectedItem!!)
-                        KeyCode.LEFT -> positionCaret(caretPosition - 1)
-                        KeyCode.RIGHT -> positionCaret(caretPosition + 1)
+                    setOnKeyPressed {
+                        when (it.code) {
+                            KeyCode.ENTER -> if (selectedItem != null) showGameDetails(selectedItem!!)
+                            KeyCode.LEFT -> positionCaret(caretPosition - 1)
+                            KeyCode.RIGHT -> positionCaret(caretPosition + 1)
 //                        KeyCode.HOME -> positionCaret(0)
 //                        KeyCode.END -> positionCaret(text.length)
-                        else -> Unit
+                            else -> Unit
+                        }
+                    }
+                }
+            }.apply {
+                addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                    if (e.code == KeyCode.ENTER) {
+                        searchButton.fire()
+                    }
+                }
+                arrowSize = 0.0
+                fun showUnderTextField() {
+                    val bounds = textField.boundsInScreen
+                    show(currentWindow, bounds.minX - 8, bounds.minY + 20)
+                }
+
+                textField.focusedProperty().combineLatest(isShowSearchSuggestions).forEachWith(textField.textProperty()) { (focused, isShowSearchSuggestions), _ ->
+                    if (focused && isShowSearchSuggestions) {
+                        showUnderTextField()
+                    } else {
+                        hide()
+                    }
+                }
+                textField.setOnMouseClicked {
+                    if (isShowSearchSuggestions.value) {
+                        showUnderTextField()
+                    }
+                }
+
+                addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                    if (e.code == KeyCode.ESCAPE) {
+                        clear()
+                        textField.right!!.requestFocus()
                     }
                 }
             }
-        }.apply {
-            arrowSize = 0.0
-            fun showUnderTextField() {
-                val bounds = textField.boundsInScreen
-                show(currentWindow, bounds.minX - 8, bounds.minY + 20)
-            }
-
-            textField.focusedProperty().combineLatest(isShowSearchSuggestions.property).forEachWith(textField.textProperty()) { (focused, isShowSearchSuggestions), _ ->
-                if (focused && isShowSearchSuggestions) {
-                    showUnderTextField()
-                } else {
-                    hide()
-                }
-            }
-            textField.setOnMouseClicked {
-                if (isShowSearchSuggestions.value) {
-                    showUnderTextField()
-                }
-            }
-
-            addEventFilter(KeyEvent.KEY_PRESSED) { e ->
-                if (e.code == KeyCode.ESCAPE) {
-                    clear()
-                    textField.right!!.requestFocus()
-                }
-            }
         }
+        searchButton.removeFromParent()
+        add(searchButton)
     }
 
     private fun EventTarget.platformButton() = popoverDynamicComboMenu(

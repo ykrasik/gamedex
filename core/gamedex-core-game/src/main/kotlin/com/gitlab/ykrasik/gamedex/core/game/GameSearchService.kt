@@ -33,6 +33,8 @@ import com.miguelfonseca.completely.text.match.EditDistanceAutomaton
 import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.ln
+import kotlin.math.max
 
 /**
  * User: ykrasik
@@ -113,7 +115,7 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
 
         override fun get(token: String): Collection<ScoredObject<IndexableGame>> {
             // Set threshold according to the token length
-            val threshold = Math.log(Math.max(token.length - 1, 1).toDouble())
+            val threshold = ln(max(token.length - 1, 1).toDouble())
             return index.getAny(EditDistanceAutomaton(token, threshold))
         }
 
