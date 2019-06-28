@@ -20,13 +20,14 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.maintenance.ImportExportParams
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.defaultTimeZone
+import com.gitlab.ykrasik.gamedex.util.and
 import com.gitlab.ykrasik.gamedex.util.file
-import com.gitlab.ykrasik.gamedex.util.now
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,48 +44,69 @@ class ExportDatabasePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<ExportDatabaseView> {
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
+        private var exportDatabaseDirectory by view.exportDatabaseDirectory
+        private var exportDatabaseFolderIsValid by view.exportDatabaseFolderIsValid
+        private var shouldExportLibrary by view.shouldExportLibrary
+        private var shouldExportProviderAccounts by view.shouldExportProviderAccounts
+        private var shouldExportFilters by view.shouldExportFilters
+
         init {
             view.exportDatabaseDirectory.forEach { onDirectoryChanged() }
+            view.shouldExportLibrary.forEach { setCanAccept() }
+            view.shouldExportProviderAccounts.forEach { setCanAccept() }
+            view.shouldExportFilters.forEach { setCanAccept() }
             view.browseActions.forEach { onBrowse() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShown() {
-            view.exportDatabaseDirectory *= ""
-            onBrowse()
+            exportDatabaseDirectory = ""
+            shouldExportLibrary = true
+            shouldExportProviderAccounts = true
+            shouldExportFilters = true
+            launch {
+                onBrowse()
+            }
         }
 
         private fun onDirectoryChanged() {
-            view.exportDatabaseFolderIsValid *= Try {
-                check(view.exportDatabaseDirectory.value.isNotBlank()) { "Please enter a path to a directory!" }
-                check(view.exportDatabaseDirectory.value.file.isDirectory) { "Directory doesn't exist!" }
+            exportDatabaseFolderIsValid = Try {
+                check(exportDatabaseDirectory.isNotBlank()) { "Please enter a path to a directory!" }
+                check(exportDatabaseDirectory.file.isDirectory) { "Directory doesn't exist!" }
             }
             setCanAccept()
         }
 
-        private suspend fun onBrowse() {
+        private fun onBrowse() {
             val dir = view.selectExportDatabaseDirectory(settingsService.general.exportDbDirectory)
             if (dir != null) {
-                view.exportDatabaseDirectory *= dir.absolutePath
-                onAccept()
-            } else {
-                onDirectoryChanged()
+                exportDatabaseDirectory = dir.absolutePath
             }
+            onDirectoryChanged()
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.exportDatabaseFolderIsValid.value
+            view.canAccept *= exportDatabaseFolderIsValid and Try {
+                check(shouldExportLibrary || shouldExportProviderAccounts || shouldExportFilters) {
+                    "Must export something!"
+                }
+            }
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
             hideView()
 
-            val file = view.exportDatabaseDirectory.value.file.resolve("db ${now.defaultTimeZone.toString("yyyy-MM-dd HH_mm_ss")}.json")
-            taskService.execute(maintenanceService.exportDatabase(file))
-            settingsService.general.modify { copy(exportDbDirectory = file.parentFile) }
-            view.openDirectory(file.parentFile)
+            val params = ImportExportParams(
+                library = shouldExportLibrary,
+                providerAccounts = shouldExportProviderAccounts,
+                filters = shouldExportFilters
+            )
+            val dir = exportDatabaseDirectory.file
+            taskService.execute(maintenanceService.exportDatabase(dir, params))
+            settingsService.general.modify { copy(exportDbDirectory = dir) }
+            view.openDirectory(dir)
         }
 
         private fun onCancel() {

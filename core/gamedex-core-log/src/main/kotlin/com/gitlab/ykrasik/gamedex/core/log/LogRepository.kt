@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
@@ -32,19 +33,23 @@ import java.util.concurrent.Executors
 class LogRepository(private val maxLogEntries: Int) : CoroutineScope {
     override val coroutineContext = dispatcher
 
-    private val _entries = ListObservableImpl<LogEntry>()
-    val entries: ListObservable<LogEntry> = _entries
-
-    private val blacklist = mutableSetOf<String>()
-
-    operator fun plusAssign(entry: LogEntry) {
-        launch {
+    private val actor = actor<LogEntry>(capacity = 512) {
+        for (entry in channel) {
             _entries += censorEntry(entry)
 
             if (entries.size > maxLogEntries) {
                 _entries -= _entries.subList(0, entries.size - maxLogEntries)
             }
         }
+    }
+
+    private val _entries = ListObservableImpl<LogEntry>()
+    val entries: ListObservable<LogEntry> = _entries
+
+    private val blacklist = mutableSetOf<String>()
+
+    operator fun plusAssign(entry: LogEntry) {
+        actor.offer(entry)
     }
 
     fun addBlacklistValue(value: String) {

@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.dateTime
 import com.gitlab.ykrasik.gamedex.util.file
+import com.gitlab.ykrasik.gamedex.util.now
 import java.io.File
 import com.gitlab.ykrasik.gamedex.Game as DomainGame
 import com.gitlab.ykrasik.gamedex.GameDataOverride as DomainGameDataOverride
@@ -35,15 +36,15 @@ import com.gitlab.ykrasik.gamedex.UserData as DomainUserData
  * Date: 03/11/2018
  * Time: 12:37
  */
-internal object PortableDb {
+object PortableDb {
     data class Db(
-        val libraries: List<Library>,
-        val games: List<Game>
+        val libraries: List<Library> = emptyList(),
+        val games: List<Game> = emptyList()
     ) {
         fun findLib(path: File, type: LibraryType, platform: Platform?) = libraries.find { lib ->
             lib.path == path.path &&
                 lib.type == type.name &&
-                lib.platform == platform?.name
+                lib.platform == platform
         }!!
     }
 
@@ -51,14 +52,14 @@ internal object PortableDb {
         val id: Int,
         val path: String,
         val type: String,
-        val platform: String?,
+        val platform: Platform?,
         val name: String
     ) {
         fun toLibraryData() = LibraryData(
             name = name,
             path = path.file,
             type = LibraryType.valueOf(type),
-            platform = platform?.let(Platform::valueOf)
+            platform = platform
         )
     }
 
@@ -66,17 +67,17 @@ internal object PortableDb {
         id = id,
         path = path.toString(),
         type = type.name,
-        platform = platformOrNull?.name,
+        platform = platformOrNull,
         name = name
     )
 
     data class Game(
         val libraryId: Int,
         val path: String,
-        val providerData: List<ProviderData>,
-        val userData: UserData?,
-        val createDate: Long,
-        val updateDate: Long
+        val providerData: List<ProviderData> = emptyList(),
+        val userData: UserData? = null,
+        val createDate: Long = now.millis,
+        val updateDate: Long = now.millis
     ) {
         fun toGameRequest(libraries: Map<Int, DomainLibrary>) = AddGameRequest(
             metadata = Metadata(
@@ -105,19 +106,19 @@ internal object PortableDb {
         val providerId: ProviderId,
         val providerGameId: String,
         val name: String,
-        val description: String?,
-        val releaseDate: String?,
-        val criticScore: Double?,
-        val numCriticReviews: Int?,
-        val userScore: Double?,
-        val numUserReviews: Int?,
-        val genres: List<String>,
-        val thumbnailUrl: String?,
-        val posterUrl: String?,
-        val screenshotUrls: List<String>,
+        val description: String? = null,
+        val releaseDate: String? = null,
+        val criticScore: Double? = null,
+        val numCriticReviews: Int? = null,
+        val userScore: Double? = null,
+        val numUserReviews: Int? = null,
+        val genres: List<String> = emptyList(),
+        val thumbnailUrl: String? = null,
+        val posterUrl: String? = null,
+        val screenshotUrls: List<String> = emptyList(),
         val siteUrl: String,
-        val createDate: Long,
-        val updateDate: Long
+        val createDate: Long = now.millis,
+        val updateDate: Long = now.millis
     ) {
         fun toProviderData() = DomainProviderData(
             header = ProviderHeader(
@@ -165,17 +166,17 @@ internal object PortableDb {
     )
 
     data class UserData(
-        val nameOverride: GameDataOverride?,
-        val descriptionOverride: GameDataOverride?,
-        val releaseDateOverride: GameDataOverride?,
-        val criticScoreOverride: GameDataOverride?,
-        val userScoreOverride: GameDataOverride?,
-        val genresOverride: GameDataOverride?,
-        val thumbnailOverride: GameDataOverride?,
-        val posterOverride: GameDataOverride?,
-        val screenshotsOverride: GameDataOverride?,
-        val tags: List<String>,
-        val excludedProviders: List<ProviderId>
+        val nameOverride: GameDataOverride? = null,
+        val descriptionOverride: GameDataOverride? = null,
+        val releaseDateOverride: GameDataOverride? = null,
+        val criticScoreOverride: GameDataOverride? = null,
+        val userScoreOverride: GameDataOverride? = null,
+        val genresOverride: GameDataOverride? = null,
+        val thumbnailOverride: GameDataOverride? = null,
+        val posterOverride: GameDataOverride? = null,
+        val screenshotsOverride: GameDataOverride? = null,
+        val tags: List<String> = emptyList(),
+        val excludedProviders: List<ProviderId> = emptyList()
     ) {
         fun toUserData(): DomainUserData {
             val overrides = mutableMapOf<GameDataType, DomainGameDataOverride>()

@@ -18,10 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
-import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -40,6 +37,15 @@ class JavaFxImportDatabaseView : ConfirmationWindow("Import Database", Icons.imp
     override val importDatabaseFile = userMutableState("")
     override val importDatabaseFileIsValid = state(IsValid.valid)
 
+    override val shouldImportLibrary = userMutableState(false)
+    override val canImportLibrary = state(IsValid.valid)
+
+    override val shouldImportProviderAccounts = userMutableState(false)
+    override val canImportProviderAccounts = state(IsValid.valid)
+
+    override val shouldImportFilters = userMutableState(false)
+    override val canImportFilters = state(IsValid.valid)
+
     override val browseActions = channel<Unit>()
 
     init {
@@ -54,6 +60,23 @@ class JavaFxImportDatabaseView : ConfirmationWindow("Import Database", Icons.imp
                 fieldset("The existing database will be lost!", Icons.warning)
                 fieldset {
                     pathField()
+                }
+                fieldset("Import") {
+                    horizontalField("Library") {
+                        jfxCheckBox(shouldImportLibrary.property) {
+                            enableWhen(canImportLibrary)
+                        }
+                    }
+                    horizontalField("Provider Accounts") {
+                        jfxCheckBox(shouldImportProviderAccounts.property) {
+                            enableWhen(canImportProviderAccounts)
+                        }
+                    }
+                    horizontalField("Filters") {
+                        jfxCheckBox(shouldImportFilters.property) {
+                            enableWhen(canImportFilters)
+                        }
+                    }
                 }
             }
         }

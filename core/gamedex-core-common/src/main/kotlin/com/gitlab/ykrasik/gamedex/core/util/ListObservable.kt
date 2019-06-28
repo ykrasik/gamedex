@@ -42,7 +42,7 @@ interface ListObservable<T> : List<T>, CoroutineScope {
     val changesChannel: MultiReceiveChannel<ListEvent<T>>
 
     // Record all changes that happened while executing f() and execute them as a single 'set' operation.
-    suspend fun <R> buffered(f: suspend () -> R): R
+    suspend fun <R> conflate(f: suspend () -> R): R
 }
 
 class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> {
@@ -52,7 +52,7 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     override val itemsChannel = MultiChannel<List<T>>(Channel.CONFLATED, coroutineContext).apply { offer(initial) }
     override val changesChannel = MultiChannel<ListEvent<T>>(coroutineContext = coroutineContext)
 
-    private var buffer = false
+    private var conflate = false
 
     operator fun plusAssign(t: T) = add(t)
     fun add(t: T) {
@@ -130,19 +130,19 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     fun touch() = setAll(_list)
 
     private fun notifyChange(event: ListEvent<T>) {
-        if (!buffer) {
+        if (!conflate) {
             itemsChannel.offer(_list)
-            changesChannel.offer(event) // TODO: Under some circumstances, this could lose events. However, there were internal errors from the compiler :(
+            changesChannel.offer(event)
         }
     }
 
     // Conflate all changes that may occur while executing f() and report a single 'SetList' event.
-    override suspend fun <R> buffered(f: suspend () -> R): R {
-        buffer = true
+    override suspend fun <R> conflate(f: suspend () -> R): R {
+        conflate = true
         return try {
             f()
         } finally {
-            buffer = false
+            conflate = false
             setAll(_list)
         }
     }

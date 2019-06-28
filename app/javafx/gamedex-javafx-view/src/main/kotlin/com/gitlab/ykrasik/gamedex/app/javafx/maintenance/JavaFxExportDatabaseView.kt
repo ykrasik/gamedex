@@ -19,10 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
-import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -44,6 +41,10 @@ class JavaFxExportDatabaseView : ConfirmationWindow("Export Database", Icons.exp
     override val exportDatabaseDirectory = userMutableState("")
     override val exportDatabaseFolderIsValid = state(IsValid.valid)
 
+    override val shouldExportLibrary = userMutableState(false)
+    override val shouldExportProviderAccounts = userMutableState(false)
+    override val shouldExportFilters = userMutableState(false)
+
     override val browseActions = channel<Unit>()
 
     override val openFileActions = channel<File>()
@@ -58,26 +59,35 @@ class JavaFxExportDatabaseView : ConfirmationWindow("Export Database", Icons.exp
             form {
                 minWidth = 600.0
                 fieldset {
-                    pathField()
+                    horizontalField("Path") {
+                        jfxTextField(exportDatabaseDirectory.property, promptText = "Enter Path...") {
+                            validWhen(exportDatabaseFolderIsValid)
+                        }
+                        jfxButton("Browse", Icons.folderOpen.size(24)) {
+                            action(browseActions)
+                        }
+                    }
+                }
+                fieldset("Export") {
+                    horizontalField("Library") {
+                        jfxCheckBox(shouldExportLibrary.property)
+                    }
+                    horizontalField("Provider Accounts") {
+                        jfxCheckBox(shouldExportProviderAccounts.property)
+                    }
+                    horizontalField("Filters") {
+                        jfxCheckBox(shouldExportFilters.property)
+                    }
                 }
             }
         }
     }
 
-    private fun Fieldset.pathField() = horizontalField("Path") {
-        jfxTextField(exportDatabaseDirectory.property, promptText = "Enter Path...") {
-            validWhen(exportDatabaseFolderIsValid)
-        }
-        jfxButton("Browse", Icons.folderOpen.size(24)) {
-            action(browseActions)
-        }
-    }
 
     override fun selectExportDatabaseDirectory(initialDirectory: File?) =
         chooseDirectory("Select Database Export Folder...", initialDirectory)
 
     override fun openDirectory(directory: File) {
-        // TODO: This kinda sucks. a presenter is telling the view to browse, but the view is delegating to another presenter.
         openFileActions.offer(directory)
     }
 }

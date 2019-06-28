@@ -32,6 +32,15 @@ interface ImportDatabaseView : ConfirmationView {
     val importDatabaseFile: UserMutableState<String>
     val importDatabaseFileIsValid: State<IsValid>
 
+    val shouldImportLibrary: UserMutableState<Boolean>
+    val canImportLibrary: State<IsValid>
+
+    val shouldImportProviderAccounts: UserMutableState<Boolean>
+    val canImportProviderAccounts: State<IsValid>
+
+    val shouldImportFilters: UserMutableState<Boolean>
+    val canImportFilters: State<IsValid>
+
     val browseActions: MultiReceiveChannel<Unit>
 
     fun selectImportDatabaseFile(initialDirectory: File?): File?

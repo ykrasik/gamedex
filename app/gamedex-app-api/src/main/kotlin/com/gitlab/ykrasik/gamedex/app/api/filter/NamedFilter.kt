@@ -32,6 +32,7 @@ data class NamedFilter(
     val name get() = data.name
     val filter get() = data.filter
     val isTag get() = data.isTag
+    val timestamp get() = data.timestamp
 
     val isAnonymous: Boolean get() = id == 0
 

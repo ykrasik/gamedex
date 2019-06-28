@@ -37,6 +37,7 @@ interface FilterService {
     operator fun get(id: FilterId): NamedFilter
 
     fun add(data: NamedFilterData): Task<NamedFilter>
+    fun addAll(data: List<NamedFilterData>): Task<List<NamedFilter>>
 
     fun update(filter: NamedFilter, data: NamedFilterData): Task<NamedFilter>
 

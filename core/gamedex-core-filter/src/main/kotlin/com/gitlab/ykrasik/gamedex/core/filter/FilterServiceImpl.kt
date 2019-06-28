@@ -67,6 +67,19 @@ class FilterServiceImpl @Inject constructor(
         userFilterRepo.add(data)
     }
 
+    override fun addAll(data: List<NamedFilterData>) = task("Adding ${data.size} Filters...") {
+        successMessage = { "Adding ${data.size} Filters... Done." }
+
+        totalItems = data.size
+        userFilters.conflate {
+            data.map {
+                userFilterRepo.add(it).apply {
+                    incProgress()
+                }
+            }
+        }
+    }
+
     override fun update(filter: NamedFilter, data: NamedFilterData) = task("Updating Filter '${filter.name}'...") {
         val updatedFilter = userFilterRepo.update(filter, data)
         successMessage = { "Updated Filter: '${updatedFilter.name}'." }

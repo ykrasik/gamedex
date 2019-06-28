@@ -80,7 +80,7 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
     }
 }
 
-abstract class PresentableTabView(title: String? = null, icon: FontIcon? = null) : PresentableView(title, icon) {
+abstract class PresentableTabView(title: String? = null, icon: Node? = null) : PresentableView(title, icon) {
     init {
         // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
         // This is just how TornadoFx works.

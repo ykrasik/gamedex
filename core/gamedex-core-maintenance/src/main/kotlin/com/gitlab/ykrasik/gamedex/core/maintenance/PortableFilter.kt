@@ -14,31 +14,43 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.maintenance
+package com.gitlab.ykrasik.gamedex.core.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import java.io.File
+import com.gitlab.ykrasik.gamedex.Timestamp
+import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
+import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilterData
+import com.gitlab.ykrasik.gamedex.util.dateTime
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 12:26
+ * Date: 28/06/2019
+ * Time: 16:54
  */
-interface ExportDatabaseView : ConfirmationView {
-    val exportDatabaseDirectory: UserMutableState<String>
-    val exportDatabaseFolderIsValid: State<IsValid>
+object PortableFilter {
+    data class Filters(
+        val filters: List<Filter>
+    )
 
-    val shouldExportLibrary: UserMutableState<Boolean>
-    val shouldExportProviderAccounts: UserMutableState<Boolean>
-    val shouldExportFilters: UserMutableState<Boolean>
+    data class Filter(
+        val name: String,
+        val filter: com.gitlab.ykrasik.gamedex.app.api.filter.Filter,
+        val isTag: Boolean,
+        val createDate: Long,
+        val updateDate: Long
+    ) {
+        fun toDomain() = NamedFilterData(
+            name = name,
+            filter = filter,
+            isTag = isTag,
+            timestamp = Timestamp(createDate = createDate.dateTime, updateDate = updateDate.dateTime)
+        )
+    }
 
-    val browseActions: MultiReceiveChannel<Unit>
-
-    fun selectExportDatabaseDirectory(initialDirectory: File?): File?
-
-    fun openDirectory(directory: File)
+    fun NamedFilter.toPortable() = Filter(
+        name = name,
+        filter = filter,
+        isTag = isTag,
+        createDate = timestamp.createDate.millis,
+        updateDate = timestamp.updateDate.millis
+    )
 }

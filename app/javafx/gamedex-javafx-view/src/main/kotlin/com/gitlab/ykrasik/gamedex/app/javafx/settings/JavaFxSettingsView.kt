@@ -22,7 +22,10 @@ import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
-import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxTabPane
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxToggleNode
+import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
+import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
@@ -33,6 +36,7 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.Toggle
+import javafx.scene.control.ToggleGroup
 import tornadofx.*
 
 /**
@@ -74,48 +78,22 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     private val versionDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableVersionOverlayDisplaySettings, "Version")
     private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
 
+    private var toggleGroup: ToggleGroup by singleAssign()
+
     override val root = borderpane {
-//        prefHeight = screenBounds.height / 2
         prefWidth = 1000.0
         top = confirmationToolbar {
-            gap()
             centeredWindowHeader {
                 resetToDefaultButton {
                     action(resetDefaultsActions)
                     stackpaneConstraints { alignment = Pos.CENTER_LEFT }
                 }
             }
-            gap()
-//            spacer()
-//
-//            label("Window Opacity")
-//            percentSlider(windowOpacityProperty, min = 0.2, conflateValueChanges = false) {
-//                indicatorPosition = JFXSlider.IndicatorPosition.RIGHT
-//                tooltip("Hold 'shift' to hide temporarily.")
-//            }
-//
-//            spacer()
         }
         left = vbox(spacing = 5) {
             paddingAll = 10
             usePrefSize = true
-            togglegroup {
-                var attemptedDeselection = false
-                selectedToggleProperty().addListener { _, oldValue, newValue ->
-                    // Disallow de-selection.
-                    if (newValue == null) {
-                        attemptedDeselection = true
-                        selectToggle(oldValue)
-                    } else {
-                        if (!attemptedDeselection) {
-                            oldValue?.component?.callOnUndock()
-                            newValue.component.callOnDock()
-                            tabPane.selectionModel.select(newValue.tab)
-                        }
-                        attemptedDeselection = false
-                    }
-                }
-
+            toggleGroup = togglegroup {
                 header("General")
                 entry(generalSettingsView)
 
@@ -141,6 +119,35 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
         center = tabPane
     }
 
+    init {
+        var attemptedDeselection = false
+        toggleGroup.selectedToggleProperty().addListener { _, oldValue, newValue ->
+            // Disallow de-selection.
+            if (newValue == null) {
+                attemptedDeselection = true
+                toggleGroup.selectToggle(oldValue)
+            } else {
+                if (!attemptedDeselection) {
+                    oldValue?.component?.callOnUndock()
+                    newValue.component.callOnDock()
+                    tabPane.selectionModel.select(newValue.tab)
+                }
+                attemptedDeselection = false
+            }
+        }
+
+        whenDocked {
+            if (toggleGroup.selectedToggle == null) {
+                toggleGroup.toggles.first().isSelected = true
+            } else {
+                toggleGroup.selectedToggle.component.callOnDock()
+            }
+        }
+        whenUndocked {
+            toggleGroup.selectedToggle.component.callOnUndock()
+        }
+    }
+
     private inline fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}): JFXToggleNode {
         val icon = component.icon
         val tab = tabPane.tab(component)
@@ -157,9 +164,9 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     override suspend fun confirmResetDefaults() = viewManager.showAreYouSureDialog("Reset all settings to default?")
 
     private var Toggle.component: UIComponent
-        get() = properties["gameDex.view"] as UIComponent
+        get() = properties["gameDex.component"] as UIComponent
         set(value) {
-            properties["gameDex.view"] = value
+            properties["gameDex.component"] = value
         }
 
     private var Toggle.tab: Tab

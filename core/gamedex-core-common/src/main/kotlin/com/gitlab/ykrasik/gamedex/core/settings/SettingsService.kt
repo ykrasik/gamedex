@@ -92,28 +92,34 @@ class SettingsServiceImpl @Inject constructor(
     }
 
     override fun revertSnapshot() = safeTry {
+        log.info("Reverting changes to settings...")
         withRepos {
             restoreSnapshot()
             enableWrite()
             clearSnapshot()
         }
+        log.info("Reverting changes to settings... Done.")
     }
 
     override fun commitSnapshot() = safeTry(revertFallback = true) {
+        log.info("Writing settings...")
         withRepos {
             enableWrite()
             flush()
             clearSnapshot()
         }
+        log.info("Writing settings... Done.")
     }
 
     override fun resetDefaults() = safeTry {
+        log.info("Resetting settings to default...")
         withRepos {
             // Do not reset provider accounts.
             if (!providers.values.contains(this)) {
                 resetDefaults()
             }
         }
+        log.info("Resetting settings to default... Done.")
     }
 
     private inline fun withRepos(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)

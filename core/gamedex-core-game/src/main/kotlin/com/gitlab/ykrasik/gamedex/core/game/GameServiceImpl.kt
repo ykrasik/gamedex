@@ -82,7 +82,7 @@ class GameServiceImpl @Inject constructor(
         successMessage = { "Added $processedItems/$totalItems Games." }
 
         totalItems = requests.size
-        repo.games.buffered {
+        repo.games.conflate {
             requests.chunked(50).flatMap { requests ->
                 repo.addAll(requests) { incProgress() }.map { it.toGame() }
             }
@@ -106,7 +106,7 @@ class GameServiceImpl @Inject constructor(
         successMessage = { "Deleted $processedItems/$totalItems Games." }
 
         totalItems = games.size
-        repo.games.buffered {
+        repo.games.conflate {
             games.chunked(200).forEach { chunk ->
                 repo.deleteAll(chunk.map { it.rawGame })
                 incProgress(chunk.size)

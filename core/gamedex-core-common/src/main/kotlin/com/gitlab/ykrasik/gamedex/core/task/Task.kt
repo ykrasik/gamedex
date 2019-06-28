@@ -114,6 +114,13 @@ class Task<T>(
         }
     }
 
+    inline fun <R> withMessage(message: String, f: () -> R): R {
+        this.message = message
+        val result = f()
+        this.message = "$message Done."
+        return result
+    }
+
     inline fun <R> withImage(image: Image, f: () -> R): R {
         val prevImage = this.image
         this.image = image
