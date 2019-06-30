@@ -208,7 +208,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         content.filters?.let { filters ->
             withMessage("Importing Filters...") {
-                executeSubTask(filterService.addAll(filters.filters.map { it.toDomain() }))
+                executeSubTask(filterService.saveAll(filters.filters.map { it.toDomain() }))
             }
         }
         incProgress()

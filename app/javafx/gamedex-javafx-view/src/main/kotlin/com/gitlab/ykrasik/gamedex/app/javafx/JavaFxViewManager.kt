@@ -137,7 +137,7 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: TagGameView) = view.hideOverlay()
 
     private val editFilterView: JavaFxEditFilterView by inject()
-    override fun showEditFilterView(filter: NamedFilter) = editFilterView.showOverlay { this.namedFilter.valueFromView = filter }
+    override fun showEditFilterView(filter: NamedFilter) = editFilterView.showOverlay { this.initialNamedFilter.valueFromView = filter }
     override fun hide(view: EditFilterView) = view.hideOverlay()
 
     private val deleteFilterView: JavaFxDeleteFilterView by inject()

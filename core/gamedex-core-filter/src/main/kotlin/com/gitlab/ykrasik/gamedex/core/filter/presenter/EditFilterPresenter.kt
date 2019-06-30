@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
 import javax.inject.Inject
@@ -37,11 +36,13 @@ import javax.inject.Singleton
 class EditFilterPresenter @Inject constructor(
     private val filterService: FilterService,
     private val taskService: TaskService,
-//    private val gameService: GameService,
     private val eventBus: EventBus
 ) : Presenter<EditFilterView> {
     override fun present(view: EditFilterView) = object : ViewSession() {
-        private var namedFilter by view.namedFilter
+        private var initialNamedFilter by view.initialNamedFilter
+        private var name by view.name
+        private var filter by view.filter
+        private var isTag by view.isTag
 
         init {
             view.name.forEach { onNameChanged() }
@@ -55,9 +56,9 @@ class EditFilterPresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            view.name *= namedFilter.name
-            view.filter *= namedFilter.filter
-            view.isTag *= if (!namedFilter.isAnonymous) namedFilter.isTag else true
+            name = initialNamedFilter.id
+            filter = initialNamedFilter.filter
+            view.isTag *= if (!initialNamedFilter.isAnonymous) initialNamedFilter.isTag else true
 //            view.excludedGames.setAll(filter?.excludedGames?.map { gameService[it] } ?: emptyList())
             validateName()
         }
@@ -79,20 +80,20 @@ class EditFilterPresenter @Inject constructor(
         }
 
         private fun validateName() {
-            view.nameIsValid *= Try { check(view.name.value.isNotBlank()) { "Name is required!" } }
+            view.nameIsValid *= Try { check(name.isNotBlank()) { "Name is required!" } }
             setCanAccept()
         }
 
         private fun setCanAccept() {
             view.canAccept *= view.nameIsValid and view.filterIsValid and Try {
-                check(!view.filter.value.isEmpty) { "Filter is empty!" }
-                if (view.name.value == namedFilter.name &&
-                    view.filter.value.isEqual(namedFilter.filter) &&
-                    view.isTag.value == namedFilter.isTag/* &&
+                check(!filter.isEmpty) { "Filter is empty!" }
+                if (name == initialNamedFilter.id &&
+                    filter.isEqual(initialNamedFilter.filter) &&
+                    isTag == initialNamedFilter.isTag/* &&
                     view.excludedGames.map { it.id } == view.report?.excludedGames*/) {
                     error("Nothing changed!")
                 }
-                if (view.isTag.value && view.filter.value.find(Filter.FilterTag::class) != null) {
+                if (isTag && filter.find(Filter.FilterTag::class) != null) {
                     error("Filters that tag games may not depend on FilterTag filters!")
                 }
             }
@@ -106,33 +107,27 @@ class EditFilterPresenter @Inject constructor(
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val filterToOverwrite = filterService.userFilters.find { it.name == view.name.value && it.id != namedFilter.id }
-            if (filterToOverwrite != null) {
+            val filterToOverwrite = if (name != initialNamedFilter.id) {
+                filterService.userFilters.find { it.id == name }
+            } else {
+                null
+            }
+            if (filterToOverwrite != null && !view.confirmOverwrite(filterToOverwrite)) {
                 // There already is a filter with such a name which is not the filter we are editing, confirm user wants to overwrite.
-                if (!view.confirmOverwrite(filterToOverwrite)) {
-                    return
-                }
+                return
             }
 
-            val newFilterData = NamedFilterData(
-                name = view.name.value,
-                filter = view.filter.value,
-                isTag = view.isTag.value
+            val namedFilter = NamedFilter(
+                id = name,
+                filter = filter,
+                isTag = isTag
             )
-            taskService.execute(when {
-                filterToOverwrite != null ->
-                    if (namedFilter.isAnonymous) {
-                        filterService.update(filterToOverwrite, newFilterData)
-                    } else {
-                        task("Replacing Filter '${filterToOverwrite.name}'...") {
-                            successMessage = { "Replaced Filter: '${filterToOverwrite.name}'." }
-                            executeSubTask(filterService.update(filterToOverwrite, newFilterData))
-                            executeSubTask(filterService.delete(namedFilter))
-                        }
-                    }
-                namedFilter.isAnonymous -> filterService.add(newFilterData)
-                else -> filterService.update(namedFilter, newFilterData)
-            })
+
+            taskService.execute(filterService.save(namedFilter))
+            if (filterToOverwrite != null && !initialNamedFilter.isAnonymous) {
+                taskService.execute(filterService.delete(initialNamedFilter))
+            }
+
             hideView()
         }
 

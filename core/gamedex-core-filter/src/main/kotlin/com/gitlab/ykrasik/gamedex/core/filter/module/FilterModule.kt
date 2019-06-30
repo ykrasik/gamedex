@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.filter.module
 import com.gitlab.ykrasik.gamedex.core.filter.*
 import com.gitlab.ykrasik.gamedex.core.filter.presenter.*
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
-import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
 import com.google.inject.Provides
 import javax.inject.Singleton
 
@@ -43,10 +43,10 @@ object FilterModule : InternalCoreModule() {
     @Provides
     @Singleton
     @UserFilters
-    fun userFilterRepository() = FilterRepository("user", IntIdJsonStorageFactory("data/filters/user"))
+    fun userFilterRepository() = FilterRepository("user", StringIdJsonStorageFactory("data/filters/user"))
 
     @Provides
     @Singleton
     @SystemFilters
-    fun systemFilterRepository() = FilterRepository("system", IntIdJsonStorageFactory("data/filters/system"))
+    fun systemFilterRepository() = FilterRepository("system", StringIdJsonStorageFactory("data/filters/system"))
 }

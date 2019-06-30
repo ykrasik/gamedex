@@ -36,7 +36,7 @@ class JavaFxDeleteFilterView : ConfirmationWindow(icon = Icons.delete), DeleteFi
     private val filterView = JavaFxFilterView(allowSaveLoad = false, readOnly = true)
 
     init {
-        titleProperty.bind(filter.property.stringBinding { "Delete filter '${it!!.name}'?" })
+        titleProperty.bind(filter.property.stringBinding { "Delete filter '${it!!.id}'?" })
         register()
 
         filter.onChange {

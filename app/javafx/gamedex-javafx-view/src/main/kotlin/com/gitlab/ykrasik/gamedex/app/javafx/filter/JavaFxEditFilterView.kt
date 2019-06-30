@@ -41,7 +41,7 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
     private val viewManager: JavaFxViewManager by inject()
     private val overwriteFilterView = JavaFxFilterView(allowSaveLoad = false, readOnly = true)
 
-    override val namedFilter = userMutableState(NamedFilter.Null)
+    override val initialNamedFilter = userMutableState(NamedFilter.Null)
 
     override val name = userMutableState("")
     override val nameIsValid = state(IsValid.valid)
@@ -56,7 +56,7 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
 //    override val unexcludeGameActions = channel<Game>()
 
     init {
-        titleProperty.bind(namedFilter.property.stringBinding { if (it!!.isAnonymous) "Save Filter" else "Edit Filter" })
+        titleProperty.bind(initialNamedFilter.property.stringBinding { if (it!!.isAnonymous) "Save Filter" else "Edit Filter" })
 //        iconProperty.bind(reportProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
         register()
     }
@@ -105,7 +105,7 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
     override suspend fun confirmOverwrite(filterToOverwrite: NamedFilter): Boolean {
         overwriteFilterView.userMutableState.value = filterToOverwrite.filter
 
-        return viewManager.showAreYouSureDialog("Overwrite filter '${filterToOverwrite.name}'?", Icons.warning) {
+        return viewManager.showAreYouSureDialog("Overwrite filter '${filterToOverwrite.id}'?", Icons.warning) {
             prettyScrollPane {
                 maxHeight = screenBounds.height / 2
                 isFitToWidth = true

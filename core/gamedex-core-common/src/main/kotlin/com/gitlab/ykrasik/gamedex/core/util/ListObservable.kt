@@ -229,9 +229,9 @@ fun <T, R> ListObservable<T>.subscribeTransformChannel(channel: ReceiveChannel<(
     return list
 }
 
-inline fun <T> ListObservable<T>.broadcastTo(
+inline fun <T, K> ListObservable<T>.broadcastTo(
     eventBus: EventBus,
-    crossinline idExtractor: Extractor<T, Int>,
+    crossinline idExtractor: Extractor<T, K>,
     crossinline itemsAddedEvent: (List<T>) -> CoreEvent,
     crossinline itemsDeletedEvent: (List<T>) -> CoreEvent,
     crossinline itemsUpdatedEvent: (List<Pair<T, T>>) -> CoreEvent

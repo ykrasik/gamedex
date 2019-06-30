@@ -56,49 +56,39 @@ class FilterServiceImpl @Inject constructor(
 
         if (userFilters.isEmpty()) {
             log.info("Creating default user filters...")
-            defaultUserFilters.forEach { userFilterRepo.add(it) }
+            defaultUserFilters.forEach { userFilterRepo.set(it) }
         }
     }
 
     override fun get(id: FilterId) = userFilters.find { it.id == id } ?: throw IllegalArgumentException("Filter($id) doesn't exist!")
 
-    override fun add(data: NamedFilterData) = task("Adding Filter '${data.name}'...") {
-        successMessage = { "Added Filter: '${data.name}'." }
-        userFilterRepo.add(data)
+    override fun save(filter: NamedFilter) = task("Saving Filter '${filter.id}'...") {
+        userFilterRepo.set(filter)
     }
 
-    override fun addAll(data: List<NamedFilterData>) = task("Adding ${data.size} Filters...") {
-        successMessage = { "Adding ${data.size} Filters... Done." }
-
-        totalItems = data.size
+    override fun saveAll(filters: List<NamedFilter>) = task("Saving ${filters.size} Filters...") {
+        totalItems = filters.size
         userFilters.conflate {
-            data.map {
-                userFilterRepo.add(it).apply {
+            filters.map {
+                userFilterRepo.set(it).apply {
                     incProgress()
                 }
             }
         }
     }
 
-    override fun update(filter: NamedFilter, data: NamedFilterData) = task("Updating Filter '${filter.name}'...") {
-        val updatedFilter = userFilterRepo.update(filter, data)
-        successMessage = { "Updated Filter: '${updatedFilter.name}'." }
-        updatedFilter
-    }
-
-    override fun delete(filter: NamedFilter) = task("Deleting Filter '${filter.name}'...") {
-        successMessage = { "Deleted Filter: '${filter.name}'." }
+    override fun delete(filter: NamedFilter) = task("Deleting Filter '${filter.id}'...") {
         userFilterRepo.delete(filter)
     }
 
-    override fun getSystemFilter(name: String): Filter? = systemFilter(name)?.filter
+    override fun getSystemFilter(id: String): Filter? = systemFilter(id)?.filter
 
-    override fun putSystemFilter(name: String, filter: Filter) {
-        val systemFilter = systemFilter(name)
+    override fun putSystemFilter(id: String, filter: Filter) {
+        val systemFilter = systemFilter(id)
         if (systemFilter != null) {
-            systemFilterRepo.update(systemFilter, systemFilter.data.copy(filter = filter))
+            systemFilterRepo.set(systemFilter.copy(filter = filter))
         } else {
-            systemFilterRepo.add(NamedFilterData(name, filter, isTag = false))
+            systemFilterRepo.set(NamedFilter(id, filter, isTag = false))
         }
     }
 
@@ -133,7 +123,7 @@ class FilterServiceImpl @Inject constructor(
         val context = createContext()
         return userFilters.mapNotNull { filter ->
             if (filter.isTag && filter.filter.evaluate(game, context)) {
-                filter.name
+                filter.id
             } else {
                 null
             }
@@ -142,7 +132,7 @@ class FilterServiceImpl @Inject constructor(
 
     fun invalidate() = userFilterRepo.invalidate()
 
-    private fun systemFilter(name: String): NamedFilter? = systemFilterRepo.filters.find { it.name == name }
+    private fun systemFilter(id: FilterId): NamedFilter? = systemFilterRepo.filters.find { it.id == id }
 
     private fun createContext() = object : Filter.Context {
         override val now = com.gitlab.ykrasik.gamedex.util.now
@@ -153,9 +143,9 @@ class FilterServiceImpl @Inject constructor(
 
     private companion object {
         val defaultUserFilters = listOf(
-            NamedFilterData("Low Score", Filter.CriticScore(60.0).not or Filter.UserScore(60.0).not, isTag = true),
-            NamedFilterData("No Score", Filter.CriticScore(0.0).not and Filter.UserScore(0.0).not, isTag = true),
-            NamedFilterData("Not Updated Recently", Filter.PeriodUpdateDate(2.months).not, isTag = true)
+            NamedFilter("Low Score", Filter.CriticScore(60.0).not or Filter.UserScore(60.0).not, isTag = true),
+            NamedFilter("No Score", Filter.CriticScore(0.0).not and Filter.UserScore(0.0).not, isTag = true),
+            NamedFilter("Not Updated Recently", Filter.PeriodUpdateDate(2.months).not, isTag = true)
         )
     }
 }

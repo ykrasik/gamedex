@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:33
  */
 interface EditFilterView : ConfirmationView {
-    val namedFilter: UserMutableState<NamedFilter>
+    val initialNamedFilter: UserMutableState<NamedFilter>
 
     val name: UserMutableState<String>
     val nameIsValid: State<IsValid>

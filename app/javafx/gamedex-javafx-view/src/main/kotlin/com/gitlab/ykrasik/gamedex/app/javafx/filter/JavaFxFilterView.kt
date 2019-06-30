@@ -146,10 +146,10 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
                     searchTextField(this@JavaFxFilterView, searchProperty)
                     sortedFilteredSavedFilters.filteredItems.predicateProperty().bind(searchProperty.binding { text ->
                         Predicate<NamedFilter> { filter ->
-                            text.isEmpty() || filter.name.contains(text, ignoreCase = true)
+                            text.isEmpty() || filter.id.contains(text, ignoreCase = true)
                         }
                     })
-                    sortedFilteredSavedFilters.sortedItems.comparator = Comparator { o1, o2 -> o1.name.compareTo(o2.name) }
+                    sortedFilteredSavedFilters.sortedItems.comparator = Comparator { o1, o2 -> o1.id.compareTo(o2.id, ignoreCase = true) }
 
                     addButton(isToolbarButton = false) {
                         alignment = Pos.CENTER
@@ -166,7 +166,7 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
                                     usePrefWidth = true
                                     filters.forEach { filter ->
                                         row {
-                                            infoButton(filter.name, graphic = Icons.load.size(22)) {
+                                            infoButton(filter.id, graphic = Icons.load.size(22)) {
                                                 useMaxWidth = true
                                                 gridpaneColumnConstraints { hgrow = Priority.ALWAYS }
                                                 alignment = Pos.CENTER_LEFT

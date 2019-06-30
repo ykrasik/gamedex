@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.maintenance
 
 import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
-import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilterData
 import com.gitlab.ykrasik.gamedex.util.dateTime
 
 /**
@@ -32,14 +31,14 @@ object PortableFilter {
     )
 
     data class Filter(
-        val name: String,
+        val id: String,
         val filter: com.gitlab.ykrasik.gamedex.app.api.filter.Filter,
         val isTag: Boolean,
         val createDate: Long,
         val updateDate: Long
     ) {
-        fun toDomain() = NamedFilterData(
-            name = name,
+        fun toDomain() = NamedFilter(
+            id = id,
             filter = filter,
             isTag = isTag,
             timestamp = Timestamp(createDate = createDate.dateTime, updateDate = updateDate.dateTime)
@@ -47,7 +46,7 @@ object PortableFilter {
     }
 
     fun NamedFilter.toPortable() = Filter(
-        name = name,
+        id = id,
         filter = filter,
         isTag = isTag,
         createDate = timestamp.createDate.millis,

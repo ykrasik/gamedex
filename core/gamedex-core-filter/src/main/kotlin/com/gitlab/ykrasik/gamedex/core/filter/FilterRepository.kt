@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.filter
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterId
 import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
-import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilterData
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -31,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.util.time
  */
 class FilterRepository(
     private val name: String,
-    private val storage: Storage<FilterId, NamedFilterData>
+    private val storage: Storage<FilterId, NamedFilter>
 ) {
     private val log = logger()
 
@@ -39,22 +38,23 @@ class FilterRepository(
 
     private fun fetchFilters(): List<NamedFilter> =
         log.time("Fetching $name filters...", { time, filters -> "${filters.size} $name filters in $time" }) {
-            storage.getAll().map { (id, data) -> NamedFilter(id, data) }
+            storage.getAll().values.toList()
         }
 
-    fun add(data: NamedFilterData): NamedFilter {
-        val updatedData = data.createdNow()
-        val id = storage.add(updatedData)
-        val filter = NamedFilter(id, updatedData)
-        filters += filter
-        return filter
-    }
+    fun set(filter: NamedFilter): NamedFilter {
+        val existingFilterIndex = filters.indexOfFirst { it.id == filter.id }
+        val updatedFilter = if (existingFilterIndex != -1) {
+            filter.updatedNow()
+        } else {
+            filter.createdNow()
+        }
+        storage[filter.id] = updatedFilter
 
-    fun update(filter: NamedFilter, data: NamedFilterData): NamedFilter {
-        val updatedData = data.updatedNow()
-        storage.update(filter.id, updatedData)
-        val updatedFilter = filter.copy(data = updatedData)
-        filters.replace(filter, updatedFilter)
+        if (existingFilterIndex != -1) {
+            filters[existingFilterIndex] = updatedFilter
+        } else {
+            filters += updatedFilter
+        }
         return updatedFilter
     }
 

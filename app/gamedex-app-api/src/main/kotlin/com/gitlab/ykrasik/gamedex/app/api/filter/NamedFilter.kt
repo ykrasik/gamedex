@@ -23,51 +23,33 @@ import com.gitlab.ykrasik.gamedex.Timestamp
  * Date: 19/09/2018
  * Time: 10:10
  */
-typealias FilterId = Int
+typealias FilterId = String
 
 data class NamedFilter(
     val id: FilterId,
-    val data: NamedFilterData
-) {
-    val name get() = data.name
-    val filter get() = data.filter
-    val isTag get() = data.isTag
-    val timestamp get() = data.timestamp
-
-    val isAnonymous: Boolean get() = id == 0
-
-    companion object {
-        val Null = NamedFilter(
-            id = 0,
-            data = NamedFilterData.Null
-        )
-
-        fun anonymous(filter: Filter) = Null.copy(data = NamedFilterData.Null.copy(filter = filter))
-    }
-}
-
-data class NamedFilterData(
-    val name: String,
     val filter: Filter,
     val isTag: Boolean,
     val timestamp: Timestamp
 ) {
+    val isAnonymous: Boolean get() = id.isEmpty()
     fun createdNow() = copy(timestamp = Timestamp.now)
     fun updatedNow() = copy(timestamp = timestamp.updatedNow())
 
     companion object {
-        val Null = NamedFilterData(
-            name = "",
+        val Null = NamedFilter(
+            id = "",
             filter = Filter.Null,
             isTag = false,
             timestamp = Timestamp.Null
         )
 
+        fun anonymous(filter: Filter) = Null.copy(filter = filter)
+
         operator fun invoke(
-            name: String,
+            id: FilterId,
             filter: Filter,
             isTag: Boolean,
             timestamp: Timestamp = Timestamp.now
-        ) = NamedFilterData(name, filter, isTag, timestamp)
+        ) = NamedFilter(id, filter, isTag, timestamp)
     }
 }
