@@ -49,18 +49,18 @@ class ProviderSettingsPresenter @Inject constructor(
 
         init {
             commonData.isGameSyncRunning.disableWhenTrue(view.canChangeProviderSettings) { "Game sync in progress!" }
-
-            // FIXME: This doesn't update when settings are updated outside of this scope, like the settings screen being closed with a cancel.
-            view.enabled *= settings.enabled
             view.enabled.forEach { onEnabledChanged(it) }
+            view.currentAccount.forEach { onCurrentAccountChanged(it) }
+            view.verifyAccountActions.forEach { verifyAccount() }
+        }
+
+        override suspend fun onShown() {
+            view.enabled *= settings.enabled
 
             // This will not update if settings are reset to default - by design.
             val account = settings.account
             currentAccount = account
-            view.currentAccount.forEach { onCurrentAccountChanged(it) }
-
             lastVerifiedAccount = if (account.isNotEmpty()) account else emptyMap()
-
             status = when {
                 view.provider.accountFeature == null -> ProviderAccountStatus.NotRequired
                 accountHasEmptyFields -> ProviderAccountStatus.Empty
@@ -68,8 +68,6 @@ class ProviderSettingsPresenter @Inject constructor(
                 else -> ProviderAccountStatus.Empty
             }
             setCanVerifyAccount()
-
-            view.verifyAccountActions.forEach { verifyAccount() }
         }
 
         private val accountHasEmptyFields: Boolean
