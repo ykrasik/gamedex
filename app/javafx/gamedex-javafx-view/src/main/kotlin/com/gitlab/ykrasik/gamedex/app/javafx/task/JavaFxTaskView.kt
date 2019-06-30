@@ -71,13 +71,14 @@ class JavaFxTaskView : PresentableView(), TaskView {
         }
     }
 
-    override fun taskSuccess(message: String) {
-        notification(message).info.show()
-    }
+    override fun taskSuccess(title: String, message: String) =
+        notification(NotificationType.Info, message, title)
 
-    override fun taskCancelled(message: String) = notification(message).warn.show()
+    override fun taskCancelled(title: String, message: String) =
+        notification(NotificationType.Warn, message, title)
 
-    override fun taskError(error: Exception, message: String) = notification(message).error.show()
+    override fun taskError(title: String, error: Exception, message: String) =
+        notification(NotificationType.Error, message, title)
 
     private fun EventTarget.progressDisplay(taskProgress: JavaFxTaskProgress, isMain: Boolean) = vbox(spacing = 5) {
         alignment = Pos.CENTER

@@ -72,14 +72,12 @@ class GameServiceImpl @Inject constructor(
     override fun add(request: AddGameRequest): Task<Game> {
         val nameBestEffort = request.providerData.firstOrNull()?.gameData?.name ?: request.metadata.path.file.name
         return task("Adding Game '$nameBestEffort'...") {
-            val game = repo.add(request).toGame()
-            successMessage = { "Added Game: '${game.name}'." }
-            game
+            repo.add(request).toGame()
         }
     }
 
     override fun addAll(requests: List<AddGameRequest>) = task("Adding ${requests.size} Games...") {
-        successMessage = { "Added $processedItems/$totalItems Games." }
+        successMessage = { "Added $processedItems Games." }
 
         totalItems = requests.size
         repo.games.conflate {
@@ -92,18 +90,15 @@ class GameServiceImpl @Inject constructor(
     override fun replace(source: Game, target: RawGame) = task("Updating Game '${source.name}'...") {
         val updatedTarget = target.withMetadata { it.updatedNow() }
         repo.replace(source.rawGame, updatedTarget)
-        val updatedGame = updatedTarget.toGame()
-        successMessage = { "Updated Game: '${updatedGame.name}'." }
-        updatedGame
+        updatedTarget.toGame()
     }
 
     override fun delete(game: Game) = task("Deleting Game '${game.name}'...") {
-        successMessage = { "Deleted Game: '${game.name}'." }
         repo.delete(game.rawGame)
     }
 
     override fun deleteAll(games: List<Game>) = task("Deleting ${games.size} Games...") {
-        successMessage = { "Deleted $processedItems/$totalItems Games." }
+        successMessage = { "Deleted $processedItems Games." }
 
         totalItems = games.size
         repo.games.conflate {
@@ -115,7 +110,6 @@ class GameServiceImpl @Inject constructor(
     }
 
     override fun deleteAllUserData() = task("Deleting all user data...") {
-        successMessage = { "Deleted all user data." }
         repo.deleteAllUserData()
     }
 

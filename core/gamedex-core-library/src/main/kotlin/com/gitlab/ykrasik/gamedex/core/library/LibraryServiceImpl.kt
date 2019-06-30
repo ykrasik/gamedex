@@ -52,28 +52,24 @@ class LibraryServiceImpl @Inject constructor(
     override fun get(path: File) = libraries.find { it.path == path }
 
     override fun add(data: LibraryData) = task("Adding Library '${data.name}'...") {
-        successMessage = { "Added Library: '${data.name}'." }
         repo.add(data)
     }
 
     override fun addAll(data: List<LibraryData>) = task("Adding ${data.size} Libraries...") {
-        successMessage = { "Added $processedItems/$totalItems Libraries." }
+        successMessage = { "Added $processedItems Libraries." }
         totalItems = data.size
         repo.addAll(data) { incProgress() }
     }
 
     override fun replace(library: Library, data: LibraryData) = task("Updating Library '${library.name}'...") {
-        val updatedLibrary = repo.update(library, data)
-        successMessage = { "Updated Library: '${updatedLibrary.name}'." }
+        repo.update(library, data)
     }
 
     override fun delete(library: Library) = task("Deleting Library '${library.name}'...") {
-        successMessage = { "Deleted Library: '${library.name}'." }
         repo.delete(library)
     }
 
     override fun deleteAll(libraries: List<Library>) = task("Deleting ${libraries.size} Libraries...") {
-        successMessage = { "Deleted ${libraries.size} Libraries." }
         repo.deleteAll(libraries)
     }
 }

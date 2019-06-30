@@ -156,6 +156,7 @@ class MaintenanceServiceImpl @Inject constructor(
     }
 
     override fun readImportDbFile(file: File): Task<ImportDbContent> = task("Reading $file...") {
+        successMessage = null
         check(RandomAccessFile(file, "r").readInt() == zipMagicHeader) { "Not a zip file: $file!" }
         ZipInputStream(file.inputStream()).use { zis ->
             fun <T : Any> read(klass: KClass<T>): T = objectMapper.readValue(zis.readBytes(), klass.java)
@@ -212,8 +213,6 @@ class MaintenanceServiceImpl @Inject constructor(
             }
         }
         incProgress()
-
-        successMessage = { "Database imported." }
     }
 
     override fun detectStaleData() = task("Detecting stale data...") {
@@ -231,8 +230,11 @@ class MaintenanceServiceImpl @Inject constructor(
         val fileTree = fileSystemService.getFileTreeSizeTakenExcept(gameService.games)
 
         val staleData = StaleData(libraries, games, images, fileTree)
-        if (staleData.isEmpty) {
-            successMessage = { "No stale data detected." }
+
+        successMessage = if (staleData.isEmpty) {
+            { "No stale data detected." }
+        } else {
+            null
         }
         staleData
     }
@@ -264,7 +266,7 @@ class MaintenanceServiceImpl @Inject constructor(
         }
         incProgress()
 
-        successMessage = { "Deleted Stale Data:\n${staleData.toFormattedString()}" }
+        successMessage = { staleData.toFormattedString() }
     }
 
     private fun StaleData.toFormattedString() =
@@ -279,6 +281,8 @@ class MaintenanceServiceImpl @Inject constructor(
     // TODO: Add ignore case option
     // TODO: Add option that makes metadata an optional match.
     override fun detectDuplicates() = task("Detecting duplicate games...") {
+        successMessage = null
+
         val headerToGames = gameService.games.asSequence()
             .flatMap { game -> game.providerHeaders.map { it to game } }
             .toMultiMap()
@@ -309,6 +313,8 @@ class MaintenanceServiceImpl @Inject constructor(
     }
 
     override fun detectFolderNameDiffs() = task("Detecting game folder name diffs...") {
+        successMessage = null
+
         gameService.games.mapNotNull { game ->
             val diffs = game.providerData.mapNotNull { providerData ->
                 diff(game.folderName, providerData)

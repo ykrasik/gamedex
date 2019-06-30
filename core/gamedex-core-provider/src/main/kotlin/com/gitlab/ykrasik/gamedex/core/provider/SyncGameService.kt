@@ -51,7 +51,7 @@ class SyncGameServiceImpl @Inject constructor(
 
     override fun syncGame(game: Game) = syncGames(listOf(toRequest(game, emptyList())), isAllowSmartChooseResults = false)
 
-    override fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean) = task("Detecting games to sync...") {
+    override fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean) = task("Detecting games with missing providers...") {
         val games = filterService.filter(gameService.games, filter).asSequence()
             .map { it to it.getMissingProviders() }
             .filter { (_, missingProviders) -> missingProviders.isNotEmpty() }
@@ -59,11 +59,7 @@ class SyncGameServiceImpl @Inject constructor(
             .toList()
             .sortedBy { (game, _) -> game.path }
 
-        if (games.isNotEmpty()) {
-            message = "Detecting games to sync... ${games.size} games."
-        } else {
-            successMessage = { "No games with missing providers detected!" }
-        }
+        successMessage = { "${games.size} games." }
         games.map { (game, missingProviders) -> toRequest(game, missingProviders) }
     }
 

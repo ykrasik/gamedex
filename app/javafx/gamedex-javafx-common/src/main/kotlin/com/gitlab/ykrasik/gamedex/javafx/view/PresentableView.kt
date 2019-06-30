@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.javafx.error
+import com.gitlab.ykrasik.gamedex.javafx.NotificationType
 import com.gitlab.ykrasik.gamedex.javafx.notification
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import javafx.beans.value.ChangeListener
@@ -62,9 +62,8 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
         }
     }
 
-    override fun onError(message: String, e: Exception?) {
-        notification(message).error.show()
-    }
+    override fun onError(message: String, title: String?, e: Exception?) =
+        notification(NotificationType.Error, text = message, title = title)
 
     protected fun register() = viewRegistry.onCreate(this)
 

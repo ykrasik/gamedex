@@ -99,9 +99,9 @@ class GameProviderServiceImpl @Inject constructor(
             try {
                 val providerAccount = accountFeature.createAccount(account)
                 provider.search("TestSearchToVerifyAccount", Platform.Windows, providerAccount)
-                successMessage = { "$providerId: Valid Account." }
+                successMessage = { "Account is Valid." }
             } catch (e: Exception) {
-                errorMessage = { "$providerId: Invalid Account!" }
+                errorMessage = { "Account is Invalid!" }
                 throw e
             }
         }
@@ -109,10 +109,12 @@ class GameProviderServiceImpl @Inject constructor(
 
     override fun search(providerId: ProviderId, query: String, platform: Platform) =
         task("Searching $providerId for '$query'...", initialImage = logos.getValue(providerId)) {
+            successMessage = null
             enabledProviders.find { it.id == providerId }!!.search(query, platform)
         }
 
     override fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Fetching '$name'...") {
+        successMessage = null
         totalItems = headers.size
         headers.map { header ->
             // TODO: Link to task scope.

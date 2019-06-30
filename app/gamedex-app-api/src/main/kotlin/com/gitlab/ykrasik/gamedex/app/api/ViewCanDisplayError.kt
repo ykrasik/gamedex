@@ -22,5 +22,5 @@ package com.gitlab.ykrasik.gamedex.app.api
  * Time: 18:01
  */
 interface ViewCanDisplayError {
-    fun onError(message: String, e: Exception? = null)
+    fun onError(message: String, title: String?, e: Exception? = null)
 }

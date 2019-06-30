@@ -34,14 +34,14 @@ import javax.inject.Singleton
 class OpenFilePresenter @Inject constructor() : Presenter<ViewCanOpenFile> {
     override fun present(view: ViewCanOpenFile) = object : ViewSession() {
         init {
-            view.openFileActions.forEach {
+            view.openFileActions.forEach { file ->
                 try {
                     withContext(Dispatchers.IO) {
                         // TODO: This is actually more like view-specific logic.
-                        Desktop.getDesktop().open(it)
+                        Desktop.getDesktop().open(file)
                     }
                 } catch (e: Exception) {
-                    view.onError("File doesn't exist: $it", e)
+                    view.onError(message = file.toString(), title = "File doesn't exist", e = e)
                 }
             }
         }

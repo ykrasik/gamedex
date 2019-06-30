@@ -56,7 +56,7 @@ class UpdateGameServiceImpl @Inject constructor(
         gameProviderService.assertHasEnabledProvider()
 
         successOrCancelledMessage { success ->
-            "${if (success) "Done" else "Cancelled"}: Updated ${if (games.size == 1) "'${games.firstOrNull()?.name}'." else "$processedItems / $totalItems Games."}"
+            "${if (success) "Done" else "Cancelled"}${if (games.size > 1) ": Updated $processedItems Games." else "."}"
         }
 
         games.forEachWithProgress { game ->

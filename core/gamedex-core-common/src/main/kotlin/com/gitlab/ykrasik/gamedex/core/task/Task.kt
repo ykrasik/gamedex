@@ -75,8 +75,8 @@ class Task<T>(
     private val _subTaskChannel = MultiChannel<Task<*>?>()
     val subTaskChannel: MultiReceiveChannel<Task<*>?> = _subTaskChannel
 
-    var successMessage: ((T) -> String)? = null
-    var cancelMessage: (() -> String)? = { "Cancelled" }
+    var successMessage: ((T) -> String)? = { "Done." }
+    var cancelMessage: (() -> String)? = { "Cancelled." }
 
     // Setting this value to non-null will mean the task view will display this exception.
     // The exception will still propagate up and stop code from executing, but it should not be handled by the default uncaught exception handler.

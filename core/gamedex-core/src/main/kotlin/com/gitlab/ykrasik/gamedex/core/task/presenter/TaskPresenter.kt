@@ -92,7 +92,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                     view.subTaskProgress.progress *= 1.0
 
                     val successMessage = task.successMessage?.invoke(result.value)
-                    successMessage?.let(view::taskSuccess)
+                    successMessage?.let { view.taskSuccess(title = task.title, message = it) }
                     log.info("${successMessage ?: "${task.title} Done:"} [${millisTaken.humanReadableDuration}]")
                 }
                 is Try.Error -> {
@@ -100,7 +100,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                     when {
                         error is CancellationException && error !is ClosedSendChannelException -> {
                             val cancelMessage = task.cancelMessage?.invoke()
-                            cancelMessage?.let(view::taskCancelled)
+                            cancelMessage?.let { view.taskCancelled(title = task.title, message = it) }
                             log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${millisTaken.humanReadableDuration}]")
 
                             // Cancellation exceptions should not be treated as unexpected errors.
@@ -110,7 +110,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                             val errorMessage = task.errorMessage?.invoke(error)
                             if (errorMessage != null) {
                                 // The presence of an error message means the taskView should display this error, and not treat it as an unexpected error.
-                                view.taskError(error, errorMessage)
+                                view.taskError(title = task.title, error = error, message = errorMessage)
                                 resultToReturn = Try.error(ExpectedException(error))
                             }
                             log.error("${errorMessage ?: "${task.title} Error:"} [${millisTaken.humanReadableDuration}]", error)

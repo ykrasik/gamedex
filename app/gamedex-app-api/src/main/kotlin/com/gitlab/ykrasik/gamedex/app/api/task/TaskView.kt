@@ -38,9 +38,9 @@ interface TaskView {
     val subTaskProgress: TaskProgress
     val isRunningSubTask: State<Boolean>
 
-    fun taskSuccess(message: String)
-    fun taskCancelled(message: String)
-    fun taskError(error: Exception, message: String)
+    fun taskSuccess(title: String, message: String)
+    fun taskCancelled(title: String, message: String)
+    fun taskError(title: String, error: Exception, message: String)
 }
 
 interface TaskProgress {

@@ -37,8 +37,9 @@ class SyncLibraryServiceImpl @Inject constructor(
 ) : SyncLibraryService {
     private val log = logger()
 
-    override fun detectNewPaths() = task("Detecting new directories...") {
+    override fun detectNewPaths() = task<List<LibraryPath>>("Detecting new games...") {
         errorMessage = { it.message!! }
+
         val newPaths = mutableListOf<LibraryPath>()
         val excludedDirectories = commonData.libraries.map(Library::path).toSet() + commonData.games.map(Game::path)
 
@@ -75,10 +76,8 @@ class SyncLibraryServiceImpl @Inject constructor(
             detectNewPaths(library, library.path)
         }
 
-        if (newPaths.isEmpty()) {
-            successMessage = { "No new games detected." }
-        }
+        successMessage = { "${newPaths.size} new games." }
 
-        newPaths as List<LibraryPath>
+        newPaths
     }
 }

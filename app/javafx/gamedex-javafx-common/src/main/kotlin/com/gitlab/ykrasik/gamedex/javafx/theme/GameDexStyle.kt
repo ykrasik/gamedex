@@ -84,6 +84,8 @@ class GameDexStyle : Stylesheet() {
         val userScore by cssclass()
         val userScoreReviews by cssclass()
 
+        val notificationBar by cssclass()
+
         val hoverShadow = mixin {
             and(hover) {
                 effect = DropShadow()
@@ -377,6 +379,10 @@ class GameDexStyle : Stylesheet() {
             fontSize = 15.px
             textFill = Color.WHITE
             padding = box(top = 4.px, right = 0.px, left = 0.px, bottom = 2.px)
+        }
+
+        notificationBar {
+            minWidth = 400.px
         }
     }
 }

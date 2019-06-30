@@ -51,9 +51,7 @@ class ShowCleanupDatabasePresenter @Inject constructor(
 
         private suspend fun cleanupDatabase() {
             val staleData = taskService.execute(maintenanceService.detectStaleData())
-            if (staleData.isEmpty) {
-                view.onError("No stale data detected!")
-            } else {
+            if (!staleData.isEmpty) {
                 viewManager.showCleanupDatabaseView(staleData)
             }
         }

@@ -135,8 +135,8 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
         }
     }
 
-    override fun successMessage(message: String) = notification("Done: $message").info.show()
-    override fun cancelledMessage(message: String) = notification("Cancelled: $message").error.show()
+    override fun successMessage(message: String) = notification(NotificationType.Info, "Done: $message", title = null)
+    override fun cancelledMessage(message: String) = notification(NotificationType.Warn, "Cancelled: $message", title = null)
 
     class Style : Stylesheet() {
         companion object {

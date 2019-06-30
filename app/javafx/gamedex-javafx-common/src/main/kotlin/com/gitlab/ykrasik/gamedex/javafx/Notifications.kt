@@ -16,29 +16,45 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultVbox
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.color
+import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import javafx.geometry.Pos
-import javafx.scene.paint.Color
 import org.controlsfx.control.Notifications
-import tornadofx.UIComponent
-import tornadofx.seconds
+import tornadofx.*
 
 /**
  * User: ykrasik
  * Date: 21/11/2018
  * Time: 08:46
  */
-fun UIComponent.notification(text: String): Notifications =
+fun UIComponent.notification(type: NotificationType, text: String, title: String?) =
     Notifications.create()
         .owner(currentStage!!)
-        .text(text)
-        .darkStyle()
         .hideAfter(5.seconds)
         .hideCloseButton()
         .position(Pos.BOTTOM_RIGHT)
+        .graphic(defaultHbox {
+            useMaxSize = true
+            paddingAll = 20.0
+            children += when (type) {
+                NotificationType.Info -> Icons.information
+                NotificationType.Warn -> Icons.warning
+                NotificationType.Error -> Icons.error
+            }.size(50)
+            defaultVbox(/*alignment = Pos.CENTER*/) {
+//                useMaxSize = true
+//                paddingAll = 20.0
+                if (title != null) {
+                    header(title)
+                }
+                label(text)
+            }
+        })
+        .show()
 
-val Notifications.info get() = graphic(Icons.information.size(50).color(Color.WHITE))
-val Notifications.warn get() = graphic(Icons.warning.size(50))
-val Notifications.error get() = graphic(Icons.error.size(50))
+enum class NotificationType {
+    Info, Warn, Error
+}
