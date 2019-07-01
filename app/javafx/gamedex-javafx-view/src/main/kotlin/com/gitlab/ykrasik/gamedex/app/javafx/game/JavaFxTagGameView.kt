@@ -38,7 +38,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
     override val game = userMutableState(Game.Null)
 
     override val tags = settableList<String>()
-    override val checkedTags = mutableSetOf<String>().asObservable()
+    override val checkedTags = mutableSetOf<String>().observable()
 
     override val toggleAll = userMutableState(false)
 

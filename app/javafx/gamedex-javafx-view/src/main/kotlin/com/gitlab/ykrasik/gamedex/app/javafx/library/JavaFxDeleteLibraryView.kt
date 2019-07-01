@@ -26,8 +26,8 @@ import com.gitlab.ykrasik.gamedex.javafx.settableList
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import tornadofx.asObservable
 import tornadofx.label
+import tornadofx.observable
 import tornadofx.replaceChildren
 import tornadofx.stringBinding
 
@@ -51,7 +51,7 @@ class JavaFxDeleteLibraryView : ConfirmationWindow(icon = Icons.delete), DeleteL
             this.replaceChildren {
                 if (gamesToBeDeleted.isNotEmpty()) {
                     label("The following ${gamesToBeDeleted.size} games will also be deleted:")
-                    prettyListView(gamesToBeDeleted.map { it.name }.asObservable()) { fitAtMost(10) }
+                    prettyListView(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
                 }
             }
         }

@@ -23,7 +23,7 @@ import javafx.scene.control.ListView
 import javafx.scene.control.TableView
 import tornadofx.SortedFilteredList
 import tornadofx.getValue
-import tornadofx.observableListOf
+import tornadofx.observable
 import tornadofx.setValue
 
 /**
@@ -60,5 +60,5 @@ class JavaFxSettableSortedFilteredList<E>(private val list: SortedFilteredList<E
     override fun toString() = list.toString()
 }
 
-fun <E> settableList(list: ObservableList<E> = observableListOf()) = JavaFxSettableList(list)
+fun <E> settableList(list: ObservableList<E> = mutableListOf<E>().observable()) = JavaFxSettableList(list)
 fun <E> settableSortedFilteredList(list: SortedFilteredList<E> = SortedFilteredList()) = JavaFxSettableSortedFilteredList(list)
