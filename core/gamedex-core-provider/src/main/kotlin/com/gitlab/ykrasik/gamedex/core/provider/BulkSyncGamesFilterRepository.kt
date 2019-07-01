@@ -17,12 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.filter.not
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
-import com.gitlab.ykrasik.gamedex.provider.id
-import com.gitlab.ykrasik.gamedex.util.months
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,22 +30,14 @@ import javax.inject.Singleton
  */
 @Singleton
 class BulkSyncGamesFilterRepository @Inject constructor(
-    private val filterService: FilterService,
-    private val gameProviderService: GameProviderService
+    private val filterService: FilterService
 ) {
     private val _bulkSyncGamesFilter = MultiChannel.conflated(Filter.Null)
     val bulkSyncGamesFilter: MultiReceiveChannel<Filter> = _bulkSyncGamesFilter.distinctUntilChanged(Filter::isEqual)
 
     init {
         // Init default filter.
-        _bulkSyncGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) {
-            val providers = gameProviderService.allProviders
-            if (providers.isNotEmpty()) {
-                Filter.And(providers.map { Filter.Provider(it.id) }).not
-            } else {
-                Filter.PeriodCreateDate(2.months).not
-            }
-        })
+        _bulkSyncGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) { Filter.Null })
     }
 
     fun update(filter: Filter) {
