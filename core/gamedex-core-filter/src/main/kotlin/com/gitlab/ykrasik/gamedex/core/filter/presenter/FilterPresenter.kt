@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
 import com.gitlab.ykrasik.gamedex.app.api.filter.find
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
+import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -103,7 +104,7 @@ class FilterPresenter @Inject constructor(
             view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
             view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
             view.clearFilterActions.forEach { replaceFilter(view.filter.value, Filter.Null) }
-            view.updateFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
+            view.updateFilterActions.subscribe().debounce(200).forEach { (filter, with) -> replaceFilter(filter, with) }
             view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
             view.deleteFilterActions.forEach { deleteFilter(it) }
         }
