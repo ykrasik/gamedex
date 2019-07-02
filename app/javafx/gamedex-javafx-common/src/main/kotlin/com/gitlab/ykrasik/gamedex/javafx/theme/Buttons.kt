@@ -172,6 +172,15 @@ inline fun EventTarget.editButton(
     op()
 }
 
+inline fun EventTarget.browseButton(
+    text: String? = "Browse",
+    isToolbarButton: Boolean = false,
+    crossinline op: JFXButton.() -> Unit = {}
+) = jfxButton(text, Icons.folderOpen.size(24)) {
+    if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
+    op()
+}
+
 inline fun EventTarget.extraMenu(op: PopOverContent.() -> Unit = {}) =
     buttonWithPopover(graphic = Icons.dots) {
 //        popOver.isAutoFix = false

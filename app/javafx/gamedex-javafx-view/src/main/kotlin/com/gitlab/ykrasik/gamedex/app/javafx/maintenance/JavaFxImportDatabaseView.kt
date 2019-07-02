@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.size
+import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -86,9 +86,7 @@ class JavaFxImportDatabaseView : ConfirmationWindow("Import Database", Icons.imp
         jfxTextField(importDatabaseFile.property, promptText = "Enter Path...") {
             validWhen(importDatabaseFileIsValid)
         }
-        jfxButton("Browse", Icons.folderOpen.size(24)) {
-            action(browseActions)
-        }
+        browseButton { action(browseActions) }
     }
 
 

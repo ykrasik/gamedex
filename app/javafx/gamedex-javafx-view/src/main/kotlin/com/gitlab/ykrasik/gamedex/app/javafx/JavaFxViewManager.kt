@@ -127,7 +127,7 @@ class JavaFxViewManager : Controller(), ViewManager {
     private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
     override fun showRenameMoveGameView(params: RenameMoveGameParams) = renameMoveGameView.showOverlay {
         this.game.valueFromView = params.game
-        this.initialName = params.initialSuggestion
+        this.initialName.valueFromView = params.initialSuggestion
     }
 
     override fun hide(view: RenameMoveGameView) = view.hideOverlay()

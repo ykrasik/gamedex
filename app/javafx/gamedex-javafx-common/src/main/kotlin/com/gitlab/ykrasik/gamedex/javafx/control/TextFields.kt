@@ -42,6 +42,7 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import tornadofx.*
@@ -194,10 +195,11 @@ inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: Cust
         }
     }
 
-    setOnKeyPressed {
-        if (it.code == KeyCode.ESCAPE) {
+    addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+        if (e.code == KeyCode.ESCAPE) {
             clear()
             clearButton.requestFocus()
+            e.consume()
         }
     }
 

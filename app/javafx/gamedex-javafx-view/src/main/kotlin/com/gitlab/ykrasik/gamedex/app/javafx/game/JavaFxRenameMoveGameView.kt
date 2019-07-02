@@ -21,15 +21,18 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.settableList
+import com.gitlab.ykrasik.gamedex.javafx.binding
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
+import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.header
+import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.logo
+import com.gitlab.ykrasik.gamedex.javafx.theme.subHeader
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.geometry.HPos
 import javafx.scene.layout.Priority
 import tornadofx.*
 import java.io.File
@@ -40,18 +43,15 @@ import java.io.File
  * Time: 19:47
  */
 class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView, ViewCanOpenFile {
-    override var initialName: String? = null
+    override val initialName = userMutableState<String?>(null)
 
     override val game = userMutableState(Game.Null)
 
-    override val possibleLibraries = settableList<Library>()
+    override val newPath = userMutableState("")
+    override val newPathIsValid = state(IsValid.valid)
+    override val newPathLibrary = state(Library.Null)
 
-    override val library = userMutableState(Library.Null)
-    override val path = userMutableState("")
-    override val name = userMutableState("")
-    override val nameIsValid = state(IsValid.valid)
-
-    override val selectDirectoryActions = channel<Unit>()
+    override val browseActions = channel<Unit>()
     override val openFileActions = channel<File>()
 
     init {
@@ -64,48 +64,43 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
         minHeight = 100.0
         top = confirmationToolbar()
         center {
-            form {
-                paddingAll = 10
-                fieldset("From") {
-                    horizontalField {
-                        jfxButton {
-                            textProperty().bind(game.property.stringBinding { it!!.path.toString() })
-                            action(openFileActions) { game.value.path }
-                        }
+            gridpane {
+                hgap = 10.0
+                vgap = 14.0
+                paddingAll = 40
+                row {
+                    subHeader("From")
+                    label {
+                        textProperty().bind(game.property.stringBinding { it!!.library.name })
+                        graphicProperty().bind(game.property.binding { it!!.library.platformOrNull?.logo })
+                    }
+                    jfxButton {
+                        textProperty().bind(game.property.stringBinding { it!!.path.path })
+                        action(openFileActions) { game.value.path }
                     }
                 }
-                fieldset("To") {
-                    horizontalField {
-                        gridpane {
-                            hgap = 5.0
-                            header("Library") { gridpaneConstraints { columnRowIndex(0, 0); hAlignment = HPos.CENTER } }
-                            popoverDynamicComboMenu(
-                                possibleItems = possibleLibraries,
-                                selectedItemProperty = library.property,
-                                text = { it.path.path }
-                            ).apply {
-                                gridpaneConstraints { columnRowIndex(0, 1); hAlignment = HPos.LEFT }
-                            }
-
-                            header("Path") { gridpaneConstraints { columnRowIndex(1, 0); hAlignment = HPos.CENTER } }
-                            jfxButton {
-                                gridpaneConstraints { columnRowIndex(1, 1); hAlignment = HPos.LEFT }
-                                useMaxWidth = true
-                                textProperty().bind(path.property.stringBinding { if (it.isNullOrEmpty()) File.separator else it })
-                                action(selectDirectoryActions)
-                            }
-
-                            header("Name") { gridpaneConstraints { columnRowIndex(2, 0); hAlignment = HPos.CENTER } }
-                            jfxTextField(name.property, promptText = "Enter Name...") {
-                                gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT; hGrow = Priority.ALWAYS }
-                                validWhen(nameIsValid)
+                row {
+                    subHeader("To")
+                    label {
+                        textProperty().bind(newPathLibrary.property.stringBinding { it!!.name })
+                        graphicProperty().bind(newPathLibrary.property.binding { it!!.platformOrNull?.logo })
+                    }
+                    jfxTextField(newPath.property, promptText = "Enter Path...") {
+                        validWhen(newPathIsValid)
+                        paddingLeft = 6.0
+                        gridpaneColumnConstraints { hgrow = Priority.ALWAYS }
+                        sceneProperty().onChange {
+                            if (it != null) {
+                                requestFocus()
+                                end() // Move caret to end of text.
                             }
                         }
                     }
+                    browseButton { action(browseActions) }
                 }
             }
         }
     }
 
-    override fun selectDirectory(initialDirectory: File): File? = chooseDirectory("Browse Path...", initialDirectory)
+    override fun browse(initialDirectory: File): File? = chooseDirectory("Browse Path...", initialDirectory)
 }

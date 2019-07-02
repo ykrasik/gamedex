@@ -30,6 +30,8 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.event.EventTarget
 import javafx.scene.Node
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
@@ -46,13 +48,37 @@ abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : P
     override val acceptActions = channel<Unit>()
     override val cancelActions = channel<Unit>()
 
-    protected inline fun confirmationToolbar(crossinline toolbarOp: HBox.() -> Unit = { centeredWindowHeader() }) = prettyToolbar {
-        cancelButton { action(cancelActions) }
-        toolbarOp()
-        acceptButton {
-            enableWhen(canAccept)
-            action(acceptActions)
+    protected val acceptButton = acceptButton {
+        enableWhen(canAccept)
+        action(acceptActions)
+    }
+    protected val cancelButton = cancelButton { action(cancelActions) }
+
+    init {
+        var installedHandler = false
+        whenDocked {
+            if (installedHandler) return@whenDocked
+            installedHandler = true
+            println("Installing enter/esc handler: $this")
+            root.addEventHandler(KeyEvent.KEY_PRESSED) { e ->
+                if (e.code == KeyCode.ENTER) {
+                    acceptButton.fire()
+                    e.consume()
+                }
+            }
+            root.addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                if (e.code == KeyCode.ESCAPE) {
+                    cancelButton.fire()
+                    e.consume()
+                }
+            }
         }
+    }
+
+    protected fun confirmationToolbar(toolbarOp: HBox.() -> Unit = { centeredWindowHeader() }) = prettyToolbar {
+        children += cancelButton
+        toolbarOp()
+        children += acceptButton
     }
 
     protected fun buildAreYouSure(minHeight: Number? = 150, minWidth: Number? = 400, op: (VBox.() -> Unit)? = null) = borderpane {

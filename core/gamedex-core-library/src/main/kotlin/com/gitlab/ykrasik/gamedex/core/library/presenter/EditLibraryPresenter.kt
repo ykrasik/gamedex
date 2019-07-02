@@ -156,7 +156,7 @@ class EditLibraryPresenter @Inject constructor(
 
         private fun onBrowse() {
             val initialDirectory = settingsService.general.prevDirectory.existsOrNull()
-            val selectedDirectory = view.selectDirectory(initialDirectory)
+            val selectedDirectory = view.browse(initialDirectory)
             if (selectedDirectory != null) {
                 settingsService.general.modify { copy(prevDirectory = selectedDirectory) }
                 view.path *= selectedDirectory.toString()

@@ -48,6 +48,5 @@ interface EditLibraryView : ConfirmationView {
     val canChangePlatform: State<IsValid>
 
     val browseActions: MultiReceiveChannel<Unit>
-
-    fun selectDirectory(initialDirectory: File?): File?
+    fun browse(initialDirectory: File?): File?
 }

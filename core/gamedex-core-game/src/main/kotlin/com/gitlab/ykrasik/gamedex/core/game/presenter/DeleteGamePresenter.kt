@@ -52,7 +52,12 @@ class DeleteGamePresenter @Inject constructor(
 
         private suspend fun onAccept() {
             if (view.fromFileSystem.value) {
-                fileSystemService.delete(game.path)
+                if (game.path.exists()) {
+                    fileSystemService.delete(game.path)
+                } else {
+                    view.onError(game.path.toString(), title = "File doesn't exist!")
+                    return
+                }
             }
 
             taskService.execute(gameService.delete(game))

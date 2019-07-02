@@ -59,7 +59,7 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
     }
 
     private fun showErrorDialog(error: Throwable) {
-        val cause = Label(if (error.cause != null) error.cause?.message else "").apply {
+        val cause = Label(error.cause?.message ?: "").apply {
             style = "-fx-font-weight: bold"
         }
 
@@ -70,7 +70,7 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
         }
 
         Alert(Alert.AlertType.ERROR).apply {
-            title = error.message ?: "An error occured"
+            title = error.message ?: "An error occurred"
             isResizable = true
             headerText = if (error.stackTrace?.isEmpty() != false) "Error" else "Error in " + error.stackTrace[0].toString()
             dialogPane.content = VBox().apply {

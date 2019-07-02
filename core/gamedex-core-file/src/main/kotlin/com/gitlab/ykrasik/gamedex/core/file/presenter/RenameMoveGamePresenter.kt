@@ -16,17 +16,19 @@
 
 package com.gitlab.ykrasik.gamedex.core.file.presenter
 
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.file
-import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -39,90 +41,119 @@ import javax.inject.Singleton
  */
 @Singleton
 class RenameMoveGamePresenter @Inject constructor(
-    private val commonData: CommonData,
     private val gameService: GameService,
+    private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
     private val taskService: TaskService,
     private val eventBus: EventBus
 ) : Presenter<RenameMoveGameView> {
     override fun present(view: RenameMoveGameView) = object : ViewSession() {
         private val log = logger()
+
         private val game by view.game
-        private var library by view.library
-        private var path by view.path
-        private var name by view.name
+        private var newPath by view.newPath
+        private var newPathLibrary by view.newPathLibrary
 
         init {
-            commonData.contentLibraries.bind(view.possibleLibraries)
-            view.library.forEach { validate() }
-            view.path.forEach { validate() }
-            view.name.forEach { validate() }
+            view.newPath.forEach { onPathChanged() }
 
-            view.selectDirectoryActions.forEach { onSelectDirectory() }
+            view.browseActions.forEach { onBrowse() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShown() {
-            library = game.library
-            name = view.initialName ?: game.metadata.path.file.name
-            path = game.metadata.path.file.let { it.parentFile?.path ?: "" }
-            validate()
+            newPath = (view.initialName.value?.let { game.path.parentFile.resolve(it) } ?: game.path).path
+            onPathChanged()
         }
 
-        private fun onSelectDirectory() {
-            val initialDirectory = library.path.resolve(path).let { dir ->
-                if (dir.exists()) dir else library.path
-            }
-            val newPath = view.selectDirectory(initialDirectory)
-            if (newPath != null) {
-                path = newPath.relativeTo(library.path).path
+        private fun onBrowse() {
+            val initialDirectory = when {
+                newPath.file.isDirectory -> newPath.file
+                newPathLibrary.id != Library.Null.id -> newPathLibrary.path
+                else -> game.library.path
+            }.takeIf { it.isDirectory } ?: File(".")
+            val selectedDirectory = view.browse(initialDirectory)
+            if (selectedDirectory != null) {
+                newPath = selectedDirectory.path
+                onPathChanged()
             }
         }
 
-        private fun validate() {
-            view.nameIsValid *= Try {
-                val basePath = library.path.resolve(path).normalize()
-                val validBasePath = basePath.startsWith(library.path) &&
-                    (commonData.contentLibraries - library).none { basePath.startsWith(it.path) }
-                if (!validBasePath) {
-                    error("Path is not in library '${library.name}'!")
-                }
+        private fun onPathChanged() {
+            validateAndDetectLibrary()
+        }
 
-                if (name.isBlank()) {
-                    error("Empty name!")
-                }
+        private fun validateAndDetectLibrary() {
+            view.canAccept *= IsValid.invalid("Loading...")
 
-                check(!name.contains(File.separatorChar)) { "Invalid name!" }
-                try {
-                    Paths.get(basePath.resolve(name).toURI())
-                } catch (_: Exception) {
-                    error("Invalid name!")
-                }
-
-                val file = basePath.resolve(name)
-                if (file.exists()) {
-                    // Windows is case insensitive.
-                    val gamePath = game.path.path
-                    if (file.path == gamePath || !file.path.equals(gamePath, ignoreCase = true)) {
-                        error("Already exists!")
+            launch(Dispatchers.IO) {
+                val pathIsSyntacticallyValid = Try {
+                    check(!newPath.isBlank()) { "Path is required!" }
+                    try {
+                        Paths.get(newPath)
+                    } catch (e: Exception) {
+                        error("Invalid path: ${e.message}")
                     }
                 }
+
+                // Detect library
+                val library = if (pathIsSyntacticallyValid.isSuccess) {
+                    libraryService.libraries.asSequence()
+                        .mapNotNull { library -> matchPath(library) }
+                        .maxBy { it.numElements }
+                        ?.library
+                } else {
+                    null
+                }
+
+                val pathIsValid = pathIsSyntacticallyValid and Try {
+                    checkNotNull(library) { "Path doesn't belong to any library!" }
+
+                    check(game.path.exists()) { "Source path doesn't exist!" }
+
+                    check(newPath != game.path.path) { "Path already exists!" }
+                    if (newPath.file.exists()) {
+                        // Windows is case insensitive and will report that the file already exists, even if there is a case difference.
+                        check(newPath.file.canonicalFile.path.equals(game.path.canonicalFile.path, ignoreCase = true)) { "Path already exists!" }
+                    }
+                }
+
+                withContext(Dispatchers.Main) {
+                    if (library != null) {
+                        newPathLibrary = library
+                    }
+                    view.newPathIsValid *= pathIsValid
+                    view.canAccept *= view.newPathIsValid.value
+                }
             }
-            view.canAccept *= view.nameIsValid.value
+        }
+
+        private fun matchPath(library: Library): LibraryMatch? {
+            val libraryElements = library.path.canonicalPath.split(File.separatorChar)
+            val pathElements = newPath.file.canonicalPath.split(File.separatorChar)
+            libraryElements.forEachIndexed { i, element ->
+                val pathElement = pathElements.getOrNull(i) ?: return null
+                if (pathElement != element) return null
+            }
+            return LibraryMatch(library, numElements = libraryElements.size)
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
-            val newPath = path.file.resolve(name)
-            val fullPath = library.path.resolve(newPath)
-            log.info("Renaming/Moving: ${game.path} -> $fullPath")
 
-            fileSystemService.move(from = game.path, to = fullPath)
+            log.info("Renaming/Moving: ${game.path} -> $newPath")
 
-            taskService.execute(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
-
-            hideView()
+            view.canAccept *= IsValid.invalid("Loading...")
+            try {
+                fileSystemService.move(from = game.path, to = newPath.file)
+                taskService.execute(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = newPathLibrary.id, path = newPath) }))
+                hideView()
+            } catch (e: Exception) {
+                log.error("Error", e)
+                view.onError(e.message!!, "Error!", e)
+                validateAndDetectLibrary()
+            }
         }
 
         private fun onCancel() {
@@ -131,4 +162,9 @@ class RenameMoveGamePresenter @Inject constructor(
 
         private fun hideView() = eventBus.requestHideView(view)
     }
+
+    private data class LibraryMatch(
+        val library: Library,
+        val numElements: Int
+    )
 }

@@ -24,8 +24,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.icon
-import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -83,9 +83,7 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
         jfxTextField(path.property, promptText = "Enter Path...") {
             validWhen(pathIsValid)
         }
-        jfxButton("Browse", Icons.folderOpen.size(24)) {
-            action(browseActions)
-        }
+        browseButton { action(browseActions) }
     }
 
     private fun Fieldset.nameField() = horizontalField("Name") {
@@ -109,5 +107,5 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
         platformComboBox(platform.property)
     }
 
-    override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
+    override fun browse(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
 }

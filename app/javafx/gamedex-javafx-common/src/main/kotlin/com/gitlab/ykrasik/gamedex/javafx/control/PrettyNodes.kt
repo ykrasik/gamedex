@@ -23,7 +23,6 @@ import javafx.animation.Transition
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
-import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Control
 import javafx.scene.control.ListView
@@ -293,11 +292,9 @@ private fun Control.makePrettyScroll(scrollBarClass: String, children: Observabl
     return vBar to hBar
 }
 
-
 inline fun EventTarget.prettyToolbar(spacing: Number = 10, crossinline op: HBox.() -> Unit) = defaultHbox(spacing) {
     addClass(GameDexStyle.prettyToolbar)
     useMaxWidth = true
     hgrow = Priority.ALWAYS
-    alignment = Pos.CENTER_LEFT
     op()
 }

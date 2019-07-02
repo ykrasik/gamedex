@@ -19,10 +19,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
+import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.size
+import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -63,9 +66,7 @@ class JavaFxExportDatabaseView : ConfirmationWindow("Export Database", Icons.exp
                         jfxTextField(exportDatabaseDirectory.property, promptText = "Enter Path...") {
                             validWhen(exportDatabaseFolderIsValid)
                         }
-                        jfxButton("Browse", Icons.folderOpen.size(24)) {
-                            action(browseActions)
-                        }
+                        browseButton { action(browseActions) }
                     }
                 }
                 fieldset("Export") {

@@ -55,9 +55,23 @@ class OverlayPane : StackPane() {
 
             val last = visibleLayers.lastOrNull()
             last?._activeProperty?.set(true)
-            last?.view?.root?.requestFocus()
+
+            // Don't steal focus from already focused nodes.
+            if (last?.hasFocus == false) {
+                last.view.root.requestFocus()
+            }
         }
     }
+
+    private val OverlayLayer.hasFocus: Boolean
+        get() {
+            var checkedNode = scene.focusOwner
+            while (checkedNode != null) {
+                if (checkedNode === view.root) return true
+                checkedNode = checkedNode.parent
+            }
+            return false
+        }
 
     fun show(view: View, modal: Boolean, onExternalCloseRequested: () -> Unit, customizeOverlay: OverlayLayer.() -> Unit) =
         show(OverlayLayer(view, modal, onExternalCloseRequested).also(customizeOverlay))

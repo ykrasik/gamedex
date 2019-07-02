@@ -195,6 +195,7 @@ class JavaFxGameDetailsView(
 
             warningButton("Rename/Move Folder", Icons.folderEdit) {
                 action(renameMoveGameActions) { RenameMoveGameParams(game.value, initialSuggestion = null) }
+                shortcut("ctrl+r")
             }
             deleteButton("Delete") {
                 useMaxWidth = true

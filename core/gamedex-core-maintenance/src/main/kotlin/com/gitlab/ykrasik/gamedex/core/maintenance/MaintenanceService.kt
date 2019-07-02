@@ -110,6 +110,7 @@ class MaintenanceServiceImpl @Inject constructor(
     override fun exportDatabase(dir: File, params: ImportExportParams) = task("Exporting Database...") {
         val file = dir.resolve("GameDex ${now.defaultTimeZone.toString("yyyy-MM-dd HH_mm_ss")}.zip")
         file.create()
+        successMessage = { file.absolutePath }
 
         ZipOutputStream(file.outputStream()).use { zos ->
             fun write(entry: String, data: Any) {
@@ -151,7 +152,6 @@ class MaintenanceServiceImpl @Inject constructor(
             incProgress()
         }
 
-        successMessage = { "Database exported: ${file.absolutePath}" }
         file
     }
 
