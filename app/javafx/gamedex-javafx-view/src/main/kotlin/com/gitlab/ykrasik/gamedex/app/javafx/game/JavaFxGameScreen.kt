@@ -188,12 +188,6 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             shortcut("ctrl+f") { requestFocus() }
             val textField = this
 
-            addEventFilter(KeyEvent.KEY_PRESSED) { e ->
-                if (e.code == KeyCode.ENTER) {
-                    searchButton.fire()
-                }
-            }
-
             popOver(PopOver.ArrowLocation.TOP_LEFT) {
                 prettyListView(searchSuggestions) {
                     maxHeight = 12 * 23.0
@@ -240,23 +234,28 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                         }
                     }
 
-                    setOnKeyPressed {
-                        when (it.code) {
-                            KeyCode.ENTER -> if (selectedItem != null) showGameDetails(selectedItem!!)
-                            KeyCode.LEFT -> positionCaret(caretPosition - 1)
-                            KeyCode.RIGHT -> positionCaret(caretPosition + 1)
-//                        KeyCode.HOME -> positionCaret(0)
-//                        KeyCode.END -> positionCaret(text.length)
-                            else -> Unit
+                    addEventHandler(KeyEvent.KEY_PRESSED) { e ->
+                        val shouldConsume = when (e.code) {
+                            KeyCode.ENTER -> {
+                                if (selectedItem != null) {
+                                    showGameDetails(selectedItem!!)
+                                } else {
+                                    searchButton.fire()
+                                }
+                                true
+                            }
+                            KeyCode.LEFT -> positionCaret(caretPosition - 1).let { true }
+                            KeyCode.RIGHT -> positionCaret(caretPosition + 1).let { true }
+                            KeyCode.HOME -> positionCaret(0).let { true }
+                            KeyCode.END -> positionCaret(text.length).let { true }
+                            else -> false
+                        }
+                        if (shouldConsume) {
+                            e.consume()
                         }
                     }
                 }
             }.apply {
-                addEventFilter(KeyEvent.KEY_PRESSED) { e ->
-                    if (e.code == KeyCode.ENTER) {
-                        searchButton.fire()
-                    }
-                }
                 arrowSize = 0.0
                 fun showUnderTextField() {
                     val bounds = textField.boundsInScreen
