@@ -45,6 +45,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
             "search by name & platform" test {
                 server.anyRequest() willReturnSearch listOf(searchResult)
 
+                val name = "testName"
                 val search = client.search(name, platform, account)
                 search shouldBe listOf(searchResult)
 
@@ -58,6 +59,21 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                                 fields ${searchFields.joinToString(",")};
                                 where name ~ *"$name"* & release_dates.platform = $platformId;
                                 limit $maxSearchResults;
+                            """.trimIndent()
+                        )
+                )
+            }
+
+            "split search name by whitespace & remove non-word characters" test {
+                server.anyRequest() willReturnSearch listOf(searchResult)
+
+                client.search("name with\tspace & other-characters: yes\nno,   maybe", platform, account)
+
+                server.verify(
+                    postRequestedFor(urlPathEqualTo("/"))
+                        .withBodyContaining(
+                            """
+                                where name ~ *"name"* & name ~ *"with"* & name ~ *"space"* & name ~ *"other"* & name ~ *"characters"* & name ~ *"yes"* & name ~ *"no"* & name ~ *"maybe"*
                             """.trimIndent()
                         )
                 )

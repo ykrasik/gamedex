@@ -18,8 +18,7 @@ package com.gitlab.ykrasik.gamedex.test
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
-import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 
@@ -44,3 +43,4 @@ fun ResponseDefinitionBuilder.withBinaryBody(content: ByteArray) = withBody(cont
 fun RequestPatternBuilder.withHeader(name: String, value: String) = withHeader(name, equalTo(value))
 fun RequestPatternBuilder.withQueryParam(name: String, value: String) = withQueryParam(name, equalTo(value))
 fun RequestPatternBuilder.withBody(body: String) = withRequestBody(equalTo(body))
+fun RequestPatternBuilder.withBodyContaining(body: String) = withRequestBody(containing(body))

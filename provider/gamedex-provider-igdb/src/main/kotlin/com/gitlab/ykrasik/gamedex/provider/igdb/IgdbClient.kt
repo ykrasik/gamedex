@@ -36,10 +36,14 @@ import javax.inject.Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     open suspend fun search(query: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> =
         post(account) {
+            // Split by non-word characters
+            val queryWords = query.split("[\\W]".toRegex()).asSequence()
+                .filter { it.isNotBlank() }
+                .joinToString(" & ") { """name ~ *"$it"*""" }
             """
                 search "$query";
                 fields $searchFieldsStr;
-                where name ~ *"$query"* & release_dates.platform = ${platform.id};
+                where $queryWords & release_dates.platform = ${platform.id};
                 limit ${config.maxSearchResults};
             """.trimIndent()
         }
