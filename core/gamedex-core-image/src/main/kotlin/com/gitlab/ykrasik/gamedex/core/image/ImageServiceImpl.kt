@@ -50,19 +50,17 @@ class ImageServiceImpl @Inject constructor(
         try {
             cache.getOrPut(url) {
                 GlobalScope.async(Dispatchers.IO) {
-                    val persistedBytes = storage[url]
-                    if (persistedBytes != null) {
-                        createImage(persistedBytes)
-                    } else {
-                        val downloadedImage = createImage(httpClient.download(url))
+                    val bytes = storage[url] ?: run {
+                        val downloadedBytes = httpClient.download(url)
                         // Save downloaded image
                         if (persist) {
                             launch {
-                                storage[url] = downloadedImage.raw
+                                storage[url] = downloadedBytes
                             }
                         }
-                        downloadedImage
+                        downloadedBytes
                     }
+                    createImage(bytes)
                 }
             }.await()
         } catch (e: Exception) {

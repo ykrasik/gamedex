@@ -45,3 +45,6 @@ interface Storage<K, V> {
 
     fun sizes(): Map<K, Long> = ids().map { it to sizeTaken(it) }.toMap()
 }
+
+inline fun <K, V> Storage<K, V>.getOrPut(key: K, default: () -> V): V =
+    get(key) ?: default().apply { set(key, this) }
