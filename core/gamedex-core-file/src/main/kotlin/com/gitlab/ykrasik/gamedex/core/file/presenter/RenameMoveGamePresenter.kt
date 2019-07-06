@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,9 +48,9 @@ class RenameMoveGamePresenter @Inject constructor(
     private val taskService: TaskService,
     private val eventBus: EventBus
 ) : Presenter<RenameMoveGameView> {
-    override fun present(view: RenameMoveGameView) = object : ViewSession() {
-        private val log = logger()
+    private val log = logger()
 
+    override fun present(view: RenameMoveGameView) = object : ViewSession() {
         private val game by view.game
         private var newPath by view.newPath
         private var newPathLibrary by view.newPathLibrary
@@ -146,8 +147,10 @@ class RenameMoveGamePresenter @Inject constructor(
 
             view.canAccept *= IsValid.invalid("Loading...")
             try {
-                fileSystemService.move(from = game.path, to = newPath.file)
-                taskService.execute(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = newPathLibrary.id, path = newPath) }))
+                taskService.execute(task("Moving ${game.path}...") {
+                    fileSystemService.move(from = game.path, to = newPath.file)
+                    executeSubTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = newPathLibrary.id, path = newPath) }))
+                })
                 hideView()
             } catch (e: Exception) {
                 log.error("Error", e)

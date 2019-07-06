@@ -59,7 +59,6 @@ abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : P
         whenDocked {
             if (installedHandler) return@whenDocked
             installedHandler = true
-            println("Installing enter/esc handler: $this")
             root.addEventHandler(KeyEvent.KEY_PRESSED) { e ->
                 if (e.code == KeyCode.ENTER) {
                     acceptButton.fire()

@@ -27,6 +27,8 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.*
+import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.stage.Screen
@@ -174,4 +176,21 @@ inline fun <T> MultiReceiveChannel<T>.forEach(crossinline f: (T) -> Unit) = subs
 inline fun debounce(millis: Long, crossinline f: () -> Unit): Job = GlobalScope.launch(Dispatchers.JavaFx) {
     delay(millis)
     f()
+}
+
+inline fun Node.localShortcut(combination: String, crossinline action: () -> Unit) = localShortcut(KeyCombination.valueOf(combination), action)
+inline fun Node.localShortcut(combination: KeyCombination, crossinline action: () -> Unit) {
+    addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+        if (combination.match(e)) {
+            action()
+            e.consume()
+        }
+    }
+}
+
+fun UIComponent.localShortcut(button: ButtonBase, combination: String) = localShortcut(button, KeyCombination.valueOf(combination))
+fun UIComponent.localShortcut(button: ButtonBase, combination: KeyCombination) {
+    runLater {
+        root.localShortcut(combination) { button.fire() }
+    }
 }

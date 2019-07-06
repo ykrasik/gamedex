@@ -106,8 +106,30 @@ class FileSystemServiceImpl @Inject constructor(
     }
 
     override suspend fun move(from: File, to: File) = withContext(Dispatchers.IO) {
-        to.parentFile.mkdirs()
+        val canonicalFrom = from.canonicalFile
+        val canonicalTo = to.canonicalFile
 
+        val isRename = canonicalFrom.parentFile == canonicalTo.parentFile && from.name != to.name
+        if (isRename) {
+            doMove(from, to)
+            return@withContext
+        }
+
+        val isSubFolderMove = canonicalTo.startsWith(canonicalFrom)
+        if (isSubFolderMove) {
+            val children = from.listFiles()!!
+            to.mkdirs()
+            children.forEach { file ->
+                doMove(file, to.resolve(file.name))
+            }
+            return@withContext
+        }
+
+        to.parentFile.mkdirs()
+        doMove(from, to)
+    }
+
+    private fun doMove(from: File, to: File) {
         // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
         // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
         // and throws an exception if it fails.
