@@ -25,7 +25,9 @@ import java.util.function.Predicate
  * Date: 10/02/2017
  * Time: 09:02
  */
+
 typealias Modifier<T> = T.() -> T
+
 typealias Extractor<T, R> = T.() -> R
 
 fun Any.getResourceAsByteArray(path: String): ByteArray = this::class.java.getResource(path).readBytes()
@@ -58,3 +60,11 @@ fun String.md5(): String {
 fun Double.toString(decimalDigits: Int) = String.format("%.${decimalDigits}f", this)
 fun Double.asPercent() = "${Math.max(Math.min((this * 100).toInt(), 100), 0)}%"
 fun Double.roundBy(step: Double) = Math.round(this / step) * step
+
+val caseInsensitiveStringComparator = Comparator<String> { o1, o2 ->
+    o1.compareTo(o2, ignoreCase = true)
+}
+
+inline fun <T> caseInsensitiveStringComparator(crossinline keyExtractor: (T) -> String) = Comparator<T> { t1, t2 ->
+    keyExtractor(t1).compareTo(keyExtractor(t2), ignoreCase = true)
+}

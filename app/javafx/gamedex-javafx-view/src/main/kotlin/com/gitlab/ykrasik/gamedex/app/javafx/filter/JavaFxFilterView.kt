@@ -31,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.caseInsensitiveStringComparator
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -76,10 +77,22 @@ class JavaFxFilterView(
     override val availableFilters = settableList<KClass<out Filter.Rule>>()
 
     override val availableLibraries = settableList<Library>()
+    private val availableLibrariesSortedFiltered = availableLibraries.sortedFiltered(caseInsensitiveStringComparator(Library::name))
+
     override val availableGenres = settableList<String>()
+    private val availableGenresSortedFiltered = availableGenres.sortedFiltered(caseInsensitiveStringComparator)
+
     override val availableTags = settableList<TagId>()
+    private val availableTagsSortedFiltered = availableTags.sortedFiltered(caseInsensitiveStringComparator)
+
     override val availableFilterTags = settableList<TagId>()
+    private val availableFilterTagsSortedFiltered = availableFilterTags.sortedFiltered(caseInsensitiveStringComparator)
+
     override val availableProviderIds = settableList<ProviderId>()
+    private val availableProviderIdsSortedFiltered = availableProviderIds.sortedFiltered(caseInsensitiveStringComparator)
+
+    override val savedFilters = settableList<NamedFilter>()
+    private val savedFiltersFilteredSorted = savedFilters.sortedFiltered(caseInsensitiveStringComparator(NamedFilter::id))
 
     override val wrapInAndActions = channel<Filter>()
     override val wrapInOrActions = channel<Filter>()
@@ -89,9 +102,6 @@ class JavaFxFilterView(
     override val updateFilterActions = channel<Pair<Filter.Rule, Filter.Rule>>()
     override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
     override val deleteFilterActions = channel<Filter>()
-
-    override val savedFilters = settableList<NamedFilter>()
-    private val sortedFilteredSavedFilters = SortedFilteredList(savedFilters)
 
     override val addOrEditFilterActions = channel<NamedFilter>()
     override val deleteNamedFilterActions = channel<NamedFilter>()
@@ -149,12 +159,11 @@ class JavaFxFilterView(
 
                     val searchProperty = SimpleStringProperty("")
                     searchTextField(this@JavaFxFilterView, searchProperty)
-                    sortedFilteredSavedFilters.filteredItems.predicateProperty().bind(searchProperty.binding { text ->
+                    savedFiltersFilteredSorted.filteredItems.predicateProperty().bind(searchProperty.binding { text ->
                         Predicate<NamedFilter> { filter ->
                             text.isEmpty() || filter.id.contains(text, ignoreCase = true)
                         }
                     })
-                    sortedFilteredSavedFilters.sortedItems.comparator = Comparator { o1, o2 -> o1.id.compareTo(o2.id, ignoreCase = true) }
 
                     addButton(isToolbarButton = false) {
                         alignment = Pos.CENTER
@@ -163,7 +172,7 @@ class JavaFxFilterView(
                         action(addOrEditFilterActions) { NamedFilter.anonymous(filter.value) }
                     }
                     defaultVbox {
-                        sortedFilteredSavedFilters.perform { filters ->
+                        savedFiltersFilteredSorted.perform { filters ->
                             replaceChildren {
                                 gridpane {
                                     hgap = 5.0
@@ -207,11 +216,11 @@ class JavaFxFilterView(
                     reRender()
                 }
             }
-            availableLibraries.onChange { conditionalReRender(Filter.Library::class) }
-            availableGenres.onChange { conditionalReRender(Filter.Genre::class) }
-            availableTags.onChange { conditionalReRender(Filter.Tag::class) }
-            availableFilterTags.onChange { conditionalReRender(Filter.FilterTag::class) }
-            availableProviderIds.onChange { conditionalReRender(Filter.Provider::class) }
+            availableLibrariesSortedFiltered.onChange { conditionalReRender(Filter.Library::class) }
+            availableGenresSortedFiltered.onChange { conditionalReRender(Filter.Genre::class) }
+            availableTagsSortedFiltered.onChange { conditionalReRender(Filter.Tag::class) }
+            availableFilterTagsSortedFiltered.onChange { conditionalReRender(Filter.FilterTag::class) }
+            availableProviderIdsSortedFiltered.onChange { conditionalReRender(Filter.Provider::class) }
         }
     }
 
@@ -397,11 +406,11 @@ class JavaFxFilterView(
         // Currently there's no other solution but to tolerate this situation, as the presenter in charge of
         // the platform filter will call us just a bit later and fix it.
         val library = filter.toProperty(
-            { availableLibraries.find { it.id == id } ?: Library.Null },
+            { availableLibrariesSortedFiltered.find { it.id == id } ?: Library.Null },
             { Filter.Library(it.id) }
         )
         popoverComboMenu(
-            possibleItems = availableLibraries,
+            possibleItems = availableLibrariesSortedFiltered,
             selectedItemProperty = library,
             text = { it.name },
             graphic = { it.platformOrNull?.logo }
@@ -411,7 +420,7 @@ class JavaFxFilterView(
     private fun HBox.renderGenreFilter(filter: Filter.Genre) {
         val genre = filter.toProperty(Filter.Genre::genre, Filter::Genre)
         popoverComboMenu(
-            possibleItems = availableGenres,
+            possibleItems = availableGenresSortedFiltered,
             selectedItemProperty = genre
         )
     }
@@ -419,7 +428,7 @@ class JavaFxFilterView(
     private fun HBox.renderTagFilter(filter: Filter.Tag) {
         val tag = filter.toProperty(Filter.Tag::tag, Filter::Tag)
         popoverComboMenu(
-            possibleItems = availableTags,
+            possibleItems = availableTagsSortedFiltered,
             selectedItemProperty = tag
         )
     }
@@ -427,7 +436,7 @@ class JavaFxFilterView(
     private fun HBox.renderFilterTagFilter(filter: Filter.FilterTag) {
         val tag = filter.toProperty(Filter.FilterTag::tag, Filter::FilterTag)
         popoverComboMenu(
-            possibleItems = availableFilterTags,
+            possibleItems = availableFilterTagsSortedFiltered,
             selectedItemProperty = tag
         )
     }
@@ -435,7 +444,7 @@ class JavaFxFilterView(
     private fun HBox.renderProviderFilter(filter: Filter.Provider) {
         val provider = filter.toProperty(Filter.Provider::providerId, Filter::Provider)
         popoverComboMenu(
-            possibleItems = availableProviderIds,
+            possibleItems = availableProviderIdsSortedFiltered,
             selectedItemProperty = provider,
             graphic = { commonOps.providerLogo(it).toImageView(height = 28) },
             itemOp = { alignment = Pos.CENTER }

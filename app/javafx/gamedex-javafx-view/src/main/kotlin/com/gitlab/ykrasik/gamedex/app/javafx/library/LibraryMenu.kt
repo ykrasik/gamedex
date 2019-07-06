@@ -26,11 +26,12 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.settableList
+import com.gitlab.ykrasik.gamedex.javafx.settableSortedFilteredList
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.caseInsensitiveStringComparator
 import javafx.geometry.Pos
 import tornadofx.*
 import java.io.File
@@ -46,7 +47,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
     ViewCanDeleteLibrary,
     ViewCanOpenFile {
 
-    override val libraries = settableList<Library>()
+    override val libraries = settableSortedFilteredList(comparator = caseInsensitiveStringComparator(Library::name))
 
     override val canAddOrEditLibraries = state(IsValid.valid)
     override val addOrEditLibraryActions = channel<Library?>()

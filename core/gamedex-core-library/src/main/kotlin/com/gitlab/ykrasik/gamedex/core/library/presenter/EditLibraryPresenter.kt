@@ -29,6 +29,7 @@ import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -77,7 +78,9 @@ class EditLibraryPresenter @Inject constructor(
 
             setCanAccept()
             if (library == null) {
-                onBrowse()
+                launch {
+                    onBrowse()
+                }
             }
         }
 

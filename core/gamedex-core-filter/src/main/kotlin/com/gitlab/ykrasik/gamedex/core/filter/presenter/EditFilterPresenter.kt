@@ -107,7 +107,8 @@ class EditFilterPresenter @Inject constructor(
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val filterToOverwrite = if (name != initialNamedFilter.id) {
+            val isRenamed = name != initialNamedFilter.id
+            val filterToOverwrite = if (isRenamed) {
                 filterService.userFilters.find { it.id == name }
             } else {
                 null
@@ -124,7 +125,7 @@ class EditFilterPresenter @Inject constructor(
             )
 
             taskService.execute(filterService.save(namedFilter))
-            if (filterToOverwrite != null && !initialNamedFilter.isAnonymous) {
+            if (!initialNamedFilter.isAnonymous && isRenamed) {
                 taskService.execute(filterService.delete(initialNamedFilter))
             }
 
