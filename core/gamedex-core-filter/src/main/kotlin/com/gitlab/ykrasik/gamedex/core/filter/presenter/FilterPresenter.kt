@@ -190,8 +190,22 @@ class FilterPresenter @Inject constructor(
         private fun Filter.replace(target: Filter, with: Filter): Filter {
             fun doReplace(current: Filter): Filter = when {
                 current === target -> with
-                current is Filter.Compound -> newCompoundFilter(current, transform = ::doReplace)()
-                current is Filter.Modifier -> newModifierFilter(current, transform = ::doReplace)()
+                current is Filter.Compound -> {
+                    val newTargets = current.targets.map { doReplace(it) }
+                    if (newTargets == current.targets) {
+                        current
+                    } else {
+                        metaFilters[current::class]!!.withParams(newTargets)()
+                    }
+                }
+                current is Filter.Modifier -> {
+                    val newTarget = doReplace(current.target)
+                    if (newTarget === current.target) {
+                        current
+                    } else {
+                        metaFilters[current::class]!!.withParams(newTarget)()
+                    }
+                }
                 else -> current
             }
             return doReplace(this).flatten()

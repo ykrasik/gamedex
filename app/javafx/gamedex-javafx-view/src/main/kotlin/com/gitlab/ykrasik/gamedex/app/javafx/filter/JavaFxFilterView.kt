@@ -237,7 +237,7 @@ class JavaFxFilterView(
         }
     }
 
-    private fun Node.reRender(filter: Filter = this@JavaFxFilterView.filter.property.value, prevFilter: Filter? = null): Unit = replaceChildren {
+    private fun Node.reRender(filter: Filter = this@JavaFxFilterView.filter.value, prevFilter: Filter? = null): Unit = replaceChildren {
         prevCache.clear()
         prevCache.putAll(currentCache)
         currentCache.clear()
