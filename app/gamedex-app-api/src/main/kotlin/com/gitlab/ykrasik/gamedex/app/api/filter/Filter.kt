@@ -349,3 +349,4 @@ fun Filter.find(target: KClass<out Filter>): Filter? {
     }
     return doFind(this)
 }
+fun Filter.hasFilter(target: KClass<out Filter>): Boolean = find(target) != null

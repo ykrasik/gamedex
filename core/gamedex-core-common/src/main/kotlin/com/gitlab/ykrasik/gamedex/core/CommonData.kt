@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
@@ -83,7 +84,7 @@ class CommonDataImpl @Inject constructor(
     // The platform doesn't change often, so an unoptimized filter is acceptable here.
     override val platformGames =
         games.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
-            { game: Game -> game.platform == platform }
+            { game: Game -> platform.matches(game.platform) }
         })
 
     override val genres = games.genres()
@@ -102,13 +103,18 @@ class CommonDataImpl @Inject constructor(
     override val contentLibraries = libraries.filtering { it.type != LibraryType.Excluded }
     override val platformLibraries =
         contentLibraries.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
-            { library: Library -> library.platform == platform }
+            { library: Library -> platform.matches(library.platform) }
         })
 
     override val allProviders = ListObservableImpl(gameProviderService.allProviders)
     override val platformProviders =
         allProviders.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
-            { provider: GameProvider -> provider.supports(platform) }
+            { provider: GameProvider ->
+                when (platform) {
+                    is AvailablePlatform.All -> true
+                    is AvailablePlatform.SinglePlatform -> provider.supports(platform.platform)
+                }
+            }
         })
     override val enabledProviders = gameProviderService.enabledProviders
 

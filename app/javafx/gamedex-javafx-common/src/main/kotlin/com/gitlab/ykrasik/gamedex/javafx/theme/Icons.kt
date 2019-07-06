@@ -158,6 +158,7 @@ object Icons {
     val cloud get() = fontIcon(MaterialDesign.MDI_CLOUD_OUTLINE)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
+    val devices get() = fontIcon(MaterialDesign.MDI_MONITOR_CELLPHONE)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)
     val linux get() = fontIcon(MaterialDesign.MDI_UBUNTU, Color.ORANGERED)
     val android get() = fontIcon(MaterialDesign.MDI_ANDROID, Color.FORESTGREEN)

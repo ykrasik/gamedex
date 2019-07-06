@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
@@ -26,7 +28,31 @@ import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
  * Time: 09:43
  */
 interface ViewWithPlatform {
-    val availablePlatforms: SettableList<Platform>
+    val availablePlatforms: SettableList<AvailablePlatform>
 
-    val currentPlatform: UserMutableState<Platform>
+    val currentPlatform: UserMutableState<AvailablePlatform>
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = AvailablePlatform.SinglePlatform::class, name = "platform"),
+    JsonSubTypes.Type(value = AvailablePlatform.All::class, name = "all")
+)
+sealed class AvailablePlatform {
+    data class SinglePlatform(val platform: Platform) : AvailablePlatform() {
+        override fun toString() = platform.toString()
+    }
+
+    object All : AvailablePlatform() {
+        override fun toString() = "All"
+    }
+
+    fun matches(platform: Platform) = when (this) {
+        is All -> true
+        is SinglePlatform -> this.platform == platform
+    }
+
+    companion object {
+        val values = listOf(All) + Platform.values().map(::SinglePlatform)
+    }
 }

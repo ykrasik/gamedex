@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
+import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithPlatform
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -36,7 +37,17 @@ class PlatformPresenter @Inject constructor(
 ) : Presenter<ViewWithPlatform> {
     override fun present(view: ViewWithPlatform) = object : ViewSession() {
         init {
-            commonData.platformsWithLibraries.bind(view.availablePlatforms)
+            commonData.platformsWithLibraries.itemsChannel.forEach { platforms ->
+                val availablePlatforms = (if (platforms.size > 1) listOf(AvailablePlatform.All) else emptyList()) +
+                    platforms.map(AvailablePlatform::SinglePlatform)
+                view.availablePlatforms.setAll(availablePlatforms)
+
+                if (availablePlatforms.size == 1) {
+                    val platform = availablePlatforms.first()
+                    view.currentPlatform *= platform
+                    settingsService.game.modify { copy(platform = platform) }
+                }
+            }
             settingsService.game.bind({ platformChannel }, view.currentPlatform) { copy(platform = it) }
         }
     }

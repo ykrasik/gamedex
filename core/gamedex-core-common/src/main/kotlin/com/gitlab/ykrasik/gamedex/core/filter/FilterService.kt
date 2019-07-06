@@ -48,6 +48,7 @@ interface FilterService {
     fun calcFilterTags(game: Game): List<TagId>
 
     fun filter(games: List<Game>, filter: Filter): List<Game>
+    fun filter(games: Sequence<Game>, filter: Filter): Sequence<Game>
 }
 
 sealed class FilterEvent : CoreEvent {

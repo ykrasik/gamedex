@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -46,12 +46,12 @@ class CurrentPlatformFilterRepository @Inject constructor(
         eventBus.on<DatabaseInvalidatedEvent> {
             // Drop any filters we may currently have - they may be incorrect for the new database (point to non-existing libraries).
             // FIXME: Don't do this, instead allow filters to be invalid instead of throwing exceptions.
-            Platform.values().forEach { platform ->
+            AvailablePlatform.values.forEach { platform ->
                 filterService.putSystemFilter(filterName(platform), Filter.Null)
             }
         }
 
-        Platform.values().forEach { platform ->
+        AvailablePlatform.values.forEach { platform ->
             // Init default filter for all platforms.
             filterService.getOrPutSystemFilter(filterName(platform)) { Filter.Null }
         }
@@ -67,5 +67,5 @@ class CurrentPlatformFilterRepository @Inject constructor(
         _currentPlatformFilter.offer(filter)
     }
 
-    private fun filterName(platform: Platform) = "${CurrentPlatformFilterRepository::class.qualifiedName!!}_$platform"
+    private fun filterName(platform: AvailablePlatform) = "${CurrentPlatformFilterRepository::class.qualifiedName!!}_$platform"
 }

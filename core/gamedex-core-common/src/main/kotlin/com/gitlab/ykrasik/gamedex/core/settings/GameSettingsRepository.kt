@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDisplayType
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
@@ -28,7 +29,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
  */
 class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GameSettingsRepository.Data>() {
     data class Data(
-        val platform: Platform,
+        val platform: AvailablePlatform,
         val displayType: GameDisplayType,
         val sortBy: SortBy,
         val sortOrder: SortOrder
@@ -36,7 +37,7 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
 
     override val storage = factory("game", Data::class) {
         Data(
-            platform = Platform.Windows,
+            platform = AvailablePlatform.SinglePlatform(Platform.Windows),
             displayType = GameDisplayType.Wall,
             sortBy = SortBy.CriticScore,
             sortOrder = SortOrder.Desc

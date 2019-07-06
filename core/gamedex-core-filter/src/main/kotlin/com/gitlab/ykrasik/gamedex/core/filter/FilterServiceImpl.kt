@@ -103,6 +103,15 @@ class FilterServiceImpl @Inject constructor(
         }
     }
 
+    override fun filter(games: Sequence<Game>, filter: Filter): Sequence<Game> {
+        return if (filter.isEmpty) {
+            games
+        } else {
+            val context = createContext()
+            games.filter { filter.evaluate(it, context) }
+        }
+    }
+
 //    private fun calc(report: Report, games: List<Game>) = task("Calculating report '${report.name}'...") {
 //        val context = filterService.createContext()
 //

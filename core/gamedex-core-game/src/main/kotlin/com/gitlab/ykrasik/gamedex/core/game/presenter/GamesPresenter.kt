@@ -34,6 +34,9 @@ import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.time
+import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,6 +54,8 @@ class GamesPresenter @Inject constructor(
     private val repo: CurrentPlatformFilterRepository,
     private val eventBus: EventBus
 ) : Presenter<ViewWithGames> {
+    private val log = logger()
+
     override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
             commonData.platformGames.bind(view.games)
@@ -94,27 +99,34 @@ class GamesPresenter @Inject constructor(
             }
         }
 
-        private fun onSearchTextChanged(search: String) {
-            val suggestions = if (search.isNotBlank()) {
-                val matchingGames = gameSearchService.search(search, settingsService.game.platform)
-                matchingGames.take(20)
+        private fun onSearchTextChanged(query: String) {
+            val suggestions = if (query.isNotBlank()) {
+                search(query).take(20).toList()
             } else {
                 emptyList()
             }
             view.searchSuggestions.setAll(suggestions)
         }
 
-        private fun setSearchAndFilter(search: String, filter: Filter) {
-            val searchedGames = gameSearchService.search(search, settingsService.game.platform)
-            val matchingGames = filterService.filter(searchedGames, filter)
-            val isEmpty = filter.isEmpty && search.isBlank()
-            val matchingGameIds: Set<GameId> = if (!isEmpty) matchingGames.mapTo(mutableSetOf()) { it.id } else emptySet()
+        private fun setSearchAndFilter(query: String, filter: Filter) {
+            val isEmpty = filter.isEmpty && query.isBlank()
+            val matchingGameIds: Set<GameId> = if (!isEmpty) {
+                log.time("Filtering games...", { timeTaken, results -> "${results.size} results in $timeTaken" }, Logger::trace) {
+                    val searchedGames = search(query)
+                    val matchingGames = filterService.filter(searchedGames, filter)
+                    matchingGames.mapTo(mutableSetOf()) { it.id }
+                }
+            } else {
+                emptySet()
+            }
             view.filter *= { game: Game ->
                 isEmpty || matchingGameIds.contains(game.id)
             }
-
-            view.searchSuggestions.clear()
         }
+
+        private fun search(query: String): Sequence<Game> =
+            gameSearchService.search(query).asSequence()
+                .filter { settingsService.game.platform.matches(it.platform) }
     }
 
     private companion object {

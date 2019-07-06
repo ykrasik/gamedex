@@ -200,7 +200,18 @@ class JavaFxFilterView(
         }
         vbox {
             filter.property.addListener { _, oldValue, newValue -> reRender(newValue, prevFilter = oldValue) }
-            availableFilters.onChange { reRender(filter.property.value, prevFilter = null) }
+            availableFilters.onChange { reRender() }
+
+            fun conditionalReRender(klass: KClass<out Filter>) {
+                if (filter.value.hasFilter(klass)) {
+                    reRender()
+                }
+            }
+            availableLibraries.onChange { conditionalReRender(Filter.Library::class) }
+            availableGenres.onChange { conditionalReRender(Filter.Genre::class) }
+            availableTags.onChange { conditionalReRender(Filter.Tag::class) }
+            availableFilterTags.onChange { conditionalReRender(Filter.FilterTag::class) }
+            availableProviderIds.onChange { conditionalReRender(Filter.Provider::class) }
         }
     }
 
@@ -226,7 +237,7 @@ class JavaFxFilterView(
         }
     }
 
-    private fun Node.reRender(filter: Filter, prevFilter: Filter?): Unit = replaceChildren {
+    private fun Node.reRender(filter: Filter = this@JavaFxFilterView.filter.property.value, prevFilter: Filter? = null): Unit = replaceChildren {
         prevCache.clear()
         prevCache.putAll(currentCache)
         currentCache.clear()

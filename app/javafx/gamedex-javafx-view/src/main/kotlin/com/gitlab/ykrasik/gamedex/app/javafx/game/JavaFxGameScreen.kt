@@ -17,17 +17,13 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.logo
-import com.gitlab.ykrasik.gamedex.javafx.theme.ratingColor
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.util.toPredicate
 import com.gitlab.ykrasik.gamedex.util.toString
@@ -67,8 +63,8 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val sort = state(Comparator.comparing(Game::name))
     override val filter = state { _: Game -> true }
 
-    override val availablePlatforms = settableList<Platform>()
-    override val currentPlatform = userMutableState(Platform.Windows)
+    override val availablePlatforms = settableList<AvailablePlatform>()
+    override val currentPlatform = userMutableState<AvailablePlatform>(AvailablePlatform.All)
 
     override val gameDisplayType = userMutableState(GameDisplayType.Wall)
 
@@ -95,7 +91,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         popoverDynamicComboMenu(
             possibleItems = availablePlatforms,
             selectedItemProperty = currentPlatform.property,
-            text = Platform::displayName,
+            text = { it.displayName },
             graphic = { it.logo },
             arrowLocation = PopOver.ArrowLocation.LEFT_TOP
         ).apply {
@@ -320,6 +316,18 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             GameDisplayType.Wall -> Icons.grid
             GameDisplayType.List -> Icons.list
         }
+
+    private val AvailablePlatform.displayName
+        get() = when (this) {
+            is AvailablePlatform.All -> "All"
+            is AvailablePlatform.SinglePlatform -> platform.displayName
+        }
+
+    private val AvailablePlatform.logo
+        get() = when (this) {
+            is AvailablePlatform.All -> Icons.devices
+            is AvailablePlatform.SinglePlatform -> platform.logo
+        }.size(26)
 
     class Style : Stylesheet() {
         companion object {
