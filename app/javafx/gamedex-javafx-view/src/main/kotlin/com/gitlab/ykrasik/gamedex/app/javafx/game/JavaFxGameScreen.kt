@@ -68,7 +68,6 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val filter = state { _: Game -> true }
 
     override val availablePlatforms = settableList<Platform>()
-
     override val currentPlatform = userMutableState(Platform.Windows)
 
     override val gameDisplayType = userMutableState(GameDisplayType.Wall)
@@ -90,7 +89,21 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     private val gameWallView = GameWallView(games)
     private val gameListView = GameListView(games)
 
-    private val filterView = JavaFxFilterView()
+    private val filterView = JavaFxFilterView {
+        // Add a platform selection button
+        children += Icons.computer.apply { paddingLeft = 12.0 }
+        popoverDynamicComboMenu(
+            possibleItems = availablePlatforms,
+            selectedItemProperty = currentPlatform.property,
+            text = Platform::displayName,
+            graphic = { it.logo },
+            arrowLocation = PopOver.ArrowLocation.LEFT_TOP
+        ).apply {
+            addClass(GameDexStyle.toolbarButton, Style.platformButton)
+            contentDisplay = ContentDisplay.RIGHT   // Putting this in the stylesheet causes JavaFx to behave buggily.
+            mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
+        }
+    }
     override val currentPlatformFilter = filterView.userMutableState
     override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
 
@@ -104,15 +117,16 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     }
 
     override fun HBox.buildToolbar() {
+        label(games.sizeProperty.stringBinding { "Games: $it" }) {
+            addClass(Style.gamesLabel)
+        }
         displayTypeButton()
         sortButton()
         filterButton()
-        gap(size = 40)
+
+        gap()
+
         searchField()
-
-        spacer()
-
-        platformButton()
     }
 
     override val root = stackpane {
@@ -287,18 +301,6 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         add(searchButton)
     }
 
-    private fun EventTarget.platformButton() = popoverDynamicComboMenu(
-        possibleItems = availablePlatforms,
-        selectedItemProperty = currentPlatform.property,
-        text = Platform::displayName,
-        graphic = { it.logo }
-    ).apply {
-        addClass(GameDexStyle.toolbarButton, Style.platformButton)
-        contentDisplay = ContentDisplay.RIGHT
-        textProperty().cleanBind(games.sizeProperty.stringBinding { "Games: ${"%4d".format(it)}" })
-        mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
-    }
-
     private val SortBy.icon
         get() = when (this) {
             SortBy.Name -> Icons.text
@@ -322,6 +324,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     class Style : Stylesheet() {
         companion object {
             val platformButton by cssclass()
+            val gamesLabel by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -332,6 +335,12 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             platformButton {
                 fontSize = 15.px
                 fontWeight = FontWeight.BOLD
+                focusTraversable = false
+            }
+            gamesLabel {
+                fontSize = 15.px
+                fontWeight = FontWeight.BOLD
+                minWidth = 120.px
             }
         }
     }

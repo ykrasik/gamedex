@@ -27,6 +27,7 @@ import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.VBox
+import org.controlsfx.control.PopOver
 import tornadofx.action
 import tornadofx.replaceChildren
 import tornadofx.stringBinding
@@ -76,9 +77,10 @@ inline fun <T> EventTarget.popoverDynamicComboMenu(
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node?)? = null,
     buttonGraphic: Node? = null,
+    arrowLocation: PopOver.ArrowLocation? = null,
     crossinline itemOp: JFXButton.() -> Unit = {},
     crossinline menuOp: VBox.(T) -> Unit = {}
-) = buttonWithPopover {
+) = buttonWithPopover(arrowLocation = arrowLocation) {
     possibleItems.perform { items ->
         replaceChildren {
             items.forEach { item ->

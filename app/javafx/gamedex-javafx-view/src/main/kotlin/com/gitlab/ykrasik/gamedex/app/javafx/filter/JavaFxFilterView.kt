@@ -59,7 +59,11 @@ import kotlin.reflect.KClass
  * Date: 27/01/2018
  * Time: 13:07
  */
-class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Boolean = false) : PresentableView(),
+class JavaFxFilterView(
+    allowSaveLoad: Boolean = true,
+    private val readOnly: Boolean = false,
+    private val preProcessHeader: HBox.() -> Unit = {}
+) : PresentableView(),
     FilterView,
     ViewWithFilters,
     ViewCanAddOrEditFilter,
@@ -136,6 +140,7 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
         isMouseTransparent = readOnly
         if (allowSaveLoad) {
             defaultHbox {
+                preProcessHeader()
                 spacer()
                 buttonWithPopover("Saved Filters", Icons.files.size(22), arrowLocation = PopOver.ArrowLocation.LEFT_TOP, closeOnAction = false) {
                     setFilterActions.forEach { hide() }
@@ -186,6 +191,8 @@ class JavaFxFilterView(allowSaveLoad: Boolean = true, private val readOnly: Bool
                         }
                     }
                 }.apply {
+                    addClass(GameDexStyle.toolbarButton)
+                    isFocusTraversable = false
                     tooltip("Saved Filters")
                 }
             }

@@ -268,7 +268,7 @@ class MainView : PresentableView("GameDex"),
         init {
             navigationButton {
                 fontWeight = FontWeight.BOLD
-                padding = box(top = 0.px, bottom = 0.px, left = 10.px, right = 40.px)
+                padding = box(top = 0.px, bottom = 0.px, left = 10.px, right = 10.px)
             }
         }
     }
