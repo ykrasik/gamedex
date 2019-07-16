@@ -49,5 +49,5 @@ data class FolderNameDiff(
     val providerId: ProviderId,
     val folderName: String,
     val expectedFolderName: String,
-    val patch: Patch<Char>
+    val patch: Patch<Char>?
 )

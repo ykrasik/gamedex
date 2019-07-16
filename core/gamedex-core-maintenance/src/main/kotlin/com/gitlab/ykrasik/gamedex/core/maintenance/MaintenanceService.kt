@@ -316,19 +316,26 @@ class MaintenanceServiceImpl @Inject constructor(
         successMessage = null
 
         gameService.games.mapNotNull { game ->
-            val diffs = game.providerData.mapNotNull { providerData ->
+            val diffs = game.providerData.map { providerData ->
                 diff(game.folderName, providerData)
             }
             // TODO: If a majority of the providers agree on the name, this should not be a diff.
-            if (diffs.isNotEmpty()) FolderNameDiffs(game, diffs) else null
+            if (diffs.any { it.patch != null }) {
+                FolderNameDiffs(game, diffs.sortedBy { it.providerId })
+            } else {
+                null
+            }
         }
     }
 
-    private fun diff(folderName: FolderName, providerData: ProviderData): FolderNameDiff? {
+    private fun diff(folderName: FolderName, providerData: ProviderData): FolderNameDiff {
         val expectedFolderName = providerData.toExpectedName(folderName)
-        if (folderName.rawName == expectedFolderName) return null
+        val patch = if (folderName.rawName != expectedFolderName) {
+            DiffUtils.diff(folderName.rawName.toList(), expectedFolderName.toList())
+        } else {
+            null
+        }
 
-        val patch = DiffUtils.diff(folderName.rawName.toList(), expectedFolderName.toList())
         return FolderNameDiff(
             providerId = providerData.providerId,
             folderName = folderName.rawName,

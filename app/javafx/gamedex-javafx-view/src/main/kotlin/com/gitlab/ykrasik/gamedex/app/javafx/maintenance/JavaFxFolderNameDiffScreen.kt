@@ -33,6 +33,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.backButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
+import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import difflib.Chunk
@@ -43,7 +44,6 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import javafx.scene.text.TextFlow
 import tornadofx.*
 
 /**
@@ -100,18 +100,33 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
             graphic = HBox().apply {
                 spacing = 20.0
                 addClass(Style.diffItem)
-                stackpane {
-                    minWidth = 160.0
-                    alignment = Pos.CENTER
-                    children += commonOps.providerLogo(diff.providerId).toImageView(height = 80.0, width = 160.0)
-                }
-                form {
-                    alignment = Pos.CENTER
-                    fieldset {
-                        horizontalField("Expected") { render(diff.expectedFolderName, diff.patch.deltas) { it.revised } }
-                        horizontalField("Actual") { render(diff.folderName, diff.patch.deltas) { it.original } }
+                gridpane {
+                    hgap = 10.0
+                    vgap = 3.0
+
+                    stackpane {
+                        minWidth = 160.0
+                        minHeight = 80.0
+                        gridpaneConstraints { rowSpan = 2 }
+                        children += commonOps.providerLogo(diff.providerId).toImageView(height = 80.0, width = 160.0)
                     }
 
+                    header("Expected") { gridpaneConstraints { columnRowIndex(1, 0) } }
+                    render(diff.expectedFolderName, diff.patch?.deltas ?: emptyList()) { it.revised }.apply {
+                        gridpaneConstraints { columnRowIndex(2, 0) }
+                    }
+
+                    header("Actual") { gridpaneConstraints { columnRowIndex(1, 1) } }
+                    render(diff.folderName, diff.patch?.deltas ?: emptyList()) { it.original }.apply {
+                        gridpaneConstraints { columnRowIndex(2, 1) }
+                    }
+
+                    if (diff.patch == null) {
+                        stackpane {
+                            children += Icons.accept.size(50)
+                            gridpaneConstraints { columnRowIndex(3, 0); rowSpan = 2 }
+                        }
+                    }
                 }
                 diffContextMenu.install(this) { selectedDiff.value.game to diff }
             }
@@ -152,7 +167,8 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
         gamesView.selectionModel.select(diffs.indexOfFirst { it.game.id == game.id })
     }
 
-    private fun EventTarget.render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = textflow {
+    private fun EventTarget.render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = hbox {
+        addClass(Style.diffText)
         var currentIndex = 0
         deltas.sortedBy { chunkExtractor(it).position }.forEach { delta ->
             val chunk = chunkExtractor(delta)
@@ -166,16 +182,22 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
         match(source.substring(currentIndex, source.length))
     }
 
-    private fun TextFlow.match(text: String) = label(text) { addClass(Style.match) }
+    private fun EventTarget.match(text: String) {
+        if (text.isEmpty()) return
+        label(text) { addClass(Style.match) }
+    }
 
-    private fun TextFlow.diff(text: String, type: Delta.TYPE) = label(text) {
-        addClass(
-            Style.match, Style.diff, when (type) {
-                Delta.TYPE.CHANGE -> Style.change
-                Delta.TYPE.DELETE -> Style.delete
-                Delta.TYPE.INSERT -> Style.insert
-            }
-        )
+    private fun EventTarget.diff(text: String, type: Delta.TYPE) {
+        if (text.isEmpty()) return
+        label(text) {
+            addClass(
+                Style.diff, when (type) {
+                    Delta.TYPE.CHANGE -> Style.change
+                    Delta.TYPE.DELETE -> Style.delete
+                    Delta.TYPE.INSERT -> Style.insert
+                }
+            )
+        }
     }
 
 
@@ -196,6 +218,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     class Style : Stylesheet() {
         companion object {
             val diffItem by cssclass()
+            val diffText by cssclass()
             val match by cssclass()
             val diff by cssclass()
             val change by cssclass()
@@ -209,11 +232,11 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
 
         init {
             diffItem {
+                fontFamily = "Monospaced"
                 fontSize = 18.px
             }
-            match {
-                fontSize = 18.px
-                fontFamily = "Monospaced"
+            diffText {
+                alignment = Pos.CENTER_LEFT
             }
             diff {
                 fontWeight = FontWeight.BOLD
@@ -222,7 +245,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
                 backgroundColor = multi(Color.ORANGE)
             }
             insert {
-                backgroundColor = multi(Color.GREEN)
+                backgroundColor = multi(Color.GREENYELLOW)
             }
             delete {
                 backgroundColor = multi(Color.INDIANRED)
