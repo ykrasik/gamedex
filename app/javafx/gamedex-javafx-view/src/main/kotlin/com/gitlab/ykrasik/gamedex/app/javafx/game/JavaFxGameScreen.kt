@@ -113,9 +113,6 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     }
 
     override fun HBox.buildToolbar() {
-        label(games.sizeProperty.stringBinding { "Games: $it" }) {
-            addClass(Style.gamesLabel)
-        }
         displayTypeButton()
         sortButton()
         filterButton()
@@ -123,6 +120,11 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         gap()
 
         searchField()
+
+        spacer()
+
+        header(games.sizeProperty.stringBinding { "Games: $it" }) { usePrefWidth = true }
+        gap(5)
     }
 
     override val root = stackpane {
@@ -332,7 +334,6 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     class Style : Stylesheet() {
         companion object {
             val platformButton by cssclass()
-            val gamesLabel by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -344,11 +345,6 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                 fontSize = 15.px
                 fontWeight = FontWeight.BOLD
                 focusTraversable = false
-            }
-            gamesLabel {
-                fontSize = 15.px
-                fontWeight = FontWeight.BOLD
-                minWidth = 120.px
             }
         }
     }
