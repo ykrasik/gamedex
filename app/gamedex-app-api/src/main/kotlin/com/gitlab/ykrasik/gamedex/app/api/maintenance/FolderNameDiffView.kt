@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.State
 import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import difflib.Patch
+import java.util.function.Predicate
 
 /**
  * User: ykrasik
@@ -35,6 +36,9 @@ interface FolderNameDiffView {
     val searchText: UserMutableState<String>
     val matchingGame: State<Game?>
 
+    val filterMode: UserMutableState<FolderNameDiffFilterMode>
+    val predicate: State<Predicate<FolderNameDiffs>>
+
 //    val excludeGameActions: MultiReceiveChannel<Game>
 
     val hideViewActions: MultiReceiveChannel<Unit>
@@ -43,7 +47,9 @@ interface FolderNameDiffView {
 data class FolderNameDiffs(
     val game: Game,
     val diffs: List<FolderNameDiff>
-)
+) {
+    val name get() = game.name
+}
 
 data class FolderNameDiff(
     val providerId: ProviderId,
@@ -51,3 +57,11 @@ data class FolderNameDiff(
     val expectedFolderName: String,
     val patch: Patch<Char>?
 )
+
+enum class FolderNameDiffFilterMode(val displayName: String) {
+    None("Show all"),
+    IgnoreIfSingleMatch("Hide if single provider matches"),
+    IgnoreIfMajorityMatch("Hide if majority of providers match");
+
+    override fun toString() = displayName
+}

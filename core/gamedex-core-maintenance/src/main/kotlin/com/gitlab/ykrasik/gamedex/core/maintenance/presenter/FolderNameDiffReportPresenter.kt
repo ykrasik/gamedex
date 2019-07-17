@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffFilterMode
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -25,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.setAll
+import java.util.function.Predicate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,6 +50,8 @@ class FolderNameDiffReportPresenter @Inject constructor(
 
             view.searchText.debounce().forEach { onSearchTextChanged(it) }
             view.hideViewActions.forEach { hideView() }
+
+            view.filterMode.forEach { onFilterModeChanged(it) }
 
             isDirtyChannel.forEach { isDirty ->
                 if (isDirty && isShowing) {
@@ -77,6 +80,19 @@ class FolderNameDiffReportPresenter @Inject constructor(
         // TODO: Do I need the better search capabilities of searchService?
         private fun Game.matchesSearchQuery(query: String) =
             query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
+
+        private fun onFilterModeChanged(filterMode: FolderNameDiffFilterMode) {
+            view.predicate *= when (filterMode) {
+                FolderNameDiffFilterMode.None -> Predicate { true }
+                FolderNameDiffFilterMode.IgnoreIfSingleMatch -> Predicate { diff ->
+                    diff.diffs.none { it.patch == null }
+                }
+                FolderNameDiffFilterMode.IgnoreIfMajorityMatch -> Predicate { diff ->
+                    val matches = diff.diffs.count { it.patch == null }
+                    matches.toDouble() / diff.diffs.size < 0.5
+                }
+            }
+        }
 
         private fun hideView() = eventBus.requestHideView(view)
     }

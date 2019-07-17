@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiff
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffFilterMode
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffs
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -40,11 +41,13 @@ import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import tornadofx.*
+import java.util.function.Predicate
 
 /**
  * User: ykrasik
@@ -60,12 +63,17 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     private val commonOps: JavaFxCommonOps by di()
 
     override val diffs = settableList<FolderNameDiffs>()
+    private val diffsSortedFiltered = diffs.sortedFiltered(Comparator.comparing(FolderNameDiffs::name))
+
 //    override val excludeGameActions = channel<Game>()
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
 
     override val searchText = userMutableState("")
     override val matchingGame = state<Game?>(null)
+
+    override val filterMode = userMutableState(FolderNameDiffFilterMode.None)
+    override val predicate = state(Predicate<FolderNameDiffs> { true })
 
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
 
@@ -81,14 +89,14 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
         }
     }
 
-    private val gamesView = prettyListView(diffs) {
+    private val gamesView = prettyListView(diffsSortedFiltered) {
         prettyListCell { diff ->
             text = null
             graphic = GameDetailsSummaryBuilder(diff.game).build()
         }
 
-        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game, diffs.map { it.game }) }
-        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game, diffs.map { it.game })) }
+        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game, diffsSortedFiltered.map { it.game }) }
+        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game, diffsSortedFiltered.map { it.game })) }
     }
 
     private val selectedDiff = gamesView.selectionModel.selectedItemProperty()
@@ -161,10 +169,12 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
                 selectGame(match)
             }
         }
+
+        diffsSortedFiltered.filteredItems.predicateProperty().bind(predicate.property)
     }
 
     private fun selectGame(game: Game) = runLater {
-        gamesView.selectionModel.select(diffs.indexOfFirst { it.game.id == game.id })
+        gamesView.selectionModel.select(diffsSortedFiltered.indexOfFirst { it.game.id == game.id })
     }
 
     private fun EventTarget.render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = hbox {
@@ -203,6 +213,12 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
 
     override fun HBox.buildToolbar() {
         searchTextField(this@JavaFxFolderNameDiffScreen, searchText.property) { isFocusTraversable = false }
+
+        gap()
+
+        buttonWithPopover(graphic = Icons.filter, closeOnAction = false) {
+            enumComboMenu(filterMode.property, graphic = { it.icon })
+        }
 //        gap()
 //        excludeButton {
 //            action(excludeGameActions) { selectedDiff.value!!.game }
@@ -211,9 +227,16 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
 //            })
 //        }
         spacer()
-        header(diffs.sizeProperty.stringBinding { "Diffs: $it" })
+        header(diffsSortedFiltered.sizeProperty.stringBinding { "Diffs: $it" })
         gap()
     }
+
+    private val FolderNameDiffFilterMode.icon: Node
+        get() = when (this) {
+            FolderNameDiffFilterMode.None -> Icons.accept
+            FolderNameDiffFilterMode.IgnoreIfSingleMatch -> Icons.account
+            FolderNameDiffFilterMode.IgnoreIfMajorityMatch -> Icons.accounts
+        }
 
     class Style : Stylesheet() {
         companion object {

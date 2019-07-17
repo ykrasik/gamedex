@@ -156,6 +156,8 @@ object Icons {
     val saveAs get() = fontIcon(MaterialDesign.MDI_CONTENT_SAVE_EDIT_OUTLINE)
     val load get() = fontIcon(MaterialDesign.MDI_FILE_UPLOAD_OUTLINE)
     val cloud get() = fontIcon(MaterialDesign.MDI_CLOUD_OUTLINE)
+    val account get() = fontIcon(MaterialDesign.MDI_ACCOUNT)
+    val accounts get() = fontIcon(MaterialDesign.MDI_ACCOUNT_GROUP)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val devices get() = fontIcon(MaterialDesign.MDI_MONITOR_CELLPHONE)
