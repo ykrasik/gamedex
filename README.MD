@@ -5,26 +5,26 @@ written in Kotlin and powered by [TornadoFX](https://github.com/edvin/tornadofx)
 # Download
 You can [download it](https://github.com/ykrasik/gamedex/releases) or [build it](#build-distribution).
 
-There is currently no tutorial (yet).
+There is currently no tutorial.
 
 ![GameDex Main Page](https://gitlab.com/ykrasik/gamedex/wikis/uploads/c07c1ba86490dabb8dc29a2c5c8ffb07/GameDex_Main.JPG)
 
 # Features
-* Digital game collection - define folders as game libraries and sync them with online game database providers. The sync process automatically determines newly added games.
-* Currently integrated with IGDB.com & GiantBomb.com as providers - fill in your api key and fetch data about your games.
-* Designed from the ground up to support multiple providers - as more provider plugins become available, GameDex will have access to more sources of game information.
 * Supports multiple game platforms - Windows, Linux, Mac, Android.
 * A beautiful game wall display to proudly show off your collection.
-* A rich filter system that allows you to filter your games by various parameters and combine filters using boolean `and`, `or` & `not` operators for ultimate control.
-* Create reports on your game collection to easily see all games that answer certain criteria in one place.
-* Special reports for duplications in your collection and reports that show you how you should have named the game folder to be consistent with online information.
+* A rich filter system that allows you to filter games by various parameters and combine filters using boolean `and`, `or` & `not` operators for ultimate control.
 * Add tags (labels) to games and use these tags as filters.
+* Define folders as game libraries and sync them with online game database providers - the sync process automatically determines newly added games.
+* Supports IGDB.com & GiantBomb.com as providers - just fill in your api key.
+* Designed to support multiple game database providers.
+* Use powerful filtering capabilities to create reports on your game collection.
+* Supports special reports for duplications in your collection and reports on how you should have named the game folder to be consistent with online information.
 * Supports updating game information from providers, so you always have the most up-to-date game information locally.
 
 # Build Distribution:
 `gradlew dist`
 
-Prerequisites: JDK 8 only, does not support any of the later JDKs. In root folder:
+Prerequisites: JDK 8 only, does not support any of the later JDKs.
 
 The distribution will be under project root in `dist` folder
 and will contain a standalone copy of your JRE.
