@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,6 +46,8 @@ class UpdateGameServiceImpl @Inject constructor(
     private val gameProviderService: GameProviderService,
     private val filterService: FilterService
 ) : UpdateGameService {
+    private val log = logger()
+
     override fun updateGame(game: Game) = updateGames(listOf(game))
 
     override fun bulkUpdateGames(filter: Filter): Task<Unit> {
@@ -63,11 +66,15 @@ class UpdateGameServiceImpl @Inject constructor(
             val providersToDownload = game.providerHeaders.filter { gameProviderService.isEnabled(it.providerId) }.toList()
             if (providersToDownload.isEmpty()) return@forEachWithProgress
 
-            val downloadedProviderData = executeSubTask(gameProviderService.fetch(game.name, game.platform, providersToDownload))
+            try {
+                val downloadedProviderData = executeSubTask(gameProviderService.fetch(game.name, game.platform, providersToDownload))
 
-            // Replace existing data with new data, pass-through any data that wasn't replaced.
-            val newRawGame = game.rawGame.withProviderData(downloadedProviderData)
-            executeSubTask(gameService.replace(game, newRawGame))
+                // Replace existing data with new data, pass-through any data that wasn't replaced.
+                val newRawGame = game.rawGame.withProviderData(downloadedProviderData)
+                executeSubTask(gameService.replace(game, newRawGame))
+            } catch (e: Exception) {
+                log.error("Error updating $game", e)
+            }
         }
     }
 
