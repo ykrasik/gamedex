@@ -63,10 +63,14 @@ class FileSystemServiceImpl @Inject constructor(
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
         GlobalScope.launch(Dispatchers.IO) {
-            val newFileTree = calcFileTree(path)
-            if (newFileTree != null && newFileTree != fileTree) {
-                storage[gameId] = newFileTree
-                ref.value = newFileTree
+            try {
+                val newFileTree = calcFileTree(path)
+                if (newFileTree != null && newFileTree != fileTree) {
+                    storage[gameId] = newFileTree
+                    ref.value = newFileTree
+                }
+            } catch (e: Exception) {
+                log.error("Error reading $path", e)
             }
         }
         return ref
