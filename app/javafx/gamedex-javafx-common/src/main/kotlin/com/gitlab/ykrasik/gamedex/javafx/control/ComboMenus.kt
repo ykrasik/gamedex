@@ -45,9 +45,10 @@ inline fun <T> EventTarget.popoverComboMenu(
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node?)? = null,
     buttonGraphic: Node? = null,
+    arrowLocation: PopOver.ArrowLocation? = null,
     crossinline itemOp: JFXButton.() -> Unit = {},
     menuOp: PopOverContent.(T) -> Unit = {}
-) = buttonWithPopover {
+) = buttonWithPopover(arrowLocation = arrowLocation) {
     possibleItems.forEach { item ->
 //        customListView(possibleItems.observable()) {
 //            customListCell { item ->
@@ -106,12 +107,14 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node)? = null,
     buttonGraphic: Node? = null,
+    arrowLocation: PopOver.ArrowLocation? = null,
     menuOp: PopOverContent.(T) -> Unit = {}
 ) = popoverComboMenu(
     possibleItems = T::class.java.enumConstants.asList(),
     selectedItemProperty = selectedItemProperty,
     text = text,
     graphic = graphic,
+    arrowLocation = arrowLocation,
     buttonGraphic = buttonGraphic,
     menuOp = menuOp
 )

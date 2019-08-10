@@ -138,7 +138,11 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         }
     }
 
-    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnAction = false) {
+    private fun EventTarget.filterButton() = buttonWithPopover(
+        graphic = Icons.filter,
+        arrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+        closeOnAction = false
+    ) {
         addComponent(filterView) {
             addOrEditFilterActions.forEach { hide() }
             deleteNamedFilterActions.forEach { hide() }
@@ -147,7 +151,11 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         tooltip("Filter")
     }
 
-    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, closeOnAction = false) {
+    private fun EventTarget.sortButton() = buttonWithPopover(
+        graphic = Icons.sort,
+        arrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+        closeOnAction = false
+    ) {
         defaultHbox {
             paddingAll = 5
             popoverComboMenu(
@@ -177,7 +185,8 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         text = null,
 //        text = GameDisplayType::displayName,
         graphic = { it.icon },
-        buttonGraphic = Icons.view
+        buttonGraphic = Icons.view,
+        arrowLocation = PopOver.ArrowLocation.TOP_LEFT
     ).apply {
         tooltip("Display Type")
     }
