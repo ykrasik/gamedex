@@ -26,9 +26,10 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.task
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.file
+import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Paths
@@ -68,7 +69,7 @@ class RenameMoveGamePresenter @Inject constructor(
             onPathChanged()
         }
 
-        private fun onBrowse() {
+        private suspend fun onBrowse() {
             val initialDirectory = when {
                 newPath.file.isDirectory -> newPath.file
                 newPathLibrary.id != Library.Null.id -> newPathLibrary.path
@@ -81,35 +82,31 @@ class RenameMoveGamePresenter @Inject constructor(
             }
         }
 
-        private fun onPathChanged() {
+        private suspend fun onPathChanged() {
             validateAndDetectLibrary()
         }
 
-        private fun validateAndDetectLibrary() {
+        private suspend fun validateAndDetectLibrary() {
             view.canAccept *= IsValid.invalid("Loading...")
-
-            launch(Dispatchers.IO) {
-                val pathIsSyntacticallyValid = Try {
+            view.newPathIsValid *= IsValid {
+                withContext(Dispatchers.IO) {
                     check(!newPath.isBlank()) { "Path is required!" }
                     try {
                         Paths.get(newPath)
                     } catch (e: Exception) {
                         error("Invalid path: ${e.message}")
                     }
-                }
 
-                // Detect library
-                val library = if (pathIsSyntacticallyValid.isSuccess) {
-                    libraryService.libraries.asSequence()
+                    // Detect library
+                    val library = checkNotNull(libraryService.libraries
+                        .asSequence()
                         .mapNotNull { library -> matchPath(library) }
                         .maxBy { it.numElements }
                         ?.library
-                } else {
-                    null
-                }
-
-                val pathIsValid = pathIsSyntacticallyValid and Try {
-                    checkNotNull(library) { "Path doesn't belong to any library!" }
+                    ) { "Path doesn't belong to any library!" }
+                    withContext(Dispatchers.Main) {
+                        newPathLibrary = library
+                    }
 
                     check(game.path.exists()) { "Source path doesn't exist!" }
 
@@ -119,15 +116,8 @@ class RenameMoveGamePresenter @Inject constructor(
                         check(newPath.file.canonicalFile.path.equals(game.path.canonicalFile.path, ignoreCase = true)) { "Path already exists!" }
                     }
                 }
-
-                withContext(Dispatchers.Main) {
-                    if (library != null) {
-                        newPathLibrary = library
-                    }
-                    view.newPathIsValid *= pathIsValid
-                    view.canAccept *= view.newPathIsValid.value
-                }
             }
+            view.canAccept *= view.newPathIsValid.value
         }
 
         private fun matchPath(library: Library): LibraryMatch? {
