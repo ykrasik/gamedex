@@ -43,7 +43,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
     init {
         "IgdbProvider" should {
             "search & retrieve a single search result" test {
-                val results = provider.search(name, Platform.Windows, account)
+                val results = provider.search(name, Platform.Windows, account, offset = 0, limit = 10)
                 results should haveSize(1)
 
                 val result = results.first()
@@ -82,8 +82,8 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
         val name = "No Man's Sky"
         val providerGameId = "3225"
         val releaseDate = "2016-08-12"
-        val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 42)
-        val Score?.verifiedUserScore get() = assertScore(min = 62, max = 67, numReviews = 142)
+        val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 43)
+        val Score?.verifiedUserScore get() = assertScore(min = 65, max = 75, numReviews = 169)
         val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/co1k01.jpg"
         val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/co1k01.jpg"
         val url = "https://www.igdb.com/games/no-man-s-sky"

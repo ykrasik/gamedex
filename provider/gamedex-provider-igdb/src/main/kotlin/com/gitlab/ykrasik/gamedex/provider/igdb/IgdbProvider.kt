@@ -41,9 +41,16 @@ class IgdbProvider @Inject constructor(
 ) : GameProvider {
     private val log = logger()
 
-    override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount): List<ProviderSearchResult> {
+    override suspend fun search(
+        query: String,
+        platform: Platform,
+        account: ProviderUserAccount,
+        offset: Int,
+        limit: Int
+    ): List<ProviderSearchResult> {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
-            client.search(query, platform, account as IgdbUserAccount).map { it.toSearchResult(platform) }
+            client.search(query, platform, account as IgdbUserAccount, offset = offset, limit = limit)
+                .map { it.toSearchResult(platform) }
         }
         results.forEach { log.trace(it.toString()) }
         return results

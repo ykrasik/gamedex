@@ -28,8 +28,19 @@ import com.gitlab.ykrasik.gamedex.Score
 interface GameProvider {
     val metadata: GameProviderMetadata
 
-    suspend fun search(query: String, platform: Platform, account: ProviderUserAccount = ProviderUserAccount.Null): List<ProviderSearchResult>
-    suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount = ProviderUserAccount.Null): ProviderFetchData
+    suspend fun search(
+        query: String,
+        platform: Platform,
+        account: ProviderUserAccount,
+        offset: Int,
+        limit: Int
+    ): List<ProviderSearchResult>
+
+    suspend fun fetch(
+        providerGameId: String,
+        platform: Platform,
+        account: ProviderUserAccount
+    ): ProviderFetchData
 }
 
 typealias ProviderId = String

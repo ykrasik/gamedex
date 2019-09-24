@@ -36,12 +36,20 @@ import javax.inject.Singleton
  */
 @Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
-    open suspend fun search(query: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
+    open suspend fun search(
+        query: String,
+        platform: Platform,
+        account: GiantBombUserAccount,
+        offset: Int,
+        limit: Int
+    ): SearchResponse = get(
         endpoint = config.baseUrl,
         account = account,
         params = mapOf(
             "filter" to "name:$query,platforms:${platform.id}",
-            "field_list" to searchFieldsStr
+            "field_list" to searchFieldsStr,
+            "offset" to "$offset",
+            "limit" to "$limit"
         )
     )
 

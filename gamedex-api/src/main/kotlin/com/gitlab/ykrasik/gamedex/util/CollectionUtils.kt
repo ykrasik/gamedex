@@ -85,7 +85,7 @@ inline fun <T> MutableList<T>.replaceWhere(target: T, predicate: (T) -> Boolean)
 inline fun <T> List<T>.replaceWhere(target: T, predicate: (T) -> Boolean): List<T> =
     map { elem -> if (predicate(elem)) target else elem }
 
-fun <T> List<T>.replaceIndex(index: Int, value: T): List<T> =
+fun <T> List<T>.replaceAtIndex(index: Int, value: T): List<T> =
     mapIndexed { i, elem -> if (index == i) value else elem }
 
 inline fun <T> List<T>.modify(index: Int, modifier: Modifier<T>): List<T> =

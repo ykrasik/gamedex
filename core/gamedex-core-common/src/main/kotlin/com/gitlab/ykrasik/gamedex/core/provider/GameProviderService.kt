@@ -40,14 +40,17 @@ interface GameProviderService {
 
     fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit>
 
-    fun search(providerId: ProviderId, query: String, platform: Platform): Task<List<ProviderSearchResult>>
+    fun search(providerId: ProviderId, query: String, platform: Platform, offset: Int, limit: Int): Task<List<ProviderSearchResult>>
 
     fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>): Task<List<ProviderData>>
 }
 
 class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount) : GameProvider by provider {
-    suspend fun search(query: String, platform: Platform): List<ProviderSearchResult> = provider.search(query, platform, account)
-    suspend fun fetch(providerGameId: String, platform: Platform): ProviderFetchData = provider.fetch(providerGameId, platform, account)
+    suspend fun search(query: String, platform: Platform, offset: Int, limit: Int): List<ProviderSearchResult> =
+        provider.search(query, platform, account, offset = offset, limit = limit)
+
+    suspend fun fetch(providerGameId: String, platform: Platform): ProviderFetchData =
+        provider.fetch(providerGameId, platform, account)
 
     override fun toString() = provider.toString()
 }

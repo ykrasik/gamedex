@@ -17,7 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.ProviderData
-import com.gitlab.ykrasik.gamedex.app.api.provider.*
+import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
+import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -96,7 +97,7 @@ class SyncGamesPresenter @Inject constructor(
             if (nextUnfinishedState != null) {
                 startGameSearch(nextUnfinishedState)
             } else {
-                if (view.state.size == 1 && newState.status == GameSearchStatus.Cancelled) {
+                if (view.state.size == 1 && newState.status == GameSearchState.Status.Cancelled) {
                     onCancel()
                 } else {
                     finish(success = true)
@@ -119,7 +120,7 @@ class SyncGamesPresenter @Inject constructor(
             check(view.isGameSyncRunning.value) { "Game sync not running!" }
             val newState = state.providerOrder.fold(
                 state.copy(
-                    status = GameSearchStatus.Running,
+                    status = GameSearchState.Status.Running,
                     currentProvider = null
                 )
             ) { accState, providerId ->
@@ -157,7 +158,7 @@ class SyncGamesPresenter @Inject constructor(
 
             view.currentState.value?.let { currentState ->
                 // This will update the current search that it's finished.
-                startGameSearch(currentState.copy(status = if (success) GameSearchStatus.Success else GameSearchStatus.Cancelled))
+                startGameSearch(currentState.copy(status = if (success) GameSearchState.Status.Success else GameSearchState.Status.Cancelled))
             }
             eventBus.send(SyncGamesEvent.Finished)
         }
@@ -179,7 +180,7 @@ class SyncGamesPresenter @Inject constructor(
                 return null
             }
 
-            val initialHistory = mutableMapOf<ProviderId, List<GameSearch>>()
+            val initialHistory = mutableMapOf<ProviderId, List<GameSearchState.ProviderSearch>>()
             request.existingGame?.let { existingGame ->
                 if (request.syncOnlyTheseProviders.isNotEmpty()) {
                     providersToSync.forEach { providerId ->
@@ -189,11 +190,13 @@ class SyncGamesPresenter @Inject constructor(
                             val providerData = existingGame.providerData.find { it.providerId == providerId } ?: return@forEach
                             val syntheticSearchResult = providerData.toSearchResult()
                             initialHistory[providerId] = listOf(
-                                GameSearch(
+                                GameSearchState.ProviderSearch(
                                     provider = providerId,
                                     query = syntheticSearchResult.name,
+                                    offset = 0,
                                     results = listOf(syntheticSearchResult),
-                                    choice = ProviderSearchChoice.Preset(syntheticSearchResult, providerData)
+                                    canShowMoreResults = false,
+                                    choice = GameSearchState.ProviderSearch.Choice.Preset(syntheticSearchResult, providerData)
                                 )
                             )
                         }
@@ -202,11 +205,13 @@ class SyncGamesPresenter @Inject constructor(
 
                 existingGame.excludedProviders.forEach { providerId ->
                     initialHistory[providerId] = listOf(
-                        GameSearch(
+                        GameSearchState.ProviderSearch(
                             provider = providerId,
                             query = "",
+                            offset = 0,
                             results = emptyList(),
-                            choice = ProviderSearchChoice.Exclude
+                            canShowMoreResults = false,
+                            choice = GameSearchState.ProviderSearch.Choice.Exclude
                         )
                     )
                 }
@@ -227,13 +232,13 @@ class SyncGamesPresenter @Inject constructor(
                 providerOrder = providersToSync,
                 currentProvider = null,
                 history = initialHistory,
-                status = GameSearchStatus.Running,
+                status = GameSearchState.Status.Running,
                 existingGame = request.existingGame
             )
         }
 
         private fun finishedMessage(): String {
-            val numSuccessful = view.state.count { it.status == GameSearchStatus.Success }
+            val numSuccessful = view.state.count { it.status == GameSearchState.Status.Success }
             return "Successfully synced $numSuccessful / ${view.state.size} games."
         }
 

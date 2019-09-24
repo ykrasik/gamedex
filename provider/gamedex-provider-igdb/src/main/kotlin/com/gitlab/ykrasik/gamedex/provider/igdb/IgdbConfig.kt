@@ -30,7 +30,6 @@ data class IgdbConfig(
     val baseUrl: String,
     val baseImageUrl: String,
     val accountUrl: String,
-    val maxSearchResults: Int,
     val thumbnailImageType: IgdbProvider.IgdbImageType,
     val posterImageType: IgdbProvider.IgdbImageType,
     val screenshotImageType: IgdbProvider.IgdbImageType,

@@ -43,7 +43,7 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
             "search by name & platform" test {
                 server.anySearchRequest() willReturn searchResponse
 
-                client.search(name, platform, account) shouldBe searchResponse
+                client.search(name, platform, account, offset, limit) shouldBe searchResponse
 
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/"))
@@ -51,6 +51,8 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                         .withQueryParam("format", "json")
                         .withQueryParam("filter", "name:$name,platforms:$platformId")
                         .withQueryParam("field_list", searchFields.joinToString(","))
+                        .withQueryParam("offset", "$offset")
+                        .withQueryParam("limit", "$limit")
                 )
             }
 
@@ -58,7 +60,7 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                 server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<ClientRequestException> {
-                    client.search(name, platform, account)
+                    client.search(name, platform, account, offset, limit)
                 }
                 e.response.status shouldBe HttpStatusCode.BadRequest
             }
@@ -95,6 +97,8 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
         val platform = randomEnum<Platform>()
         val platformId = randomInt(100)
         val name = randomName()
+        val offset = randomInt(100)
+        val limit = randomInt(max = 100, min = 1)
 
         private fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 

@@ -374,6 +374,8 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
         val account = GiantBombUserAccount(apiKey = randomWord())
         val noImage1 = randomWord()
         val noImage2 = randomWord()
+        val offset = randomInt(100)
+        val limit = randomInt(max = 100, min = 1)
 
         fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
@@ -407,7 +409,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.OK, results), name)
 
         fun givenClientSearchReturns(response: GiantBombClient.SearchResponse, name: String = this.name) {
-            coEvery { client.search(name, platform, account) } returns response
+            coEvery { client.search(name, platform, account, offset, limit) } returns response
         }
 
         fun givenClientFetchReturns(result: GiantBombClient.DetailsResult, apiUrl: String = apiDetailUrl) =
@@ -417,7 +419,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             coEvery { client.fetch(apiUrl, account) } returns response
         }
 
-        suspend fun search(name: String = this.name) = provider.search(name, platform, account)
+        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit)
         suspend fun fetch(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.fetch(apiUrl, platform, account)
 
         private val config = GiantBombConfig("", listOf(noImage1, noImage2), "", ProviderOrderPriorities.default, emptyMap())

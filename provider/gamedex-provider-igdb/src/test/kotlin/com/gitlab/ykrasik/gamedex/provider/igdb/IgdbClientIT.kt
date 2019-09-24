@@ -46,7 +46,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 server.anyRequest() willReturnSearch listOf(searchResult)
 
                 val name = "testName"
-                val search = client.search(name, platform, account)
+                val search = client.search(name, platform, account, offset, limit)
                 search shouldBe listOf(searchResult)
 
                 server.verify(
@@ -58,7 +58,8 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                                 search "$name";
                                 fields ${searchFields.joinToString(",")};
                                 where name ~ *"$name"* & release_dates.platform = $platformId;
-                                limit $maxSearchResults;
+                                offset $offset;
+                                limit $limit;
                             """.trimIndent()
                         )
                 )
@@ -67,7 +68,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
             "split search name by whitespace & remove non-word characters" test {
                 server.anyRequest() willReturnSearch listOf(searchResult)
 
-                client.search("name with\tspace & other-characters: yes\nno,   maybe", platform, account)
+                client.search("name with\tspace & other-characters: yes\nno,   maybe", platform, account, offset, limit)
 
                 server.verify(
                     postRequestedFor(urlPathEqualTo("/"))
@@ -83,7 +84,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 server.anyRequest() willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<ClientRequestException> {
-                    client.search(name, platform, account)
+                    client.search(name, platform, account, offset, limit)
                 }
                 e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
             }
@@ -129,10 +130,11 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
         val baseImageUrl = "${server.baseUrl}/images"
         val id = randomInt().toString()
         val apiKey = randomWord()
-        val maxSearchResults = randomInt()
         val platform = randomEnum<Platform>()
         val platformId = randomInt(100)
         val name = randomName()
+        val offset = randomInt(100)
+        val limit = randomInt(max = 100, min = 1)
 
         val searchResult = IgdbClient.SearchResult(
             id = randomInt(),
@@ -175,7 +177,6 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 baseUrl = server.baseUrl,
                 baseImageUrl = baseImageUrl,
                 accountUrl = "",
-                maxSearchResults = maxSearchResults,
                 thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
                 posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
                 screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,

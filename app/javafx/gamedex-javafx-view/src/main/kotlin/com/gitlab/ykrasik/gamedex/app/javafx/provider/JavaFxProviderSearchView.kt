@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
-import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchChoice
 import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
@@ -29,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.or
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.HBox
@@ -63,8 +63,11 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val isAllowSmartChooseResults = state(false)
     override val canSmartChooseResult = state(false)
 
-    override val choiceActions = channel<ProviderSearchChoice>()
+    override val choiceActions = channel<GameSearchState.ProviderSearch.Choice>()
     override val changeProviderActions = channel<ProviderId>()
+
+    override val canShowMoreResults = state(IsValid.valid)
+    override val showMoreResultsActions = channel<Unit>()
 
     private val resultsView = prettyListView(searchResults) {
         vgrow = Priority.ALWAYS
@@ -93,7 +96,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
 
         onUserSelect(clickCount = 2) {
             if (canAcceptSearchResult.value.isSuccess) {
-                choiceActions.event(ProviderSearchChoice.Accept(selectedSearchResult.value!!))
+                choiceActions.event(GameSearchState.ProviderSearch.Choice.Accept(selectedSearchResult.value!!))
             }
         }
         searchResults.onChange {
@@ -122,26 +125,26 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
         prettyToolbar {
             enableWhen(canChangeState, wrapInErrorTooltip = false)
             cancelButton("Cancel") {
-                action(choiceActions) { ProviderSearchChoice.Cancel }
+                action(choiceActions) { GameSearchState.ProviderSearch.Choice.Cancel }
             }
             spacer()
             excludeButton {
                 showWhen(canExcludeSearchResult)
                 textProperty().bind(currentProviderId.stringBinding { "Exclude $it" })
                 tooltip(currentProviderId.stringBinding { "Exclude this path from ever syncing with $it" })
-                action(choiceActions) { ProviderSearchChoice.Exclude }
+                action(choiceActions) { GameSearchState.ProviderSearch.Choice.Exclude }
             }
             gap()
             excludeButton {
                 graphic = Icons.redo
                 textProperty().bind(currentProviderId.stringBinding { "Skip $it" })
                 tooltip(currentProviderId.stringBinding { "Skip syncing this path with $it this time" })
-                action(choiceActions) { ProviderSearchChoice.Skip }
+                action(choiceActions) { GameSearchState.ProviderSearch.Choice.Skip }
             }
             spacer()
             acceptButton("Accept") {
                 enableWhen(canAcceptSearchResult)
-                action(choiceActions) { ProviderSearchChoice.Accept(selectedSearchResult.value!!) }
+                action(choiceActions) { GameSearchState.ProviderSearch.Choice.Accept(selectedSearchResult.value!!) }
             }
         }
 
@@ -182,15 +185,15 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                                     }
 
                                     val choiceIcon = when (choices[providerId]) {
-                                        is ProviderSearchChoice.Accept, is ProviderSearchChoice.Preset -> {
+                                        is GameSearchState.ProviderSearch.Choice.Accept, is GameSearchState.ProviderSearch.Choice.Preset -> {
                                             tooltip("$providerId has an accepted result.")
                                             Icons.accept
                                         }
-                                        is ProviderSearchChoice.Skip -> {
+                                        is GameSearchState.ProviderSearch.Choice.Skip -> {
                                             tooltip("$providerId was skipped.")
                                             Icons.redo
                                         }
-                                        is ProviderSearchChoice.Exclude -> {
+                                        is GameSearchState.ProviderSearch.Choice.Exclude -> {
                                             tooltip("$providerId was excluded.")
                                             Icons.warning
                                         }
@@ -220,25 +223,49 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
             // Search input
             defaultHbox(spacing = 10) {
                 enableWhen(canChangeState, wrapInErrorTooltip = false)
-                header("Search:")
                 val newSearch = jfxTextField(query.property, promptText = "Enter Search Query...") {
                     addClass(Style.searchText)
                     useMaxWidth = true
                     isFocusTraversable = false
                     hgrow = Priority.ALWAYS
                 }
-                confirmButton(graphic = Icons.search, isToolbarButton = false) {
+                confirmButton("Search", Icons.search, isToolbarButton = false) {
                     minWidth = Region.USE_PREF_SIZE
-                    enableWhen(canSearchCurrentQuery)
+                    addClass(Style.searchText)
+
+                    val searchButtonMode = canSearchCurrentQuery.property.mapWith(canShowMoreResults.property) { canSearch, canShowMore ->
+                        when {
+                            canSearch.isSuccess -> SearchButtonMode.Search
+                            canShowMore.isSuccess -> SearchButtonMode.ShowMore
+                            else -> SearchButtonMode.Disabled
+                        }
+                    }
+
+                    enableWhen(canSearchCurrentQuery.property.mapWith(canShowMoreResults.property) { canSearch, canShowMore ->
+                        canShowMore or canSearch
+                    })
+                    textProperty().bind(searchButtonMode.stringBinding {
+                        when (it!!) {
+                            SearchButtonMode.Search -> "Search"
+                            SearchButtonMode.ShowMore -> "Show More Results"
+                            SearchButtonMode.Disabled -> "Search"
+                        }
+                    })
                     // This becomes the new default button when the search textfield has focus.
                     defaultButtonProperty().bind(newSearch.focusedProperty())
                     prefHeightProperty().bind(newSearch.heightProperty())
-                    action(choiceActions) { ProviderSearchChoice.NewSearch(query.value) }
+                    action {
+                        when (searchButtonMode.value!!) {
+                            SearchButtonMode.Search -> choiceActions.event(GameSearchState.ProviderSearch.Choice.NewSearch(query.value))
+                            SearchButtonMode.ShowMore -> showMoreResultsActions.event(Unit)
+                            SearchButtonMode.Disabled -> kotlin.error("Cannot search or show more results!")
+                        }
+                    }
                 }
 
                 jfxButton {
                     showWhen { canToggleFilterPreviouslyDiscardedResults.property.booleanBinding { it!!.isSuccess } }
-                    graphicProperty().bind(isFilterPreviouslyDiscardedResults.property.binding { if (it) Icons.unfoldMore else Icons.unfoldLess })
+                    graphicProperty().bind(isFilterPreviouslyDiscardedResults.property.binding { if (it) Icons.expand else Icons.collapse })
                     tooltip {
                         textProperty().bind(isFilterPreviouslyDiscardedResults.property.stringBinding { "${if (it!!) "Show" else "Hide"} previously discarded search results" })
                     }
@@ -250,6 +277,10 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
             }
         }
         children += resultsView
+    }
+
+    private enum class SearchButtonMode {
+        Search, ShowMore, Disabled
     }
 
     class Style : Stylesheet() {

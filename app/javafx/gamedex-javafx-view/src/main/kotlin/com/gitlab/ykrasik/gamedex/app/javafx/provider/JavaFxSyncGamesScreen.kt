@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
-import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchStatus
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -81,8 +80,8 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
                     graphicProperty().bind(hoverProperty().binding { hover ->
                         when {
                             hover && state.isFinished -> Icons.resetToDefault
-                            state.status == GameSearchStatus.Success -> Icons.accept
-                            state.status == GameSearchStatus.Cancelled -> Icons.cancel
+                            state.status == GameSearchState.Status.Success -> Icons.accept
+                            state.status == GameSearchState.Status.Cancelled -> Icons.cancel
                             else -> null
                         }?.size(24)
                     })

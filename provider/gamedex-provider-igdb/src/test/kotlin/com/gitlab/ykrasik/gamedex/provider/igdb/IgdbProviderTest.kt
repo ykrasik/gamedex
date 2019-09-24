@@ -258,6 +258,8 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
         val name = randomName()
         val releaseDate = randomLocalDateString()
         val account = IgdbUserAccount(apiKey = randomWord())
+        val offset = randomInt(100)
+        val limit = randomInt(max = 100, min = 1)
 
         val baseUrl = randomUrl()
         val baseImageUrl = randomUrl()
@@ -308,14 +310,14 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
         fun image(imageId: String? = randomString()) = IgdbClient.Image(imageId = imageId)
 
         fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
-            coEvery { client.search(name, platform, account) } returns results
+            coEvery { client.search(name, platform, account, offset, limit) } returns results
         }
 
         fun givenClientFetchReturns(result: IgdbClient.DetailsResult, providerGameId: String = baseUrl) {
             coEvery { client.fetch(providerGameId, account) } returns result
         }
 
-        suspend fun search(name: String = this.name) = provider.search(name, platform, account)
+        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit)
         suspend fun fetch(providerGameId: String = baseUrl) = provider.fetch(providerGameId, platform, account)
 
         private val client = mockk<IgdbClient>()
@@ -324,7 +326,6 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
                 baseUrl = baseUrl,
                 baseImageUrl = baseImageUrl,
                 accountUrl = "",
-                maxSearchResults = randomInt(),
                 thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
                 posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
                 screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,

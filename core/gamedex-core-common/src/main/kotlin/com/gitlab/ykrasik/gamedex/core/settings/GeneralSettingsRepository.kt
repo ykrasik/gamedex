@@ -30,7 +30,8 @@ class GeneralSettingsRepository(factory: SettingsStorageFactory) : SettingsRepos
         val exportDbDirectory: File,
         val logFilterLevel: LogLevel,
         val logTail: Boolean,
-        val useInternalBrowser: Boolean
+        val useInternalBrowser: Boolean,
+        val searchResultLimit: Int
     )
 
     override val storage = factory("general", Data::class) {
@@ -39,7 +40,8 @@ class GeneralSettingsRepository(factory: SettingsStorageFactory) : SettingsRepos
             exportDbDirectory = File("."),
             logFilterLevel = LogLevel.Info,
             logTail = true,
-            useInternalBrowser = true
+            useInternalBrowser = true,
+            searchResultLimit = 10
         )
     }
 
@@ -57,4 +59,7 @@ class GeneralSettingsRepository(factory: SettingsStorageFactory) : SettingsRepos
 
     val useInternalBrowserChannel = storage.channel(Data::useInternalBrowser)
     val useInternalBrowser by useInternalBrowserChannel
+
+    val searchResultLimitChannel = storage.channel(Data::searchResultLimit)
+    val searchResultLimit by searchResultLimitChannel
 }

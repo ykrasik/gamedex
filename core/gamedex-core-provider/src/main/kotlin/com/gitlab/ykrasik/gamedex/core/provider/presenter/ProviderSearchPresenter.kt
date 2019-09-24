@@ -17,7 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.*
+import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
+import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -26,13 +27,11 @@ import com.gitlab.ykrasik.gamedex.core.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.Modifier
-import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.and
+import com.gitlab.ykrasik.gamedex.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,6 +46,7 @@ class ProviderSearchPresenter @Inject constructor(
     private val fileSystemService: FileSystemService,
     private val gameService: GameService,
     private val taskService: TaskService,
+    private val settingsService: SettingsService,
     private val eventBus: EventBus
 ) : Presenter<ProviderSearchView> {
     override fun present(view: ProviderSearchView) = object : ViewSession() {
@@ -59,6 +59,7 @@ class ProviderSearchPresenter @Inject constructor(
             view.query.forEach { onQueryChanged(it) }
             view.selectedSearchResult.forEach { onSelectedSearchResultChanged(it) }
             view.isFilterPreviouslyDiscardedResults.forEach { onIsFilterPreviouslyDiscardedResultsChanged(it) }
+            view.showMoreResultsActions.forEach { onShowMoreResults() }
 
             view.canExcludeSearchResult *= IsValid.valid
         }
@@ -95,7 +96,7 @@ class ProviderSearchPresenter @Inject constructor(
             val lastSearch = state.lastSearchFor(providerId)
             when {
                 lastSearch != null -> displaySearch(lastSearch)
-                !state.isFinished -> search(providerId, query = lastGoodQuery)
+                !state.isFinished -> search(providerId, query = lastGoodQuery, offset = 0)
                 else -> {
                     view.searchResults.clear()
                     view.query *= ""
@@ -114,61 +115,92 @@ class ProviderSearchPresenter @Inject constructor(
                 modifyState { modifyHistory(providerId) { this + searchToAdd } }
                 displaySearch(searchToAdd)
             } else {
-                search(providerId, query)
+                search(providerId, query, offset = 0)
             }
         }
 
-        private suspend fun search(provider: ProviderId, query: String) {
-            val results = taskService.execute(gameProviderService.search(provider, query, state.libraryPath.library.platform))
-            val currentSearch = GameSearch(provider = provider, query = query, results = results, choice = null)
-            modifyState { modifyHistory(provider) { this + currentSearch } }
+        private suspend fun search(provider: ProviderId, query: String, offset: Int) {
+            val limit = settingsService.general.searchResultLimit
+            val results = taskService.execute(
+                gameProviderService.search(
+                    providerId = provider,
+                    query = query,
+                    platform = state.libraryPath.library.platform,
+                    offset = offset,
+                    limit = limit
+                )
+            )
+            val canShowMoreResults = results.size == limit
+            val currentSearch = if (offset == 0) {
+                GameSearchState.ProviderSearch(
+                    provider = provider,
+                    query = query,
+                    offset = offset,
+                    results = results,
+                    canShowMoreResults = canShowMoreResults,
+                    choice = null
+                )
+            } else {
+                state.currentProviderSearch!!.let {
+                    it.copy(results = it.results + results, offset = offset, canShowMoreResults = canShowMoreResults)
+                }
+            }
+            modifyState {
+                modifyHistory(provider) {
+                    if (offset == 0) {
+                        this + currentSearch
+                    } else {
+                        this.replaceAtIndex(size - 1, currentSearch)
+                    }
+                }
+            }
             displaySearch(currentSearch)
         }
 
-        private suspend fun onChoice(choice: ProviderSearchChoice, isUserAction: Boolean) {
+        private suspend fun onChoice(choice: GameSearchState.ProviderSearch.Choice, isUserAction: Boolean) {
             view.canChangeState.assert()
 
             var nextQuery = ""
             var shouldAdvanceToNextProvider = true
             var shouldCancel = false
             when (choice) {
-                is ProviderSearchChoice.Accept -> {
+                is GameSearchState.ProviderSearch.Choice.Accept -> {
                     if (isUserAction) view.canAcceptSearchResult.assert()
                     view.canSmartChooseResult *= view.isAllowSmartChooseResults.value
                     nextQuery = choice.result.name
                 }
-                is ProviderSearchChoice.NewSearch -> {
+                is GameSearchState.ProviderSearch.Choice.NewSearch -> {
                     if (isUserAction) view.canSearchCurrentQuery.assert()
                     view.canSmartChooseResult *= false
                     nextQuery = choice.newQuery
                     shouldAdvanceToNextProvider = false
                 }
-                is ProviderSearchChoice.Skip -> {
+                is GameSearchState.ProviderSearch.Choice.Skip -> {
                     nextQuery = lastGoodQuery
                 }
-                is ProviderSearchChoice.Exclude -> {
+                is GameSearchState.ProviderSearch.Choice.Exclude -> {
                     if (isUserAction) view.canExcludeSearchResult.assert()
                     nextQuery = lastGoodQuery
                 }
-                is ProviderSearchChoice.Cancel -> {
+                is GameSearchState.ProviderSearch.Choice.Cancel -> {
                     shouldCancel = true
                 }
                 else -> error("Invalid choice: $choice")
             }
 
             modifyState {
-                val currentSearch = state.currentSearch!!
+                val currentSearch = state.currentProviderSearch!!
                 val newSearch = currentSearch.copy(choice = choice)
                 val stateWithChoice = if (currentSearch.choice == null) {
                     // No result for this provider yet, add the choice to the provider's last search.
-                    modifyCurrentSearch { newSearch }
+                    modifyCurrentProviderSearch { newSearch }
                 } else {
                     // There's already a result for this provider, which means this is an attempt to replace the existing result.
                     // Add a new history entry with the new choice.
                     modifyCurrentProviderHistory { this + newSearch }
                 }
                 if (shouldCancel) {
-                    stateWithChoice.copy(status = GameSearchStatus.Cancelled)
+                    stateWithChoice.copy(status = GameSearchState.Status.Cancelled)
                 } else {
                     stateWithChoice
                 }
@@ -184,59 +216,63 @@ class ProviderSearchPresenter @Inject constructor(
             }
         }
 
-        private suspend fun displaySearch(gameSearch: GameSearch) {
-            view.query *= gameSearch.query
-            onQueryChanged(gameSearch.query)
+        private suspend fun displaySearch(search: GameSearchState.ProviderSearch) {
+            view.query *= search.query
+            onQueryChanged(search.query)
 
-            setSearchResults(gameSearch, isFilterPreviouslyDiscardedResults = true)
+            setSearchResults(search, isFilterPreviouslyDiscardedResults = true)
             view.canToggleFilterPreviouslyDiscardedResults *= Try {
-                check(view.searchResults != gameSearch.results) { "No previous results to filter!" }
+                check(view.searchResults != search.results) { "No previous results to filter!" }
             }
             view.isFilterPreviouslyDiscardedResults *= view.canToggleFilterPreviouslyDiscardedResults.value.isSuccess
 
-            view.selectedSearchResult *= (gameSearch.choice as? ProviderSearchChoice.Accept)?.result
+            view.selectedSearchResult *= (search.choice as? GameSearchState.ProviderSearch.Choice.Accept)?.result
             onSelectedSearchResultChanged(view.selectedSearchResult.value)
 
-            if (!(view.canSmartChooseResult.value && gameSearch.choice == null)) return
+            view.canShowMoreResults *= IsValid {
+                check(search.canShowMoreResults) { "More results not available!" }
+            }
+
+            if (!(view.canSmartChooseResult.value && search.choice == null)) return
 
             // Try to smart-choose a result
 
             // See if any of the current results is an exact match with a result the user chose before.
             val acceptedResult = firstAcceptedResult
             if (acceptedResult != null) {
-                val providerExactMatch = gameSearch.results.find { result ->
+                val providerExactMatch = search.results.find { result ->
                     result.name.equals(acceptedResult.name, ignoreCase = true) && result.releaseDate == acceptedResult.releaseDate
                 }
                 if (providerExactMatch != null) {
-                    return onChoice(ProviderSearchChoice.Accept(providerExactMatch), isUserAction = false)
+                    return onChoice(GameSearchState.ProviderSearch.Choice.Accept(providerExactMatch), isUserAction = false)
                 }
             }
 
             // No accepted results yet, but maybe this result is an exact match with the search query.
-            if (gameSearch.results.size == 1) {
-                val result = gameSearch.results.first()
-                if (result.name.equals(gameSearch.query, ignoreCase = true)) {
-                    return onChoice(ProviderSearchChoice.Accept(result), isUserAction = false)
+            if (search.results.size == 1) {
+                val result = search.results.first()
+                if (result.name.equals(search.query, ignoreCase = true)) {
+                    return onChoice(GameSearchState.ProviderSearch.Choice.Accept(result), isUserAction = false)
                 }
             }
         }
 
         private fun onIsFilterPreviouslyDiscardedResultsChanged(isFilterPreviouslyDiscardedResults: Boolean) {
             view.canToggleFilterPreviouslyDiscardedResults.assert()
-            val currentSearch = checkNotNull(state.currentSearch) { "Cannot toggle isFilterPreviouslyDiscardedResults without results!" }
+            val currentSearch = checkNotNull(state.currentProviderSearch) { "Cannot toggle isFilterPreviouslyDiscardedResults without results!" }
             setSearchResults(currentSearch, isFilterPreviouslyDiscardedResults)
-            view.selectedSearchResult *= (currentSearch.choice as? ProviderSearchChoice.Accept)?.result
+            view.selectedSearchResult *= (currentSearch.choice as? GameSearchState.ProviderSearch.Choice.Accept)?.result
         }
 
-        private fun setSearchResults(result: GameSearch, isFilterPreviouslyDiscardedResults: Boolean) {
+        private fun setSearchResults(result: GameSearchState.ProviderSearch, isFilterPreviouslyDiscardedResults: Boolean) {
             val resultsToShow = if (isFilterPreviouslyDiscardedResults) {
                 val resultsWithoutQuery = state.history.asSequence().flatMap { (_, results) ->
                     results.asSequence()
                         .filter { it.query != result.query && it.choice != null }
                         .flatMap { it.results.asSequence() }
                 }
-                val acceptedResults = state.choicesOfType<ProviderSearchChoice.Accept>().map { (_, choice) -> choice.result }
-                val presetResults = state.choicesOfType<ProviderSearchChoice.Preset>().map { (_, choice) -> choice.result }
+                val acceptedResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>().map { (_, choice) -> choice.result }
+                val presetResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Preset>().map { (_, choice) -> choice.result }
                 val previouslyDiscardedResults = (resultsWithoutQuery - acceptedResults - presetResults).map { it.name to it.releaseDate }.toSet()
                 result.results.filter { !previouslyDiscardedResults.contains(it.name to it.releaseDate) }
             } else {
@@ -245,6 +281,12 @@ class ProviderSearchPresenter @Inject constructor(
             if (view.searchResults != resultsToShow) {
                 view.searchResults.setAll(resultsToShow)
             }
+        }
+
+        private suspend fun onShowMoreResults() {
+            view.canShowMoreResults.assert()
+            val currentSearch = state.currentProviderSearch!!
+            search(currentSearch.provider, currentSearch.query, currentSearch.offset + settingsService.general.searchResultLimit)
         }
 
         private suspend fun onFinished() {
@@ -256,10 +298,10 @@ class ProviderSearchPresenter @Inject constructor(
             existingGame?.providerData?.associateByTo(providerData) { it.providerId }
 
             // Copy preset results to providerData, overwriting any existing data.
-            state.choicesOfType<ProviderSearchChoice.Preset>().associateByTo(providerData, { it.first }) { it.second.data }
+            state.choicesOfType<GameSearchState.ProviderSearch.Choice.Preset>().associateByTo(providerData, { it.first }) { it.second.data }
 
-            val acceptedResults = state.choicesOfType<ProviderSearchChoice.Accept>().map { (providerId, choice) -> providerId to choice.result }
-            val excludedProviders = state.choicesOfType<ProviderSearchChoice.Exclude>().map { (providerId, _) -> providerId }.toList()
+            val acceptedResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>().map { (providerId, choice) -> providerId to choice.result }
+            val excludedProviders = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Exclude>().map { (providerId, _) -> providerId }.toList()
 
             val providerHeadersToFetch = acceptedResults
                 .map { (providerId, result) -> ProviderHeader(providerId, result.providerGameId) }
@@ -295,12 +337,12 @@ class ProviderSearchPresenter @Inject constructor(
                 gameService.replace(existingGame, rawGame)
             }
             val game = taskService.execute(task)
-            modifyState { copy(existingGame = game, status = GameSearchStatus.Success) }
+            modifyState { copy(existingGame = game, status = GameSearchState.Status.Success) }
         }
 
         private fun onQueryChanged(query: String) {
             view.canSearchCurrentQuery *= view.canChangeState.value and Try {
-                check(query != state.currentSearch?.query) { "Same query!" }
+                check(query != state.currentProviderSearch?.query) { "Same query!" }
             }
         }
 
@@ -322,7 +364,7 @@ class ProviderSearchPresenter @Inject constructor(
         }
 
         private val firstAcceptedResult: ProviderSearchResult?
-            get() = state.choicesOfType<ProviderSearchChoice.Accept>()
+            get() = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>()
                 .map { (_, choice) -> choice.result }
                 .firstOrNull()
 

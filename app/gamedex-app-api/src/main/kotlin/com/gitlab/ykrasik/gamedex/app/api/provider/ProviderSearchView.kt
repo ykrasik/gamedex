@@ -54,8 +54,11 @@ interface ProviderSearchView {
     val isAllowSmartChooseResults: State<Boolean>
     val canSmartChooseResult: State<Boolean>
 
-    val choiceActions: MultiReceiveChannel<ProviderSearchChoice>
+    val choiceActions: MultiReceiveChannel<GameSearchState.ProviderSearch.Choice>
     val changeProviderActions: MultiReceiveChannel<ProviderId>
+
+    val canShowMoreResults: State<IsValid>
+    val showMoreResultsActions: MultiReceiveChannel<Unit>
 }
 
 data class GameSearchState(
@@ -63,29 +66,29 @@ data class GameSearchState(
     val libraryPath: LibraryPath,
     val providerOrder: List<ProviderId>,
     val currentProvider: ProviderId?,
-    val history: MultiMap<ProviderId, GameSearch>,
-    val status: GameSearchStatus,
+    val history: MultiMap<ProviderId, ProviderSearch>,
+    val status: Status,
     val existingGame: Game?
 ) {
-    val isFinished: Boolean get() = status != GameSearchStatus.Running
-    fun historyFor(providerId: ProviderId): List<GameSearch> = history.getOrDefault(providerId, emptyList())
-    fun lastSearchFor(providerId: ProviderId): GameSearch? = historyFor(providerId).lastOrNull()
-    val currentSearch: GameSearch? get() = lastSearchFor(currentProvider!!)
+    val isFinished: Boolean get() = status != Status.Running
+    fun historyFor(providerId: ProviderId): List<ProviderSearch> = history.getOrDefault(providerId, emptyList())
+    fun lastSearchFor(providerId: ProviderId): ProviderSearch? = historyFor(providerId).lastOrNull()
+    val currentProviderSearch: ProviderSearch? get() = currentProvider?.let(::lastSearchFor)
 
-    inline fun <reified T : ProviderSearchChoice> choicesOfType(): Sequence<Pair<ProviderId, T>> =
+    inline fun <reified T : ProviderSearch.Choice> choicesOfType(): Sequence<Pair<ProviderId, T>> =
         history.asSequence().mapNotNull { (providerId, results) -> (results.last().choice as? T)?.let { providerId to it } }
 
-    val choices: Sequence<Pair<ProviderId, ProviderSearchChoice>> get() = choicesOfType()
+    val choices: Sequence<Pair<ProviderId, ProviderSearch.Choice>> get() = choicesOfType()
 
     val progress: Double get() = choices.toList().size.toDouble() / providerOrder.size
 
-    inline fun modifyHistory(providerId: ProviderId, f: Modifier<List<GameSearch>>): GameSearchState =
+    inline fun modifyHistory(providerId: ProviderId, f: Modifier<List<ProviderSearch>>): GameSearchState =
         copy(history = history + (providerId to f(historyFor(providerId))))
 
-    inline fun modifyCurrentProviderHistory(f: Modifier<List<GameSearch>>): GameSearchState =
+    inline fun modifyCurrentProviderHistory(f: Modifier<List<ProviderSearch>>): GameSearchState =
         modifyHistory(currentProvider!!, f)
 
-    inline fun modifyCurrentSearch(f: Modifier<GameSearch>): GameSearchState =
+    inline fun modifyCurrentProviderSearch(f: Modifier<ProviderSearch>): GameSearchState =
         modifyCurrentProviderHistory { modifyLast(f) }
 
     companion object {
@@ -95,33 +98,35 @@ data class GameSearchState(
             providerOrder = emptyList(),
             currentProvider = "",
             history = emptyMap(),
-            status = GameSearchStatus.Cancelled,
+            status = Status.Cancelled,
             existingGame = null
         )
     }
-}
 
-enum class GameSearchStatus {
-    Running, Success, Cancelled
-}
+    enum class Status {
+        Running, Success, Cancelled
+    }
 
-data class GameSearch(
-    val provider: ProviderId,
-    val query: String,
-    val results: List<ProviderSearchResult>,
-    val choice: ProviderSearchChoice?
-)
+    data class ProviderSearch(
+        val provider: ProviderId,
+        val query: String,
+        val offset: Int,
+        val results: List<ProviderSearchResult>,
+        val canShowMoreResults: Boolean,
+        val choice: Choice?
+    ) {
+        sealed class Choice {
+            data class Accept(val result: ProviderSearchResult) : ProviderSearch.Choice()
+            data class NewSearch(val newQuery: String) : ProviderSearch.Choice()
+            object Skip : ProviderSearch.Choice()
+            object Exclude : ProviderSearch.Choice()
+            object Cancel : ProviderSearch.Choice()
 
-sealed class ProviderSearchChoice {
-    data class Accept(val result: ProviderSearchResult) : ProviderSearchChoice()
-    data class NewSearch(val newQuery: String) : ProviderSearchChoice()
-    object Skip : ProviderSearchChoice()
-    object Exclude : ProviderSearchChoice()
-    object Cancel : ProviderSearchChoice()
+            // Should never be sent by the view, this is a synthetic choice used in syncing missing providers.
+            data class Preset(val result: ProviderSearchResult, val data: ProviderData) : ProviderSearch.Choice()
 
-    // Should never be sent by the view, this is a synthetic choice used in syncing missing providers.
-    data class Preset(val result: ProviderSearchResult, val data: ProviderData) : ProviderSearchChoice()
-
-    val isResult: Boolean get() = this !is NewSearch && this !is Cancel
-    val isNonExcludeResult: Boolean get() = this is Accept || this is Preset || this is Skip
+            val isResult: Boolean get() = this !is NewSearch && this !is Cancel
+            val isNonExcludeResult: Boolean get() = this is Accept || this is Preset || this is Skip
+        }
+    }
 }

@@ -31,5 +31,5 @@ val env: Environment = if (System.getProperty("gameDex.env") == "dev") Environme
 
 val applicationApiVersions = mapOf(
     ApplicationApi.Plugin to 0,
-    ApplicationApi.Provider to 0
+    ApplicationApi.Provider to 1
 )

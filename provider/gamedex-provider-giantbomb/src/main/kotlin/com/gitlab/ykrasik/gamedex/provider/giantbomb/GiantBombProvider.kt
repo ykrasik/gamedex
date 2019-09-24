@@ -39,9 +39,15 @@ class GiantBombProvider @Inject constructor(
 ) : GameProvider {
     private val log = logger()
 
-    override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount): List<ProviderSearchResult> {
+    override suspend fun search(
+        query: String,
+        platform: Platform,
+        account: ProviderUserAccount,
+        offset: Int,
+        limit: Int
+    ): List<ProviderSearchResult> {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
-            val response = client.search(query, platform, account as GiantBombUserAccount)
+            val response = client.search(query, platform, account as GiantBombUserAccount, offset = offset, limit = limit)
             assertOk(response.statusCode)
             response.results.map { it.toProviderSearchResult() }
         }
