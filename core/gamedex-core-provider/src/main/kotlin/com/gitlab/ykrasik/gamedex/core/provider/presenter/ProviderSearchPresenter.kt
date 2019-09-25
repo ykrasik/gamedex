@@ -312,7 +312,11 @@ class ProviderSearchPresenter @Inject constructor(
                 ?: libraryPath.path.name
 
             // Fetch providerData from accepted search results
-            val fetchedProviderData = taskService.execute(gameProviderService.fetch(name, libraryPath.library.platform, providerHeadersToFetch))
+            val fetchedProviderData = if (providerHeadersToFetch.isNotEmpty()) {
+                taskService.execute(gameProviderService.fetch(name, libraryPath.library.platform, providerHeadersToFetch))
+            } else {
+                emptyList()
+            }
             fetchedProviderData.associateByTo(providerData) { it.providerId }
 
             val finalProviderData = providerData.values.sortedBy { it.providerId }
