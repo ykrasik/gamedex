@@ -24,9 +24,8 @@ String getNextVersion(String version, boolean dirty) {
     if (dirty || v[3] != null) {
         v[1] += 1
         v[2] = 0
-        v[3] = 'SNAPSHOT'
     }
-    return "${v[0]}.${v[1]}.${v[2]}${(v[3] != null ? "-${v[3]}" : "")}"
+    return "${v[0]}.${v[1]}.${v[2]}"
 }
 
 Object[] parseVersion(String version) {
