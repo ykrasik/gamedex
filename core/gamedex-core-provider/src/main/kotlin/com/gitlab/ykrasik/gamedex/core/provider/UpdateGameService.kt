@@ -26,8 +26,10 @@ import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
+import kotlinx.coroutines.isActive
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.coroutineContext
 
 /**
  * User: ykrasik
@@ -62,7 +64,11 @@ class UpdateGameServiceImpl @Inject constructor(
             "${if (success) "Done" else "Cancelled"}${if (games.size > 1) ": Updated $processedItems Games." else "."}"
         }
 
-        games.forEachWithProgress { game ->
+        val context = coroutineContext
+        val sortedBy = games.sortedBy(Game::updateDate)
+        sortedBy.forEachWithProgress { game ->
+            if (!context.isActive) return@task
+
             val providersToDownload = game.providerHeaders.filter { gameProviderService.isEnabled(it.providerId) }.toList()
             if (providersToDownload.isEmpty()) return@forEachWithProgress
 
