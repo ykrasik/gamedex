@@ -14,33 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game
-
-import com.gitlab.ykrasik.gamedex.util.toMultiMap
-import com.gitlab.ykrasik.gamedex.util.urlDecoded
+package com.gitlab.ykrasik.gamedex
 
 /**
  * User: ykrasik
- * Date: 24/03/2018
- * Time: 11:52
+ * Date: 06/10/2019
+ * Time: 10:41
  */
-data class GameConfig(
-    val maxGenres: Int,
-    val maxScreenshots: Int,
-    private val noGenre: String,
-    private val genreReverseMapping: Map<String, List<String>>     // TODO: Make this configurable by the user.
-) {
-    private val genreMapping = run {
-        val genres = genreReverseMapping.flatMap { (target, sources) ->
-            sources.map { it to target.urlDecoded() }
-        }.toMultiMap()
-        genres.forEach { (source, targets) ->
-            if (targets.contains(noGenre)) {
-                require(targets.size == 1) { "Genre('$source') is both mapped to a value and marked as filtered: $targets" }
-            }
-        }
-        genres
-    }
+typealias GenreId = String
 
-    fun mapGenre(genre: String): List<String> = genreMapping[genre]?.let { if (it.contains(noGenre)) emptyList() else it } ?: listOf(genre)
+data class Genre(
+    val id: GenreId,
+    val color: String?,
+    val timestamp: Timestamp
+) {
+    fun createdNow() = copy(timestamp = Timestamp.now)
+    fun updatedNow() = copy(timestamp = timestamp.updatedNow())
+
+    companion object {
+        val Null = default("")
+
+        fun default(id: GenreId) = Genre(
+            id = id,
+            color = null,
+            timestamp = Timestamp.Null
+        )
+    }
 }

@@ -37,6 +37,7 @@ data class Game(
     val gameData: GameData,
     val folderName: FolderName,
     val fileTree: Ref<FileTree?>,
+    val genres: List<Genre>,
     val filterTags: List<TagId>
 ) {
     val id get() = rawGame.id
@@ -58,8 +59,6 @@ data class Game(
     val avgScore get() = withBothScores { c, u -> (c + u) / 2 }
     private inline fun withBothScores(f: (criticScore: Double, userScore: Double) -> Double): Double? =
         criticScore?.let { c -> userScore?.let { u -> f(c.score, u.score) } }
-
-    val genres get() = gameData.genres
 
     val thumbnailUrl get() = gameData.thumbnailUrl
     val posterUrl get() = gameData.posterUrl
@@ -108,6 +107,7 @@ data class Game(
                 version = null
             ),
             fileTree = ref(null),
+            genres = emptyList(),
             filterTags = emptyList()
         )
     }

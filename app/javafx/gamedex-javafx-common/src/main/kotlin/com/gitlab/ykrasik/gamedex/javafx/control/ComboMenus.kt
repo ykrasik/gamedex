@@ -46,7 +46,7 @@ inline fun <T> EventTarget.popoverComboMenu(
     noinline graphic: ((T) -> Node?)? = null,
     buttonGraphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation? = null,
-    crossinline itemOp: JFXButton.() -> Unit = {},
+    crossinline itemOp: JFXButton.(T) -> Unit = {},
     menuOp: PopOverContent.(T) -> Unit = {}
 ) = buttonWithPopover(arrowLocation = arrowLocation) {
     possibleItems.forEach { item ->
@@ -60,7 +60,7 @@ inline fun <T> EventTarget.popoverComboMenu(
         jfxButton(text?.invoke(item), graphic?.invoke(item), alignment = Pos.CENTER_LEFT) {
             useMaxWidth = true
             action { selectedItemProperty.value = item }
-            itemOp()
+            itemOp(item)
         }
         menuOp(item)
     }

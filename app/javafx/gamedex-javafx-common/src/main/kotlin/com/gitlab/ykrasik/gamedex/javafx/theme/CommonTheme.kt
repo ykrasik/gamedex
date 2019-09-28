@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.theme
 
+import com.gitlab.ykrasik.gamedex.Genre
 import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
@@ -52,6 +53,12 @@ val LibraryType.icon
         LibraryType.Digital -> Icons.folder
         LibraryType.Excluded -> Icons.folderRemove
     }.size(26)
+
+val Genre.genreBackground: Background
+    get() {
+        val backgroundColor = color?.let { c(it) } ?: Colors.niceBlue
+        return Background(BackgroundFill(backgroundColor, CornerRadii(3.0, false), Insets.EMPTY))
+    }
 
 inline fun EventTarget.header(
     text: String,

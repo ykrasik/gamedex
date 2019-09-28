@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
+import com.gitlab.ykrasik.gamedex.Genre
+import com.gitlab.ykrasik.gamedex.GenreId
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.*
@@ -27,6 +29,8 @@ import com.gitlab.ykrasik.gamedex.core.common.presenter.ShowAboutViewPresenter
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.module.FilterModule
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
+import com.gitlab.ykrasik.gamedex.core.genre.GenreService
+import com.gitlab.ykrasik.gamedex.core.genre.GenreServiceImpl
 import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.log.module.LogModule
@@ -41,6 +45,7 @@ import com.gitlab.ykrasik.gamedex.core.settings.*
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.TaskServiceImpl
@@ -74,6 +79,7 @@ object CoreModule : InternalCoreModule() {
         bind(ViewCommonOps::class.java).to(ViewCommonOpsImpl::class.java)
 
         bind(SettingsRepository::class.java).to(SettingsRepositoryImpl::class.java)
+        bind(GenreService::class.java).to(GenreServiceImpl::class.java)
 
         bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
         bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
@@ -130,7 +136,7 @@ object CoreModule : InternalCoreModule() {
     @Provides
     @Singleton
     fun config(): Config = log.time("Loading configuration...") {
-        listOf(GameModule.configFile, ImageModule.configFile, PersistenceModule.configFile, configFile)
+        listOf(ImageModule.configFile, PersistenceModule.configFile, configFile)
             .fold(ConfigFactory.load()) { config, file ->
                 val resource = checkNotNull(javaClass.getResource(file)) { "Config file not found: $file" }
                 config.withFallback(ConfigFactory.parseURL(resource))
@@ -155,4 +161,8 @@ object CoreModule : InternalCoreModule() {
     @Singleton
     @VersionDisplaySettingsRepository
     fun versionDisplaySettingsRepository(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository.version(repo)
+
+    @Provides
+    @Singleton
+    fun genreStorage(): Storage<GenreId, Genre> = StringIdJsonStorageFactory("data/genres")
 }

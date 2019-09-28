@@ -35,7 +35,9 @@ class GameSettingsRepository @Inject constructor(repo: SettingsRepository) {
         val platform: AvailablePlatform,
         val displayType: GameDisplayType,
         val sortBy: SortBy,
-        val sortOrder: SortOrder
+        val sortOrder: SortOrder,
+        val maxGenres: Int,
+        val maxScreenshots: Int
     )
 
     private val storage = repo.storage(basePath = "", name = "game") {
@@ -43,7 +45,9 @@ class GameSettingsRepository @Inject constructor(repo: SettingsRepository) {
             platform = AvailablePlatform.SinglePlatform(Platform.Windows),
             displayType = GameDisplayType.Wall,
             sortBy = SortBy.CriticScore,
-            sortOrder = SortOrder.Desc
+            sortOrder = SortOrder.Desc,
+            maxGenres = 7,
+            maxScreenshots = 12
         )
     }
 
@@ -58,4 +62,10 @@ class GameSettingsRepository @Inject constructor(repo: SettingsRepository) {
 
     val sortOrderChannel = storage.biChannel(Data::sortOrder) { copy(sortOrder = it) }
     var sortOrder by sortOrderChannel
+
+    val maxGenresChannel = storage.biChannel(Data::maxGenres) { copy(maxGenres = it) }
+    var maxGenres by maxGenresChannel
+
+    val maxScreenshotsChannel = storage.biChannel(Data::maxScreenshots) { copy(maxScreenshots = it) }
+    var maxScreenshots by maxScreenshotsChannel
 }

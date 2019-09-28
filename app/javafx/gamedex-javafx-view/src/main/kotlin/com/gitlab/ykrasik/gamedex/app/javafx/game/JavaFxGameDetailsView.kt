@@ -359,9 +359,10 @@ class JavaFxGameDetailsView(
                                 hgap = 5.0
                                 vgap = 3.0
                                 tooltip("Genres")
-                                game.genres.forEach {
-                                    label(it) {
+                                game.genres.forEach { genre ->
+                                    label(genre.id) {
                                         addClass(Style.genreItem)
+                                        background = genre.genreBackground
                                     }
                                 }
                             }
@@ -591,8 +592,6 @@ class JavaFxGameDetailsView(
             }
             genreItem {
                 borderRadius = multi(box(3.px))
-                backgroundColor = multi(Colors.niceBlue)
-                backgroundRadius = multi(box(3.px))
                 padding = box(vertical = 2.px, horizontal = 8.px)
             }
             tag {

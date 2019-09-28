@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
+import com.gitlab.ykrasik.gamedex.Genre
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.filter.*
@@ -79,8 +80,8 @@ class JavaFxFilterView(
     override val availableLibraries = settableList<Library>()
     private val availableLibrariesSortedFiltered = availableLibraries.sortedFiltered(caseInsensitiveStringComparator(Library::name))
 
-    override val availableGenres = settableList<String>()
-    private val availableGenresSortedFiltered = availableGenres.sortedFiltered(caseInsensitiveStringComparator)
+    override val availableGenres = settableList<Genre>()
+    private val availableGenresSortedFiltered = availableGenres.sortedFiltered(caseInsensitiveStringComparator(Genre::id))
 
     override val availableTags = settableList<TagId>()
     private val availableTagsSortedFiltered = availableTags.sortedFiltered(caseInsensitiveStringComparator)
@@ -418,10 +419,14 @@ class JavaFxFilterView(
     }
 
     private fun HBox.renderGenreFilter(filter: Filter.Genre) {
-        val genre = filter.toProperty(Filter.Genre::genre, Filter::Genre)
+        val genre = filter.toProperty(
+            { availableGenresSortedFiltered.find { it.id == genre } ?: Genre.Null },
+            { Filter.Genre(it.id) }
+        )
         popoverComboMenu(
             possibleItems = availableGenresSortedFiltered,
-            selectedItemProperty = genre
+            selectedItemProperty = genre,
+            text = Genre::id
         )
     }
 
@@ -508,7 +513,9 @@ class JavaFxFilterView(
     private inline fun <Rule : Filter.Rule, T : Any> Rule.toProperty(
         extractor: Extractor<Rule, T>,
         crossinline factory: (T) -> Rule
-    ): Property<T> = extractor(this).toProperty().apply { bindChanges(updateFilterActions) { this@toProperty to factory(it) }; Unit }
+    ): Property<T> = extractor(this).toProperty().apply {
+        bindChanges(updateFilterActions) { this@toProperty to factory(it) }
+    }
 
     enum class PeriodType(val fieldType: DurationFieldType, val extractor: (Period) -> Int) {
         Years(DurationFieldType.years(), Period::getYears),

@@ -19,9 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.gitlab.ykrasik.gamedex.FileTree
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.JodaDateTime
 import com.gitlab.ykrasik.gamedex.util.dateTimeOrNull
@@ -266,25 +264,25 @@ sealed class Filter {
         override fun toString() = "Platform == '$platform'"
     }
 
-    class Library(val id: Int) : Rule() {
+    class Library(val id: LibraryId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.library.id == id
         override fun isEqual(other: Filter) = other.ifIs<Library> { this.id == it.id }
         override fun toString() = "Library == Library($id)"
     }
 
-    class Genre(val genre: String) : Rule() {
-        override fun evaluate(game: Game, context: Context) = game.genres.any { it == genre }
+    class Genre(val genre: GenreId) : Rule() {
+        override fun evaluate(game: Game, context: Context) = game.genres.any { it.id == genre }
         override fun isEqual(other: Filter) = other.ifIs<Genre> { this.genre == it.genre }
         override fun toString() = "Genre == '$genre'"
     }
 
-    class Tag(val tag: String) : Rule() {
+    class Tag(val tag: TagId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.tags.any { it == tag }
         override fun isEqual(other: Filter) = other.ifIs<Tag> { this.tag == it.tag }
         override fun toString() = "Tag == '$tag'"
     }
 
-    class FilterTag(val tag: String) : Rule() {
+    class FilterTag(val tag: TagId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.filterTags.any { it == tag }
         override fun isEqual(other: Filter) = other.ifIs<FilterTag> { this.tag == it.tag }
         override fun toString() = "FilterTag == '$tag'"

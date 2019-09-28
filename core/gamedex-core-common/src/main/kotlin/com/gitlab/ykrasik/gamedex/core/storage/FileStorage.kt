@@ -63,20 +63,16 @@ class FileStorage<K, V>(
 
     override fun set(key: K, value: V) = set(key, value) { }
 
-    private inline fun set(key: K, value: V, handleFile: (File) -> Unit) {
+    private inline fun set(key: K, value: V, verify: (File) -> Unit) {
         val file = fileFor(key)
-        handleFile(file)
+        verify(file)
         file.parentFile.mkdirs()
         format.write(file, value)
     }
 
     override fun get(key: K): V? {
         val file = fileFor(key)
-        return if (file.isFile) {
-            readFile(file)
-        } else {
-            null
-        }
+        return readFile(file)
     }
 
     override fun getAll() = streamFiles { stream ->
@@ -87,13 +83,16 @@ class FileStorage<K, V>(
         }.toMap()
     } ?: emptyMap()
 
-    private fun readFile(file: File): V? =
-        try {
+    private fun readFile(file: File): V? = try {
+        if (file.isFile) {
             format.read(file)
-        } catch (e: Exception) {
-            log.error("Error reading file: $file", e)
+        } else {
             null
         }
+    } catch (e: Exception) {
+        log.error("Error reading file: $file", e)
+        null
+    }
 
     override fun delete(key: K) = fileFor(key).delete()
     override fun delete(keys: Iterable<K>) = keys.forEach { delete(it) }

@@ -21,7 +21,9 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.minOrder
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
+import com.gitlab.ykrasik.gamedex.core.genre.GenreService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.ProviderOrderSettingsRepository
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
@@ -35,16 +37,18 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameFactory @Inject constructor(
-    private val config: GameConfig,
     private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
-    private val settingsRepo: ProviderOrderSettingsRepository,
+    private val gameSettingsRepository: GameSettingsRepository,
+    private val providerOrderSettingsRepo: ProviderOrderSettingsRepository,
+    private val genreService: GenreService,
     private val filterService: FilterService
 ) {
     fun create(rawGame: RawGame): Game {
         val library = libraryService[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
         val folderName = fileSystemService.analyzeFolderName(rawGame.metadata.path.file.name)
+        val genres = gameData.genres.map(genreService::get)
         val fileTree = fileSystemService.fileTree(rawGame.id, library.path.resolve(rawGame.metadata.path))
 
         val game = Game(
@@ -53,6 +57,7 @@ class GameFactory @Inject constructor(
             gameData = gameData,
             folderName = folderName,
             fileTree = fileTree,
+            genres = genres,
             filterTags = emptyList()
         )
 
@@ -68,21 +73,21 @@ class GameFactory @Inject constructor(
         val criticScoreOrder = providerData.sortedByDescending { it.gameData.criticScore?.numReviews ?: -1 }.map { it.providerId }
         val userScoreOrder = providerData.sortedByDescending { it.gameData.userScore?.numReviews ?: -1 }.map { it.providerId }
 
-        val thumbnailUrl = firstBy(settingsRepo.thumbnail, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
-        val posterUrl = firstBy(settingsRepo.poster, userData.posterOverride()) { it.gameData.posterUrl }
-        val screenshotUrls = listBy(settingsRepo.screenshot, userData.screenshotsOverride()) { it.gameData.screenshotUrls }.take(config.maxScreenshots)
+        val thumbnailUrl = firstBy(providerOrderSettingsRepo.thumbnail, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
+        val posterUrl = firstBy(providerOrderSettingsRepo.poster, userData.posterOverride()) { it.gameData.posterUrl }
+        val screenshotUrls = listBy(providerOrderSettingsRepo.screenshot, userData.screenshotsOverride()) { it.gameData.screenshotUrls }.take(gameSettingsRepository.maxScreenshots)
 
         return GameData(
-            name = firstBy(settingsRepo.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
-            description = firstBy(settingsRepo.description, userData.descriptionOverride()) { it.gameData.description },
-            releaseDate = firstBy(settingsRepo.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
+            name = firstBy(providerOrderSettingsRepo.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
+            description = firstBy(providerOrderSettingsRepo.description, userData.descriptionOverride()) { it.gameData.description },
+            releaseDate = firstBy(providerOrderSettingsRepo.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
             criticScore = firstBy(criticScoreOrder, userData.criticScoreOverride(), converter = ::asCustomScore) {
                 it.gameData.criticScore.minOrNull()
             },
             userScore = firstBy(userScoreOrder, userData.userScoreOverride(), converter = ::asCustomScore) {
                 it.gameData.userScore.minOrNull()
             },
-            genres = unsortedListBy(userData.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),
+            genres = genreService.processGenres(unsortedListBy(userData.genresOverride()) { it.gameData.genres }),
             thumbnailUrl = thumbnailUrl ?: posterUrl,
             posterUrl = posterUrl ?: thumbnailUrl,
             screenshotUrls = screenshotUrls

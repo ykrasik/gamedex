@@ -14,38 +14,35 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.module
+package com.gitlab.ykrasik.gamedex.core.genre
 
-import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
-import com.gitlab.ykrasik.gamedex.core.game.presenter.*
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import com.gitlab.ykrasik.gamedex.Genre
+import com.gitlab.ykrasik.gamedex.GenreId
+import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
+import com.gitlab.ykrasik.gamedex.core.util.toMap
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 03/10/2018
- * Time: 09:47
+ * Date: 06/10/2019
+ * Time: 12:08
  */
-object GameModule : InternalCoreModule() {
-    override fun configure() {
-        bind(GameService::class.java).to(GameServiceImpl::class.java)
+@Singleton
+class GenreServiceImpl @Inject constructor(
+    genreRepo: GenreRepository,
+    private val genreMappingRepo: GenreMappingRepository,
+    private val gameSettingsRepository: GameSettingsRepository
+) : GenreService {
+    override val genres = genreRepo.genres
+    private val genresById = genres.toMap(Genre::id)
 
-        bindPresenter(GamesPresenter::class)
-        bindPresenter(PlatformPresenter::class)
-        bindPresenter(GameDisplayTypePresenter::class)
-        bindPresenter(CurrentPlatformFilterPresenter::class)
-        bindPresenter(GameSortPresenter::class)
+    override fun get(id: GenreId) = genresById.getOrElse(id) { Genre.default(id) }
 
-        bindPresenter(DeleteGamePresenter::class)
-        bindPresenter(ShowDeleteGamePresenter::class)
-
-        bindPresenter(GameDetailsPresenter::class)
-        bindPresenter(ShowGameDetailsViewPresenter::class)
-
-        bindPresenter(EditGamePresenter::class)
-        bindPresenter(ShowEditGamePresenter::class)
-
-        bindPresenter(ShowTagGamePresenter::class)
-        bindPresenter(TagGamePresenter::class)
+    override fun processGenres(genres: List<GenreId>): List<GenreId> {
+        return genres.flatMap(::mapGenre).distinct().take(gameSettingsRepository.maxGenres)
     }
+
+    private fun mapGenre(genreId: GenreId): List<GenreId> =
+        genreMappingRepo.mapping.getOrElse(genreId) { listOf(genreId) }
 }

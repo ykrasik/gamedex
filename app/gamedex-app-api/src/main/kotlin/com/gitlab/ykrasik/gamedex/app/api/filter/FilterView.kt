@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
+import com.gitlab.ykrasik.gamedex.Genre
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
@@ -38,7 +39,7 @@ interface FilterView {
     val availableFilters: SettableList<KClass<out Filter.Rule>>
 
     val availableLibraries: SettableList<Library>
-    val availableGenres: SettableList<String>
+    val availableGenres: SettableList<Genre>
     val availableTags: SettableList<TagId>
     val availableFilterTags: SettableList<TagId>
     val availableProviderIds: SettableList<ProviderId>

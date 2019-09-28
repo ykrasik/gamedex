@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.util.mapping
-import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -60,7 +59,7 @@ class FilterPresenter @Inject constructor(
         private val filterBuilders = listOf(
             FilterBuilder.param(Filter::Platform) { Platform.Windows },
             FilterBuilder.param(Filter::Library) { libraries.first().id },
-            FilterBuilder.param(Filter::Genre) { genres.firstOrNull() ?: "" },
+            FilterBuilder.param(Filter::Genre) { genres.firstOrNull()?.id ?: "" },
             FilterBuilder.param(Filter::Tag) { tags.firstOrNull() ?: "" },
             FilterBuilder.param(Filter::FilterTag) { filterTags.firstOrNull() ?: "" },
             FilterBuilder.param(Filter::Provider) { providers.firstOrNull()?.id ?: "" },

@@ -44,14 +44,14 @@ interface CommonData {
     val games: ListObservable<Game>
     val platformGames: ListObservable<Game>
 
-    val genres: ListObservable<String>
-    val platformGenres: ListObservable<String>
+    val genres: ListObservable<Genre>
+    val platformGenres: ListObservable<Genre>
 
     val tags: ListObservable<TagId>
-    val platformTags: ListObservable<String>
+    val platformTags: ListObservable<TagId>
 
     val filterTags: ListObservable<TagId>
-    val platformFilterTags: ListObservable<String>
+    val platformFilterTags: ListObservable<TagId>
 
     val libraries: ListObservable<Library>
     val contentLibraries: ListObservable<Library>
@@ -86,7 +86,7 @@ class CommonDataImpl @Inject constructor(
 
     override val genres = games.genres()
     override val platformGenres = platformGames.genres()
-    private fun ListObservable<Game>.genres() = flatMapping { it.genres }.distincting().sortingBy { it }
+    private fun ListObservable<Game>.genres() = flatMapping { it.genres }.distincting().sortingBy { it.id }
 
     override val tags = games.tags()
     override val platformTags = platformGames.tags()
