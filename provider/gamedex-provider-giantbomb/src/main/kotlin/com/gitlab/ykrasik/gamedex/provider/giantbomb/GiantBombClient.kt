@@ -53,7 +53,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         )
     )
 
-    open suspend fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse = get(
+    open suspend fun fetch(apiUrl: String, account: GiantBombUserAccount): FetchResponse = get(
         endpoint = apiUrl,
         account = account,
         params = mapOf("field_list" to fetchDetailsFieldsStr)
@@ -113,16 +113,16 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class DetailsResponse(
+    data class FetchResponse(
         val statusCode: Status,
 
         // When result is found - GiantBomb returns a Json object. When result is not found, GiantBomb returns an empty Json array []. Annoying.
         @JsonFormat(with = [(JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)])
-        val results: List<DetailsResult>
+        val results: List<FetchResult>
     )
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
-    data class DetailsResult(
+    data class FetchResult(
         val siteDetailUrl: String,
         val name: String,
         val deck: String?,

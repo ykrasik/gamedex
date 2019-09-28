@@ -70,7 +70,7 @@ class GiantBombMockServer(port: Int = freePort) : Closeable {
 
     @Suppress("ClassName")
     inner class aFetchRequest(private val path: String) : BaseRequest() {
-        infix fun willReturn(response: GiantBombClient.DetailsResponse) {
+        infix fun willReturn(response: GiantBombClient.FetchResponse) {
             wiremock.givenThat(get(urlPathEqualTo("/$path")).willReturn(aJsonResponse(response.toMap())))
         }
     }
@@ -138,9 +138,9 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
         }
     )
 
-    private fun randomDetailResponse() = GiantBombClient.DetailsResponse(
+    private fun randomDetailResponse() = GiantBombClient.FetchResponse(
         statusCode = GiantBombClient.Status.OK,
-        results = listOf(GiantBombClient.DetailsResult(
+        results = listOf(GiantBombClient.FetchResult(
             siteDetailUrl = randomUrl(),
             name = randomName(),
             deck = randomParagraph(),
@@ -206,7 +206,7 @@ private fun GiantBombClient.SearchResult.toMap(): Map<String, Any> = mapOf(
     "image" to image?.toMap()
 ).filterNullValues()
 
-private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
+private fun GiantBombClient.FetchResponse.toMap() = mapOf(
     "error" to statusCode.asString(),
     "limit" to 1,
     "offset" to 0,
@@ -217,7 +217,7 @@ private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
     "version" to "1.0"
 )
 
-private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> = mapOf(
+private fun GiantBombClient.FetchResult.toMap(): Map<String, Any> = mapOf(
     "site_detail_url" to siteDetailUrl,
     "name" to name,
     "images" to images,

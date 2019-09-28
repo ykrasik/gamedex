@@ -1,0 +1,21 @@
+version = '0.4.0'
+
+ext {
+    pluginJsonDir = "com/gitlab/ykrasik/gamedex/provider/opencritic"
+    pluginClass = "com.gitlab.ykrasik.gamedex.provider.opencritic.OpenCriticProviderPlugin"
+    pluginId = "provider.opencritic"
+    pluginDescription = "OpenCritic integration"
+    pluginAuthor = "Yevgeny Krasik"
+    pluginApiDependencies = [
+        "Plugin"  : 0,
+        "Provider": 1
+    ]
+}
+
+apply from: gradleFile('plugin.gradle')
+
+dependencies {
+    compileOnly project(":gamedex-api")
+    testCompile project(":gamedex-api")
+    testCompile project(path: ":gamedex-api", configuration: 'testArtifacts')
+}

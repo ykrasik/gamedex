@@ -59,7 +59,7 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
     @Suppress("ClassName")
     inner class anyRequest {
         infix fun willReturnSearch(results: List<IgdbClient.SearchResult>) = returns(results)
-        infix fun willReturnFetch(response: List<IgdbClient.DetailsResult>) = returns(response)
+        infix fun willReturnFetch(response: List<IgdbClient.FetchResult>) = returns(response)
 
         private fun <T> returns(results: List<T>) {
             wiremock.givenThat(post(urlPathEqualTo("/")).willReturn(aJsonResponse(results)))
@@ -134,7 +134,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
 
     private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
 
-    private fun randomDetailResponse(): String = listOf(IgdbClient.DetailsResult(
+    private fun randomDetailResponse(): String = listOf(IgdbClient.FetchResult(
         url = randomUrl(),
         name = randomName(),
         summary = randomParagraph(),

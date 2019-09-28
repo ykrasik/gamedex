@@ -83,3 +83,6 @@ inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.r
 
 fun <T> List<T>.randomElement(): T = this[randomInt(size - 1)]
 fun <T> Array<T>.randomElement(): T = this[randomInt(size - 1)]
+
+// chance of happening is 1/chance
+fun <T> T.sometimesNull(chance: Int = 10) = this.takeIf { randomInt(chance) < chance }

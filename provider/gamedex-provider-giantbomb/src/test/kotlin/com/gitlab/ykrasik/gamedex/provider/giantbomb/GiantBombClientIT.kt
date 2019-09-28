@@ -119,10 +119,10 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
             )
         )
 
-        val detailsResponse = GiantBombClient.DetailsResponse(
+        val detailsResponse = GiantBombClient.FetchResponse(
             statusCode = GiantBombClient.Status.OK,
             results = listOf(
-                GiantBombClient.DetailsResult(
+                GiantBombClient.FetchResult(
                     siteDetailUrl = randomUrl(),
                     name = randomName(),
                     deck = randomParagraph(),

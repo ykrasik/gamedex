@@ -138,9 +138,6 @@ object TestApplication {
         timestamp = Timestamp.now
     )
 
-    // 9/10 chance.
-    private fun String.sometimesNull() = if (randomInt(10) < 10) this else null
-
     private object TestModule : AbstractModule() {
         @Provides
         @Singleton

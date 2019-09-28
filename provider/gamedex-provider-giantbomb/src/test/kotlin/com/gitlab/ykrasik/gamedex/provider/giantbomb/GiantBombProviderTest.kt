@@ -357,7 +357,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             }
 
             "throw IllegalStateException on invalid response status" test {
-                givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.BadFormat, emptyList()))
+                givenClientFetchReturns(GiantBombClient.FetchResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
                 shouldThrow<IllegalStateException> {
                     fetch()
@@ -391,7 +391,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             image = randomImage()
         )
 
-        fun detailsResult(name: String = this.name) = GiantBombClient.DetailsResult(
+        fun detailsResult(name: String = this.name) = GiantBombClient.FetchResult(
             siteDetailUrl = randomUrl(),
             name = name,
             deck = randomParagraph(),
@@ -412,10 +412,10 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             coEvery { client.search(name, platform, account, offset, limit) } returns response
         }
 
-        fun givenClientFetchReturns(result: GiantBombClient.DetailsResult, apiUrl: String = apiDetailUrl) =
-            givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.OK, listOf(result)), apiUrl)
+        fun givenClientFetchReturns(result: GiantBombClient.FetchResult, apiUrl: String = apiDetailUrl) =
+            givenClientFetchReturns(GiantBombClient.FetchResponse(GiantBombClient.Status.OK, listOf(result)), apiUrl)
 
-        fun givenClientFetchReturns(response: GiantBombClient.DetailsResponse, apiUrl: String = apiDetailUrl) {
+        fun givenClientFetchReturns(response: GiantBombClient.FetchResponse, apiUrl: String = apiDetailUrl) {
             coEvery { client.fetch(apiUrl, account) } returns response
         }
 

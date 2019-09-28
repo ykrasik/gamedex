@@ -1,0 +1,105 @@
+/****************************************************************************
+ * Copyright (C) 2016-2019 Yevgeny Krasik                                   *
+ *                                                                          *
+ * Licensed under the Apache License, Version 2.0 (the "License");          *
+ * you may not use this file except in compliance with the License.         *
+ * You may obtain a copy of the License at                                  *
+ *                                                                          *
+ * http://www.apache.org/licenses/LICENSE-2.0                               *
+ *                                                                          *
+ * Unless required by applicable law or agreed to in writing, software      *
+ * distributed under the License is distributed on an "AS IS" BASIS,        *
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
+ * See the License for the specific language governing permissions and      *
+ * limitations under the License.                                           *
+ ****************************************************************************/
+
+package com.gitlab.ykrasik.gamedex.provider.opencritic
+
+import com.gitlab.ykrasik.gamedex.GameData
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
+import com.gitlab.ykrasik.gamedex.util.logResult
+import com.gitlab.ykrasik.gamedex.util.logger
+import org.slf4j.Logger
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * User: ykrasik
+ * Date: 28/09/2019
+ * Time: 22:12
+ */
+@Singleton
+class OpenCriticProvider @Inject constructor(
+    private val config: OpenCriticConfig,
+    private val client: OpenCriticClient
+) : GameProvider {
+    private val log = logger()
+
+    override suspend fun search(
+        query: String,
+        platform: Platform,
+        account: ProviderUserAccount,
+        offset: Int,
+        limit: Int
+    ): List<ProviderSearchResult> {
+        val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
+            client.search(query).map { it.toSearchResult() }
+        }
+        results.forEach { log.trace(it.toString()) }
+        return results
+    }
+
+    private fun OpenCriticClient.SearchResult.toSearchResult() = ProviderSearchResult(
+        providerGameId = id.toString(),
+        name = name,
+        description = null,
+        releaseDate = null,
+        criticScore = null,
+        userScore = null,
+        thumbnailUrl = null
+    )
+
+    override suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
+        log.logResult("[$platform] Fetching OpenCritic game '$providerGameId'...", log = Logger::debug) {
+            client.fetch(providerGameId).toProviderData(platform)
+        }
+
+    private fun OpenCriticClient.FetchResult.toProviderData(platform: Platform) = ProviderFetchData(
+        gameData = GameData(
+            name = this.name,
+            description = this.description,
+            releaseDate = this.Platforms.findReleaseDate(platform) ?: firstReleaseDate.toLocalDate().toString(),
+            criticScore = if (averageScore > 0 && numReviews != 0) Score(averageScore, numReviews) else null,
+            userScore = null,
+            genres = this.Genres.map { it.name },
+            thumbnailUrl = this.logoScreenshot?.thumbnail?.toImageUrl(),
+            posterUrl = null,
+            screenshotUrls = (this.mastheadScreenshot?.let { listOf(it.fullRes.toImageUrl()) } ?: emptyList()) + this.screenshots.map { it.fullRes.toImageUrl() }
+        ),
+        siteUrl = "${config.baseUrl}/game/${id}/${name.replace("[\\W]+".toRegex(), "-").toLowerCase()}"
+    )
+
+    private fun List<OpenCriticClient.Platform>.findReleaseDate(platform: Platform): String? {
+        // OpenCritic returns all release dates for all platforms.
+        val openCriticPlatform = this.find { it.id == platform.platformId } ?: return null
+        return openCriticPlatform.releaseDate.toLocalDate().toString()
+    }
+
+    private fun String.toImageUrl() = "http:$this"
+
+    private val Platform.platformId: Int get() = config.getPlatformId(this)
+
+    override val metadata = GameProviderMetadata(
+        id = "OpenCritic",
+        logo = getResourceAsByteArray("opencritic.png"),
+        supportedPlatforms = listOf(Platform.Windows),
+        defaultOrder = config.defaultOrder,
+        accountFeature = null
+    )
+
+    override fun toString() = id
+}

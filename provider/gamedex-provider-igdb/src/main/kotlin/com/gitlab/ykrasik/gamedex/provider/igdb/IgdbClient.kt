@@ -54,8 +54,8 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         """.trimIndent()
     }
 
-    open suspend fun fetch(providerGameId: String, account: IgdbUserAccount): DetailsResult? =
-        post<DetailsResult>(account) {
+    open suspend fun fetch(providerGameId: String, account: IgdbUserAccount): FetchResult? =
+        post<FetchResult>(account) {
             """
                 fields $fetchDetailsFieldsStr;
                 where id = $providerGameId;
@@ -119,7 +119,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class DetailsResult(
+    data class FetchResult(
         val url: String,
         val name: String,
         val summary: String?,

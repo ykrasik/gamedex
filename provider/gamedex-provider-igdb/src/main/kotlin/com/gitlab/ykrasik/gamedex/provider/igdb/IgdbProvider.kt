@@ -73,7 +73,7 @@ class IgdbProvider @Inject constructor(
             }
         }
 
-    private fun IgdbClient.DetailsResult.toProviderData(platform: Platform) = ProviderFetchData(
+    private fun IgdbClient.FetchResult.toProviderData(platform: Platform) = ProviderFetchData(
         gameData = GameData(
             name = this.name,
             description = this.summary,

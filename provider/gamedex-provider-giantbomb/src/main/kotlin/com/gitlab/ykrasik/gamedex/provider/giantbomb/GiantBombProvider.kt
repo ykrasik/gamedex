@@ -76,7 +76,7 @@ class GiantBombProvider @Inject constructor(
             response.results.first().toProviderData()
         }
 
-    private fun GiantBombClient.DetailsResult.toProviderData() = ProviderFetchData(
+    private fun GiantBombClient.FetchResult.toProviderData() = ProviderFetchData(
         gameData = GameData(
             name = name,
             description = deck,

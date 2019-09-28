@@ -287,7 +287,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
         fun detailsResult(
             releaseDate: String = randomLocalDateString(),
             releaseDatePlatformId: Int = this.platformId
-        ) = IgdbClient.DetailsResult(
+        ) = IgdbClient.FetchResult(
             url = randomWord(),
             name = name,
             summary = randomParagraph(),
@@ -313,7 +313,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             coEvery { client.search(name, platform, account, offset, limit) } returns results
         }
 
-        fun givenClientFetchReturns(result: IgdbClient.DetailsResult, providerGameId: String = baseUrl) {
+        fun givenClientFetchReturns(result: IgdbClient.FetchResult, providerGameId: String = baseUrl) {
             coEvery { client.fetch(providerGameId, account) } returns result
         }
 

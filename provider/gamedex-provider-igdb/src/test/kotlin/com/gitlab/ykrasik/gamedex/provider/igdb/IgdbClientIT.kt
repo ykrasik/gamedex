@@ -148,7 +148,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
             cover = randomImage()
         )
 
-        val detailsResult = IgdbClient.DetailsResult(
+        val detailsResult = IgdbClient.FetchResult(
             url = randomWord(),
             name = randomName(),
             summary = randomParagraph(),
