@@ -450,6 +450,7 @@ class JavaFxGameDetailsView(
                     scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
 
                     addClass(Style.screenshotItem)
+                    tooltip(url)
                     setOnMouseClicked {
                         viewImageActions.offer(ViewImageParams(imageUrl = url, imageUrls = game.screenshotUrls))
                     }
