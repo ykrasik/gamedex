@@ -33,8 +33,6 @@ interface ProviderOrderSettingsView {
     val name: UserMutableState<Order>
     val description: UserMutableState<Order>
     val releaseDate: UserMutableState<Order>
-    val criticScore: UserMutableState<Order>
-    val userScore: UserMutableState<Order>
     val thumbnail: UserMutableState<Order>
     val poster: UserMutableState<Order>
     val screenshot: UserMutableState<Order>

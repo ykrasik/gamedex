@@ -36,8 +36,6 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers
         val name: Order,
         val description: Order,
         val releaseDate: Order,
-        val criticScore: Order,
-        val userScore: Order,
         val thumbnail: Order,
         val poster: Order,
         val screenshot: Order
@@ -52,8 +50,6 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers
             name = defaultOrder { name },
             description = defaultOrder { description },
             releaseDate = defaultOrder { releaseDate },
-            criticScore = defaultOrder { criticScore },
-            userScore = defaultOrder { userScore },
             thumbnail = defaultOrder { thumbnail },
             poster = defaultOrder { poster },
             screenshot = defaultOrder { screenshot }
@@ -71,12 +67,6 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers
 
     val releaseDateChannel = storage.channel(Data::releaseDate)
     val releaseDate by releaseDateChannel
-
-    val criticScoreChannel = storage.channel(Data::criticScore)
-    val criticScore by criticScoreChannel
-
-    val userScoreChannel = storage.channel(Data::userScore)
-    val userScore by userScoreChannel
 
     val thumbnailChannel = storage.channel(Data::thumbnail)
     val thumbnail by thumbnailChannel

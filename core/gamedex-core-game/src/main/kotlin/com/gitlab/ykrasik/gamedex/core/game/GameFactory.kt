@@ -65,6 +65,9 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData {
+        val criticScoreOrder = providerData.sortedByDescending { it.gameData.criticScore?.numReviews ?: -1 }.map { it.providerId }
+        val userScoreOrder = providerData.sortedByDescending { it.gameData.userScore?.numReviews ?: -1 }.map { it.providerId }
+
         val thumbnailUrl = firstBy(settingsService.providerOrder.thumbnail, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
         val posterUrl = firstBy(settingsService.providerOrder.poster, userData.posterOverride()) { it.gameData.posterUrl }
         val screenshotUrls = listBy(settingsService.providerOrder.screenshot, userData.screenshotsOverride()) { it.gameData.screenshotUrls }.take(config.maxScreenshots)
@@ -73,11 +76,10 @@ class GameFactory @Inject constructor(
             name = firstBy(settingsService.providerOrder.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
             description = firstBy(settingsService.providerOrder.description, userData.descriptionOverride()) { it.gameData.description },
             releaseDate = firstBy(settingsService.providerOrder.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
-            // TODO: Choose score with most votes.
-            criticScore = firstBy(settingsService.providerOrder.criticScore, userData.criticScoreOverride(), converter = ::asCustomScore) {
+            criticScore = firstBy(criticScoreOrder, userData.criticScoreOverride(), converter = ::asCustomScore) {
                 it.gameData.criticScore.minOrNull()
             },
-            userScore = firstBy(settingsService.providerOrder.userScore, userData.userScoreOverride(), converter = ::asCustomScore) {
+            userScore = firstBy(userScoreOrder, userData.userScoreOverride(), converter = ::asCustomScore) {
                 it.gameData.userScore.minOrNull()
             },
             genres = unsortedListBy(userData.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),

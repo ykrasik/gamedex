@@ -42,8 +42,6 @@ class ProviderOrderSettingsPresenter @Inject constructor(
             settingsService.providerOrder.bind({ nameChannel }, view.name) { verifyCanChange(); copy(name = it) }
             settingsService.providerOrder.bind({ descriptionChannel }, view.description) { verifyCanChange(); copy(description = it) }
             settingsService.providerOrder.bind({ releaseDateChannel }, view.releaseDate) { verifyCanChange(); copy(releaseDate = it) }
-            settingsService.providerOrder.bind({ criticScoreChannel }, view.criticScore) { verifyCanChange(); copy(criticScore = it) }
-            settingsService.providerOrder.bind({ userScoreChannel }, view.userScore) { verifyCanChange(); copy(userScore = it) }
             settingsService.providerOrder.bind({ thumbnailChannel }, view.thumbnail) { verifyCanChange(); copy(thumbnail = it) }
             settingsService.providerOrder.bind({ posterChannel }, view.poster) { verifyCanChange(); copy(poster = it) }
             settingsService.providerOrder.bind({ screenshotChannel }, view.screenshot) { verifyCanChange(); copy(screenshot = it) }

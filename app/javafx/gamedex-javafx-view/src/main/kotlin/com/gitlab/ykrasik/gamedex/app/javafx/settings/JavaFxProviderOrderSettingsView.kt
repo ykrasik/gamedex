@@ -55,8 +55,6 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAl
     override val name = userMutableState<Order>(emptyList())
     override val description = userMutableState<Order>(emptyList())
     override val releaseDate = userMutableState<Order>(emptyList())
-    override val criticScore = userMutableState<Order>(emptyList())
-    override val userScore = userMutableState<Order>(emptyList())
     override val thumbnail = userMutableState<Order>(emptyList())
     override val poster = userMutableState<Order>(emptyList())
     override val screenshot = userMutableState<Order>(emptyList())
@@ -77,8 +75,6 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAl
                     Triple("Name", Icons.text, name),
                     Triple("Description", Icons.textbox, description),
                     Triple("Release Date", Icons.date, releaseDate),
-                    Triple("Critic Score", Icons.starFull, criticScore),
-                    Triple("User Score", Icons.starEmpty, userScore),
                     Triple("Thumbnail", Icons.thumbnail, thumbnail),
                     Triple("Poster", Icons.poster, poster),
                     Triple("Screenshots", Icons.screenshots, screenshot)
