@@ -58,6 +58,7 @@ class ProviderSearchPresenter @Inject constructor(
             view.choiceActions.forEach { onChoice(it, isUserAction = true) }
             view.query.forEach { onQueryChanged(it) }
             view.selectedSearchResult.forEach { onSelectedSearchResultChanged(it) }
+            view.fetchSearchResultActions.forEach { onFetchSearchResult(it) }
             view.isFilterPreviouslyDiscardedResults.forEach { onIsFilterPreviouslyDiscardedResultsChanged(it) }
             view.showMoreResultsActions.forEach { onShowMoreResults() }
 
@@ -353,6 +354,34 @@ class ProviderSearchPresenter @Inject constructor(
         private fun onSelectedSearchResultChanged(selectedResult: ProviderSearchResult?) {
             view.canAcceptSearchResult *= view.canChangeState.value and Try {
                 check(selectedResult != null) { "No result selected!" }
+            }
+        }
+
+        private suspend fun onFetchSearchResult(searchResult: ProviderSearchResult) {
+            val fetchResult = taskService.execute(
+                gameProviderService.fetch(
+                    name = searchResult.name,
+                    platform = state.libraryPath.library.platform,
+                    headers = listOf(
+                        ProviderHeader(
+                            providerId = state.currentProvider!!,
+                            providerGameId = searchResult.providerGameId
+                        )
+                    )
+                )
+            ).first()
+            val updatedSearchResult = searchResult.copy(
+                description = fetchResult.gameData.description,
+                releaseDate = fetchResult.gameData.releaseDate,
+                criticScore = fetchResult.gameData.criticScore,
+                userScore = fetchResult.gameData.userScore,
+                thumbnailUrl = fetchResult.gameData.thumbnailUrl ?: fetchResult.gameData.posterUrl ?: fetchResult.gameData.screenshotUrls.firstOrNull()
+            )
+            view.searchResults.replace(searchResult, updatedSearchResult)
+            modifyState {
+                modifyCurrentProviderSearch {
+                    copy(results = view.searchResults.toList())
+                }
             }
         }
 

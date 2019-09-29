@@ -51,6 +51,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val searchResults = settableList<ProviderSearchResult>()
 
     override val selectedSearchResult = userMutableState<ProviderSearchResult?>(null)
+    override val fetchSearchResultActions = channel<ProviderSearchResult>()
 
     override val canChangeState = state(IsValid.valid)
     override val canSearchCurrentQuery = state(IsValid.valid)
@@ -87,6 +88,12 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                 image = commonOps.fetchImage(result.thumbnailUrl, persist = true)
                 imageFitWidth = 200
             }.build()
+
+            popoverContextMenu {
+                jfxButton("Fetch", Icons.download) {
+                    action(fetchSearchResultActions) { result }
+                }
+            }
 
 //            val cellMinWidth = prefWidth(-1.0) + (verticalScrollbar?.width ?: 0.0) + insets.left + insets.right
 //            if (cellMinWidth > this@customListView.minWidth) {

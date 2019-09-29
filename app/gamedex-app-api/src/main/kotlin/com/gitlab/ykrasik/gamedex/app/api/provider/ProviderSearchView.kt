@@ -42,6 +42,7 @@ interface ProviderSearchView {
 
     val searchResults: SettableList<ProviderSearchResult>
     val selectedSearchResult: UserMutableState<ProviderSearchResult?>
+    val fetchSearchResultActions: MultiReceiveChannel<ProviderSearchResult>
 
     val canChangeState: State<IsValid>
     val canSearchCurrentQuery: State<IsValid>
