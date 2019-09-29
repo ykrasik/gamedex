@@ -50,14 +50,17 @@ class UpdateGameServiceImpl @Inject constructor(
 ) : UpdateGameService {
     private val log = logger()
 
-    override fun updateGame(game: Game) = updateGames(listOf(game))
+    override fun updateGame(game: Game) = updateGames(listOf(game), swallowExceptions = false)
 
     override fun bulkUpdateGames(filter: Filter): Task<Unit> {
         val games = filterService.filter(gameService.games, filter).sortedBy { it.name }
-        return updateGames(games)
+        return updateGames(games, swallowExceptions = true)
     }
 
-    private fun updateGames(games: List<Game>) = task("Updating ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}", isCancellable = true) {
+    private fun updateGames(games: List<Game>, swallowExceptions: Boolean) = task(
+        "Updating ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}",
+        isCancellable = true
+    ) {
         gameProviderService.assertHasEnabledProvider()
 
         successOrCancelledMessage { success ->
@@ -79,7 +82,11 @@ class UpdateGameServiceImpl @Inject constructor(
                 val newRawGame = game.rawGame.withProviderData(downloadedProviderData)
                 executeSubTask(gameService.replace(game, newRawGame))
             } catch (e: Exception) {
-                log.error("Error updating $game", e)
+                if (swallowExceptions) {
+                    log.error("Error updating $game", e)
+                } else {
+                    throw e
+                }
             }
         }
     }
