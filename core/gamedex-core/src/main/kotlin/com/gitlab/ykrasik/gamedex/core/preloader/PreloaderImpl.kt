@@ -26,9 +26,8 @@ import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
-import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
+import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.millisTaken
 import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
@@ -36,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.measureTimedValue
 
 /**
  * User: ykrasik
@@ -46,7 +46,7 @@ class PreloaderImpl : Preloader {
     private val log = logger()
 
     override suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector = withContext(Dispatchers.IO) {
-        val (injector, millisTaken) = millisTaken {
+        val (injector, timeTaken) = measureTimedValue {
             val logService = LogServiceImpl()
 
             withContext(Dispatchers.Main) {
@@ -102,7 +102,7 @@ class PreloaderImpl : Preloader {
 
             injector
         }
-        log.info("Application loading took ${millisTaken.humanReadableDuration}")
+        log.info("Application loading took ${timeTaken.humanReadable}")
 
         injector
     }

@@ -37,7 +37,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
+import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.jfoenix.controls.JFXButton
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -48,6 +48,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.FontWeight
 import tornadofx.*
 import java.util.*
+import kotlin.time.ClockMark
 
 /**
  * User: ykrasik
@@ -168,9 +169,9 @@ class MainView : PresentableView("GameDex"),
         prepareNewTab(tabPane.selectionModel.selectedItem)
 
         whenDockedOnce {
-            (params[StartTimeParam] as? Long)?.let { startTime ->
-                val applicationStartTime = System.currentTimeMillis() - startTime
-                log.info("Total application start time: ${applicationStartTime.humanReadableDuration}")
+            (params[StartTimeParam] as? ClockMark)?.let { clockMark ->
+                val applicationStartTimeTaken = clockMark.elapsedNow()
+                log.info("Total application start time: ${applicationStartTimeTaken.humanReadable}")
             }
         }
 

@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.TaskEvent
 import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
+import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -35,6 +35,7 @@ import kotlinx.coroutines.channels.ClosedSendChannelException
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.MonoClock
 
 /**
  * User: ykrasik
@@ -70,7 +71,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                 view.isRunningSubTask *= subTask != null
             }
 
-            val start = System.currentTimeMillis()
+            val clockMark = MonoClock.markNow()
             val deferred = GlobalScope.async(Dispatchers.IO) {
                 task.execute()
             }
@@ -78,7 +79,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
             val result = Try {
                 deferred.await()
             }
-            val millisTaken = System.currentTimeMillis() - start
+            val timeTaken = clockMark.elapsedNow()
             view.job *= null
             view.isCancellable *= false
             view.isRunningSubTask *= false
@@ -93,7 +94,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
 
                     val successMessage = task.successMessage?.invoke(result.value)
                     successMessage?.let { view.taskSuccess(title = task.title, message = it) }
-                    log.info("${successMessage ?: "${task.title} Done:"} [${millisTaken.humanReadableDuration}]")
+                    log.info("${successMessage ?: "${task.title} Done:"} [${timeTaken.humanReadable}]")
                 }
                 is Try.Error -> {
                     val error = result.error
@@ -101,7 +102,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                         error is CancellationException && error !is ClosedSendChannelException -> {
                             val cancelMessage = task.cancelMessage?.invoke()
                             cancelMessage?.let { view.taskCancelled(title = task.title, message = it) }
-                            log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${millisTaken.humanReadableDuration}]")
+                            log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${timeTaken.humanReadable}]")
 
                             // Cancellation exceptions should not be treated as unexpected errors.
                             resultToReturn = Try.error(ExpectedException(error))
@@ -113,7 +114,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                                 view.taskError(title = task.title, error = error, message = errorMessage)
                                 resultToReturn = Try.error(ExpectedException(error))
                             }
-                            log.error("${errorMessage ?: "${task.title} Error:"} [${millisTaken.humanReadableDuration}]", error)
+                            log.error("${errorMessage ?: "${task.title} Error:"} [${timeTaken.humanReadable}]", error)
                         }
                     }
                 }

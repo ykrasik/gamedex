@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.util.ktor
 
-import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
+import com.gitlab.ykrasik.gamedex.util.humanReadable
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.HttpClientCall
@@ -44,6 +44,7 @@ import kotlinx.io.charsets.Charset
 import kotlinx.io.core.readText
 import kotlinx.io.core.use
 import org.slf4j.Logger
+import kotlin.time.milliseconds
 
 /**
  * User: ykrasik
@@ -177,7 +178,7 @@ class Slf4jLogging(val logger: Logger) {
     private suspend inline fun ByteReadChannel.readText(charset: Charset): String =
         readRemaining().readText(charset = charset)
 
-    private val HttpResponse.timeTaken: String get() = (responseTime.timestamp - requestTime.timestamp).humanReadableDuration
+    private val HttpResponse.timeTaken: String get() = (responseTime.timestamp - requestTime.timestamp).milliseconds.humanReadable
 }
 
 /**

@@ -50,7 +50,7 @@ val JavaLocalDate.joda get(): JodaLocalDate = LocalDate(year, monthValue, dayOfM
 val JodaDateTime.defaultTimeZone: JodaDateTime get() = withZone(DateTimeZone.getDefault())
 val JodaDateTime.humanReadable: String get() = toString("yyyy-MM-dd HH:mm")
 val Period.humanReadable: String get() = PeriodFormat.getDefault().print(this)
-val Long.humanReadableDuration: String get() = Period(this).humanReadable
+val kotlin.time.Duration.humanReadable: String get() = toString()
 
 val Int.years get() = Period.years(this)
 val Int.months get() = Period.months(this)

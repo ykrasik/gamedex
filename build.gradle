@@ -152,7 +152,8 @@ subprojects {
             languageVersion = ktlin.majorV
             freeCompilerArgs += [
                 "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi"
+                "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi",
+                "-Xuse-experimental=kotlin.time.ExperimentalTime"
             ]
         }
     }
@@ -163,7 +164,8 @@ subprojects {
             languageVersion = ktlin.majorV
             freeCompilerArgs += [
                 "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi"
+                "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi",
+                "-Xuse-experimental=kotlin.time.ExperimentalTime"
             ]
         }
     }

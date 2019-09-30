@@ -20,6 +20,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 import kotlin.reflect.full.companionObject
+import kotlin.time.measureTimedValue
 
 /**
  * User: ykrasik
@@ -137,7 +138,7 @@ inline fun <T> Logger.time(
     f: () -> T
 ): T {
     log(beforeMessage)
-    val (result, millisTaken) = millisTaken(f)
-    log("$beforeMessage Done: ${afterMessage(millisTaken.humanReadableDuration, result)}")
+    val (result, timeTaken) = measureTimedValue(f)
+    log("$beforeMessage Done: ${afterMessage(timeTaken.humanReadable, result)}")
     return result
 }

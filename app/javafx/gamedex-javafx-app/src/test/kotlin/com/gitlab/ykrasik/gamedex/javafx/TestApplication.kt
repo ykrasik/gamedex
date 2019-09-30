@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.plugin.ClasspathPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.DirectoryPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManagerImpl
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
+import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Provides
@@ -37,6 +37,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.Executors
+import kotlin.time.MonoClock
 
 /**
  * User: ykrasik
@@ -79,7 +80,7 @@ object TestApplication {
         persistenceService.dropDb()
         if (numGames == null) return
 
-        val start = System.currentTimeMillis()
+        val clockMark = MonoClock.markNow()
         val basePath = File(".").absoluteFile.normalize()
         val libraries = listOf(
             Triple(LibraryType.Digital, Platform.Windows, "app"),
@@ -115,7 +116,7 @@ object TestApplication {
             }
         }
 
-        println("Initialized test db with $numGames games in ${(System.currentTimeMillis() - start).humanReadableDuration}")
+        println("Initialized test db with $numGames games in ${clockMark.elapsedNow().humanReadable}")
     }
 
     private fun randomProviderData(provider: GameProviderFakeServer) = ProviderData(

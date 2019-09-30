@@ -36,20 +36,6 @@ val Int.kb: Int get() = this * 1024
 val Int.mb: Int get() = kb * 1024
 val Int.gb: Long get() = mb * 1024L
 
-inline fun <T> millisTaken(block: () -> T): Pair<T, Long> {
-    val start = System.currentTimeMillis()
-    val result = block()
-    val taken = System.currentTimeMillis() - start
-    return result to taken
-}
-
-inline fun <T> nanosTaken(block: () -> T): Pair<T, Long> {
-    val start = System.nanoTime()
-    val result = block()
-    val taken = System.nanoTime() - start
-    return result to taken
-}
-
 fun <T> ((T) -> Boolean).toPredicate() = Predicate<T> { this(it) }
 
 fun String.md5(): String {
