@@ -19,7 +19,8 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -44,19 +45,19 @@ class IgdbProvider @Inject constructor(
     override suspend fun search(
         query: String,
         platform: Platform,
-        account: ProviderUserAccount,
+        account: GameProvider.Account,
         offset: Int,
         limit: Int
-    ): List<ProviderSearchResult> {
+    ): GameProvider.SearchResponse {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             client.search(query, platform, account as IgdbUserAccount, offset = offset, limit = limit)
                 .map { it.toSearchResult(platform) }
         }
         results.forEach { log.trace(it.toString()) }
-        return results
+        return GameProvider.SearchResponse(results, canShowMoreResults = null)
     }
 
-    private fun IgdbClient.SearchResult.toSearchResult(platform: Platform) = ProviderSearchResult(
+    private fun IgdbClient.SearchResult.toSearchResult(platform: Platform) = GameProvider.SearchResult(
         providerGameId = id.toString(),
         name = name,
         description = summary,
@@ -66,14 +67,14 @@ class IgdbProvider @Inject constructor(
         thumbnailUrl = cover?.imageId?.toImageUrl(config.thumbnailImageType)
     )
 
-    override suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
+    override suspend fun fetch(providerGameId: String, platform: Platform, account: GameProvider.Account): GameProvider.FetchResponse =
         log.logResult("[$platform] Fetching IGDB game '$providerGameId'...", log = Logger::debug) {
             checkNotNull(client.fetch(providerGameId, account as IgdbUserAccount)?.toProviderData(platform)) {
                 "Not found: IGDB game '$providerGameId'!"
             }
         }
 
-    private fun IgdbClient.FetchResult.toProviderData(platform: Platform) = ProviderFetchData(
+    private fun IgdbClient.FetchResult.toProviderData(platform: Platform) = GameProvider.FetchResponse(
         gameData = GameData(
             name = this.name,
             description = this.summary,
@@ -127,12 +128,12 @@ class IgdbProvider @Inject constructor(
     private val Platform.platformId: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
-    override val metadata = GameProviderMetadata(
+    override val metadata = GameProvider.Metadata(
         id = "Igdb",
         logo = getResourceAsByteArray("igdb.png"),
         supportedPlatforms = Platform.values().toList(),
         defaultOrder = config.defaultOrder,
-        accountFeature = object : ProviderUserAccountFeature {
+        accountFeature = object : GameProvider.AccountFeature {
             override val accountUrl = config.accountUrl
             override val field1 = "Api Key"
             override fun createAccount(fields: Map<String, String>) = IgdbUserAccount(

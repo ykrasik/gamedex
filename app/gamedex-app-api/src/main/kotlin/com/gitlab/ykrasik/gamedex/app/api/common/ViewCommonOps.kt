@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Ref
 
@@ -39,7 +39,7 @@ interface ViewCommonOps {
 
     fun fetchFileTree(game: Game): Ref<FileTree?>
 
-    val providers: List<GameProviderMetadata>
+    val providers: List<GameProvider.Metadata>
     val providerLogos: Map<ProviderId, Image>
 
     fun youTubeGameplayUrl(name: String, platform: Platform): String

@@ -18,8 +18,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.typesafe.config.ConfigFactory
 import io.kotlintest.matchers.shouldBe
@@ -39,8 +38,8 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
     init {
         "GiantBombProvider" should {
             "search & retrieve a single search result" test {
-                provider.search(name, Platform.Windows, account, offset = 0, limit = 10) shouldBe listOf(
-                    ProviderSearchResult(
+                provider.search(name, Platform.Windows, account, offset = 0, limit = 10).results shouldBe listOf(
+                    GameProvider.SearchResult(
                         providerGameId = apiUrl,
                         name = name,
                         description = deck,
@@ -53,7 +52,7 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
             }
 
             "fetch game details" test {
-                provider.fetch(apiUrl, Platform.Windows, account) shouldBe ProviderFetchData(
+                provider.fetch(apiUrl, Platform.Windows, account) shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = name,
                         description = deck,

@@ -19,9 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.*
 import io.mockk.coEvery
@@ -42,23 +40,26 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
 
                 givenClientSearchReturns(listOf(searchResult), name = name)
 
-                search(name) shouldBe listOf(
-                    ProviderSearchResult(
-                        providerGameId = searchResult.id.toString(),
-                        name = name,
-                        description = searchResult.summary,
-                        releaseDate = releaseDate,
-                        criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
-                        userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
-                        thumbnailUrl = thumbnailUrl(searchResult.cover!!.imageId!!)
-                    )
+                provider.search(name, platform, account, offset, limit) shouldBe GameProvider.SearchResponse(
+                    results = listOf(
+                        GameProvider.SearchResult(
+                            providerGameId = searchResult.id.toString(),
+                            name = name,
+                            description = searchResult.summary,
+                            releaseDate = releaseDate,
+                            criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
+                            userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
+                            thumbnailUrl = thumbnailUrl(searchResult.cover!!.imageId!!)
+                        )
+                    ),
+                    canShowMoreResults = null
                 )
             }
 
             "be able to return empty search results" test {
                 givenClientSearchReturns(emptyList())
 
-                search() shouldBe emptyList<ProviderSearchResult>()
+                search() shouldBe emptyList<GameProvider.SearchResult>()
             }
 
             "be able to return multiple search results" test {
@@ -151,7 +152,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
 
                 givenClientFetchReturns(detailsResult, providerGameId = baseUrl)
 
-                fetch(baseUrl) shouldBe ProviderFetchData(
+                fetch(baseUrl) shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = detailsResult.name,
                         description = detailsResult.summary,
@@ -317,7 +318,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             coEvery { client.fetch(providerGameId, account) } returns result
         }
 
-        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit)
+        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit).results
         suspend fun fetch(providerGameId: String = baseUrl) = provider.fetch(providerGameId, platform, account)
 
         private val client = mockk<IgdbClient>()
@@ -329,22 +330,22 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
                 thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
                 posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
                 screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-                defaultOrder = ProviderOrderPriorities.default,
+                defaultOrder = GameProvider.OrderPriorities.default,
                 platforms = mapOf(platform.name to platformId),
                 genres = mapOf(genreId.toString() to genre)
             ), client
         )
 
-        fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>): Result {
+        fun haveASingleSearchResultThat(f: (GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
+            override fun test(value: List<GameProvider.SearchResult>): Result {
                 value should haveSize(1)
                 f(value.first())
                 return Result(true, "")
             }
         }
 
-        fun have2SearchResultsThat(f: (first: ProviderSearchResult, second: ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>): Result {
+        fun have2SearchResultsThat(f: (first: GameProvider.SearchResult, second: GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
+            override fun test(value: List<GameProvider.SearchResult>): Result {
                 value should haveSize(2)
                 f(value[0], value[1])
                 return Result(true, "")

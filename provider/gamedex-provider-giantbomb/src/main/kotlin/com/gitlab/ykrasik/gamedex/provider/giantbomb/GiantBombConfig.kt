@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.typesafe.config.Config
 import io.github.config4k.extract
 
@@ -30,7 +30,7 @@ data class GiantBombConfig(
     val baseUrl: String,
     val noImageFileNames: List<String>,
     val accountUrl: String,
-    val defaultOrder: ProviderOrderPriorities,
+    val defaultOrder: GameProvider.OrderPriorities,
     private val platforms: Map<String, Int>
 ) {
     private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }

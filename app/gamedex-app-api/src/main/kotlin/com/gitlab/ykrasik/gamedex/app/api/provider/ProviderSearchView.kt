@@ -23,8 +23,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.State
 import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Modifier
 import com.gitlab.ykrasik.gamedex.util.MultiMap
@@ -40,9 +40,9 @@ interface ProviderSearchView {
 
     val query: UserMutableState<String>
 
-    val searchResults: SettableList<ProviderSearchResult>
-    val selectedSearchResult: UserMutableState<ProviderSearchResult?>
-    val fetchSearchResultActions: MultiReceiveChannel<ProviderSearchResult>
+    val searchResults: SettableList<GameProvider.SearchResult>
+    val selectedSearchResult: UserMutableState<GameProvider.SearchResult?>
+    val fetchSearchResultActions: MultiReceiveChannel<GameProvider.SearchResult>
 
     val canChangeState: State<IsValid>
     val canSearchCurrentQuery: State<IsValid>
@@ -112,19 +112,19 @@ data class GameSearchState(
         val provider: ProviderId,
         val query: String,
         val offset: Int,
-        val results: List<ProviderSearchResult>,
+        val results: List<GameProvider.SearchResult>,
         val canShowMoreResults: Boolean,
         val choice: Choice?
     ) {
         sealed class Choice {
-            data class Accept(val result: ProviderSearchResult) : ProviderSearch.Choice()
+            data class Accept(val result: GameProvider.SearchResult) : ProviderSearch.Choice()
             data class NewSearch(val newQuery: String) : ProviderSearch.Choice()
             object Skip : ProviderSearch.Choice()
             object Exclude : ProviderSearch.Choice()
             object Cancel : ProviderSearch.Choice()
 
             // Should never be sent by the view, this is a synthetic choice used in syncing missing providers.
-            data class Preset(val result: ProviderSearchResult, val data: ProviderData) : ProviderSearch.Choice()
+            data class Preset(val result: GameProvider.SearchResult, val data: ProviderData) : ProviderSearch.Choice()
 
             val isResult: Boolean get() = this !is NewSearch && this !is Cancel
             val isNonExcludeResult: Boolean get() = this is Accept || this is Preset || this is Skip

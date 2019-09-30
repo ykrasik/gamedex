@@ -29,8 +29,8 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -122,7 +122,7 @@ class ProviderSearchPresenter @Inject constructor(
 
         private suspend fun search(provider: ProviderId, query: String, offset: Int) {
             val limit = settingsService.general.searchResultLimit
-            val results = taskService.execute(
+            val response = taskService.execute(
                 gameProviderService.search(
                     providerId = provider,
                     query = query,
@@ -131,7 +131,8 @@ class ProviderSearchPresenter @Inject constructor(
                     limit = limit
                 )
             )
-            val canShowMoreResults = results.size == limit
+            val results = response.results
+            val canShowMoreResults = response.canShowMoreResults ?: results.size == limit
             val currentSearch = if (offset == 0) {
                 GameSearchState.ProviderSearch(
                     provider = provider,
@@ -351,13 +352,13 @@ class ProviderSearchPresenter @Inject constructor(
             }
         }
 
-        private fun onSelectedSearchResultChanged(selectedResult: ProviderSearchResult?) {
+        private fun onSelectedSearchResultChanged(selectedResult: GameProvider.SearchResult?) {
             view.canAcceptSearchResult *= view.canChangeState.value and Try {
                 check(selectedResult != null) { "No result selected!" }
             }
         }
 
-        private suspend fun onFetchSearchResult(searchResult: ProviderSearchResult) {
+        private suspend fun onFetchSearchResult(searchResult: GameProvider.SearchResult) {
             val fetchResult = taskService.execute(
                 gameProviderService.fetch(
                     name = searchResult.name,
@@ -396,7 +397,7 @@ class ProviderSearchPresenter @Inject constructor(
             eventBus.send(GameSearchEvent.Updated(state))
         }
 
-        private val firstAcceptedResult: ProviderSearchResult?
+        private val firstAcceptedResult: GameProvider.SearchResult?
             get() = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>()
                 .map { (_, choice) -> choice.result }
                 .firstOrNull()

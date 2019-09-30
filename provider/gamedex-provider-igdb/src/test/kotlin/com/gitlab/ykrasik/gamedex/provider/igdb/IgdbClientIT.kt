@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
@@ -80,7 +80,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 )
             }
 
-            "throw IllegalStateException on invalid http response status" test {
+            "throw ClientRequestException on invalid http response status" test {
                 server.anyRequest() willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<ClientRequestException> {
@@ -180,7 +180,7 @@ class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
                 thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
                 posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
                 screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-                defaultOrder = ProviderOrderPriorities.default,
+                defaultOrder = GameProvider.OrderPriorities.default,
                 platforms = mapOf(platform.name to platformId),
                 genres = emptyMap()
             )

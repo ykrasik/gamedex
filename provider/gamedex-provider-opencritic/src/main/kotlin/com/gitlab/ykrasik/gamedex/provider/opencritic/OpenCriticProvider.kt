@@ -19,7 +19,8 @@ package com.gitlab.ykrasik.gamedex.provider.opencritic
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -42,18 +43,20 @@ class OpenCriticProvider @Inject constructor(
     override suspend fun search(
         query: String,
         platform: Platform,
-        account: ProviderUserAccount,
+        account: GameProvider.Account,
         offset: Int,
         limit: Int
-    ): List<ProviderSearchResult> {
+    ): GameProvider.SearchResponse {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             client.search(query).map { it.toSearchResult() }
         }
         results.forEach { log.trace(it.toString()) }
-        return results
+
+        // OpenCritic does not support pagination in search
+        return GameProvider.SearchResponse(results, canShowMoreResults = false)
     }
 
-    private fun OpenCriticClient.SearchResult.toSearchResult() = ProviderSearchResult(
+    private fun OpenCriticClient.SearchResult.toSearchResult() = GameProvider.SearchResult(
         providerGameId = id.toString(),
         name = name,
         description = null,
@@ -63,12 +66,12 @@ class OpenCriticProvider @Inject constructor(
         thumbnailUrl = null
     )
 
-    override suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
+    override suspend fun fetch(providerGameId: String, platform: Platform, account: GameProvider.Account): GameProvider.FetchResponse =
         log.logResult("[$platform] Fetching OpenCritic game '$providerGameId'...", log = Logger::debug) {
             client.fetch(providerGameId).toProviderData(platform)
         }
 
-    private fun OpenCriticClient.FetchResult.toProviderData(platform: Platform) = ProviderFetchData(
+    private fun OpenCriticClient.FetchResult.toProviderData(platform: Platform) = GameProvider.FetchResponse(
         gameData = GameData(
             name = this.name,
             description = this.description,
@@ -93,7 +96,7 @@ class OpenCriticProvider @Inject constructor(
 
     private val Platform.platformId: Int get() = config.getPlatformId(this)
 
-    override val metadata = GameProviderMetadata(
+    override val metadata = GameProvider.Metadata(
         id = "OpenCritic",
         logo = getResourceAsByteArray("opencritic.png"),
         supportedPlatforms = listOf(Platform.Windows),

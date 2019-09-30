@@ -27,8 +27,8 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.findCircular
@@ -242,7 +242,7 @@ class SyncGamesPresenter @Inject constructor(
             return "Successfully synced $numSuccessful / ${view.state.size} games."
         }
 
-        private fun ProviderData.toSearchResult() = ProviderSearchResult(
+        private fun ProviderData.toSearchResult() = GameProvider.SearchResult(
             providerGameId = providerGameId,
             name = gameData.name,
             description = gameData.description,

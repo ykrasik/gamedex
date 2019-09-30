@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.typesafe.config.Config
 import io.github.config4k.extract
 
@@ -33,7 +33,7 @@ data class IgdbConfig(
     val thumbnailImageType: IgdbProvider.IgdbImageType,
     val posterImageType: IgdbProvider.IgdbImageType,
     val screenshotImageType: IgdbProvider.IgdbImageType,
-    val defaultOrder: ProviderOrderPriorities,
+    val defaultOrder: GameProvider.OrderPriorities,
     private val platforms: Map<String, Int>,
     private val genres: Map<String, String>
 ) {

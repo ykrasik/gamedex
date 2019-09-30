@@ -25,8 +25,8 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.or
 import javafx.geometry.Pos
@@ -48,10 +48,10 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     private val currentProviderId = state.property.stringBinding { it!!.currentProvider ?: "" }
 
     override val query = userMutableState("")
-    override val searchResults = settableList<ProviderSearchResult>()
+    override val searchResults = settableList<GameProvider.SearchResult>()
 
-    override val selectedSearchResult = userMutableState<ProviderSearchResult?>(null)
-    override val fetchSearchResultActions = channel<ProviderSearchResult>()
+    override val selectedSearchResult = userMutableState<GameProvider.SearchResult?>(null)
+    override val fetchSearchResultActions = channel<GameProvider.SearchResult>()
 
     override val canChangeState = state(IsValid.valid)
     override val canSearchCurrentQuery = state(IsValid.valid)

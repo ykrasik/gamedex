@@ -21,10 +21,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
@@ -50,16 +47,19 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
                 val result = searchResult()
                 server.anySearchRequest().willReturn(listOf(result))
 
-                search(query) shouldBe listOf(
-                    ProviderSearchResult(
-                        providerGameId = result.id.toString(),
-                        name = result.name,
-                        description = null,
-                        releaseDate = null,
-                        criticScore = null,
-                        userScore = null,
-                        thumbnailUrl = null
-                    )
+                provider.search(query, Platform.Windows, GameProvider.Account.Null, offset, limit) shouldBe GameProvider.SearchResponse(
+                    results = listOf(
+                        GameProvider.SearchResult(
+                            providerGameId = result.id.toString(),
+                            name = result.name,
+                            description = null,
+                            releaseDate = null,
+                            criticScore = null,
+                            userScore = null,
+                            thumbnailUrl = null
+                        )
+                    ),
+                    canShowMoreResults = false
                 )
 
                 server.verify {
@@ -71,7 +71,7 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
             "be able to return empty search results" test {
                 server.anySearchRequest().willReturn(emptyList())
 
-                search() shouldBe emptyList<ProviderSearchResult>()
+                search() shouldBe emptyList<GameProvider.SearchResult>()
             }
 
             "be able to return multiple search results" test {
@@ -100,7 +100,7 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
                 val result = fetchResult(releaseDate = releaseDate).copy(name = randomWord())
                 givenFetchReturns(result, result.id)
 
-                fetch(result.id) shouldBe ProviderFetchData(
+                fetch(result.id) shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = result.name,
                         description = result.description,
@@ -256,14 +256,14 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
             server.aFetchRequest(providerGameId).willReturn(result)
 
         suspend fun search(query: String = randomWord()) =
-            provider.search(query, Platform.Windows, ProviderUserAccount.Null, offset, limit)
+            provider.search(query, Platform.Windows, GameProvider.Account.Null, offset, limit).results
 
         suspend fun fetch(providerGameId: Int = this.providerGameId) =
-            provider.fetch(providerGameId.toString(), Platform.Windows, ProviderUserAccount.Null)
+            provider.fetch(providerGameId.toString(), Platform.Windows, GameProvider.Account.Null)
 
         val config = OpenCriticConfig(
             baseUrl = baseUrl,
-            defaultOrder = ProviderOrderPriorities.default,
+            defaultOrder = GameProvider.OrderPriorities.default,
             platforms = mapOf(Platform.Windows.name to platformId)
         )
         val provider = OpenCriticProvider(config, OpenCriticClient(config))

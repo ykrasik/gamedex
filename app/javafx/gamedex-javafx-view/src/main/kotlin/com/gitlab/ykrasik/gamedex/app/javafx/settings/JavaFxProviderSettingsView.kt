@@ -28,7 +28,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -41,7 +41,7 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, icon: Node) : PresentableTabView(provider.id, icon),
+class JavaFxProviderSettingsView(override val provider: GameProvider.Metadata, icon: Node) : PresentableTabView(provider.id, icon),
     ProviderSettingsView,
     ViewCanBrowseUrl {
 

@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
@@ -145,7 +145,7 @@ class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
                 baseUrl = server.baseUrl,
                 noImageFileNames = emptyList(),
                 accountUrl = "",
-                defaultOrder = ProviderOrderPriorities.default,
+                defaultOrder = GameProvider.OrderPriorities.default,
                 platforms = mapOf(platform.name to platformId)
             )
         )

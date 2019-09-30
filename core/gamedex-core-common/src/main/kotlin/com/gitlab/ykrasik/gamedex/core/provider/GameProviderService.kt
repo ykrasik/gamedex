@@ -22,7 +22,8 @@ import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
-import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 
 /**
  * User: ykrasik
@@ -40,16 +41,16 @@ interface GameProviderService {
 
     fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit>
 
-    fun search(providerId: ProviderId, query: String, platform: Platform, offset: Int, limit: Int): Task<List<ProviderSearchResult>>
+    fun search(providerId: ProviderId, query: String, platform: Platform, offset: Int, limit: Int): Task<GameProvider.SearchResponse>
 
     fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>): Task<List<ProviderData>>
 }
 
-class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount) : GameProvider by provider {
-    suspend fun search(query: String, platform: Platform, offset: Int, limit: Int): List<ProviderSearchResult> =
+class EnabledGameProvider(private val provider: GameProvider, private val account: GameProvider.Account) : GameProvider by provider {
+    suspend fun search(query: String, platform: Platform, offset: Int, limit: Int): GameProvider.SearchResponse =
         provider.search(query, platform, account, offset = offset, limit = limit)
 
-    suspend fun fetch(providerGameId: String, platform: Platform): ProviderFetchData =
+    suspend fun fetch(providerGameId: String, platform: Platform): GameProvider.FetchResponse =
         provider.fetch(providerGameId, platform, account)
 
     override fun toString() = provider.toString()

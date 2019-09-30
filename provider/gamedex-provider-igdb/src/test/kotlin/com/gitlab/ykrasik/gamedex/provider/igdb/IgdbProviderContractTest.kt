@@ -19,8 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.test.assertScore
 import com.typesafe.config.ConfigFactory
@@ -43,11 +42,11 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
     init {
         "IgdbProvider" should {
             "search & retrieve a single search result" test {
-                val results = provider.search(name, Platform.Windows, account, offset = 0, limit = 10)
+                val results = provider.search(name, Platform.Windows, account, offset = 0, limit = 10).results
                 results should haveSize(1)
 
                 val result = results.first()
-                result shouldBe ProviderSearchResult(
+                result shouldBe GameProvider.SearchResult(
                     providerGameId = providerGameId,
                     name = name,
                     description = description,
@@ -60,7 +59,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
 
             "fetch game details" test {
                 val result = provider.fetch(providerGameId, Platform.Windows, account)
-                result shouldBe ProviderFetchData(
+                result shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = name,
                         description = description,

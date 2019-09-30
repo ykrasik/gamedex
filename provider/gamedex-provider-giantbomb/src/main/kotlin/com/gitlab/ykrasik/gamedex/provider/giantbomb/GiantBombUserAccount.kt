@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 
 /**
  * User: ykrasik
  * Date: 03/03/2018
  * Time: 17:19
  */
-data class GiantBombUserAccount(val apiKey: String) : ProviderUserAccount
+data class GiantBombUserAccount(val apiKey: String) : GameProvider.Account

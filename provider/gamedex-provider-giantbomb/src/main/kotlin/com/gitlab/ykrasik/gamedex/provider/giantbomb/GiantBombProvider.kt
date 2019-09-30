@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -42,20 +43,20 @@ class GiantBombProvider @Inject constructor(
     override suspend fun search(
         query: String,
         platform: Platform,
-        account: ProviderUserAccount,
+        account: GameProvider.Account,
         offset: Int,
         limit: Int
-    ): List<ProviderSearchResult> {
+    ): GameProvider.SearchResponse {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             val response = client.search(query, platform, account as GiantBombUserAccount, offset = offset, limit = limit)
             assertOk(response.statusCode)
             response.results.map { it.toProviderSearchResult() }
         }
         results.forEach { log.trace(it.toString()) }
-        return results
+        return GameProvider.SearchResponse(results, canShowMoreResults = null)
     }
 
-    private fun GiantBombClient.SearchResult.toProviderSearchResult() = ProviderSearchResult(
+    private fun GiantBombClient.SearchResult.toProviderSearchResult() = GameProvider.SearchResult(
         providerGameId = apiDetailUrl,
         name = name,
         description = deck,
@@ -65,7 +66,7 @@ class GiantBombProvider @Inject constructor(
         thumbnailUrl = image?.thumbUrl?.filterEmptyImage()
     )
 
-    override suspend fun fetch(providerGameId: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
+    override suspend fun fetch(providerGameId: String, platform: Platform, account: GameProvider.Account): GameProvider.FetchResponse =
         log.logResult("[$platform] Fetching GiantBomb url $providerGameId...", log = Logger::debug) {
             // providerGameId is the actual api url
             val response = client.fetch(providerGameId, account as GiantBombUserAccount)
@@ -76,7 +77,7 @@ class GiantBombProvider @Inject constructor(
             response.results.first().toProviderData()
         }
 
-    private fun GiantBombClient.FetchResult.toProviderData() = ProviderFetchData(
+    private fun GiantBombClient.FetchResult.toProviderData() = GameProvider.FetchResponse(
         gameData = GameData(
             name = name,
             description = deck,
@@ -106,17 +107,15 @@ class GiantBombProvider @Inject constructor(
     }
 
     private fun assertOk(status: GiantBombClient.Status) {
-        if (status != GiantBombClient.Status.OK) {
-            throw IllegalStateException("Invalid statusCode: $status")
-        }
+        check(status == GiantBombClient.Status.OK) { "Invalid statusCode: $status" }
     }
 
-    override val metadata = GameProviderMetadata(
+    override val metadata = GameProvider.Metadata(
         id = "GiantBomb",
         logo = getResourceAsByteArray("giantbomb.png"),
         supportedPlatforms = Platform.values().toList(),
         defaultOrder = config.defaultOrder,
-        accountFeature = object : ProviderUserAccountFeature {
+        accountFeature = object : GameProvider.AccountFeature {
             override val accountUrl = config.accountUrl
             override val field1 = "Api Key"
             override fun createAccount(fields: Map<String, String>) = GiantBombUserAccount(

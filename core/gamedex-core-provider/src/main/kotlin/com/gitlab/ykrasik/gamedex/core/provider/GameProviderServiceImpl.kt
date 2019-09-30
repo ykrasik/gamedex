@@ -67,7 +67,7 @@ class GameProviderServiceImpl @Inject constructor(
                     }
 
                     data.enabled -> {
-                        val account = provider.accountFeature?.createAccount(data.account) ?: ProviderUserAccount.Null
+                        val account = provider.accountFeature?.createAccount(data.account) ?: GameProvider.Account.Null
                         val newProvider = EnabledGameProvider(provider, account)
                         if (enabledProvider != null) {
                             log.trace("Provider re-enabled: $enabledProvider")

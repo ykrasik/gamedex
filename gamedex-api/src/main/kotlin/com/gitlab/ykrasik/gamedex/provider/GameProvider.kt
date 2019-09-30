@@ -26,32 +26,83 @@ import com.gitlab.ykrasik.gamedex.Score
  * Time: 10:42
  */
 interface GameProvider {
-    val metadata: GameProviderMetadata
+    val metadata: Metadata
 
-    suspend fun search(
-        query: String,
-        platform: Platform,
-        account: ProviderUserAccount,
-        offset: Int,
-        limit: Int
-    ): List<ProviderSearchResult>
+    suspend fun search(query: String, platform: Platform, account: Account, offset: Int, limit: Int): SearchResponse
+    suspend fun fetch(providerGameId: String, platform: Platform, account: Account): FetchResponse
 
-    suspend fun fetch(
-        providerGameId: String,
-        platform: Platform,
-        account: ProviderUserAccount
-    ): ProviderFetchData
+    data class SearchResponse(
+        val results: List<SearchResult>,
+        val canShowMoreResults: Boolean?  // Null means the provider doesn't know if it can or cannot show more results.
+    )
+
+    data class SearchResult(
+        val providerGameId: String,
+        val name: String,
+        val description: String?,
+        val releaseDate: String?,
+        val criticScore: Score?,
+        val userScore: Score?,
+        val thumbnailUrl: String?
+    ) {
+        override fun toString() = "GameProvider.SearchResult(providerGameId=$providerGameId, name=$name, releaseDate=$releaseDate)"
+    }
+
+    data class FetchResponse(
+        val gameData: GameData,
+        val siteUrl: String
+    )
+
+    data class Metadata(
+        val id: ProviderId,
+        val logo: ByteArray,
+        val supportedPlatforms: List<Platform>,
+        val defaultOrder: OrderPriorities,
+        val accountFeature: AccountFeature?
+    )
+
+    /**
+     * Can have up to 4 fields (username, password, apikey etc).
+     */
+    interface AccountFeature {
+        val accountUrl: String
+        val field1: String? get() = null
+        val field2: String? get() = null
+        val field3: String? get() = null
+        val field4: String? get() = null
+        val fields: Int get() = listOfNotNull(field1, field2, field3, field4).size
+        fun createAccount(fields: Map<String, String>): Account
+    }
+
+    interface Account {
+        object Null : Account
+    }
+
+    // Lower number means higher priority
+    data class OrderPriorities(
+        val search: Int,
+        val name: Int,
+        val description: Int,
+        val releaseDate: Int,
+        val thumbnail: Int,
+        val poster: Int,
+        val screenshot: Int
+    ) {
+        companion object {
+            val default = OrderPriorities(
+                search = 9999,
+                name = 9999,
+                description = 9999,
+                releaseDate = 9999,
+                thumbnail = 9999,
+                poster = 9999,
+                screenshot = 9999
+            )
+        }
+    }
 }
 
 typealias ProviderId = String
-
-data class GameProviderMetadata(
-    val id: ProviderId,
-    val logo: ByteArray,
-    val supportedPlatforms: List<Platform>,
-    val defaultOrder: ProviderOrderPriorities,
-    val accountFeature: ProviderUserAccountFeature?
-)
 
 val GameProvider.id get() = metadata.id
 val GameProvider.logo get() = metadata.logo
@@ -59,60 +110,3 @@ val GameProvider.supportedPlatforms get() = metadata.supportedPlatforms
 val GameProvider.defaultOrder get() = metadata.defaultOrder
 val GameProvider.accountFeature get() = metadata.accountFeature
 fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)
-
-/**
- * Can have up to 4 fields (username, password, apikey etc).
- */
-interface ProviderUserAccountFeature {
-    val accountUrl: String
-    val field1: String? get() = null
-    val field2: String? get() = null
-    val field3: String? get() = null
-    val field4: String? get() = null
-    val fields: Int get() = listOfNotNull(field1, field2, field3, field4).size
-    fun createAccount(fields: Map<String, String>): ProviderUserAccount
-}
-
-interface ProviderUserAccount {
-    object Null : ProviderUserAccount
-}
-
-// Lower number means higher priority
-data class ProviderOrderPriorities(
-    val search: Int,
-    val name: Int,
-    val description: Int,
-    val releaseDate: Int,
-    val thumbnail: Int,
-    val poster: Int,
-    val screenshot: Int
-) {
-    companion object {
-        val default = ProviderOrderPriorities(
-            search = 9999,
-            name = 9999,
-            description = 9999,
-            releaseDate = 9999,
-            thumbnail = 9999,
-            poster = 9999,
-            screenshot = 9999
-        )
-    }
-}
-
-data class ProviderSearchResult(
-    val providerGameId: String,
-    val name: String,
-    val description: String?,
-    val releaseDate: String?,
-    val criticScore: Score?,
-    val userScore: Score?,
-    val thumbnailUrl: String?
-) {
-    override fun toString() = "ProviderSearchResult(providerGameId=$providerGameId, name=$name, releaseDate=$releaseDate)"
-}
-
-data class ProviderFetchData(
-    val gameData: GameData,
-    val siteUrl: String
-)

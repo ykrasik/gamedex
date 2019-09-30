@@ -19,9 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.opencritic
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.test.assertScore
 import com.typesafe.config.ConfigFactory
@@ -43,11 +41,11 @@ class OpenCriticProviderContractTest : ScopedWordSpec<OpenCriticProviderContract
     init {
         "OpenCriticProvider" should {
             "search & retrieve a single search result" test {
-                val results = provider.search(name, Platform.Windows, ProviderUserAccount.Null, offset = 0, limit = 10)
+                val results = provider.search(name, Platform.Windows, GameProvider.Account.Null, offset = 0, limit = 10).results
                 results should haveSize(10)
 
                 val result = results.first()
-                result shouldBe ProviderSearchResult(
+                result shouldBe GameProvider.SearchResult(
                     providerGameId = providerGameId,
                     name = name,
                     description = null,
@@ -59,8 +57,8 @@ class OpenCriticProviderContractTest : ScopedWordSpec<OpenCriticProviderContract
             }
 
             "fetch game details" test {
-                val result = provider.fetch(providerGameId, Platform.Windows, ProviderUserAccount.Null)
-                result shouldBe ProviderFetchData(
+                val result = provider.fetch(providerGameId, Platform.Windows, GameProvider.Account.Null)
+                result shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = name,
                         description = description,

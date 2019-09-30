@@ -18,9 +18,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.*
 import io.mockk.coEvery
@@ -41,23 +39,26 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
 
                 givenClientSearchReturns(listOf(searchResult), name = name)
 
-                search(name) shouldBe listOf(
-                    ProviderSearchResult(
-                        providerGameId = searchResult.apiDetailUrl,
-                        name = name,
-                        description = description,
-                        releaseDate = searchResult.originalReleaseDate!!.toString(),
-                        criticScore = null,
-                        userScore = null,
-                        thumbnailUrl = searchResult.image!!.thumbUrl
-                    )
+                provider.search(name, platform, account, offset, limit) shouldBe GameProvider.SearchResponse(
+                    results = listOf(
+                        GameProvider.SearchResult(
+                            providerGameId = searchResult.apiDetailUrl,
+                            name = name,
+                            description = description,
+                            releaseDate = searchResult.originalReleaseDate!!.toString(),
+                            criticScore = null,
+                            userScore = null,
+                            thumbnailUrl = searchResult.image!!.thumbUrl
+                        )
+                    ),
+                    canShowMoreResults = null
                 )
             }
 
             "be able to return empty search results" test {
                 givenClientSearchReturns(emptyList())
 
-                search() shouldBe emptyList<ProviderSearchResult>()
+                search() shouldBe emptyList<GameProvider.SearchResult>()
             }
 
             "be able to return multiple search results" test {
@@ -210,7 +211,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
 
                 givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
 
-                fetch(apiDetailUrl) shouldBe ProviderFetchData(
+                fetch(apiDetailUrl) shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = detailsResult.name,
                         description = detailsResult.deck,
@@ -419,23 +420,23 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             coEvery { client.fetch(apiUrl, account) } returns response
         }
 
-        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit)
+        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit).results
         suspend fun fetch(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.fetch(apiUrl, platform, account)
 
-        private val config = GiantBombConfig("", listOf(noImage1, noImage2), "", ProviderOrderPriorities.default, emptyMap())
+        private val config = GiantBombConfig("", listOf(noImage1, noImage2), "", GameProvider.OrderPriorities.default, emptyMap())
         private val client = mockk<GiantBombClient>()
         val provider = GiantBombProvider(config, client)
 
-        fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>): Result {
+        fun haveASingleSearchResultThat(f: (GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
+            override fun test(value: List<GameProvider.SearchResult>): Result {
                 value should haveSize(1)
                 f(value.first())
                 return Result(true, "")
             }
         }
 
-        fun have2SearchResultsThat(f: (first: ProviderSearchResult, second: ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>): Result {
+        fun have2SearchResultsThat(f: (first: GameProvider.SearchResult, second: GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
+            override fun test(value: List<GameProvider.SearchResult>): Result {
                 value should haveSize(2)
                 f(value[0], value[1])
                 return Result(true, "")

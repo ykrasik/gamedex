@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api.settings
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.State
 import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -28,7 +28,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:44
  */
 interface ProviderSettingsView {
-    val provider: GameProviderMetadata
+    val provider: GameProvider.Metadata
 
     val canChangeProviderSettings: State<IsValid>
 

@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 
 /**
  * User: ykrasik
  * Date: 04/03/2018
  * Time: 12:32
  */
-data class IgdbUserAccount(val apiKey: String) : ProviderUserAccount
+data class IgdbUserAccount(val apiKey: String) : GameProvider.Account

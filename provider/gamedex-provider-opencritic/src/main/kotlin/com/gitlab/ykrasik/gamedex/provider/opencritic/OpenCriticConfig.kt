@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.provider.opencritic
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.typesafe.config.Config
 import io.github.config4k.extract
 
@@ -28,7 +28,7 @@ import io.github.config4k.extract
  */
 data class OpenCriticConfig(
     val baseUrl: String,
-    val defaultOrder: ProviderOrderPriorities,
+    val defaultOrder: GameProvider.OrderPriorities,
     private val platforms: Map<String, Int>
 ) {
     private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }

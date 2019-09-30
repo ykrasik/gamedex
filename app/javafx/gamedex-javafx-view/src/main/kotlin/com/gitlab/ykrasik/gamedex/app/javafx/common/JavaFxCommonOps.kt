@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.control.toImage
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Ref
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
@@ -79,7 +79,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     fun fetchFileTree(game: Game): Ref<FileTree?> = ops.fetchFileTree(game)
 
-    val providers: List<GameProviderMetadata> = ops.providers
+    val providers: List<GameProvider.Metadata> = ops.providers
     val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }.withDefault { noImage }
     fun providerLogo(providerId: ProviderId): JavaFxImage = providerLogos.getValue(providerId)
 
