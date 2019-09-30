@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.version.ApplicationVersion
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.*
@@ -50,15 +51,16 @@ class PreloaderImpl : Preloader {
             val logService = LogServiceImpl()
 
             withContext(Dispatchers.Main) {
-                view.progress = 0.0
-                view.message = "Loading..."
+                view.version.value = ApplicationVersion
+                view.progress.value = 0.0
+                view.message.value = "Loading..."
             }
 
             // While loading, display all log messages in the task
             val subscription = logService.entries.itemsChannel.subscribe(Dispatchers.Main) {
                 it.lastOrNull()?.let {
                     if (it.level.canLog(LogLevel.Info)) {
-                        view.message = it.message
+                        view.message.value = it.message
                     }
                 }
             }
@@ -68,7 +70,7 @@ class PreloaderImpl : Preloader {
             val progressChannel = conflatedChannel(0.0)
             launch(Dispatchers.Main) {
                 progressChannel.consumeEach {
-                    view.progress = it
+                    view.progress.value = it
                 }
             }
 
@@ -97,7 +99,7 @@ class PreloaderImpl : Preloader {
             preloaderSettings.modify { copy(numClassesToInit = numClassesToInit) }
 
             withContext(Dispatchers.Main) {
-                view.message = "Done loading."
+                view.message.value = "Done loading."
             }
 
             injector

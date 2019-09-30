@@ -16,12 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.preloader
 
+import com.gitlab.ykrasik.gamedex.Version
+import com.gitlab.ykrasik.gamedex.app.api.util.State
+
 /**
  * User: ykrasik
  * Date: 08/06/2018
  * Time: 21:21
  */
 interface PreloaderView {
-    var progress: Double
-    var message: String
+    val version: State<Version>
+    val progress: State<Double>
+    val message: State<String>
 }

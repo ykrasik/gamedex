@@ -28,4 +28,13 @@ data class Version(
     val buildDate: DateTime?,
     val commitHash: String?,
     val commitDate: DateTime?
-)
+) {
+    companion object {
+        val Null = Version(
+            version = "",
+            buildDate = null,
+            commitHash = null,
+            commitDate = null
+        )
+    }
+}

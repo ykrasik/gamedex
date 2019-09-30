@@ -16,20 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.preloader
 
+import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.app.javafx.MainView
 import com.gitlab.ykrasik.gamedex.javafx.EnhancedDefaultErrorHandler
 import com.gitlab.ykrasik.gamedex.javafx.Main
-import com.gitlab.ykrasik.gamedex.javafx.control.asPercent
-import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
-import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleStringProperty
+import com.gitlab.ykrasik.gamedex.javafx.state
 import javafx.geometry.Pos
+import javafx.scene.text.FontWeight
 import kotlinx.coroutines.*
 import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.*
@@ -43,43 +41,53 @@ import java.util.*
 class JavaFxPreloaderView : View("GameDex"), PreloaderView {
     private var logo = resources.image("gamedex.jpg")
 
-    private val progressProperty = SimpleDoubleProperty(0.0)
-    override var progress by progressProperty
-
-    private val messageProperty = SimpleStringProperty()
-    override var message by messageProperty
+    override val version = state(Version.Null)
+    override val progress = state(0.0)
+    override val message = state("")
 
     override val root = stackpane {
         alignment = Pos.CENTER
         group {
             // Groups don't fill their parent's size, which is exactly what we want here.
-            vbox(spacing = 5) {
-                paddingAll = 5.0
-                imageview {
-                    image = logo
+            stackpane {
+                defaultVbox {
+                    paddingAll = 5
+                    imageview {
+                        image = logo
 
-                    clipRectangle {
-                        arcWidth = 14.0
-                        arcHeight = 14.0
-                        heightProperty().bind(logo.heightProperty())
-                        widthProperty().bind(logo.widthProperty())
-                    }
-                }
-                jfxProgressBar(progressProperty) {
-                    useMaxWidth = true
-                }
-                defaultHbox {
-                    label(messageProperty) {
-                        style {
-                            fontSize = 28.px
+                        clipRectangle {
+                            arcWidth = 14.0
+                            arcHeight = 14.0
+                            heightProperty().bind(logo.heightProperty())
+                            widthProperty().bind(logo.widthProperty())
                         }
                     }
-                    spacer()
-                    label(progressProperty.asPercent()) {
-                        style {
-                            fontSize = 28.px
+                    jfxProgressBar(progress.property) {
+                        useMaxWidth = true
+                    }
+                    defaultHbox {
+                        label(message.property) {
+                            style {
+                                fontSize = 28.px
+                            }
+                        }
+                        spacer()
+                        label(progress.property.asPercent()) {
+                            style {
+                                fontSize = 28.px
+                            }
                         }
                     }
+                }
+
+                defaultHbox(alignment = Pos.TOP_RIGHT) {
+                    paddingAll = 15
+                    label("Version") {
+                        style {
+                            fontWeight = FontWeight.BOLD
+                        }
+                    }
+                    label(version.property.stringBinding { it!!.version })
                 }
             }
         }
@@ -95,7 +103,7 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
             val injector = preloader.load(this@JavaFxPreloaderView, JavaFxModule)
             FX.dicontainer = GuiceDiContainer(injector)
             withContext(Dispatchers.JavaFx) {
-                message = "Loading user interface..."
+                message.value = "Loading user interface..."
                 delay(5)       // Delay to allow the 'done' message to display.
                 replaceWith(find(MainView::class, params = mapOf(MainView.StartTimeParam to Main.clockMark)), ViewTransition.Fade(1.seconds))
             }
