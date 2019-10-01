@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
-import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton

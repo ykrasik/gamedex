@@ -29,8 +29,6 @@ import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.id
-import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.findCircular
 import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject

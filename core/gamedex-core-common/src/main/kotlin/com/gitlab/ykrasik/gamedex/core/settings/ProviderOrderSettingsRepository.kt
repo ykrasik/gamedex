@@ -18,8 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.defaultOrder
-import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.Extractor
 
 /**
@@ -27,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.util.Extractor
  * Date: 24/06/2018
  * Time: 10:36
  */
-class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers: List<GameProvider>) :
+class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers: List<GameProvider.Metadata>) :
     SettingsRepository<ProviderOrderSettingsRepository.Data>() {
 
     data class Data(

@@ -45,7 +45,7 @@ class ViewCommonOpsImpl @Inject constructor(
 
     override fun fetchFileTree(game: Game) = fileSystemService.fileTree(game.id, game.path)
 
-    override val providers = gameProviderService.allProviders.map { it.metadata }
+    override val providers = gameProviderService.allProviders
     override val providerLogos = gameProviderService.logos
 
     override fun youTubeGameplayUrl(name: String, platform: Platform): String {

@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.plugin
 
+import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.util.fromJson
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.google.inject.AbstractModule
@@ -43,7 +44,16 @@ data class PluginDescriptor(
     val commitHash: String? = null,
     val commitDate: DateTime? = null,
     val apiDependencies: Map<ApplicationApi, Int> = emptyMap()
-)
+) {
+    val appVersion by lazy {
+        Version(
+            version = version,
+            buildDate = buildDate,
+            commitHash = commitHash,
+            commitDate = commitDate
+        )
+    }
+}
 
 val Plugin.id get() = descriptor.id
 val Plugin.author get() = descriptor.author

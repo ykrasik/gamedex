@@ -27,8 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.id
-import com.gitlab.ykrasik.gamedex.provider.supports
 import javax.inject.Inject
 import javax.inject.Singleton
 

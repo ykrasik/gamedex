@@ -25,8 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.id
-import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.months
 import com.gitlab.ykrasik.gamedex.util.time

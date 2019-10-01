@@ -31,10 +31,10 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
  * Time: 13:29
  */
 interface GameProviderService {
-    val allProviders: List<GameProvider>
-    val enabledProviders: ListObservable<EnabledGameProvider>
+    val allProviders: List<GameProvider.Metadata>
+    val enabledProviders: ListObservable<GameProvider.Metadata>
 
-    fun isEnabled(id: ProviderId): Boolean
+    fun isEnabled(id: ProviderId): Boolean = enabledProviders.any { it.id == id }
 
     // TODO: This service should not have any knowledge of images.
     val logos: Map<ProviderId, Image>
@@ -44,14 +44,4 @@ interface GameProviderService {
     fun search(providerId: ProviderId, query: String, platform: Platform, offset: Int, limit: Int): Task<GameProvider.SearchResponse>
 
     fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>): Task<List<ProviderData>>
-}
-
-class EnabledGameProvider(private val provider: GameProvider, private val account: GameProvider.Account) : GameProvider by provider {
-    suspend fun search(query: String, platform: Platform, offset: Int, limit: Int): GameProvider.SearchResponse =
-        provider.search(query, platform, account, offset = offset, limit = limit)
-
-    suspend fun fetch(providerGameId: String, platform: Platform): GameProvider.FetchResponse =
-        provider.fetch(providerGameId, platform, account)
-
-    override fun toString() = provider.toString()
 }

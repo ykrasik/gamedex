@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.UpdateGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -59,7 +59,11 @@ interface GameProvider {
         val supportedPlatforms: List<Platform>,
         val defaultOrder: OrderPriorities,
         val accountFeature: AccountFeature?
-    )
+    ) {
+        fun supports(platform: Platform) = supportedPlatforms.contains(platform)
+
+        override fun toString() = id
+    }
 
     /**
      * Can have up to 4 fields (username, password, apikey etc).
@@ -105,8 +109,3 @@ interface GameProvider {
 typealias ProviderId = String
 
 val GameProvider.id get() = metadata.id
-val GameProvider.logo get() = metadata.logo
-val GameProvider.supportedPlatforms get() = metadata.supportedPlatforms
-val GameProvider.defaultOrder get() = metadata.defaultOrder
-val GameProvider.accountFeature get() = metadata.accountFeature
-fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)

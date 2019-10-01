@@ -26,7 +26,9 @@ import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -45,7 +47,10 @@ class GameProviderServiceImpl @Inject constructor(
 ) : GameProviderService {
     private val log = logger()
 
-    override val allProviders = pluginManager.getImplementations(GameProvider::class).sortedBy { it.id }
+    private val providersById: MutableMap<ProviderId, InternalGameProvider> = pluginManager.getImplementations(GameProvider::class)
+        .associateByTo(mutableMapOf(), GameProvider::id) { InternalGameProvider(it, GameProvider.Account.Null) }
+
+    override val allProviders = providersById.values.map { it.metadata }.sortedBy { it.id }
 
     init {
         log.info("Detected providers: ${allProviders.joinToString()}")
@@ -55,10 +60,10 @@ class GameProviderServiceImpl @Inject constructor(
     private lateinit var settingsService: SettingsService
 
     override val enabledProviders by lazy {
-        val enabledProviders = ListObservableImpl<EnabledGameProvider>()
+        val enabledProviders = ListObservableImpl<GameProvider.Metadata>()
         allProviders.forEach { provider ->
-            val providerSettingsRepo = settingsService.providers.getValue(provider.id)
-            providerSettingsRepo.perform { data ->
+            val settingsRepo = settingsService.providers.getValue(provider.id)
+            settingsRepo.perform { data ->
                 val enabledProvider = enabledProviders.find { it.id == provider.id }
                 when {
                     !data.enabled && enabledProvider != null -> {
@@ -68,13 +73,11 @@ class GameProviderServiceImpl @Inject constructor(
 
                     data.enabled -> {
                         val account = provider.accountFeature?.createAccount(data.account) ?: GameProvider.Account.Null
-                        val newProvider = EnabledGameProvider(provider, account)
-                        if (enabledProvider != null) {
-                            log.trace("Provider re-enabled: $enabledProvider")
-                            enabledProviders.replace(enabledProvider, newProvider)
-                        } else {
+                        providersById.compute(provider.id) { _, provider -> provider!!.copy(account = account) }
+
+                        if (enabledProvider == null) {
                             log.trace("Provider enabled: ${provider.id}")
-                            enabledProviders += newProvider
+                            enabledProviders += provider
                         }
                     }
                 }
@@ -88,13 +91,11 @@ class GameProviderServiceImpl @Inject constructor(
         enabledProviders
     }
 
-    override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
-
     override val logos = allProviders.map { it.id to imageService.createImage(it.logo) }.toMap()
 
     override fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit> {
-        val provider = allProviders.find { it.id == providerId }!!
-        val accountFeature = checkNotNull(provider.accountFeature) { "Provider $providerId does not require an account!" }
+        val provider = providersById.getValue(providerId)
+        val accountFeature = checkNotNull(provider.metadata.accountFeature) { "Provider $providerId does not require an account!" }
         return task("Verifying $providerId account...", initialImage = logos.getValue(providerId)) {
             try {
                 val providerAccount = accountFeature.createAccount(account)
@@ -110,7 +111,8 @@ class GameProviderServiceImpl @Inject constructor(
     override fun search(providerId: ProviderId, query: String, platform: Platform, offset: Int, limit: Int) =
         task("Searching $providerId for '$query'...", initialImage = logos.getValue(providerId)) {
             successMessage = null
-            enabledProviders.find { it.id == providerId }!!.search(query, platform, offset = offset, limit = limit)
+            val provider = providerId.enabledProvider
+            provider.search(query, platform, provider.account, offset = offset, limit = limit)
         }
 
     override fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Fetching '$name'...") {
@@ -120,15 +122,29 @@ class GameProviderServiceImpl @Inject constructor(
         headers.map { header ->
             // TODO: Link to task scope.
             GlobalScope.async {
-                val data = enabledProviders.find { it.id == header.providerId }!!.fetch(header.providerGameId, platform)
+                val provider = header.providerId.enabledProvider
+                val response = provider.fetch(header.providerGameId, platform, provider.account)
                 incProgress()
                 ProviderData(
                     header = header,
-                    siteUrl = data.siteUrl,
-                    gameData = data.gameData,
+                    siteUrl = response.siteUrl,
+                    gameData = response.gameData,
                     timestamp = Timestamp.now
                 )
             }
         }.map { it.await() }
+    }
+
+    private val ProviderId.enabledProvider: InternalGameProvider
+        get() = providersById.getValue(this).also { provider ->
+            check(enabledProviders.any { it.id == provider.id }) { "Provider is not enabled: '${provider.id}'" }
+        }
+
+    data class InternalGameProvider(
+        private val provider: GameProvider,
+        val account: GameProvider.Account
+    ) : GameProvider by provider {
+
+        override fun toString() = provider.toString()
     }
 }

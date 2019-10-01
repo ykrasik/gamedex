@@ -17,15 +17,13 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.accountFeature
-import com.gitlab.ykrasik.gamedex.provider.id
 
 /**
  * User: ykrasik
  * Date: 17/06/2018
  * Time: 14:26
  */
-class ProviderSettingsRepository(factory: SettingsStorageFactory, provider: GameProvider) :
+class ProviderSettingsRepository(factory: SettingsStorageFactory, provider: GameProvider.Metadata) :
     SettingsRepository<ProviderSettingsRepository.Data>() {
 
     data class Data(

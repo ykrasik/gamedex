@@ -21,14 +21,11 @@ import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.supportedPlatforms
-import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.google.inject.ImplementedBy
@@ -60,9 +57,9 @@ interface CommonData {
     val contentLibraries: ListObservable<Library>
     val platformLibraries: ListObservable<Library>
 
-    val allProviders: ListObservable<GameProvider>
-    val platformProviders: ListObservable<GameProvider>
-    val enabledProviders: ListObservable<EnabledGameProvider>
+    val allProviders: ListObservable<GameProvider.Metadata>
+    val platformProviders: ListObservable<GameProvider.Metadata>
+    val enabledProviders: ListObservable<GameProvider.Metadata>
 
     val platformsWithLibraries: ListObservable<Platform>
     val platformsWithEnabledProviders: ListObservable<Platform>
@@ -109,7 +106,7 @@ class CommonDataImpl @Inject constructor(
     override val allProviders = ListObservableImpl(gameProviderService.allProviders)
     override val platformProviders =
         allProviders.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
-            { provider: GameProvider ->
+            { provider: GameProvider.Metadata ->
                 when (platform) {
                     is AvailablePlatform.All -> true
                     is AvailablePlatform.SinglePlatform -> provider.supports(platform.platform)

@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.core.log.LogService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
