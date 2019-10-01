@@ -34,6 +34,7 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import kotlinx.coroutines.delay
+import java.io.Closeable
 import javax.inject.Singleton
 import kotlin.random.Random
 
@@ -42,13 +43,13 @@ import kotlin.random.Random
  * Date: 28/09/2019
  * Time: 22:15
  */
-class OpenCriticMockServer(port: Int = freePort) {
+class OpenCriticMockServer(port: Int = freePort) : Closeable {
     val baseUrl = "http://localhost:$port"
     private val wiremock = WireMockServer(port)
 
     fun start() = wiremock.start()
     fun reset() = wiremock.resetAll()
-    fun stop() = wiremock.stop()
+    override fun close() = wiremock.stop()
 
     fun verify(requestPatternBuilder: () -> RequestPatternBuilder) = wiremock.verify(requestPatternBuilder())
 

@@ -85,4 +85,4 @@ fun <T> List<T>.randomElement(): T = this[randomInt(size - 1)]
 fun <T> Array<T>.randomElement(): T = this[randomInt(size - 1)]
 
 // chance of happening is 1/chance
-fun <T> T.sometimesNull(chance: Int = 10) = this.takeIf { randomInt(chance) < chance }
+fun <T> T.sometimesNull(chance: Int = 20) = this.takeIf { randomInt(chance) < chance }

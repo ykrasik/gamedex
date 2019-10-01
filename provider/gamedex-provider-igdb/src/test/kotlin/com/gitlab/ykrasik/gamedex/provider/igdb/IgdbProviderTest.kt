@@ -16,253 +16,307 @@
 
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.*
-import io.mockk.coEvery
-import io.mockk.mockk
+import io.ktor.client.features.ClientRequestException
+import io.ktor.http.HttpStatusCode
 
 /**
  * User: ykrasik
  * Date: 16/04/2017
  * Time: 15:41
  */
-class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
-    override fun scope() = Scope()
-
+class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
     init {
         "search" should {
             "be able to return a single search result" test {
-                val searchResult = searchResult(name = name, releaseDate = releaseDate)
+                val query = "query"
+                val result = searchResult(releaseDate = releaseDate)
+                givenSearchResults(result)
 
-                givenClientSearchReturns(listOf(searchResult), name = name)
-
-                provider.search(name, platform, account, offset, limit) shouldBe GameProvider.SearchResponse(
+                provider.search(query, platform, account, offset, limit) shouldBe GameProvider.SearchResponse(
                     results = listOf(
                         GameProvider.SearchResult(
-                            providerGameId = searchResult.id.toString(),
-                            name = name,
-                            description = searchResult.summary,
+                            providerGameId = result.id.toString(),
+                            name = result.name,
+                            description = result.summary,
                             releaseDate = releaseDate,
-                            criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
-                            userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
-                            thumbnailUrl = thumbnailUrl(searchResult.cover!!.imageId!!)
+                            criticScore = Score(result.aggregatedRating!!, result.aggregatedRatingCount!!),
+                            userScore = Score(result.rating!!, result.ratingCount!!),
+                            thumbnailUrl = thumbnailUrl(result.cover!!.imageId!!)
                         )
                     ),
                     canShowMoreResults = null
                 )
+
+                server.verify {
+                    postRequestedFor(urlPathEqualTo("/"))
+                        .withHeader("Accept", "application/json")
+                        .withHeader("user-key", account.apiKey)
+                        .withBody(
+                            """
+                                search "$query";
+                                fields name,summary,aggregated_rating,aggregated_rating_count,rating,rating_count,release_dates.category,release_dates.human,release_dates.platform,cover.image_id;
+                                where name ~ *"$query"* & release_dates.platform = $platformId;
+                                offset $offset;
+                                limit $limit;
+                            """.trimIndent()
+                        )
+                }
+            }
+
+            "split search name by whitespace & remove non-word characters" test {
+                givenSearchResults(searchResult())
+
+                search("name with\tspace & other-characters: yes\nno,   maybe")
+
+                server.verify {
+                    postRequestedFor(urlPathEqualTo("/"))
+                        .withBodyContaining(
+                            """
+                                where name ~ *"name"* & name ~ *"with"* & name ~ *"space"* & name ~ *"other"* & name ~ *"characters"* & name ~ *"yes"* & name ~ *"no"* & name ~ *"maybe"*
+                            """.trimIndent()
+                        )
+                }
             }
 
             "be able to return empty search results" test {
-                givenClientSearchReturns(emptyList())
+                givenSearchResults()
 
                 search() shouldBe emptyList<GameProvider.SearchResult>()
             }
 
             "be able to return multiple search results" test {
-                val searchResult1 = searchResult(name)
-                val searchResult2 = searchResult("$name ${randomWord()}")
-                givenClientSearchReturns(listOf(searchResult1, searchResult2), name)
+                val result1 = searchResult()
+                val result2 = searchResult()
+                givenSearchResults(result1, result2)
 
-                search(name) should have2SearchResultsThat { first, second ->
-                    first.name shouldBe searchResult1.name
-                    second.name shouldBe searchResult2.name
+                search() should have2SearchResultsWhere { first, second ->
+                    first.name shouldBe result1.name
+                    second.name shouldBe result2.name
                 }
             }
 
-            "handle null summary" test {
-                givenClientSearchReturns(listOf(searchResult().copy(summary = null)))
+            "return null description when 'summary' is null" test {
+                givenSearchResults(searchResult().copy(summary = null))
 
-                search() should haveASingleSearchResultThat {
-                    it.description shouldBe null
-                }
+                search() should have1SearchResultWhere { description shouldBe null }
             }
 
-            "handle null aggregatedRating and ignore aggregatedRatingCount" test {
-                givenClientSearchReturns(listOf(searchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1)))
+            "return null criticScore when 'aggregatedRating' is null, even if 'aggregatedRatingCount' isn't" test {
+                givenSearchResults(searchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
 
-                search() should haveASingleSearchResultThat {
-                    it.criticScore shouldBe null
-                }
+                search() should have1SearchResultWhere { criticScore shouldBe null }
             }
 
-            "handle null rating and ignore ratingCount" test {
-                givenClientSearchReturns(listOf(searchResult().copy(rating = null, ratingCount = 1)))
+            "return null userScore when 'rating' is null, event if 'ratingCount' isn't" test {
+                givenSearchResults(searchResult().copy(rating = null, ratingCount = 1))
 
-                search() should haveASingleSearchResultThat {
-                    it.userScore shouldBe null
-                }
+                search() should have1SearchResultWhere { userScore shouldBe null }
             }
 
-            "handle null releaseDates" test {
-                givenClientSearchReturns(listOf(searchResult().copy(releaseDates = null)))
+            "return null releaseDate when 'releaseDates' is null" test {
+                givenSearchResults(searchResult().copy(releaseDates = null))
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe null
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
-            "use null releaseDate when no releaseDate exists for given platform" test {
-                givenClientSearchReturns(listOf(searchResult(releaseDatePlatformId = platformId + 1)))
+            "return null releaseDate when no releaseDate exists for given platform" test {
+                givenSearchResults(searchResult(releaseDatePlatformId = platformId + 1))
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe null
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
             "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
-                givenClientSearchReturns(listOf(searchResult(releaseDate = "2000-Apr-07")))
+                givenSearchResults(searchResult(releaseDate = "2000-Apr-07"))
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe "2000-04-07"
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe "2000-04-07" }
             }
 
             "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
-                givenClientSearchReturns(listOf(searchResult(releaseDate = "2017-Q4")))
+                givenSearchResults(searchResult(releaseDate = "2017-Q4"))
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe "2017-Q4"
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe "2017-Q4" }
             }
 
-            "handle null cover cloudinaryId" test {
-                givenClientSearchReturns(listOf(searchResult().copy(cover = image(imageId = null))))
+            "return null thumbnailUrl when 'cover.cloudinaryId' is null" test {
+                givenSearchResults(searchResult().copy(cover = image(imageId = null)))
 
-                search() should haveASingleSearchResultThat {
-                    it.thumbnailUrl shouldBe null
-                }
+                search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
-            "handle null cover" test {
-                givenClientSearchReturns(listOf(searchResult().copy(cover = null)))
+            "return null thumbnailUrl when 'cover' is null" test {
+                givenSearchResults(searchResult().copy(cover = null))
 
-                search() should haveASingleSearchResultThat {
-                    it.thumbnailUrl shouldBe null
+                search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
+            }
+
+            "error cases" should {
+                "throw ClientRequestException on invalid http response status" test {
+                    server.anyRequest() willFailWith HttpStatusCode.BadRequest
+
+                    val e = shouldThrow<ClientRequestException> {
+                        search()
+                    }
+                    e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
                 }
             }
         }
 
         "fetch" should {
             "fetch details" test {
-                val detailsResult = detailsResult(releaseDate = releaseDate)
+                val id = "gameId"
+                val result = detailsResult(releaseDate = releaseDate)
+                givenFetchResult(result)
 
-                givenClientFetchReturns(detailsResult, providerGameId = baseUrl)
-
-                fetch(baseUrl) shouldBe GameProvider.FetchResponse(
+                fetch(id) shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
-                        name = detailsResult.name,
-                        description = detailsResult.summary,
+                        name = result.name,
+                        description = result.summary,
                         releaseDate = releaseDate,
-                        criticScore = Score(detailsResult.aggregatedRating!!, detailsResult.aggregatedRatingCount!!),
-                        userScore = Score(detailsResult.rating!!, detailsResult.ratingCount!!),
+                        criticScore = Score(result.aggregatedRating!!, result.aggregatedRatingCount!!),
+                        userScore = Score(result.rating!!, result.ratingCount!!),
                         genres = listOf(genre),
-                        thumbnailUrl = thumbnailUrl(detailsResult.cover!!.imageId!!),
-                        posterUrl = posterUrl(detailsResult.cover!!.imageId!!),
-                        screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.imageId!!) }
+                        thumbnailUrl = thumbnailUrl(result.cover!!.imageId!!),
+                        posterUrl = posterUrl(result.cover!!.imageId!!),
+                        screenshotUrls = result.screenshots!!.map { screenshotUrl(it.imageId!!) }
                     ),
-                    siteUrl = detailsResult.url
+                    siteUrl = result.url
                 )
+
+                server.verify {
+                    postRequestedFor(urlPathEqualTo("/"))
+                        .withHeader("Accept", "application/json")
+                        .withHeader("user-key", account.apiKey)
+                        .withBody(
+                            """
+                                fields name,summary,aggregated_rating,aggregated_rating_count,rating,rating_count,release_dates.category,release_dates.human,release_dates.platform,cover.image_id,url,screenshots.image_id,genres;
+                                where id = $id;
+                            """.trimIndent()
+                        )
+                }
             }
 
-            "handle null summary" test {
-                givenClientFetchReturns(detailsResult().copy(summary = null))
+            "return null description when 'summary' is null" test {
+                givenFetchResult(detailsResult().copy(summary = null))
 
                 fetch().gameData.description shouldBe null
             }
 
-            "handle null releaseDates" test {
-                givenClientFetchReturns(detailsResult().copy(releaseDates = null))
+            "return null criticScore when 'aggregatedRating' is null, even if 'aggregatedRatingCount' isn't" test {
+                givenFetchResult(detailsResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
+
+                fetch().gameData.criticScore shouldBe null
+            }
+
+            "return null userScore when 'rating' is null, event if 'ratingCount' isn't" test {
+                givenFetchResult(detailsResult().copy(rating = null, ratingCount = 1))
+
+                fetch().gameData.userScore shouldBe null
+            }
+
+            "return null releaseDate when 'releaseDates' is null" test {
+                givenFetchResult(detailsResult().copy(releaseDates = null))
 
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "use null releaseDate when no releaseDate exists for given platform" test {
-                givenClientFetchReturns(detailsResult(releaseDatePlatformId = platformId + 1))
+            "return null releaseDate when no releaseDate exists for given platform" test {
+                givenFetchResult(detailsResult(releaseDatePlatformId = platformId + 1))
 
                 fetch().gameData.releaseDate shouldBe null
             }
 
             "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
-                givenClientFetchReturns(detailsResult(releaseDate = "2000-Apr-07"))
+                givenFetchResult(detailsResult(releaseDate = "2000-Apr-07"))
 
                 fetch().gameData.releaseDate shouldBe "2000-04-07"
             }
 
             "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
-                givenClientFetchReturns(detailsResult(releaseDate = "2017-Q4"))
+                givenFetchResult(detailsResult(releaseDate = "2017-Q4"))
 
                 fetch().gameData.releaseDate shouldBe "2017-Q4"
             }
 
-            "handle null aggregatedRating and ignore aggregatedRatingCount" test {
-                givenClientFetchReturns(detailsResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
-
-                fetch().gameData.criticScore shouldBe null
-            }
-
-            "handle null rating and ignore ratingCount" test {
-                givenClientFetchReturns(detailsResult().copy(rating = null, ratingCount = 1))
-
-                fetch().gameData.userScore shouldBe null
-            }
-
-            "handle null genres" test {
-                givenClientFetchReturns(detailsResult().copy(genres = null))
+            "return empty genres when 'genres' is null" test {
+                givenFetchResult(detailsResult().copy(genres = null))
 
                 fetch().gameData.genres shouldBe emptyList<String>()
             }
 
-            "handle null cover cloudinaryId" test {
-                givenClientFetchReturns(detailsResult().copy(cover = image(imageId = null)))
+            "return null thumbnailUrl & posterUrl when 'cover.cloudinaryId' is null" test {
+                givenFetchResult(detailsResult().copy(cover = image(imageId = null)))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "handle null cover" test {
-                givenClientFetchReturns(detailsResult().copy(cover = null))
+            "return null thumbnailUrl & posterUrl when 'cover' is null" test {
+                givenFetchResult(detailsResult().copy(cover = null))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "handle null screenshot cloudinaryId" test {
-                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(imageId = null))))
-
-                fetch().gameData.screenshotUrls shouldBe emptyList<String>()
-            }
-
-            "handle null & non-null screenshot cloudinaryId" test {
+            "filter out screenshots with null 'imageId'" test {
                 val image = image()
-                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(imageId = null), image)))
+                givenFetchResult(detailsResult().copy(screenshots = listOf(image(imageId = null), image)))
 
                 fetch().gameData.screenshotUrls shouldBe listOf(screenshotUrl(image.imageId!!))
             }
 
-            "handle null screenshots" test {
-                givenClientFetchReturns(detailsResult().copy(screenshots = null))
+            "return empty screenshots when 'screenshots' is null" test {
+                givenFetchResult(detailsResult().copy(screenshots = null))
 
                 fetch().gameData.screenshotUrls shouldBe emptyList<String>()
+            }
+
+            "error cases" should {
+                "throw IllegalStateException on empty response" test {
+                    val id = "gameId"
+                    server.anyRequest() willReturnFetch emptyList()
+
+                    val e = shouldThrow<IllegalStateException> {
+                        fetch(id)
+                    }
+                    e.message shouldBe "Not found: IGDB game '$id'!"
+                }
+
+                "throw ClientRequestException on invalid http response status" test {
+                    server.anyRequest() willFailWith HttpStatusCode.BadRequest
+
+                    val e = shouldThrow<ClientRequestException> {
+                        fetch()
+                    }
+                    e.response.status shouldBe HttpStatusCode.BadRequest
+                }
             }
         }
     }
 
-    class Scope {
+    val server = IgdbMockServer()
+    override fun beforeAll() = server.start()
+    override fun afterAll() = server.close()
+    override fun beforeEach() = server.reset()
+
+    override fun scope() = Scope()
+    inner class Scope {
         val platform = randomEnum<Platform>()
         val platformId = randomInt(100)
         val genreId = randomInt(100)
         val genre = randomWord()
-        val name = randomName()
         val releaseDate = randomLocalDateString()
         val account = IgdbUserAccount(apiKey = randomWord())
         val offset = randomInt(100)
         val limit = randomInt(max = 100, min = 1)
 
-        val baseUrl = randomUrl()
         val baseImageUrl = randomUrl()
 
         fun thumbnailUrl(imageId: String) = "$baseImageUrl/t_thumb_2x/$imageId.jpg"
@@ -270,12 +324,11 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
         fun screenshotUrl(imageId: String) = posterUrl(imageId)
 
         fun searchResult(
-            name: String = this.name,
             releaseDate: String = randomLocalDateString(),
             releaseDatePlatformId: Int = this.platformId
         ) = IgdbClient.SearchResult(
             id = randomInt(),
-            name = name,
+            name = randomName(),
             summary = randomParagraph(),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
@@ -290,7 +343,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             releaseDatePlatformId: Int = this.platformId
         ) = IgdbClient.FetchResult(
             url = randomWord(),
-            name = name,
+            name = randomName(),
             summary = randomParagraph(),
             releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
             aggregatedRating = randomScore().score,
@@ -310,46 +363,26 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
 
         fun image(imageId: String? = randomString()) = IgdbClient.Image(imageId = imageId)
 
-        fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
-            coEvery { client.search(name, platform, account, offset, limit) } returns results
-        }
+        fun givenSearchResults(vararg results: IgdbClient.SearchResult) =
+            server.anyRequest().willReturnSearch(results.toList())
 
-        fun givenClientFetchReturns(result: IgdbClient.FetchResult, providerGameId: String = baseUrl) {
-            coEvery { client.fetch(providerGameId, account) } returns result
-        }
+        fun givenFetchResult(result: IgdbClient.FetchResult) =
+            server.anyRequest().willReturnFetch(listOf(result))
 
-        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit).results
-        suspend fun fetch(providerGameId: String = baseUrl) = provider.fetch(providerGameId, platform, account)
+        suspend fun search(query: String = randomName()) = provider.search(query, platform, account, offset, limit).results
+        suspend fun fetch(providerGameId: String = randomString()) = provider.fetch(providerGameId, platform, account)
 
-        private val client = mockk<IgdbClient>()
-        val provider = IgdbProvider(
-            IgdbConfig(
-                baseUrl = baseUrl,
-                baseImageUrl = baseImageUrl,
-                accountUrl = "",
-                thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
-                posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-                screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-                defaultOrder = GameProvider.OrderPriorities.default,
-                platforms = mapOf(platform.name to platformId),
-                genres = mapOf(genreId.toString() to genre)
-            ), client
+        private val config = IgdbConfig(
+            baseUrl = server.baseUrl,
+            baseImageUrl = baseImageUrl,
+            accountUrl = "",
+            thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
+            posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+            screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+            defaultOrder = GameProvider.OrderPriorities.default,
+            platforms = mapOf(platform.name to platformId),
+            genres = mapOf(genreId.toString() to genre)
         )
-
-        fun haveASingleSearchResultThat(f: (GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
-            override fun test(value: List<GameProvider.SearchResult>): Result {
-                value should haveSize(1)
-                f(value.first())
-                return Result(true, "")
-            }
-        }
-
-        fun have2SearchResultsThat(f: (first: GameProvider.SearchResult, second: GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
-            override fun test(value: List<GameProvider.SearchResult>): Result {
-                value should haveSize(2)
-                f(value[0], value[1])
-                return Result(true, "")
-            }
-        }
+        val provider = IgdbProvider(config, IgdbClient(config))
     }
 }

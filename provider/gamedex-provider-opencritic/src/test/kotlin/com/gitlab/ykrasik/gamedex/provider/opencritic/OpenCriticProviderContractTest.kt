@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
+import com.gitlab.ykrasik.gamedex.test.Spec
 import com.gitlab.ykrasik.gamedex.test.assertScore
 import com.typesafe.config.ConfigFactory
 import io.kotlintest.matchers.haveSize
@@ -32,11 +32,9 @@ import io.kotlintest.matchers.shouldBe
  * Date: 28/09/2019
  * Time: 22:15
  */
-class OpenCriticProviderContractTest : ScopedWordSpec<OpenCriticProviderContractTest.Scope>() {
+class OpenCriticProviderContractTest : Spec<OpenCriticProviderContractTest.Scope>() {
     val config = OpenCriticConfig(ConfigFactory.load("com/gitlab/ykrasik/gamedex/provider/opencritic/opencritic.conf"))
     val provider = OpenCriticProvider(config, OpenCriticClient(config))
-
-    override fun scope() = Scope()
 
     init {
         "OpenCriticProvider" should {
@@ -76,6 +74,7 @@ class OpenCriticProviderContractTest : ScopedWordSpec<OpenCriticProviderContract
         }
     }
 
+    override fun scope() = Scope()
     class Scope {
         val name = "No Man's Sky"
         val providerGameId = "2393"

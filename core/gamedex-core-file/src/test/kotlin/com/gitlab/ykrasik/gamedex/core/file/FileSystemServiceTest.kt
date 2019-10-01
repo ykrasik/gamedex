@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.file
 
-import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
+import com.gitlab.ykrasik.gamedex.test.Spec
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.mock.mock
 
@@ -25,9 +25,7 @@ import io.kotlintest.mock.mock
  * Date: 12/06/2017
  * Time: 20:56
  */
-class FileSystemServiceTest : ScopedWordSpec<FileSystemServiceTest.Scope>() {
-    override fun scope() = Scope()
-
+class FileSystemServiceTest : Spec<FileSystemServiceTest.Scope>() {
     init {
         "analyzeFileName" should {
             "order" should {
@@ -180,6 +178,7 @@ class FileSystemServiceTest : ScopedWordSpec<FileSystemServiceTest.Scope>() {
         }
     }
 
+    override fun scope() = Scope()
     class Scope {
         val fileSystemService = FileSystemServiceImpl(mock(), mock())
 

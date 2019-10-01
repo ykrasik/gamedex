@@ -16,225 +16,234 @@
 
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
-import io.kotlintest.matchers.*
-import io.mockk.coEvery
-import io.mockk.mockk
+import io.kotlintest.matchers.should
+import io.kotlintest.matchers.shouldBe
+import io.kotlintest.matchers.shouldThrow
+import io.ktor.client.features.ClientRequestException
+import io.ktor.http.HttpStatusCode
 
 /**
  * User: ykrasik
  * Date: 19/04/2017
  * Time: 09:21
  */
-class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
-    override fun scope() = Scope()
-
+class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
     init {
         "search" should {
             "be able to return a single search result" test {
-                val searchResult = searchResult(name = name)
+                val query = "query"
+                val result = searchResult()
+                givenSearchResults(result)
 
-                givenClientSearchReturns(listOf(searchResult), name = name)
-
-                provider.search(name, platform, account, offset, limit) shouldBe GameProvider.SearchResponse(
+                provider.search(query, platform, account, offset, limit) shouldBe GameProvider.SearchResponse(
                     results = listOf(
                         GameProvider.SearchResult(
-                            providerGameId = searchResult.apiDetailUrl,
-                            name = name,
-                            description = description,
-                            releaseDate = searchResult.originalReleaseDate!!.toString(),
+                            providerGameId = result.apiDetailUrl,
+                            name = result.name,
+                            description = result.deck,
+                            releaseDate = result.originalReleaseDate!!.toString(),
                             criticScore = null,
                             userScore = null,
-                            thumbnailUrl = searchResult.image!!.thumbUrl
+                            thumbnailUrl = result.image!!.thumbUrl
                         )
                     ),
                     canShowMoreResults = null
                 )
+
+                server.verify {
+                    getRequestedFor(urlPathEqualTo("/"))
+                        .withQueryParam("api_key", account.apiKey)
+                        .withQueryParam("format", "json")
+                        .withQueryParam("filter", "name:$query,platforms:$platformId")
+                        .withQueryParam(
+                            "field_list",
+                            "api_detail_url,name,deck,original_release_date,expected_release_year," +
+                                "expected_release_quarter,expected_release_month,expected_release_day,image"
+                        )
+                        .withQueryParam("offset", "$offset")
+                        .withQueryParam("limit", "$limit")
+                }
             }
 
             "be able to return empty search results" test {
-                givenClientSearchReturns(emptyList())
+                givenSearchResults()
 
                 search() shouldBe emptyList<GameProvider.SearchResult>()
             }
 
             "be able to return multiple search results" test {
-                val searchResult1 = searchResult(name)
-                val searchResult2 = searchResult("$name ${randomWord()}")
-                givenClientSearchReturns(listOf(searchResult1, searchResult2), name)
+                val result1 = searchResult()
+                val result2 = searchResult()
+                givenSearchResults(result1, result2)
 
-                search(name) should have2SearchResultsThat { first, second ->
-                    first.name shouldBe searchResult1.name
-                    second.name shouldBe searchResult2.name
+                search() should have2SearchResultsWhere { first, second ->
+                    first.name shouldBe result1.name
+                    second.name shouldBe result2.name
                 }
             }
 
-            "handle null deck" test {
-                givenClientSearchReturns(listOf(searchResult().copy(deck = null)))
+            "return null description when 'deck' is null" test {
+                givenSearchResults(searchResult().copy(deck = null))
 
-                search() should haveASingleSearchResultThat {
-                    it.description shouldBe null
-                }
+                search() should have1SearchResultWhere { description shouldBe null }
             }
 
-            "handle null originalReleaseDate & null expectedReleaseDates" test {
-                givenClientSearchReturns(
-                    listOf(
-                        searchResult().copy(
-                            originalReleaseDate = null,
-                            expectedReleaseYear = null,
-                            expectedReleaseMonth = null,
-                            expectedReleaseDay = null,
-                            expectedReleaseQuarter = null
-                        )
+            "return null releaseDate when 'originalReleaseDate' & 'expectedReleaseDates' are null" test {
+                givenSearchResults(
+                    searchResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = null,
+                        expectedReleaseMonth = null,
+                        expectedReleaseDay = null,
+                        expectedReleaseQuarter = null
                     )
                 )
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe null
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
-            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay when originalReleaseDate is null and those are present" test {
-                givenClientSearchReturns(
-                    listOf(
-                        searchResult().copy(
-                            originalReleaseDate = null,
-                            expectedReleaseYear = 2019,
-                            expectedReleaseMonth = 7,
-                            expectedReleaseDay = 12,
-                            expectedReleaseQuarter = null
-                        )
+            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay as releaseDate when originalReleaseDate is null and those are present" test {
+                givenSearchResults(
+                    searchResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = 2019,
+                        expectedReleaseMonth = 7,
+                        expectedReleaseDay = 12,
+                        expectedReleaseQuarter = null
                     )
                 )
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe "2019-07-12"
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe "2019-07-12" }
             }
 
-            "use expectedReleaseYear & expectedReleaseMonth when originalReleaseDate is null and those are present" test {
-                givenClientSearchReturns(
-                    listOf(
-                        searchResult().copy(
-                            originalReleaseDate = null,
-                            expectedReleaseYear = 1998,
-                            expectedReleaseMonth = 10,
-                            expectedReleaseDay = null,
-                            expectedReleaseQuarter = null
-                        )
+            "use expectedReleaseYear & expectedReleaseMonth as releaseDate when originalReleaseDate is null and those are present" test {
+                givenSearchResults(
+                    searchResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = 1998,
+                        expectedReleaseMonth = 10,
+                        expectedReleaseDay = null,
+                        expectedReleaseQuarter = null
                     )
                 )
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe "1998-10-01"
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe "1998-10-01" }
             }
 
-            "use expectedReleaseYear & expectedReleaseQuarter when originalReleaseDate is null and those are present, " +
+            "use expectedReleaseYear & expectedReleaseQuarter as releaseDate when originalReleaseDate is null and those are present, " +
                 "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenClientSearchReturns(
-                    listOf(
-                        searchResult().copy(
-                            originalReleaseDate = null,
-                            expectedReleaseYear = 1998,
-                            expectedReleaseMonth = 10,
-                            expectedReleaseDay = 12,
-                            expectedReleaseQuarter = 1
-                        )
+                givenSearchResults(
+                    searchResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = 1998,
+                        expectedReleaseMonth = 10,
+                        expectedReleaseDay = 12,
+                        expectedReleaseQuarter = 1
                     )
                 )
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe "1998 Q1"
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe "1998 Q1" }
             }
 
-            "use return null release date if originalReleaseDate & expectedReleaseYear are null," +
+            "return null releaseDate if originalReleaseDate & expectedReleaseYear are null," +
                 "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenClientSearchReturns(
-                    listOf(
-                        searchResult().copy(
-                            originalReleaseDate = null,
-                            expectedReleaseYear = null,
-                            expectedReleaseMonth = 10,
-                            expectedReleaseDay = 12,
-                            expectedReleaseQuarter = 1
-                        )
+                givenSearchResults(
+                    searchResult().copy(
+                        originalReleaseDate = null,
+                        expectedReleaseYear = null,
+                        expectedReleaseMonth = 10,
+                        expectedReleaseDay = 12,
+                        expectedReleaseQuarter = 1
                     )
                 )
 
-                search() should haveASingleSearchResultThat {
-                    it.releaseDate shouldBe null
-                }
+                search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
-            "handle null image" test {
-                givenClientSearchReturns(listOf(searchResult().copy(image = null)))
+            "return null thumbnailUrl when 'image' is null" test {
+                givenSearchResults(searchResult().copy(image = null))
 
-                search() should haveASingleSearchResultThat {
-                    it.thumbnailUrl shouldBe null
-                }
+                search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
             "consider noImageUrl1 as absent image" test {
-                givenClientSearchReturns(listOf(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1"))))
+                givenSearchResults(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1")))
 
-                search() should haveASingleSearchResultThat {
-                    it.thumbnailUrl shouldBe null
-                }
+                search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
             "consider noImageUrl2 as absent image" test {
-                givenClientSearchReturns(listOf(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2"))))
+                givenSearchResults(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2")))
 
-                search() should haveASingleSearchResultThat {
-                    it.thumbnailUrl shouldBe null
-                }
+                search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
-            "throw IllegalStateException on invalid response status" test {
-                givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.BadFormat, emptyList()))
+            "error cases" should {
+                "throw IllegalStateException on invalid response status" test {
+                    givenSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
-                shouldThrow<IllegalStateException> {
-                    search()
+                    shouldThrow<IllegalStateException> {
+                        search()
+                    }
+                }
+
+                "throw ClientRequestException on invalid http response status" test {
+                    server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
+
+                    val e = shouldThrow<ClientRequestException> {
+                        search()
+                    }
+                    e.response.status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
 
         "fetch" should {
             "fetch details" test {
-                val detailsResult = detailsResult()
+                val result = detailsResult()
+                givenFetchResult(result, apiUrl = apiDetailsUrl)
 
-                givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
-
-                fetch(apiDetailUrl) shouldBe GameProvider.FetchResponse(
+                fetch("${server.baseUrl}/$apiDetailsUrl") shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
-                        name = detailsResult.name,
-                        description = detailsResult.deck,
-                        releaseDate = detailsResult.originalReleaseDate?.toString(),
+                        name = result.name,
+                        description = result.deck,
+                        releaseDate = result.originalReleaseDate?.toString(),
                         criticScore = null,
                         userScore = null,
-                        genres = listOf(detailsResult.genres!!.first().name),
-                        thumbnailUrl = detailsResult.image!!.thumbUrl,
-                        posterUrl = detailsResult.image!!.superUrl,
-                        screenshotUrls = detailsResult.images.map { it.superUrl }
+                        genres = listOf(result.genres!!.first().name),
+                        thumbnailUrl = result.image!!.thumbUrl,
+                        posterUrl = result.image!!.superUrl,
+                        screenshotUrls = result.images.map { it.superUrl }
                     ),
-                    siteUrl = detailsResult.siteDetailUrl
+                    siteUrl = result.siteDetailUrl
                 )
+
+                server.verify {
+                    getRequestedFor(urlPathEqualTo("/$apiDetailsUrl"))
+                        .withQueryParam("api_key", account.apiKey)
+                        .withQueryParam(
+                            "field_list",
+                            "name,deck,original_release_date,expected_release_year," +
+                                "expected_release_quarter,expected_release_month,expected_release_day," +
+                                "image,site_detail_url,genres,images"
+                        )
+                }
             }
 
-            "handle null deck" test {
-                givenClientFetchReturns(detailsResult().copy(deck = null))
+            "return null description when 'deck' is null" test {
+                givenFetchResult(detailsResult().copy(deck = null))
 
                 fetch().gameData.description shouldBe null
             }
 
-            "handle null originalReleaseDate & null expectedReleaseDates" test {
-                givenClientFetchReturns(
+            "return null releaseDate when 'originalReleaseDate' & 'expectedReleaseDates' are null" test {
+                givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
                         expectedReleaseYear = null,
@@ -247,8 +256,8 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay when originalReleaseDate is null and those are present" test {
-                givenClientFetchReturns(
+            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay as releaseDate when originalReleaseDate is null and those are present" test {
+                givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
                         expectedReleaseYear = 2019,
@@ -261,8 +270,8 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "2019-07-12"
             }
 
-            "use expectedReleaseYear & expectedReleaseMonth when originalReleaseDate is null and those are present" test {
-                givenClientFetchReturns(
+            "use expectedReleaseYear & expectedReleaseMonth as releaseDate when originalReleaseDate is null and those are present" test {
+                givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
                         expectedReleaseYear = 1998,
@@ -275,9 +284,9 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "1998-10-01"
             }
 
-            "use expectedReleaseYear & expectedReleaseQuarter when originalReleaseDate is null and those are present, " +
+            "use expectedReleaseYear & expectedReleaseQuarter as releaseDate when originalReleaseDate is null and those are present, " +
                 "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenClientFetchReturns(
+                givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
                         expectedReleaseYear = 1998,
@@ -290,9 +299,9 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "1998 Q1"
             }
 
-            "use return null release date if originalReleaseDate & expectedReleaseYear are null," +
+            "return null releaseDate if originalReleaseDate & expectedReleaseYear are null," +
                 "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenClientFetchReturns(
+                givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
                         expectedReleaseYear = null,
@@ -305,46 +314,46 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "handle null genres" test {
-                givenClientFetchReturns(detailsResult().copy(genres = null))
+            "return empty genres when 'genres' field is null" test {
+                givenFetchResult(detailsResult().copy(genres = null))
 
                 fetch().gameData.genres shouldBe emptyList<String>()
             }
 
-            "handle null image" test {
-                givenClientFetchReturns(detailsResult().copy(image = null))
+            "return null thumbnail when 'image' is null" test {
+                givenFetchResult(detailsResult().copy(image = null))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
             }
 
             "consider noImageUrl1 as absent thumbnail" test {
-                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1")))
+                givenFetchResult(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1")))
 
                 fetch().gameData.thumbnailUrl shouldBe null
             }
 
             "consider noImageUrl2 as absent thumbnail" test {
-                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2")))
+                givenFetchResult(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2")))
 
                 fetch().gameData.thumbnailUrl shouldBe null
             }
 
             "consider noImageUrl1 as absent poster" test {
-                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage1")))
+                givenFetchResult(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage1")))
 
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "consider noImageUrl1 as absent poster" test {
-                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage2")))
+            "consider noImageUrl2 as absent poster" test {
+                givenFetchResult(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage2")))
 
                 fetch().gameData.posterUrl shouldBe null
             }
 
             "filter out no image urls from screenshots" test {
                 val screenshot1 = randomImage()
-                givenClientFetchReturns(
+                givenFetchResult(
                     detailsResult().copy(
                         images = listOf(
                             randomImage().copy(superUrl = "${randomUrl()}/$noImage1"),
@@ -357,21 +366,37 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
 
-            "throw IllegalStateException on invalid response status" test {
-                givenClientFetchReturns(GiantBombClient.FetchResponse(GiantBombClient.Status.BadFormat, emptyList()))
+            "error cases" should {
+                "throw IllegalStateException on invalid response status" test {
+                    givenFetchReturns(GiantBombClient.FetchResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
-                shouldThrow<IllegalStateException> {
-                    fetch()
+                    shouldThrow<IllegalStateException> {
+                        fetch()
+                    }
+                }
+
+                "throw ClientRequestException on invalid http response status" test {
+                    server.aFetchRequest(apiDetailsUrl) willFailWith HttpStatusCode.BadRequest
+
+                    val e = shouldThrow<ClientRequestException> {
+                        provider.fetch("${server.baseUrl}/$apiDetailsUrl", platform, account)
+                    }
+                    e.response.status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
     }
 
-    class Scope {
+    val server = GiantBombMockServer()
+    override fun beforeAll() = server.start()
+    override fun afterAll() = server.close()
+    override fun beforeEach() = server.reset()
+
+    override fun scope() = Scope()
+    inner class Scope {
         val platform = randomEnum<Platform>()
-        val name = randomName()
-        val description = randomParagraph()
-        val apiDetailUrl = randomUrl()
+        val platformId = randomInt(100)
+        val apiDetailsUrl = randomPath()
         val account = GiantBombUserAccount(apiKey = randomWord())
         val noImage1 = randomWord()
         val noImage2 = randomWord()
@@ -380,10 +405,10 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
 
         fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
-        fun searchResult(name: String = this.name) = GiantBombClient.SearchResult(
+        fun searchResult() = GiantBombClient.SearchResult(
             apiDetailUrl = randomUrl(),
-            name = name,
-            deck = description,
+            name = randomName(),
+            deck = randomParagraph(),
             originalReleaseDate = randomLocalDate(),
             expectedReleaseYear = randomInt(min = 1980, max = 2050),
             expectedReleaseQuarter = randomInt(min = 1, max = 4),
@@ -392,9 +417,9 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             image = randomImage()
         )
 
-        fun detailsResult(name: String = this.name) = GiantBombClient.FetchResult(
+        fun detailsResult() = GiantBombClient.FetchResult(
             siteDetailUrl = randomUrl(),
-            name = name,
+            name = randomName(),
             deck = randomParagraph(),
             originalReleaseDate = randomLocalDate(),
             expectedReleaseYear = randomInt(min = 1980, max = 2050),
@@ -406,41 +431,28 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             genres = listOf(GiantBombClient.Genre(randomWord()))
         )
 
-        fun givenClientSearchReturns(results: List<GiantBombClient.SearchResult>, name: String = this.name) =
-            givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.OK, results), name)
+        fun givenSearchResults(vararg results: GiantBombClient.SearchResult) =
+            givenSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.OK, results.toList()))
 
-        fun givenClientSearchReturns(response: GiantBombClient.SearchResponse, name: String = this.name) {
-            coEvery { client.search(name, platform, account, offset, limit) } returns response
-        }
+        fun givenSearchReturns(response: GiantBombClient.SearchResponse) =
+            server.anySearchRequest() willReturn response
 
-        fun givenClientFetchReturns(result: GiantBombClient.FetchResult, apiUrl: String = apiDetailUrl) =
-            givenClientFetchReturns(GiantBombClient.FetchResponse(GiantBombClient.Status.OK, listOf(result)), apiUrl)
+        fun givenFetchResult(result: GiantBombClient.FetchResult, apiUrl: String = apiDetailsUrl) =
+            givenFetchReturns(GiantBombClient.FetchResponse(GiantBombClient.Status.OK, listOf(result)), apiUrl)
 
-        fun givenClientFetchReturns(response: GiantBombClient.FetchResponse, apiUrl: String = apiDetailUrl) {
-            coEvery { client.fetch(apiUrl, account) } returns response
-        }
+        fun givenFetchReturns(response: GiantBombClient.FetchResponse, apiUrl: String = apiDetailsUrl) =
+            server.aFetchRequest(apiUrl) willReturn response
 
-        suspend fun search(name: String = this.name) = provider.search(name, platform, account, offset, limit).results
-        suspend fun fetch(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.fetch(apiUrl, platform, account)
+        suspend fun search(query: String = randomName()) = provider.search(query, platform, account, offset, limit).results
+        suspend fun fetch(apiUrl: String = "${server.baseUrl}/$apiDetailsUrl", platform: Platform = this.platform) = provider.fetch(apiUrl, platform, account)
 
-        private val config = GiantBombConfig("", listOf(noImage1, noImage2), "", GameProvider.OrderPriorities.default, emptyMap())
-        private val client = mockk<GiantBombClient>()
-        val provider = GiantBombProvider(config, client)
-
-        fun haveASingleSearchResultThat(f: (GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
-            override fun test(value: List<GameProvider.SearchResult>): Result {
-                value should haveSize(1)
-                f(value.first())
-                return Result(true, "")
-            }
-        }
-
-        fun have2SearchResultsThat(f: (first: GameProvider.SearchResult, second: GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
-            override fun test(value: List<GameProvider.SearchResult>): Result {
-                value should haveSize(2)
-                f(value[0], value[1])
-                return Result(true, "")
-            }
-        }
+        private val config = GiantBombConfig(
+            baseUrl = server.baseUrl,
+            noImageFileNames = listOf(noImage1, noImage2),
+            accountUrl = "",
+            defaultOrder = GameProvider.OrderPriorities.default,
+            platforms = mapOf(platform.name to platformId)
+        )
+        val provider = GiantBombProvider(config, GiantBombClient(config))
     }
 }

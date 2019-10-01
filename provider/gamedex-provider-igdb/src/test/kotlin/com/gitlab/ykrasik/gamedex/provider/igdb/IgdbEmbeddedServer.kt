@@ -54,7 +54,7 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
     fun reset() = wiremock.resetAll()
     override fun close() = wiremock.stop()
 
-    fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
+    fun verify(requestPatternBuilder: () -> RequestPatternBuilder) = wiremock.verify(requestPatternBuilder())
 
     @Suppress("ClassName")
     inner class anyRequest {
@@ -122,33 +122,35 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
         IgdbClient.SearchResult(
             id = randomInt(),
             name = randomName(),
-            summary = randomParagraph(),
-            aggregatedRating = randomScore().score,
+            summary = randomParagraph().sometimesNull(),
+            aggregatedRating = randomScore().score.sometimesNull(),
             aggregatedRatingCount = randomScore().numReviews,
-            rating = randomScore().score,
+            rating = randomScore().score.sometimesNull(),
             ratingCount = randomScore().numReviews,
-            releaseDates = randomReleaseDates(),
-            cover = randomImage()
+            releaseDates = randomReleaseDates().sometimesNull(),
+            cover = randomImage().sometimesNull()
         )
     }.toJsonStr()
 
     private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
 
-    private fun randomDetailResponse(): String = listOf(IgdbClient.FetchResult(
-        url = randomUrl(),
-        name = randomName(),
-        summary = randomParagraph(),
-        releaseDates = randomReleaseDates(),
-        aggregatedRating = randomScore().score,
-        aggregatedRatingCount = randomScore().numReviews,
-        rating = randomScore().score,
-        ratingCount = randomScore().numReviews,
-        cover = IgdbClient.Image(imageId = randomWord()),
-        screenshots = randomList(10) { randomImage() },
-        genres = randomList(4) {
-            listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
-        }
-    )).toJsonStr()
+    private fun randomDetailResponse(): String = listOf(
+        IgdbClient.FetchResult(
+            url = randomUrl(),
+            name = randomName(),
+            summary = randomParagraph().sometimesNull(),
+            releaseDates = randomReleaseDates().sometimesNull(),
+            aggregatedRating = randomScore().score.sometimesNull(),
+            aggregatedRatingCount = randomScore().numReviews,
+            rating = randomScore().score.sometimesNull(),
+            ratingCount = randomScore().numReviews,
+            cover = IgdbClient.Image(imageId = randomWord()).sometimesNull(),
+            screenshots = randomList(10) { randomImage() }.sometimesNull(),
+            genres = randomList(4) {
+                listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
+            }.sometimesNull()
+        )
+    ).toJsonStr()
 
     private fun randomReleaseDates() = randomList(3) { randomReleaseDate() }
 

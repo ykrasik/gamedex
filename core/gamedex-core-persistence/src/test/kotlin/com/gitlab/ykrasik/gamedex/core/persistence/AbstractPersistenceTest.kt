@@ -19,18 +19,14 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.file
-import io.kotlintest.TestCaseContext
 
 /**
  * User: ykrasik
  * Date: 23/04/2017
  * Time: 13:48
  */
-abstract class AbstractPersistenceTest<Scope> : ScopedWordSpec<Scope>() {
-    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
-        persistenceService.dropDb()
-        test()
-    }
+abstract class AbstractPersistenceTest<Scope> : Spec<Scope>() {
+    override fun beforeEach() = persistenceService.dropDb()
 
     open class LibraryScope {
         fun libraryData(

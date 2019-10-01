@@ -53,7 +53,7 @@ class GiantBombMockServer(port: Int = freePort) : Closeable {
     fun reset() = wiremock.resetAll()
     override fun close() = wiremock.stop()
 
-    fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
+    fun verify(requestPatternBuilder: () -> RequestPatternBuilder) = wiremock.verify(requestPatternBuilder())
 
     abstract inner class BaseRequest {
         infix fun willFailWith(status: HttpStatusCode) {
@@ -127,34 +127,36 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
             GiantBombClient.SearchResult(
                 apiDetailUrl = randomProviderGameId(),
                 name = randomName(),
-                deck = randomParagraph(),
-                originalReleaseDate = randomLocalDate(),
-                expectedReleaseYear = randomInt(min = 1980, max = 2050),
-                expectedReleaseQuarter = randomInt(min = 1, max = 4),
-                expectedReleaseMonth = randomInt(min = 1, max = 12),
-                expectedReleaseDay = randomInt(min = 1, max = 28),
-                image = randomImage()
+                deck = randomParagraph().sometimesNull(),
+                originalReleaseDate = randomLocalDate().sometimesNull(),
+                expectedReleaseYear = randomInt(min = 1980, max = 2050).sometimesNull(),
+                expectedReleaseQuarter = randomInt(min = 1, max = 4).sometimesNull(),
+                expectedReleaseMonth = randomInt(min = 1, max = 12).sometimesNull(),
+                expectedReleaseDay = randomInt(min = 1, max = 28).sometimesNull(),
+                image = randomImage().sometimesNull()
             )
         }
     )
 
     private fun randomDetailResponse() = GiantBombClient.FetchResponse(
         statusCode = GiantBombClient.Status.OK,
-        results = listOf(GiantBombClient.FetchResult(
-            siteDetailUrl = randomUrl(),
-            name = randomName(),
-            deck = randomParagraph(),
-            originalReleaseDate = randomLocalDate(),
-            expectedReleaseYear = randomInt(min = 1980, max = 2050),
-            expectedReleaseQuarter = randomInt(min = 1, max = 4),
-            expectedReleaseMonth = randomInt(min = 1, max = 12),
-            expectedReleaseDay = randomInt(min = 1, max = 28),
-            image = randomImage(),
-            images = randomList(10) { randomImage() },
-            genres = randomList(4) {
-                GiantBombClient.Genre(name = randomGenre())
-            }
-        ))
+        results = listOf(
+            GiantBombClient.FetchResult(
+                siteDetailUrl = randomUrl(),
+                name = randomName(),
+                deck = randomParagraph().sometimesNull(),
+                originalReleaseDate = randomLocalDate().sometimesNull(),
+                expectedReleaseYear = randomInt(min = 1980, max = 2050).sometimesNull(),
+                expectedReleaseQuarter = randomInt(min = 1, max = 4).sometimesNull(),
+                expectedReleaseMonth = randomInt(min = 1, max = 12).sometimesNull(),
+                expectedReleaseDay = randomInt(min = 1, max = 28).sometimesNull(),
+                image = randomImage().sometimesNull(),
+                images = randomList(10) { randomImage() },
+                genres = randomList(4) {
+                    GiantBombClient.Genre(name = randomGenre())
+                }.sometimesNull()
+            )
+        )
     )
 
     private fun randomImage() = GiantBombClient.Image(

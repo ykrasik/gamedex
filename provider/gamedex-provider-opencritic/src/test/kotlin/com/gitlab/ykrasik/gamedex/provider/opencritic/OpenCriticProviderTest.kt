@@ -23,8 +23,6 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
-import io.kotlintest.Spec
-import io.kotlintest.TestCaseContext
 import io.kotlintest.matchers.*
 import io.ktor.client.features.ClientRequestException
 import io.ktor.http.HttpStatusCode
@@ -36,11 +34,7 @@ import kotlin.random.Random
  * Date: 28/09/2019
  * Time: 22:15
  */
-class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
-    override fun scope() = Scope()
-
-    val server = OpenCriticMockServer()
-
+class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
     init {
         "search" should {
             "be able to return a single search result" test {
@@ -85,13 +79,15 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
                 results[1].name shouldBe result2.name
             }
 
-            "throw ClientRequestException on invalid http response status" test {
-                server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
+            "error cases" should {
+                "throw ClientRequestException on invalid http response status" test {
+                    server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
-                val e = shouldThrow<ClientRequestException> {
-                    search()
+                    val e = shouldThrow<ClientRequestException> {
+                        search()
+                    }
+                    e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
                 }
-                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
             }
         }
 
@@ -201,17 +197,25 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
                 fetch().siteUrl shouldBe "${server.baseUrl}/game/$providerGameId/my-test-game-name-yes-"
             }
 
-            "throw ClientRequestException on invalid http response status" test {
-                server.aFetchRequest(providerGameId) willFailWith HttpStatusCode.BadRequest
+            "error cases" should {
+                "throw ClientRequestException on invalid http response status" test {
+                    server.aFetchRequest(providerGameId) willFailWith HttpStatusCode.BadRequest
 
-                val e = shouldThrow<ClientRequestException> {
-                    fetch(providerGameId)
+                    val e = shouldThrow<ClientRequestException> {
+                        fetch(providerGameId)
+                    }
+                    e.response.status shouldBe HttpStatusCode.BadRequest
                 }
-                e.response.status shouldBe HttpStatusCode.BadRequest
             }
         }
     }
 
+    val server = OpenCriticMockServer()
+    override fun beforeAll() = server.start()
+    override fun afterAll() = server.close()
+    override fun beforeEach() = server.reset()
+
+    override fun scope() = Scope()
     inner class Scope {
         val platformId = randomInt(100)
         val query = randomWord()
@@ -255,7 +259,7 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
         fun givenFetchReturns(result: OpenCriticClient.FetchResult, providerGameId: Int = this.providerGameId) =
             server.aFetchRequest(providerGameId).willReturn(result)
 
-        suspend fun search(query: String = randomWord()) =
+        suspend fun search(query: String = randomName()) =
             provider.search(query, Platform.Windows, GameProvider.Account.Null, offset, limit).results
 
         suspend fun fetch(providerGameId: Int = this.providerGameId) =
@@ -267,16 +271,5 @@ class OpenCriticProviderTest : ScopedWordSpec<OpenCriticProviderTest.Scope>() {
             platforms = mapOf(Platform.Windows.name to platformId)
         )
         val provider = OpenCriticProvider(config, OpenCriticClient(config))
-    }
-
-    override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        server.start()
-        spec()
-        server.stop()
-    }
-
-    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
-        server.reset()
-        test()
     }
 }

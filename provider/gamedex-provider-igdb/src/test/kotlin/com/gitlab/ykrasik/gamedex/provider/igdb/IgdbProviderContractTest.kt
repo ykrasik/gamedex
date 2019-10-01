@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
+import com.gitlab.ykrasik.gamedex.test.Spec
 import com.gitlab.ykrasik.gamedex.test.assertScore
 import com.typesafe.config.ConfigFactory
 import io.kotlintest.matchers.haveSize
@@ -32,12 +32,10 @@ import io.kotlintest.matchers.shouldBe
  * Date: 12/04/2017
  * Time: 10:03
  */
-class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>() {
+class IgdbProviderContractTest : Spec<IgdbProviderContractTest.Scope>() {
     val config = IgdbConfig(ConfigFactory.load("com/gitlab/ykrasik/gamedex/provider/igdb/igdb.conf"))
     val provider = IgdbProvider(config, IgdbClient(config))
     val account = IgdbUserAccount(apiKey = System.getProperty("gameDex.igdb.apiKey"))
-
-    override fun scope() = Scope()
 
     init {
         "IgdbProvider" should {
@@ -77,6 +75,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
         }
     }
 
+    override fun scope() = Scope()
     class Scope {
         val name = "No Man's Sky"
         val providerGameId = "3225"

@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
+import com.gitlab.ykrasik.gamedex.test.Spec
 import com.typesafe.config.ConfigFactory
 import io.kotlintest.matchers.shouldBe
 
@@ -28,12 +28,10 @@ import io.kotlintest.matchers.shouldBe
  * Date: 08/10/2016
  * Time: 17:59
  */
-class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTest.Scope>() {
+class GiantBombProviderContractTest : Spec<GiantBombProviderContractTest.Scope>() {
     val config = GiantBombConfig(ConfigFactory.load("com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.conf"))
     val provider = GiantBombProvider(config, GiantBombClient(config))
     val account = GiantBombUserAccount(apiKey = System.getProperty("gameDex.giantBomb.apiKey"))
-
-    override fun scope() = Scope()
 
     init {
         "GiantBombProvider" should {
@@ -70,6 +68,7 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
         }
     }
 
+    override fun scope() = Scope()
     class Scope {
         val name = "No Man's Sky"
         val apiUrl = "https://www.giantbomb.com/api/game/3030-44656/"
