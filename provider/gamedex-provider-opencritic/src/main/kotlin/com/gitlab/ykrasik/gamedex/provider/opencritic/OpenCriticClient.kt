@@ -61,7 +61,7 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
         val numReviews: Int,
         val Genres: List<Genre>,
         val Platforms: List<Platform>,
-        val firstReleaseDate: DateTime,
+        val firstReleaseDate: DateTime?,
         val logoScreenshot: Image?,
         val mastheadScreenshot: Image?,
         val screenshots: List<Image>

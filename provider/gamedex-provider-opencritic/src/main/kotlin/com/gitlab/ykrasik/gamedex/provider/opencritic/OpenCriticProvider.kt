@@ -75,7 +75,7 @@ class OpenCriticProvider @Inject constructor(
         gameData = GameData(
             name = this.name,
             description = this.description,
-            releaseDate = this.Platforms.findReleaseDate(platform) ?: firstReleaseDate.toLocalDate().toString(),
+            releaseDate = this.Platforms.findReleaseDate(platform) ?: firstReleaseDate?.toLocalDate()?.toString(),
             criticScore = if (averageScore > 0 && numReviews != 0) Score(averageScore, numReviews) else null,
             userScore = null,
             genres = this.Genres.map { it.name },

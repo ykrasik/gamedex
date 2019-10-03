@@ -157,6 +157,20 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "2019-12-12"
             }
 
+            "return null releaseDate when platform not found in 'Platforms' and 'firstReleaseDate' is null" test {
+                givenFetchReturns(
+                    fetchResult().copy(
+                        Platforms = listOf(
+                            platform(),
+                            platform()
+                        ),
+                        firstReleaseDate = null
+                    )
+                )
+
+                fetch().gameData.releaseDate shouldBe null
+            }
+
             "return null thumbnail when 'logoScreenshot' field is null" test {
                 givenFetchReturns(fetchResult().copy(logoScreenshot = null))
 
