@@ -69,7 +69,7 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
 
     data class Image(
         val fullRes: String,
-        val thumbnail: String
+        val thumbnail: String?
     )
 
     data class Genre(

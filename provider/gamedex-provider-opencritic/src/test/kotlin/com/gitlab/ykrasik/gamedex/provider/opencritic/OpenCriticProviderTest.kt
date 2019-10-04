@@ -116,19 +116,19 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 }
             }
 
-            "return null criticScore if 'averageScore' field is -1" test {
+            "return null criticScore if 'averageScore' is -1" test {
                 givenFetchReturns(fetchResult().copy(averageScore = -1.0))
 
                 fetch().gameData.criticScore shouldBe null
             }
 
-            "return null criticScore if 'numReviews' field is 0" test {
+            "return null criticScore if 'numReviews' is 0" test {
                 givenFetchReturns(fetchResult().copy(numReviews = 0))
 
                 fetch().gameData.criticScore shouldBe null
             }
 
-            "return releaseDate from the 'Platforms' field" test {
+            "return releaseDate from 'Platforms'" test {
                 givenFetchReturns(
                     fetchResult().copy(
                         Platforms = listOf(
@@ -143,7 +143,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "1999-08-07"
             }
 
-            "return releaseDate from 'firstReleaseDate' field when platform not found in 'Platforms' field" test {
+            "return releaseDate from 'firstReleaseDate' when platform not found in 'Platforms'" test {
                 givenFetchReturns(
                     fetchResult().copy(
                         Platforms = listOf(
@@ -171,20 +171,26 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "return null thumbnail when 'logoScreenshot' field is null" test {
+            "return null thumbnail when 'logoScreenshot' is null" test {
+                givenFetchReturns(fetchResult().copy(logoScreenshot = image().copy(thumbnail = null)))
+
+                fetch().gameData.thumbnailUrl shouldBe null
+            }
+
+            "return null thumbnail when 'logoScreenshot.thumbnail' is null" test {
                 givenFetchReturns(fetchResult().copy(logoScreenshot = null))
 
                 fetch().gameData.thumbnailUrl shouldBe null
             }
 
-            "return screenshots only from 'mastheadScreenshot' field when the 'screenshots' field is empty" test {
+            "return screenshots only from 'mastheadScreenshot' when 'screenshots' is empty" test {
                 val result = fetchResult().copy(screenshots = emptyList())
                 givenFetchReturns(result)
 
                 fetch().gameData.screenshotUrls shouldBe listOf(screenshotUrl(result.mastheadScreenshot!!))
             }
 
-            "return screenshots only from 'screenshots' field when the 'mastheadScreenshot' field is null" test {
+            "return screenshots only from 'screenshots' when 'mastheadScreenshot' is null" test {
                 val result = fetchResult().copy(mastheadScreenshot = null, screenshots = listOf(image(), image()))
                 givenFetchReturns(result)
 
@@ -194,7 +200,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 )
             }
 
-            "return screenshots from 'mastheadScreenshot' and 'mastheadScreenshot' fields when both are available" test {
+            "return screenshots from 'mastheadScreenshot' and 'screenshots' when both are available" test {
                 val result = fetchResult().copy(mastheadScreenshot = image(), screenshots = listOf(image(), image()))
                 givenFetchReturns(result)
 
