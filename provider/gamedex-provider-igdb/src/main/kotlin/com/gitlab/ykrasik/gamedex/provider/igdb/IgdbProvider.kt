@@ -89,7 +89,7 @@ class IgdbProvider @Inject constructor(
         siteUrl = this.url
     )
 
-    private fun toScore(score: Double?, numReviews: Int?): Score? = score?.let { Score(it, numReviews!!) }
+    private fun toScore(score: Double?, numReviews: Int?): Score? = score?.let { Score(it, numReviews!!).takeIf { it.numReviews > 0 } }
 
     private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: Platform): String? {
         // IGDB returns all release dates for all platforms, not just the one we searched for.

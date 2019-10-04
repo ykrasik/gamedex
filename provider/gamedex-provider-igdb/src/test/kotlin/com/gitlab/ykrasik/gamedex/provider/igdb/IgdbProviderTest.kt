@@ -115,8 +115,20 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 search() should have1SearchResultWhere { criticScore shouldBe null }
             }
 
+            "return null criticScore when 'aggregatedRating' is not null but 'aggregatedRatingCount' is 0" test {
+                givenSearchResults(searchResult().copy(aggregatedRating = 99.9, aggregatedRatingCount = 0))
+
+                search() should have1SearchResultWhere { criticScore shouldBe null }
+            }
+
             "return null userScore when 'rating' is null, event if 'ratingCount' isn't" test {
                 givenSearchResults(searchResult().copy(rating = null, ratingCount = 1))
+
+                search() should have1SearchResultWhere { userScore shouldBe null }
+            }
+
+            "return null userScore when 'rating' is not null but 'ratingCount' is 0" test {
+                givenSearchResults(searchResult().copy(rating = 99.9, ratingCount = 0))
 
                 search() should have1SearchResultWhere { userScore shouldBe null }
             }
@@ -172,7 +184,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
         "fetch" should {
             "fetch details" test {
                 val id = "gameId"
-                val result = detailsResult(releaseDate = releaseDate)
+                val result = fetchResult(releaseDate = releaseDate)
                 givenFetchResult(result)
 
                 fetch(id) shouldBe GameProvider.FetchResponse(
@@ -204,62 +216,74 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
             }
 
             "return null description when 'summary' is null" test {
-                givenFetchResult(detailsResult().copy(summary = null))
+                givenFetchResult(fetchResult().copy(summary = null))
 
                 fetch().gameData.description shouldBe null
             }
 
             "return null criticScore when 'aggregatedRating' is null, even if 'aggregatedRatingCount' isn't" test {
-                givenFetchResult(detailsResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
+                givenFetchResult(fetchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
+
+                fetch().gameData.criticScore shouldBe null
+            }
+
+            "return null criticScore when 'aggregatedRating' is not null but 'aggregatedRatingCount' is 0" test {
+                givenFetchResult(fetchResult().copy(aggregatedRating = 99.9, aggregatedRatingCount = 0))
 
                 fetch().gameData.criticScore shouldBe null
             }
 
             "return null userScore when 'rating' is null, event if 'ratingCount' isn't" test {
-                givenFetchResult(detailsResult().copy(rating = null, ratingCount = 1))
+                givenFetchResult(fetchResult().copy(rating = null, ratingCount = 1))
+
+                fetch().gameData.userScore shouldBe null
+            }
+
+            "return null userScore when 'rating' is not null but 'ratingCount' is 0" test {
+                givenFetchResult(fetchResult().copy(rating = 99.9, ratingCount = 0))
 
                 fetch().gameData.userScore shouldBe null
             }
 
             "return null releaseDate when 'releaseDates' is null" test {
-                givenFetchResult(detailsResult().copy(releaseDates = null))
+                givenFetchResult(fetchResult().copy(releaseDates = null))
 
                 fetch().gameData.releaseDate shouldBe null
             }
 
             "return null releaseDate when no releaseDate exists for given platform" test {
-                givenFetchResult(detailsResult(releaseDatePlatformId = platformId + 1))
+                givenFetchResult(fetchResult(releaseDatePlatformId = platformId + 1))
 
                 fetch().gameData.releaseDate shouldBe null
             }
 
             "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
-                givenFetchResult(detailsResult(releaseDate = "2000-Apr-07"))
+                givenFetchResult(fetchResult(releaseDate = "2000-Apr-07"))
 
                 fetch().gameData.releaseDate shouldBe "2000-04-07"
             }
 
             "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
-                givenFetchResult(detailsResult(releaseDate = "2017-Q4"))
+                givenFetchResult(fetchResult(releaseDate = "2017-Q4"))
 
                 fetch().gameData.releaseDate shouldBe "2017-Q4"
             }
 
             "return empty genres when 'genres' is null" test {
-                givenFetchResult(detailsResult().copy(genres = null))
+                givenFetchResult(fetchResult().copy(genres = null))
 
                 fetch().gameData.genres shouldBe emptyList<String>()
             }
 
             "return null thumbnailUrl & posterUrl when 'cover.cloudinaryId' is null" test {
-                givenFetchResult(detailsResult().copy(cover = image(imageId = null)))
+                givenFetchResult(fetchResult().copy(cover = image(imageId = null)))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
             }
 
             "return null thumbnailUrl & posterUrl when 'cover' is null" test {
-                givenFetchResult(detailsResult().copy(cover = null))
+                givenFetchResult(fetchResult().copy(cover = null))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
@@ -267,13 +291,13 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
 
             "filter out screenshots with null 'imageId'" test {
                 val image = image()
-                givenFetchResult(detailsResult().copy(screenshots = listOf(image(imageId = null), image)))
+                givenFetchResult(fetchResult().copy(screenshots = listOf(image(imageId = null), image)))
 
                 fetch().gameData.screenshotUrls shouldBe listOf(screenshotUrl(image.imageId!!))
             }
 
             "return empty screenshots when 'screenshots' is null" test {
-                givenFetchResult(detailsResult().copy(screenshots = null))
+                givenFetchResult(fetchResult().copy(screenshots = null))
 
                 fetch().gameData.screenshotUrls shouldBe emptyList<String>()
             }
@@ -338,7 +362,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
             cover = image()
         )
 
-        fun detailsResult(
+        fun fetchResult(
             releaseDate: String = randomLocalDateString(),
             releaseDatePlatformId: Int = this.platformId
         ) = IgdbClient.FetchResult(
