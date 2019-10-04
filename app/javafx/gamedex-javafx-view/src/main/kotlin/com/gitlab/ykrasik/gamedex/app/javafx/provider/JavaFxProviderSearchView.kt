@@ -34,6 +34,7 @@ import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
+import javafx.scene.text.FontWeight
 import tornadofx.*
 
 /**
@@ -85,7 +86,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                 releaseDate = result.releaseDate
                 criticScore = result.criticScore
                 userScore = result.userScore
-                image = commonOps.fetchImage(result.thumbnailUrl, persist = true)
+                image = commonOps.fetchImage(result.thumbnailUrl, persist = false)
                 imageFitWidth = 200
             }.build()
 
@@ -159,6 +160,10 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
 //            useMaxSize = true
 //            vgrow = Priority.ALWAYS
             paddingAll = 10
+
+            label(state.property.stringBinding { it!!.libraryPath.path.toString() }) {
+                addClass(Style.pathText)
+            }
 
             // Providers
             val progress = state.property.binding { state ->
@@ -293,9 +298,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     class Style : Stylesheet() {
         companion object {
             val searchText by cssclass()
-            val searchResults by cssclass()
-            val searchResult by cssclass()
-            val descriptionText by cssclass()
+            val pathText by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -307,19 +310,9 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                 fontSize = 18.px
             }
 
-            searchResults {
-            }
-
-            searchResult {
-//                maxWidth = 500.px
-//                padding = box(5.px)
-//                backgroundColor = multi(Colors.cloudyKnoxville)
-//                backgroundRadius = multi(box(7.px))
-            }
-
-            descriptionText {
-                wrapText = true
-                maxWidth = 600.px
+            pathText {
+                fontSize = 15.px
+                fontWeight = FontWeight.BOLD
             }
         }
     }
