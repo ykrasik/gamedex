@@ -193,6 +193,8 @@ class GameDetailsSummaryBuilder : Fragment() {
             path {
             }
             descriptionText {
+                wrapText = true
+                maxWidth = 600.px
             }
         }
     }
