@@ -17,15 +17,14 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
+import com.google.inject.BindingAnnotation
 
 /**
  * User: ykrasik
  * Date: 09/06/2018
  * Time: 20:43
  */
-class GameOverlayDisplaySettingsRepository(name: String, factory: SettingsStorageFactory, default: () -> Data) :
-    SettingsRepository<GameOverlayDisplaySettingsRepository.Data>() {
-
+class GameOverlayDisplaySettingsRepository(settingsService: SettingsService, name: String, default: () -> Data) {
     data class Data(
         val enabled: Boolean,
         val showOnlyWhenActive: Boolean,
@@ -39,21 +38,40 @@ class GameOverlayDisplaySettingsRepository(name: String, factory: SettingsStorag
         val opacity: Double
     )
 
-    override val storage = factory(name, Data::class, default)
+    private val storage = settingsService.storage(basePath = "display", name = name, default = default)
 
-    val enabledChannel = storage.channel(Data::enabled)
-    val showOnlyWhenActiveChannel = storage.channel(Data::showOnlyWhenActive)
-    val positionChannel = storage.channel(Data::position)
-    val fillWidthChannel = storage.channel(Data::fillWidth)
-    val fontSizeChannel = storage.channel(Data::fontSize)
-    val boldFontChannel = storage.channel(Data::boldFont)
-    val italicFontChannel = storage.channel(Data::italicFont)
-    val textColorChannel = storage.channel(Data::textColor)
-    val backgroundColorChannel = storage.channel(Data::backgroundColor)
-    val opacityChannel = storage.channel(Data::opacity)
+    val enabledChannel = storage.biChannel(Data::enabled) { copy(enabled = it) }
+    var enabled by enabledChannel
+
+    val showOnlyWhenActiveChannel = storage.biChannel(Data::showOnlyWhenActive) { copy(showOnlyWhenActive = it) }
+    var showOnlyWhenActive by showOnlyWhenActiveChannel
+
+    val positionChannel = storage.biChannel(Data::position) { copy(position = it) }
+    var position by positionChannel
+
+    val fillWidthChannel = storage.biChannel(Data::fillWidth) { copy(fillWidth = it) }
+    var fillWidth by fillWidthChannel
+
+    val fontSizeChannel = storage.biChannel(Data::fontSize) { copy(fontSize = it) }
+    var fontSize by fontSizeChannel
+
+    val boldFontChannel = storage.biChannel(Data::boldFont) { copy(boldFont = it) }
+    var boldFont by boldFontChannel
+
+    val italicFontChannel = storage.biChannel(Data::italicFont) { copy(italicFont = it) }
+    var italicFont by italicFontChannel
+
+    val textColorChannel = storage.biChannel(Data::textColor) { copy(textColor = it) }
+    var textColor by textColorChannel
+
+    val backgroundColorChannel = storage.biChannel(Data::backgroundColor) { copy(backgroundColor = it) }
+    var backgroundColor by backgroundColorChannel
+
+    val opacityChannel = storage.biChannel(Data::opacity) { copy(opacity = it) }
+    var opacity by opacityChannel
 
     companion object {
-        fun name(factory: SettingsStorageFactory) = GameOverlayDisplaySettingsRepository("name", factory) {
+        fun name(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository(settingsService, name = "name") {
             Data(
                 enabled = true,
                 showOnlyWhenActive = true,
@@ -68,7 +86,7 @@ class GameOverlayDisplaySettingsRepository(name: String, factory: SettingsStorag
             )
         }
 
-        fun metaTag(factory: SettingsStorageFactory) = GameOverlayDisplaySettingsRepository("metatag", factory) {
+        fun metaTag(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository(settingsService, name = "metatag") {
             Data(
                 enabled = true,
                 showOnlyWhenActive = true,
@@ -83,7 +101,7 @@ class GameOverlayDisplaySettingsRepository(name: String, factory: SettingsStorag
             )
         }
 
-        fun version(factory: SettingsStorageFactory) = GameOverlayDisplaySettingsRepository("version", factory) {
+        fun version(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository(settingsService, name = "version") {
             Data(
                 enabled = true,
                 showOnlyWhenActive = true,
@@ -99,3 +117,18 @@ class GameOverlayDisplaySettingsRepository(name: String, factory: SettingsStorag
         }
     }
 }
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class NameDisplaySettingsRepository
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class MetaTagDisplaySettingsRepository
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class VersionDisplaySettingsRepository

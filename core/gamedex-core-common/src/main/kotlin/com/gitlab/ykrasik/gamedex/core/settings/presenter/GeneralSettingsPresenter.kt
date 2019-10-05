@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 import com.gitlab.ykrasik.gamedex.app.api.settings.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,11 +30,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class GeneralSettingsPresenter @Inject constructor(
-    private val settingsService: SettingsService
+    private val settingsRepo: GeneralSettingsRepository
 ) : Presenter<GeneralSettingsView> {
     override fun present(view: GeneralSettingsView) = object : ViewSession() {
         init {
-            settingsService.general.bind({ useInternalBrowserChannel }, view.useInternalBrowser) { copy(useInternalBrowser = it) }
+            settingsRepo.useInternalBrowserChannel.bind(view.useInternalBrowser)
         }
     }
 }

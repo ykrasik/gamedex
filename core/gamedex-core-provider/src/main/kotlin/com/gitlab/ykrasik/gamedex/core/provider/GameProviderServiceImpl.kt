@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManager
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
@@ -43,6 +43,7 @@ import javax.inject.Singleton
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
     pluginManager: PluginManager,
+    settingsRepo: ProviderSettingsRepository,
     private val imageService: ImageService
 ) : GameProviderService {
     private val log = logger()
@@ -51,19 +52,14 @@ class GameProviderServiceImpl @Inject constructor(
         .associateByTo(mutableMapOf(), GameProvider::id) { InternalGameProvider(it, GameProvider.Account.Null) }
 
     override val allProviders = providersById.values.map { it.metadata }.sortedBy { it.id }
+    override val enabledProviders = ListObservableImpl<GameProvider.Metadata>()
 
     init {
         log.info("Detected providers: ${allProviders.joinToString()}")
-    }
 
-    @Inject
-    private lateinit var settingsService: SettingsService
-
-    override val enabledProviders by lazy {
-        val enabledProviders = ListObservableImpl<GameProvider.Metadata>()
         allProviders.forEach { provider ->
-            val settingsRepo = settingsService.providers.getValue(provider.id)
-            settingsRepo.perform { data ->
+            val repo = settingsRepo.register(provider)
+            repo.perform { data ->
                 val enabledProvider = enabledProviders.find { it.id == provider.id }
                 when {
                     !data.enabled && enabledProvider != null -> {
@@ -87,8 +83,6 @@ class GameProviderServiceImpl @Inject constructor(
         enabledProviders.itemsChannel.subscribe {
             log.info("Enabled providers: ${it.sortedBy { it.id }.joinToString()}")
         }
-
-        enabledProviders
     }
 
     override val logos = allProviders.map { it.id to imageService.createImage(it.logo) }.toMap()

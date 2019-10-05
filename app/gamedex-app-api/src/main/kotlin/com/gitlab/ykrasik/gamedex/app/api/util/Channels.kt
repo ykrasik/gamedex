@@ -20,6 +20,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.SelectClause1
 import kotlinx.coroutines.selects.whileSelect
+import java.io.Closeable
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.reflect.KProperty
@@ -29,10 +30,14 @@ import kotlin.reflect.KProperty
  * Date: 02/04/2018
  * Time: 11:15
  */
-interface MultiReceiveChannel<T> {
+interface MultiReceiveChannel<T> : Closeable {
     fun subscribe(): ReceiveChannel<T>
 
-    fun subscribe(context: CoroutineContext = EmptyCoroutineContext, f: suspend (T) -> Unit): ReceiveChannel<T>
+    fun subscribe(
+        context: CoroutineContext = EmptyCoroutineContext,
+        start: CoroutineStart = CoroutineStart.DEFAULT,
+        f: suspend (T) -> Unit
+    ): ReceiveChannel<T>
 
     fun peek(): T = subscribe().consume { poll()!! }
 
@@ -62,9 +67,9 @@ class MultiChannel<T>(
 
     override fun subscribe() = channel.openSubscription()
 
-    override fun subscribe(context: CoroutineContext, f: suspend (T) -> Unit): ReceiveChannel<T> {
+    override fun subscribe(context: CoroutineContext, start: CoroutineStart, f: suspend (T) -> Unit): ReceiveChannel<T> {
         val channel = subscribe()
-        launch(context) {
+        launch(context, start) {
             channel.consumeEach {
                 f(it)
             }
@@ -75,7 +80,7 @@ class MultiChannel<T>(
     suspend fun send(element: T) = channel.send(element)
     fun offer(element: T) = channel.offer(element)
 
-    fun close() {
+    override fun close() {
         channel.close()
         coroutineContext.cancel()
     }

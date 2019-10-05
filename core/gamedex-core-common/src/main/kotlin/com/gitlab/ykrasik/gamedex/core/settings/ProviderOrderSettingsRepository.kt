@@ -17,17 +17,23 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.util.onChange
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.Extractor
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 24/06/2018
  * Time: 10:36
  */
-class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers: List<GameProvider.Metadata>) :
-    SettingsRepository<ProviderOrderSettingsRepository.Data>() {
-
+@Singleton
+class ProviderOrderSettingsRepository @Inject constructor(
+    settingsService: SettingsService,
+    gameProviderService: GameProviderService
+) {
     data class Data(
         val search: Order,
         val name: Order,
@@ -38,9 +44,9 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers
         val screenshot: Order
     )
 
-    override val storage = factory("order", Data::class) {
+    private val storage = settingsService.storage(basePath = "provider", name = "order") {
         fun defaultOrder(extractor: Extractor<GameProvider.OrderPriorities, Int>) =
-            providers.sortedBy { extractor(it.defaultOrder) }.map { it.id }
+            gameProviderService.allProviders.sortedBy { extractor(it.defaultOrder) }.map { it.id }
 
         Data(
             search = defaultOrder { search },
@@ -53,24 +59,26 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, providers
         )
     }
 
-    val searchChannel = storage.channel(Data::search)
-    val search by searchChannel
+    fun onChange(f: suspend () -> Unit) = storage.onChange { f() }
 
-    val nameChannel = storage.channel(Data::name)
-    val name by nameChannel
+    val searchChannel = storage.biChannel(Data::search) { copy(search = it) }
+    var search by searchChannel
 
-    val descriptionChannel = storage.channel(Data::description)
-    val description by descriptionChannel
+    val nameChannel = storage.biChannel(Data::name) { copy(name = it) }
+    var name by nameChannel
 
-    val releaseDateChannel = storage.channel(Data::releaseDate)
-    val releaseDate by releaseDateChannel
+    val descriptionChannel = storage.biChannel(Data::description) { copy(description = it) }
+    var description by descriptionChannel
 
-    val thumbnailChannel = storage.channel(Data::thumbnail)
-    val thumbnail by thumbnailChannel
+    val releaseDateChannel = storage.biChannel(Data::releaseDate) { copy(releaseDate = it) }
+    var releaseDate by releaseDateChannel
 
-    val posterChannel = storage.channel(Data::poster)
-    val poster by posterChannel
+    val thumbnailChannel = storage.biChannel(Data::thumbnail) { copy(thumbnail = it) }
+    var thumbnail by thumbnailChannel
 
-    val screenshotChannel = storage.channel(Data::screenshot)
-    val screenshot by screenshotChannel
+    val posterChannel = storage.biChannel(Data::poster) { copy(poster = it) }
+    var poster by posterChannel
+
+    val screenshotChannel = storage.biChannel(Data::screenshot) { copy(screenshot = it) }
+    var screenshot by screenshotChannel
 }

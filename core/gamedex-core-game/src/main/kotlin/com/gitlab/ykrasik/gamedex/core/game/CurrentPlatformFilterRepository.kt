@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
 import com.gitlab.ykrasik.gamedex.core.on
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,7 +35,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class CurrentPlatformFilterRepository @Inject constructor(
-    private val settingsService: SettingsService,
+    private val settingsRepo: GameSettingsRepository,
     private val filterService: FilterService,
     eventBus: EventBus
 ) {
@@ -56,14 +56,14 @@ class CurrentPlatformFilterRepository @Inject constructor(
             filterService.getOrPutSystemFilter(filterName(platform)) { Filter.Null }
         }
 
-        settingsService.game.platformChannel.subscribe { platform ->
+        settingsRepo.platformChannel.subscribe { platform ->
             val filter = filterService.getSystemFilter(filterName(platform))!!
             _currentPlatformFilter.offer(filter)
         }
     }
 
     fun update(filter: Filter) {
-        filterService.putSystemFilter(filterName(settingsService.game.platform), filter)
+        filterService.putSystemFilter(filterName(settingsRepo.platform), filter)
         _currentPlatformFilter.offer(filter)
     }
 

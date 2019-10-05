@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
@@ -36,13 +35,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class ProviderSettingsPresenter @Inject constructor(
-    private val settingsService: SettingsService,
+    private val settingsRepo: ProviderSettingsRepository,
     private val gameProviderService: GameProviderService,
     private val commonData: CommonData,
     private val taskService: TaskService
 ) : Presenter<ProviderSettingsView> {
     override fun present(view: ProviderSettingsView) = object : ViewSession() {
-        val settings get() = settingsService.providers.getValue(view.provider.id)
+        val settings get() = settingsRepo.providers.getValue(view.provider.id)
         var lastVerifiedAccount = emptyMap<String, String>()
         var status by view.status
         var currentAccount by view.currentAccount
@@ -81,17 +80,13 @@ class ProviderSettingsPresenter @Inject constructor(
                     verifyAccount()
                 }
                 if (status == ProviderAccountStatus.Valid || status == ProviderAccountStatus.NotRequired) {
-                    modifySettings { copy(enabled = true, account = currentAccount) }
+                    settings.modify { copy(enabled = true, account = currentAccount) }
                 } else {
                     view.enabled *= false
                 }
             } else {
-                modifySettings { copy(enabled = false) }
+                settings.enabled = false
             }
-        }
-
-        private inline fun modifySettings(crossinline f: ProviderSettingsRepository.Data.() -> ProviderSettingsRepository.Data) {
-            settings.modify { f() }
         }
 
         private suspend fun verifyAccount() {

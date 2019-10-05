@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.ProviderOrderSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,19 +32,19 @@ import javax.inject.Singleton
 @Singleton
 class ProviderOrderSettingsPresenter @Inject constructor(
     private val commonData: CommonData,
-    private val settingsService: SettingsService
+    private val settingsRepo: ProviderOrderSettingsRepository
 ) : Presenter<ProviderOrderSettingsView> {
     override fun present(view: ProviderOrderSettingsView) = object : ViewSession() {
         init {
             commonData.isGameSyncRunning.disableWhenTrue(view.canChangeProviderOrder) { "Game sync in progress!" }
 
-            settingsService.providerOrder.bind({ searchChannel }, view.search) { verifyCanChange(); copy(search = it) }
-            settingsService.providerOrder.bind({ nameChannel }, view.name) { verifyCanChange(); copy(name = it) }
-            settingsService.providerOrder.bind({ descriptionChannel }, view.description) { verifyCanChange(); copy(description = it) }
-            settingsService.providerOrder.bind({ releaseDateChannel }, view.releaseDate) { verifyCanChange(); copy(releaseDate = it) }
-            settingsService.providerOrder.bind({ thumbnailChannel }, view.thumbnail) { verifyCanChange(); copy(thumbnail = it) }
-            settingsService.providerOrder.bind({ posterChannel }, view.poster) { verifyCanChange(); copy(poster = it) }
-            settingsService.providerOrder.bind({ screenshotChannel }, view.screenshot) { verifyCanChange(); copy(screenshot = it) }
+            settingsRepo.searchChannel.bind(view.search)
+            settingsRepo.nameChannel.bind(view.name)
+            settingsRepo.descriptionChannel.bind(view.description)
+            settingsRepo.releaseDateChannel.bind(view.releaseDate)
+            settingsRepo.thumbnailChannel.bind(view.thumbnail)
+            settingsRepo.posterChannel.bind(view.poster)
+            settingsRepo.screenshotChannel.bind(view.screenshot)
         }
 
         private fun verifyCanChange() = view.canChangeProviderOrder.assert()

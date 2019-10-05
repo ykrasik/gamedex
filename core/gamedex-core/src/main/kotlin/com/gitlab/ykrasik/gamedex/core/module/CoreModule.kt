@@ -33,6 +33,7 @@ import com.gitlab.ykrasik.gamedex.core.plugin.DirectoryPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManager
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManagerImpl
 import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderModule
+import com.gitlab.ykrasik.gamedex.core.settings.*
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
@@ -133,4 +134,19 @@ object CoreModule : InternalCoreModule() {
     @Provides
     @Singleton
     fun commonConfig(config: Config) = config.extract<CommonOpsConfig>("gameDex.common")
+
+    @Provides
+    @Singleton
+    @NameDisplaySettingsRepository
+    fun nameDisplaySettingsRepository(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository.name(settingsService)
+
+    @Provides
+    @Singleton
+    @MetaTagDisplaySettingsRepository
+    fun metaTagDisplaySettingsRepository(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository.metaTag(settingsService)
+
+    @Provides
+    @Singleton
+    @VersionDisplaySettingsRepository
+    fun versionDisplaySettingsRepository(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository.version(settingsService)
 }

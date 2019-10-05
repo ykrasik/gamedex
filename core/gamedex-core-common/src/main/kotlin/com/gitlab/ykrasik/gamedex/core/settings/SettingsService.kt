@@ -16,14 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.core.log.LogService
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.core.storage.StorageObservable
+import com.gitlab.ykrasik.gamedex.core.storage.StorageObservableImpl
+import com.gitlab.ykrasik.gamedex.core.util.ValueObservableImpl
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
@@ -32,77 +33,62 @@ import javax.inject.Singleton
  */
 @ImplementedBy(SettingsServiceImpl::class)
 interface SettingsService {
-    val general: GeneralSettingsRepository
-    val game: GameSettingsRepository
-    val cellDisplay: GameCellDisplaySettingsRepository
-    val nameDisplay: GameOverlayDisplaySettingsRepository
-    val metaTagDisplay: GameOverlayDisplaySettingsRepository
-    val versionDisplay: GameOverlayDisplaySettingsRepository
-
-    val providerOrder: ProviderOrderSettingsRepository
-    val providers: Map<ProviderId, ProviderSettingsRepository>
+    fun <T : Any> storage(
+        basePath: String,
+        name: String,
+        klass: KClass<T>,
+        resettable: Boolean,
+        default: () -> T
+    ): StorageObservable<T>
 
     fun saveSnapshot()
-    fun revertSnapshot()
     fun commitSnapshot()
+    fun revertSnapshot()
     fun resetDefaults()
 }
 
+inline fun <reified T : Any> SettingsService.storage(
+    basePath: String,
+    name: String,
+    resettable: Boolean = true,
+    noinline default: () -> T
+): StorageObservable<T> = storage(basePath, name, T::class, resettable, default)
+
 @Singleton
-class SettingsServiceImpl @Inject constructor(
-    private val factory: JsonStorageFactory<String>,
-    gameProviderService: GameProviderService,
-    logService: LogService
-) : SettingsService {
+class SettingsServiceImpl @Inject constructor(private val factory: JsonStorageFactory<String>) : SettingsService {
     private val log = logger()
-    private val all = mutableListOf<SettingsRepository<*>>()
+    private val storages = mutableListOf<SettingsStorage<*>>()
 
-    private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
-
-    override val general = repo { GeneralSettingsRepository(settingsStorage()) }
-    override val game = repo { GameSettingsRepository(settingsStorage()) }
-    override val cellDisplay = repo { GameCellDisplaySettingsRepository(settingsStorage("display")) }
-    override val nameDisplay = repo { GameOverlayDisplaySettingsRepository.name(settingsStorage("display")) }
-    override val metaTagDisplay = repo { GameOverlayDisplaySettingsRepository.metaTag(settingsStorage("display")) }
-    override val versionDisplay = repo { GameOverlayDisplaySettingsRepository.version(settingsStorage("display")) }
-
-    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorage("provider"), gameProviderService.allProviders) }
-    override val providers = gameProviderService.allProviders.map { provider ->
-        provider.id to repo { ProviderSettingsRepository(settingsStorage("provider"), provider) }
-    }.toMap()
-
-    init {
-        providers.values.forEach { repo ->
-            repo.accountChannel.subscribe { account ->
-                account.values.forEach {
-                    logService.addBlacklistValue(it)
-                }
-            }
-        }
+    override fun <T : Any> storage(
+        basePath: String,
+        name: String,
+        klass: KClass<T>,
+        resettable: Boolean,
+        default: () -> T
+    ) = addStorage {
+        SettingsStorage(
+            storage = StorageObservableImpl(
+                valueObservable = ValueObservableImpl(),
+                storage = factory(basePath = "conf/$basePath", klass = klass),
+                key = name,
+                default = default
+            ),
+            resettable = resettable
+        )
     }
 
-    private fun settingsStorage(basePath: String = "") = SettingsStorageFactory("conf/$basePath", factory)
+    private inline fun <T> addStorage(f: () -> SettingsStorage<T>) = f().apply { storages += this }.storage
 
     override fun saveSnapshot() = safeTry {
-        withRepos {
+        onAll {
             disableWrite()
             saveSnapshot()
         }
     }
 
-    override fun revertSnapshot() = safeTry {
-        log.info("Reverting changes to settings...")
-        withRepos {
-            restoreSnapshot()
-            enableWrite()
-            clearSnapshot()
-        }
-        log.info("Reverting changes to settings... Done.")
-    }
-
     override fun commitSnapshot() = safeTry(revertFallback = true) {
         log.info("Writing settings...")
-        withRepos {
+        onAll {
             enableWrite()
             flush()
             clearSnapshot()
@@ -110,18 +96,25 @@ class SettingsServiceImpl @Inject constructor(
         log.info("Writing settings... Done.")
     }
 
+    override fun revertSnapshot() = safeTry {
+        log.info("Reverting changes to settings...")
+        onAll {
+            restoreSnapshot()
+            enableWrite()
+            clearSnapshot()
+        }
+        log.info("Reverting changes to settings... Done.")
+    }
+
     override fun resetDefaults() = safeTry {
         log.info("Resetting settings to default...")
-        withRepos {
-            // Do not reset provider accounts.
-            if (!providers.values.contains(this)) {
-                resetDefaults()
-            }
+        onAll {
+            resetDefault()
         }
         log.info("Resetting settings to default... Done.")
     }
 
-    private inline fun withRepos(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)
+    private inline fun onAll(f: SettingsStorage<*>.() -> Unit) = storages.forEach(f)
 
     private inline fun safeTry(revertFallback: Boolean = false, f: () -> Unit) {
         try {
@@ -130,6 +123,40 @@ class SettingsServiceImpl @Inject constructor(
             log.error("Error updating settings!", e)
             if (revertFallback) {
                 revertSnapshot()
+            }
+        }
+    }
+
+    private class SettingsStorage<T>(
+        val storage: StorageObservableImpl<T>,
+        val resettable: Boolean
+    ) {
+        private var snapshot: T? = null
+
+        fun enableWrite() = storage.enableWrite()
+        fun disableWrite() = storage.disableWrite()
+
+        fun saveSnapshot() {
+            snapshot = storage.value
+        }
+
+        fun restoreSnapshot() {
+            storage.value = snapshot!!
+        }
+
+        fun clearSnapshot() {
+            snapshot = null
+        }
+
+        fun flush() {
+            if (snapshot != storage.value) {
+                storage.flushValueToStorage()
+            }
+        }
+
+        fun resetDefault() {
+            if (resettable) {
+                storage.resetDefault()
             }
         }
     }

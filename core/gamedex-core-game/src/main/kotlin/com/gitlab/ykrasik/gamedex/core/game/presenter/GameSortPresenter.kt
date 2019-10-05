@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGameSort
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,12 +30,12 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameSortPresenter @Inject constructor(
-    private val settingsService: SettingsService
+    private val settingsRepo: GameSettingsRepository
 ) : Presenter<ViewWithGameSort> {
     override fun present(view: ViewWithGameSort) = object : ViewSession() {
         init {
-            settingsService.game.bind({ sortByChannel }, view.sortBy) { copy(sortBy = it) }
-            settingsService.game.bind({ sortOrderChannel }, view.sortOrder) { copy(sortOrder = it) }
+            settingsRepo.sortByChannel.bind(view.sortBy)
+            settingsRepo.sortOrderChannel.bind(view.sortOrder)
         }
     }
 }

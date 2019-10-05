@@ -16,31 +16,60 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
+import com.gitlab.ykrasik.gamedex.core.log.LogService
+import com.gitlab.ykrasik.gamedex.core.storage.StorageObservable
+import com.gitlab.ykrasik.gamedex.core.util.modify
+import com.gitlab.ykrasik.gamedex.core.util.perform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.Modifier
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 17/06/2018
  * Time: 14:26
  */
-class ProviderSettingsRepository(factory: SettingsStorageFactory, provider: GameProvider.Metadata) :
-    SettingsRepository<ProviderSettingsRepository.Data>() {
-
+@Singleton
+class ProviderSettingsRepository @Inject constructor(
+    private val settingsService: SettingsService,
+    private val logService: LogService
+) {
     data class Data(
         val enabled: Boolean,
         val account: Map<String, String>
     )
 
-    override val storage = factory(provider.id.toLowerCase(), Data::class) {
-        Data(
-            enabled = provider.accountFeature == null,
-            account = emptyMap()
-        )
+    class Repo(private val storage: StorageObservable<Data>) {
+        val enabledChannel = storage.biChannel(Data::enabled) { copy(enabled = it) }
+        var enabled by enabledChannel
+
+        val accountChannel = storage.biChannel(Data::account) { copy(account = it) }
+        var account by accountChannel
+
+        fun modify(modifier: Modifier<Data>) = storage.modify(modifier)
+        fun perform(f: suspend (Data) -> Unit) = storage.perform(f)
     }
 
-    val enabledChannel = storage.channel(Data::enabled)
-    val enabled by enabledChannel
+    private val _providers = mutableMapOf<ProviderId, Repo>()
+    val providers: Map<ProviderId, Repo> = _providers
 
-    val accountChannel = storage.channel(Data::account)
-    val account by accountChannel
+    fun register(provider: GameProvider.Metadata): Repo {
+        val repo = Repo(settingsService.storage(basePath = "provider", name = provider.id.toLowerCase(), resettable = false) {
+            Data(
+                enabled = provider.accountFeature == null,
+                account = emptyMap()
+            )
+        })
+        _providers[provider.id] = repo
+
+        repo.accountChannel.subscribe { account ->
+            account.values.forEach {
+                logService.addBlacklistValue(it)
+            }
+        }
+
+        return repo
+    }
 }

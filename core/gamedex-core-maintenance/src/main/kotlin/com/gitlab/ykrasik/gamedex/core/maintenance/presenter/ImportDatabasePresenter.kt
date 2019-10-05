@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.ImportDbContent
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
@@ -41,7 +41,7 @@ import javax.inject.Singleton
 class ImportDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
-    private val settingsService: SettingsService,
+    private val settingsRepo: GeneralSettingsRepository,
     private val eventBus: EventBus
 ) : Presenter<ImportDatabaseView> {
     override fun present(view: ImportDatabaseView) = object : ViewSession() {
@@ -97,7 +97,7 @@ class ImportDatabasePresenter @Inject constructor(
         }
 
         private suspend fun onBrowse() {
-            val file = view.selectImportDatabaseFile(settingsService.general.exportDbDirectory)
+            val file = view.selectImportDatabaseFile(settingsRepo.exportDbDirectory)
             if (file != null) {
                 importDatabaseFile = file.absolutePath
             }
@@ -125,7 +125,7 @@ class ImportDatabasePresenter @Inject constructor(
                 )
             }
             taskService.execute(maintenanceService.importDatabase(content))
-            settingsService.general.modify { copy(exportDbDirectory = file.parentFile) }
+            settingsRepo.exportDbDirectory = file.parentFile
         }
 
         private fun onCancel() {

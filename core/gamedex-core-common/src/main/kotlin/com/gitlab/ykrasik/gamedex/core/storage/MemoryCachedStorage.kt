@@ -77,6 +77,8 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
     override fun ids() = cache.keys
 
     override fun sizeTaken(key: K) = delegate.sizeTaken(key)
+
+    override fun toString() = "MemoryCachedStorage[$delegate]"
 }
 
 fun <K, V> Storage<K, V>.memoryCached(): Storage<K, V> = MemoryCachedStorage(this)

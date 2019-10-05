@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.ImportExportParams
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
@@ -40,7 +40,7 @@ import javax.inject.Singleton
 class ExportDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
-    private val settingsService: SettingsService,
+    private val settingsRepo: GeneralSettingsRepository,
     private val eventBus: EventBus
 ) : Presenter<ExportDatabaseView> {
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
@@ -79,7 +79,7 @@ class ExportDatabasePresenter @Inject constructor(
         }
 
         private fun onBrowse() {
-            val dir = view.selectExportDatabaseDirectory(settingsService.general.exportDbDirectory)
+            val dir = view.selectExportDatabaseDirectory(settingsRepo.exportDbDirectory)
             if (dir != null) {
                 exportDatabaseDirectory = dir.absolutePath
             }
@@ -105,7 +105,7 @@ class ExportDatabasePresenter @Inject constructor(
             )
             val dir = exportDatabaseDirectory.file
             taskService.execute(maintenanceService.exportDatabase(dir, params))
-            settingsService.general.modify { copy(exportDbDirectory = dir) }
+            settingsRepo.exportDbDirectory = dir
             view.openDirectory(dir)
         }
 

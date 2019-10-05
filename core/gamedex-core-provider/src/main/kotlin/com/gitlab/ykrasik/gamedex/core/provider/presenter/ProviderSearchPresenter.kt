@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.core.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -46,7 +46,7 @@ class ProviderSearchPresenter @Inject constructor(
     private val fileSystemService: FileSystemService,
     private val gameService: GameService,
     private val taskService: TaskService,
-    private val settingsService: SettingsService,
+    private val settingsRepo: GeneralSettingsRepository,
     private val eventBus: EventBus
 ) : Presenter<ProviderSearchView> {
     override fun present(view: ProviderSearchView) = object : ViewSession() {
@@ -121,7 +121,7 @@ class ProviderSearchPresenter @Inject constructor(
         }
 
         private suspend fun search(provider: ProviderId, query: String, offset: Int) {
-            val limit = settingsService.general.searchResultLimit
+            val limit = settingsRepo.searchResultLimit
             val response = taskService.execute(
                 gameProviderService.search(
                     providerId = provider,
@@ -288,7 +288,7 @@ class ProviderSearchPresenter @Inject constructor(
         private suspend fun onShowMoreResults() {
             view.canShowMoreResults.assert()
             val currentSearch = state.currentProviderSearch!!
-            search(currentSearch.provider, currentSearch.query, currentSearch.offset + settingsService.general.searchResultLimit)
+            search(currentSearch.provider, currentSearch.query, currentSearch.offset + settingsRepo.searchResultLimit)
         }
 
         private suspend fun onFinished() {

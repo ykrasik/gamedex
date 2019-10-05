@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithPlatform
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,7 +32,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class PlatformPresenter @Inject constructor(
-    private val settingsService: SettingsService,
+    private val settingsRepo: GameSettingsRepository,
     private val commonData: CommonData
 ) : Presenter<ViewWithPlatform> {
     override fun present(view: ViewWithPlatform) = object : ViewSession() {
@@ -45,10 +45,10 @@ class PlatformPresenter @Inject constructor(
                 if (availablePlatforms.size == 1) {
                     val platform = availablePlatforms.first()
                     view.currentPlatform *= platform
-                    settingsService.game.modify { copy(platform = platform) }
+                    settingsRepo.platform = platform
                 }
             }
-            settingsService.game.bind({ platformChannel }, view.currentPlatform) { copy(platform = it) }
+            settingsRepo.platformChannel.bind(view.currentPlatform)
         }
     }
 }

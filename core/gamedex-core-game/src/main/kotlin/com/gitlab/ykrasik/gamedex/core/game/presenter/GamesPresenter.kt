@@ -33,7 +33,7 @@ import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import org.slf4j.Logger
@@ -50,7 +50,7 @@ class GamesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val filterService: FilterService,
     private val gameSearchService: GameSearchService,
-    private val settingsService: SettingsService,
+    private val settingsRepo: GameSettingsRepository,
     private val repo: CurrentPlatformFilterRepository,
     private val eventBus: EventBus
 ) : Presenter<ViewWithGames> {
@@ -60,7 +60,7 @@ class GamesPresenter @Inject constructor(
         init {
             commonData.platformGames.bind(view.games)
 
-            settingsService.game.sortByChannel.combineLatest(settingsService.game.sortOrderChannel).forEach { (sortBy, sortOrder) ->
+            settingsRepo.sortByChannel.combineLatest(settingsRepo.sortOrderChannel).forEach { (sortBy, sortOrder) ->
                 setSort(sortBy, sortOrder)
             }
 
@@ -126,7 +126,7 @@ class GamesPresenter @Inject constructor(
 
         private fun search(query: String): Sequence<Game> =
             gameSearchService.search(query).asSequence()
-                .filter { settingsService.game.platform.matches(it.platform) }
+                .filter { settingsRepo.platform.matches(it.platform) }
     }
 
     private companion object {

@@ -21,13 +21,16 @@ import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDisplayType
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 01/05/2017
  * Time: 19:08
  */
-class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GameSettingsRepository.Data>() {
+@Singleton
+class GameSettingsRepository @Inject constructor(settingsService: SettingsService) {
     data class Data(
         val platform: AvailablePlatform,
         val displayType: GameDisplayType,
@@ -35,7 +38,7 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
         val sortOrder: SortOrder
     )
 
-    override val storage = factory("game", Data::class) {
+    private val storage = settingsService.storage(basePath = "", name = "game") {
         Data(
             platform = AvailablePlatform.SinglePlatform(Platform.Windows),
             displayType = GameDisplayType.Wall,
@@ -44,15 +47,15 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
         )
     }
 
-    val platformChannel = storage.channel(Data::platform)
-    val platform by platformChannel
+    val platformChannel = storage.biChannel(Data::platform) { copy(platform = it) }
+    var platform by platformChannel
 
-    val displayTypeChannel = storage.channel(Data::displayType)
-    val displayType by displayTypeChannel
+    val displayTypeChannel = storage.biChannel(Data::displayType) { copy(displayType = it) }
+    var displayType by displayTypeChannel
 
-    val sortByChannel = storage.channel(Data::sortBy)
-    val sortBy by sortByChannel
+    val sortByChannel = storage.biChannel(Data::sortBy) { copy(sortBy = it) }
+    var sortBy by sortByChannel
 
-    val sortOrderChannel = storage.channel(Data::sortOrder)
-    val sortOrder by sortOrderChannel
+    val sortOrderChannel = storage.biChannel(Data::sortOrder) { copy(sortOrder = it) }
+    var sortOrder by sortOrderChannel
 }

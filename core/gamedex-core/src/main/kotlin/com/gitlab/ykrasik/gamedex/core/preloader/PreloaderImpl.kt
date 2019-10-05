@@ -23,9 +23,10 @@ import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.log.LogService
 import com.gitlab.ykrasik.gamedex.core.log.LogServiceImpl
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.StorageObservableImpl
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.util.ValueObservableImpl
+import com.gitlab.ykrasik.gamedex.core.util.modify
 import com.gitlab.ykrasik.gamedex.core.version.ApplicationVersion
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -65,7 +66,13 @@ class PreloaderImpl : Preloader {
                 }
             }
 
-            val preloaderSettings = PreloaderSettingsRepository(SettingsStorageFactory("conf", StringIdJsonStorageFactory))
+            val preloaderData = StorageObservableImpl(
+                valueObservable = ValueObservableImpl(),
+                storage = StringIdJsonStorageFactory(basePath = "data"),
+                key = "preloader"
+            ) {
+                PreloaderData(numClassesToInit = 133)
+            }
 
             val progressChannel = conflatedChannel(0.0)
             launch(Dispatchers.Main) {
@@ -82,7 +89,7 @@ class PreloaderImpl : Preloader {
                             numClassesToInit++
                             log.trace("[$numClassesToInit] Initializing ${provision!!.binding.key.typeLiteral}...")
                             if (!progressChannel.isClosedForSend) {
-                                progressChannel.offer(numClassesToInit.toDouble() / preloaderSettings.numClassesToInit)
+                                progressChannel.offer(numClassesToInit.toDouble() / preloaderData.value.numClassesToInit)
                             }
                         }
                     })
@@ -96,7 +103,8 @@ class PreloaderImpl : Preloader {
             subscription.cancel()
 
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-            preloaderSettings.modify { copy(numClassesToInit = numClassesToInit) }
+            preloaderData.modify { copy(numClassesToInit = numClassesToInit) }
+            preloaderData.close()
 
             withContext(Dispatchers.Main) {
                 view.message.value = "Done loading."
@@ -104,8 +112,10 @@ class PreloaderImpl : Preloader {
 
             injector
         }
-        log.info("Application loading took ${timeTaken.humanReadable}")
+        log.info("Application load time: ${timeTaken.humanReadable}")
 
         injector
     }
+
+    private data class PreloaderData(val numClassesToInit: Int)
 }

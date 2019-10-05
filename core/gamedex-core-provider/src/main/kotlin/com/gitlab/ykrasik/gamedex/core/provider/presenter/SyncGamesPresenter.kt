@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.ProviderOrderSettingsRepository
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.findCircular
@@ -42,7 +42,7 @@ import javax.inject.Singleton
 @Singleton
 class SyncGamesPresenter @Inject constructor(
     private val commonData: CommonData,
-    private val settingsService: SettingsService,
+    private val settingsRepo: ProviderOrderSettingsRepository,
     private val eventBus: EventBus
 ) : Presenter<SyncGamesView> {
     private val log = logger()
@@ -171,7 +171,7 @@ class SyncGamesPresenter @Inject constructor(
                 .filter { it.supports(request.platform) }
                 .map { it.id }
                 .toList()
-                .sortedBy { settingsService.providerOrder.search.indexOf(it) }
+                .sortedBy { settingsRepo.search.indexOf(it) }
 
             if (providersToSync.isEmpty()) {
                 log.debug("Skipping ${request.libraryPath}, game=${request.existingGame} because no enabled providers support the platform '${request.platform}'.")

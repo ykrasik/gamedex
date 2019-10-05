@@ -17,14 +17,19 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.core.util.modify
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 01/05/2017
  * Time: 19:10
  */
-class GeneralSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GeneralSettingsRepository.Data>() {
+@Singleton
+class GeneralSettingsRepository @Inject constructor(settingsService: SettingsService) {
     data class Data(
         val prevDirectory: File,
         val exportDbDirectory: File,
@@ -34,7 +39,7 @@ class GeneralSettingsRepository(factory: SettingsStorageFactory) : SettingsRepos
         val searchResultLimit: Int
     )
 
-    override val storage = factory("general", Data::class) {
+    private val storage = settingsService.storage(basePath = "", name = "general") {
         Data(
             prevDirectory = File("."),
             exportDbDirectory = File("."),
@@ -45,21 +50,24 @@ class GeneralSettingsRepository(factory: SettingsStorageFactory) : SettingsRepos
         )
     }
 
-    val prevDirectoryChannel = storage.channel(Data::prevDirectory)
-    val prevDirectory by prevDirectoryChannel
+    val dataChannel: MultiReceiveChannel<Data> = storage.valueChannel
+    fun modify(f: Data.() -> Data) = storage.modify(f)
 
-    val exportDbDirectoryChannel = storage.channel(Data::exportDbDirectory)
-    val exportDbDirectory by exportDbDirectoryChannel
+    val prevDirectoryChannel = storage.biChannel(Data::prevDirectory) { copy(prevDirectory = it) }
+    var prevDirectory by prevDirectoryChannel
 
-    val logFilterLevelChannel = storage.channel(Data::logFilterLevel)
-    val logFilterLevel by logFilterLevelChannel
+    val exportDbDirectoryChannel = storage.biChannel(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
+    var exportDbDirectory by exportDbDirectoryChannel
 
-    val logTailChannel = storage.channel(Data::logTail)
-    val logTail by logTailChannel
+    val logFilterLevelChannel = storage.biChannel(Data::logFilterLevel) { copy(logFilterLevel = it) }
+    var logFilterLevel by logFilterLevelChannel
 
-    val useInternalBrowserChannel = storage.channel(Data::useInternalBrowser)
-    val useInternalBrowser by useInternalBrowserChannel
+    val logTailChannel = storage.biChannel(Data::logTail) { copy(logTail = it) }
+    var logTail by logTailChannel
 
-    val searchResultLimitChannel = storage.channel(Data::searchResultLimit)
-    val searchResultLimit by searchResultLimitChannel
+    val useInternalBrowserChannel = storage.biChannel(Data::useInternalBrowser) { copy(useInternalBrowser = it) }
+    var useInternalBrowser by useInternalBrowserChannel
+
+    val searchResultLimitChannel = storage.biChannel(Data::searchResultLimit) { copy(searchResultLimit = it) }
+    var searchResultLimit by searchResultLimitChannel
 }

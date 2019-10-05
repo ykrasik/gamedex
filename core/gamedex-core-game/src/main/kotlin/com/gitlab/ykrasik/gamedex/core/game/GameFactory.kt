@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.minOrder
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.ProviderOrderSettingsRepository
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
 import javax.inject.Inject
@@ -38,7 +38,7 @@ class GameFactory @Inject constructor(
     private val config: GameConfig,
     private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
-    private val settingsService: SettingsService,
+    private val settingsRepo: ProviderOrderSettingsRepository,
     private val filterService: FilterService
 ) {
     fun create(rawGame: RawGame): Game {
@@ -68,14 +68,14 @@ class GameFactory @Inject constructor(
         val criticScoreOrder = providerData.sortedByDescending { it.gameData.criticScore?.numReviews ?: -1 }.map { it.providerId }
         val userScoreOrder = providerData.sortedByDescending { it.gameData.userScore?.numReviews ?: -1 }.map { it.providerId }
 
-        val thumbnailUrl = firstBy(settingsService.providerOrder.thumbnail, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
-        val posterUrl = firstBy(settingsService.providerOrder.poster, userData.posterOverride()) { it.gameData.posterUrl }
-        val screenshotUrls = listBy(settingsService.providerOrder.screenshot, userData.screenshotsOverride()) { it.gameData.screenshotUrls }.take(config.maxScreenshots)
+        val thumbnailUrl = firstBy(settingsRepo.thumbnail, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
+        val posterUrl = firstBy(settingsRepo.poster, userData.posterOverride()) { it.gameData.posterUrl }
+        val screenshotUrls = listBy(settingsRepo.screenshot, userData.screenshotsOverride()) { it.gameData.screenshotUrls }.take(config.maxScreenshots)
 
         return GameData(
-            name = firstBy(settingsService.providerOrder.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
-            description = firstBy(settingsService.providerOrder.description, userData.descriptionOverride()) { it.gameData.description },
-            releaseDate = firstBy(settingsService.providerOrder.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
+            name = firstBy(settingsRepo.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
+            description = firstBy(settingsRepo.description, userData.descriptionOverride()) { it.gameData.description },
+            releaseDate = firstBy(settingsRepo.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
             criticScore = firstBy(criticScoreOrder, userData.criticScoreOverride(), converter = ::asCustomScore) {
                 it.gameData.criticScore.minOrNull()
             },

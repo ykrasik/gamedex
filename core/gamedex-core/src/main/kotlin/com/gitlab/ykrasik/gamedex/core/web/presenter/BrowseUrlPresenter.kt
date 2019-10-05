@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.util.toUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,7 +38,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class BrowseUrlPresenter @Inject constructor(
-    private val settingsService: SettingsService,
+    private val settingsRepo: GeneralSettingsRepository,
     private val viewManager: ViewManager,
     eventBus: EventBus
 ) : Presenter<ViewCanBrowseUrl> {
@@ -49,7 +49,7 @@ class BrowseUrlPresenter @Inject constructor(
     override fun present(view: ViewCanBrowseUrl) = object : ViewSession() {
         init {
             view.browseUrlActions.forEach {
-                if (settingsService.general.useInternalBrowser) {
+                if (settingsRepo.useInternalBrowser) {
                     viewManager.showBrowserView(it)
                 } else {
                     launch(Dispatchers.IO) {

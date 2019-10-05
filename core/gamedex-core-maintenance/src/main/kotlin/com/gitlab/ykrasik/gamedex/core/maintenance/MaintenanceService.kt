@@ -34,7 +34,7 @@ import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.maintenance.PortableDb.toPortable
 import com.gitlab.ykrasik.gamedex.core.maintenance.PortableFilter.toPortable
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -95,7 +95,7 @@ class MaintenanceServiceImpl @Inject constructor(
     private val imageService: ImageService,
     private val fileSystemService: FileSystemService,
     private val persistenceService: PersistenceService,
-    private val settingsService: SettingsService,
+    private val settingsRepo: ProviderSettingsRepository,
     private val filterService: FilterService,
     private val eventBus: EventBus
 ) : MaintenanceService {
@@ -134,7 +134,7 @@ class MaintenanceServiceImpl @Inject constructor(
             if (params.providerAccounts) {
                 withMessage("Exporting Provider Accounts...") {
                     val accounts = PortableProviderAccounts(
-                        settingsService.providers
+                        settingsRepo.providers
                             .filter { (_, repo) -> repo.account.isNotEmpty() }
                             .mapValues { (_, repo) -> repo.account }
                     )
@@ -200,7 +200,7 @@ class MaintenanceServiceImpl @Inject constructor(
             withMessage("Importing Provider Accounts...") {
                 accounts.accounts.forEach { (providerId, account) ->
                     if (account.isNotEmpty()) {
-                        settingsService.providers[providerId]?.modify { copy(account = account) }
+                        settingsRepo.providers[providerId]?.modify { copy(account = account) }
                     }
                 }
             }

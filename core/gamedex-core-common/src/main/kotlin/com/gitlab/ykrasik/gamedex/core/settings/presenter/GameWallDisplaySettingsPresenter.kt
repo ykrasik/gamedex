@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeGameWallDisplayS
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewWithGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GameCellDisplaySettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,17 +31,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
-    private val settingsService: SettingsService
+    private val settingsRepo: GameCellDisplaySettingsRepository
 ) : Presenter<ViewCanChangeGameWallDisplaySettings> {
     override fun present(view: ViewCanChangeGameWallDisplaySettings) = object : ViewSession() {
         init {
             with(view.mutableGameWallDisplaySettings) {
-                settingsService.cellDisplay.bind({ imageDisplayTypeChannel }, imageDisplayType) { copy(imageDisplayType = it) }
-                settingsService.cellDisplay.bind({ showBorderChannel }, showBorder) { copy(showBorder = it) }
-                settingsService.cellDisplay.bind({ widthChannel }, width) { copy(width = it) }
-                settingsService.cellDisplay.bind({ heightChannel }, height) { copy(height = it) }
-                settingsService.cellDisplay.bind({ horizontalSpacingChannel }, horizontalSpacing) { copy(horizontalSpacing = it) }
-                settingsService.cellDisplay.bind({ verticalSpacingChannel }, verticalSpacing) { copy(verticalSpacing = it) }
+                settingsRepo.imageDisplayTypeChannel.bind(imageDisplayType)
+                settingsRepo.showBorderChannel.bind(showBorder)
+                settingsRepo.widthChannel.bind(width)
+                settingsRepo.heightChannel.bind(height)
+                settingsRepo.horizontalSpacingChannel.bind(horizontalSpacing)
+                settingsRepo.verticalSpacingChannel.bind(verticalSpacing)
             }
         }
     }
@@ -49,18 +49,17 @@ class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
 
 @Singleton
 class GameWallDisplaySettingsPresenter @Inject constructor(
-    private val settingsService: SettingsService
+    private val settingsRepo: GameCellDisplaySettingsRepository
 ) : Presenter<ViewWithGameWallDisplaySettings> {
     override fun present(view: ViewWithGameWallDisplaySettings) = object : ViewSession() {
         init {
-            val settings = settingsService.cellDisplay
             with(view.gameWallDisplaySettings) {
-                settings.imageDisplayTypeChannel.bind(imageDisplayType)
-                settings.showBorderChannel.bind(showBorder)
-                settings.widthChannel.bind(width)
-                settings.heightChannel.bind(height)
-                settings.horizontalSpacingChannel.bind(horizontalSpacing)
-                settings.verticalSpacingChannel.bind(verticalSpacing)
+                settingsRepo.imageDisplayTypeChannel.bind(imageDisplayType)
+                settingsRepo.showBorderChannel.bind(showBorder)
+                settingsRepo.widthChannel.bind(width)
+                settingsRepo.heightChannel.bind(height)
+                settingsRepo.horizontalSpacingChannel.bind(horizontalSpacing)
+                settingsRepo.verticalSpacingChannel.bind(verticalSpacing)
             }
         }
     }

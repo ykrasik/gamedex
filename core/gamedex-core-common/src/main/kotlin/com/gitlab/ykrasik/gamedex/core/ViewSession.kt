@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.util.*
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -123,16 +122,9 @@ abstract class ViewSession : CoroutineScope {
         }
     }
 
-    inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(
-        channelAccessor: S.() -> MultiReceiveChannel<T>,
-        userMutableState: UserMutableState<T>,
-        crossinline f: (Data).(T) -> Data
-    ) {
-        val channel = channelAccessor(this)
-        channel.bind(userMutableState)
-        userMutableState.changes.forEach { change ->
-            this.modify { f(change) }
-        }
+    fun <T> MultiChannel<T>.bind(userMutableState: UserMutableState<T>) {
+        forEachImmediately { userMutableState.value = it }
+        userMutableState.changes.forEach { offer(it) }
     }
 
     fun <T> MultiReceiveChannel<T>.bind(state: State<T>) =

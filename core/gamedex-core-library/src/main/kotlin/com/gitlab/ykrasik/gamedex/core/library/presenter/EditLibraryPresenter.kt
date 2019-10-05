@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.*
 import kotlinx.coroutines.launch
@@ -43,7 +43,7 @@ class EditLibraryPresenter @Inject constructor(
     private val taskService: TaskService,
     private val libraryService: LibraryService,
     private val gameService: GameService,
-    private val settingsService: SettingsService,
+    private val settingsRepo: GeneralSettingsRepository,
     private val eventBus: EventBus
 ) : Presenter<EditLibraryView> {
     override fun present(view: EditLibraryView) = object : ViewSession() {
@@ -158,10 +158,10 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun onBrowse() {
-            val initialDirectory = settingsService.general.prevDirectory.existsOrNull()
+            val initialDirectory = settingsRepo.prevDirectory.existsOrNull()
             val selectedDirectory = view.browse(initialDirectory)
             if (selectedDirectory != null) {
-                settingsService.general.modify { copy(prevDirectory = selectedDirectory) }
+                settingsRepo.prevDirectory = selectedDirectory
                 view.path *= selectedDirectory.toString()
                 if (view.name.value.isEmpty()) {
                     view.name *= selectedDirectory.name

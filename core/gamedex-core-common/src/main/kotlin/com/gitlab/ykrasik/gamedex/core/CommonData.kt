@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -74,13 +74,13 @@ class CommonDataImpl @Inject constructor(
     libraryService: LibraryService,
     gameProviderService: GameProviderService,
     syncGameService: SyncGameService,
-    settingsService: SettingsService
+    settingsRepo: GameSettingsRepository
 ) : CommonData {
 
     override val games = gameService.games
     // The platform doesn't change often, so an unoptimized filter is acceptable here.
     override val platformGames =
-        games.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+        games.filtering(settingsRepo.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
             { game: Game -> platform.matches(game.platform) }
         })
 
@@ -99,13 +99,13 @@ class CommonDataImpl @Inject constructor(
     override val libraries = libraryService.libraries
     override val contentLibraries = libraries.filtering { it.type != LibraryType.Excluded }
     override val platformLibraries =
-        contentLibraries.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+        contentLibraries.filtering(settingsRepo.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
             { library: Library -> platform.matches(library.platform) }
         })
 
     override val allProviders = ListObservableImpl(gameProviderService.allProviders)
     override val platformProviders =
-        allProviders.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+        allProviders.filtering(settingsRepo.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
             { provider: GameProvider.Metadata ->
                 when (platform) {
                     is AvailablePlatform.All -> true

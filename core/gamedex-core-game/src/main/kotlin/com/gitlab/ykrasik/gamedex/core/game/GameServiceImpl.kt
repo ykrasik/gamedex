@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterEvent
 import com.gitlab.ykrasik.gamedex.core.library.LibraryEvent
 import com.gitlab.ykrasik.gamedex.core.on
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.settings.ProviderOrderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.*
@@ -45,7 +45,7 @@ class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
     private val gameFactory: GameFactory,
     eventBus: EventBus,
-    settingsService: SettingsService
+    settingsRepo: ProviderOrderSettingsRepository
 ) : GameService {
     private val log = logger()
 
@@ -64,9 +64,7 @@ class GameServiceImpl @Inject constructor(
 
         eventBus.on<FilterEvent> { rebuildGames() }
 
-        settingsService.providerOrder.dataChannel.drop(1).subscribe {
-            rebuildGames()
-        }
+        settingsRepo.onChange { rebuildGames() }
     }
 
     override fun add(request: AddGameRequest): Task<Game> {
