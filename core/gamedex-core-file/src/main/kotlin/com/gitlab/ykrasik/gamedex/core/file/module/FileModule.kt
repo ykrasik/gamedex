@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.file.presenter.OpenFilePresenter
 import com.gitlab.ykrasik.gamedex.core.file.presenter.RenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.file.presenter.ShowRenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
-import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
+import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.google.inject.Provides
 import javax.inject.Singleton
@@ -48,5 +48,5 @@ object FileModule : InternalCoreModule() {
     @Singleton
     @FileTreeStorage
     fun fileTreeStorage(): Storage<GameId, FileTree> =
-        FileStorage.json<FileTree>("cache/files").intId()
+        IntIdJsonStorageFactory("cache/files")
 }

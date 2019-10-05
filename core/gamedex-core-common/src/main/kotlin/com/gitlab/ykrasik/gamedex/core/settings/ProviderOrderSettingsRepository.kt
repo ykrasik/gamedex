@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ProviderOrderSettingsRepository @Inject constructor(
-    settingsService: SettingsService,
+    repo: SettingsRepository,
     gameProviderService: GameProviderService
 ) {
     data class Data(
@@ -44,7 +44,7 @@ class ProviderOrderSettingsRepository @Inject constructor(
         val screenshot: Order
     )
 
-    private val storage = settingsService.storage(basePath = "provider", name = "order") {
+    private val storage = repo.storage(basePath = "provider", name = "order") {
         fun defaultOrder(extractor: Extractor<GameProvider.OrderPriorities, Int>) =
             gameProviderService.allProviders.sortedBy { extractor(it.defaultOrder) }.map { it.id }
 

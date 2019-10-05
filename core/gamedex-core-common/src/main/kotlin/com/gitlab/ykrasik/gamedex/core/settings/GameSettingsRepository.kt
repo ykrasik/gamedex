@@ -30,7 +30,7 @@ import javax.inject.Singleton
  * Time: 19:08
  */
 @Singleton
-class GameSettingsRepository @Inject constructor(settingsService: SettingsService) {
+class GameSettingsRepository @Inject constructor(repo: SettingsRepository) {
     data class Data(
         val platform: AvailablePlatform,
         val displayType: GameDisplayType,
@@ -38,7 +38,7 @@ class GameSettingsRepository @Inject constructor(settingsService: SettingsServic
         val sortOrder: SortOrder
     )
 
-    private val storage = settingsService.storage(basePath = "", name = "game") {
+    private val storage = repo.storage(basePath = "", name = "game") {
         Data(
             platform = AvailablePlatform.SinglePlatform(Platform.Windows),
             displayType = GameDisplayType.Wall,

@@ -17,11 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
-import com.gitlab.ykrasik.gamedex.core.storage.StorageObservable
 import com.gitlab.ykrasik.gamedex.core.storage.StorageObservableImpl
 import com.gitlab.ykrasik.gamedex.core.util.ValueObservableImpl
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -31,31 +29,8 @@ import kotlin.reflect.KClass
  * Date: 09/06/2018
  * Time: 22:04
  */
-@ImplementedBy(SettingsServiceImpl::class)
-interface SettingsService {
-    fun <T : Any> storage(
-        basePath: String,
-        name: String,
-        klass: KClass<T>,
-        resettable: Boolean,
-        default: () -> T
-    ): StorageObservable<T>
-
-    fun saveSnapshot()
-    fun commitSnapshot()
-    fun revertSnapshot()
-    fun resetDefaults()
-}
-
-inline fun <reified T : Any> SettingsService.storage(
-    basePath: String,
-    name: String,
-    resettable: Boolean = true,
-    noinline default: () -> T
-): StorageObservable<T> = storage(basePath, name, T::class, resettable, default)
-
 @Singleton
-class SettingsServiceImpl @Inject constructor(private val factory: JsonStorageFactory<String>) : SettingsService {
+class SettingsRepositoryImpl @Inject constructor(private val factory: JsonStorageFactory<String>) : SettingsRepository {
     private val log = logger()
     private val storages = mutableListOf<SettingsStorage<*>>()
 

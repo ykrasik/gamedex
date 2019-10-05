@@ -14,36 +14,52 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.common
+package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
-import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
+import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 09/02/2019
- * Time: 17:43
+ * Date: 24/06/2018
+ * Time: 09:39
  */
 @Singleton
-class ShowAboutViewPresenter @Inject constructor(
-    private val viewManager: ViewManager,
-    eventBus: EventBus
-) : Presenter<ViewCanShowAboutView> {
-    init {
-        eventBus.onHideViewRequested<AboutView> { viewManager.hide(it) }
-    }
-
-    override fun present(view: ViewCanShowAboutView) = object : ViewSession() {
+class SettingsPresenter @Inject constructor(
+    private val repo: SettingsRepository,
+    private val eventBus: EventBus
+) : Presenter<SettingsView> {
+    override fun present(view: SettingsView) = object : ViewSession() {
         init {
-            view.showAboutActions.forEach {
-                viewManager.showAboutView()
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
+            view.resetDefaultsActions.forEach { onResetDefaults() }
+        }
+
+        override suspend fun onShown() {
+            repo.saveSnapshot()
+        }
+
+        private fun onAccept() {
+            repo.commitSnapshot()
+            hideView()
+        }
+
+        private fun onCancel() {
+            repo.revertSnapshot()
+            hideView()
+        }
+
+        private fun hideView() = eventBus.requestHideView(view)
+
+        private suspend fun onResetDefaults() {
+            if (view.confirmResetDefaults()) {
+                repo.resetDefaults()
             }
         }
     }

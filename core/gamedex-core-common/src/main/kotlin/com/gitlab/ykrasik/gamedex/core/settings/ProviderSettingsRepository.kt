@@ -33,7 +33,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ProviderSettingsRepository @Inject constructor(
-    private val settingsService: SettingsService,
+    private val repo: SettingsRepository,
     private val logService: LogService
 ) {
     data class Data(
@@ -56,7 +56,7 @@ class ProviderSettingsRepository @Inject constructor(
     val providers: Map<ProviderId, Repo> = _providers
 
     fun register(provider: GameProvider.Metadata): Repo {
-        val repo = Repo(settingsService.storage(basePath = "provider", name = provider.id.toLowerCase(), resettable = false) {
+        val repo = Repo(repo.storage(basePath = "provider", name = provider.id.toLowerCase(), resettable = false) {
             Data(
                 enabled = provider.accountFeature == null,
                 account = emptyMap()

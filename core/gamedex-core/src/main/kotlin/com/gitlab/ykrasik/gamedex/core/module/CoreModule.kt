@@ -19,7 +19,11 @@ package com.gitlab.ykrasik.gamedex.core.module
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.*
-import com.gitlab.ykrasik.gamedex.core.common.*
+import com.gitlab.ykrasik.gamedex.core.common.CommonOpsConfig
+import com.gitlab.ykrasik.gamedex.core.common.ViewCommonOpsImpl
+import com.gitlab.ykrasik.gamedex.core.common.presenter.AboutViewPresenter
+import com.gitlab.ykrasik.gamedex.core.common.presenter.ExternalHidePresenter
+import com.gitlab.ykrasik.gamedex.core.common.presenter.ShowAboutViewPresenter
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.module.FilterModule
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
@@ -68,6 +72,8 @@ object CoreModule : InternalCoreModule() {
 
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
         bind(ViewCommonOps::class.java).to(ViewCommonOpsImpl::class.java)
+
+        bind(SettingsRepository::class.java).to(SettingsRepositoryImpl::class.java)
 
         bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
         bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
@@ -138,15 +144,15 @@ object CoreModule : InternalCoreModule() {
     @Provides
     @Singleton
     @NameDisplaySettingsRepository
-    fun nameDisplaySettingsRepository(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository.name(settingsService)
+    fun nameDisplaySettingsRepository(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository.name(repo)
 
     @Provides
     @Singleton
     @MetaTagDisplaySettingsRepository
-    fun metaTagDisplaySettingsRepository(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository.metaTag(settingsService)
+    fun metaTagDisplaySettingsRepository(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository.metaTag(repo)
 
     @Provides
     @Singleton
     @VersionDisplaySettingsRepository
-    fun versionDisplaySettingsRepository(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository.version(settingsService)
+    fun versionDisplaySettingsRepository(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository.version(repo)
 }

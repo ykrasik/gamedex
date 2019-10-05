@@ -26,7 +26,7 @@ import javax.inject.Singleton
  * Time: 17:07
  */
 @Singleton
-class GameCellDisplaySettingsRepository @Inject constructor(settingsService: SettingsService) {
+class GameCellDisplaySettingsRepository @Inject constructor(repo: SettingsRepository) {
     data class Data(
         val imageDisplayType: ImageDisplayType,
         val showBorder: Boolean,
@@ -36,7 +36,7 @@ class GameCellDisplaySettingsRepository @Inject constructor(settingsService: Set
         val verticalSpacing: Double
     )
 
-    private val storage = settingsService.storage(basePath = "display", name = "cell") {
+    private val storage = repo.storage(basePath = "display", name = "cell") {
         Data(
             imageDisplayType = ImageDisplayType.Fixed,
             showBorder = true,

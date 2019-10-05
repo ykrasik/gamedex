@@ -14,52 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings.presenter
+package com.gitlab.ykrasik.gamedex.core.common.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewEvent
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 24/06/2018
- * Time: 09:39
+ * Date: 15/05/2019
+ * Time: 20:19
  */
 @Singleton
-class SettingsPresenter @Inject constructor(
-    private val settingsService: SettingsService,
-    private val eventBus: EventBus
-) : Presenter<SettingsView> {
-    override fun present(view: SettingsView) = object : ViewSession() {
+class ExternalHidePresenter @Inject constructor(
+    eventBus: EventBus,
+    private val viewManager: ViewManager
+) {
+    private val session = object : ViewSession() {
         init {
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
-            view.resetDefaultsActions.forEach { onResetDefaults() }
-        }
-
-        override suspend fun onShown() {
-            settingsService.saveSnapshot()
-        }
-
-        private fun onAccept() {
-            settingsService.commitSnapshot()
-            hideView()
-        }
-
-        private fun onCancel() {
-            settingsService.revertSnapshot()
-            hideView()
-        }
-
-        private fun hideView() = eventBus.requestHideView(view)
-
-        private suspend fun onResetDefaults() {
-            if (view.confirmResetDefaults()) {
-                settingsService.resetDefaults()
+            viewManager.externalCloseRequests.forEach { view ->
+                eventBus.send(ViewEvent.RequestHide(view))
             }
         }
     }

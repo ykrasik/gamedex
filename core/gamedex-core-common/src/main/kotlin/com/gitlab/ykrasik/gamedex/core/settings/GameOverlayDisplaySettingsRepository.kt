@@ -24,7 +24,7 @@ import com.google.inject.BindingAnnotation
  * Date: 09/06/2018
  * Time: 20:43
  */
-class GameOverlayDisplaySettingsRepository(settingsService: SettingsService, name: String, default: () -> Data) {
+class GameOverlayDisplaySettingsRepository(repo: SettingsRepository, name: String, default: () -> Data) {
     data class Data(
         val enabled: Boolean,
         val showOnlyWhenActive: Boolean,
@@ -38,7 +38,7 @@ class GameOverlayDisplaySettingsRepository(settingsService: SettingsService, nam
         val opacity: Double
     )
 
-    private val storage = settingsService.storage(basePath = "display", name = name, default = default)
+    private val storage = repo.storage(basePath = "display", name = name, default = default)
 
     val enabledChannel = storage.biChannel(Data::enabled) { copy(enabled = it) }
     var enabled by enabledChannel
@@ -71,7 +71,7 @@ class GameOverlayDisplaySettingsRepository(settingsService: SettingsService, nam
     var opacity by opacityChannel
 
     companion object {
-        fun name(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository(settingsService, name = "name") {
+        fun name(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository(repo, name = "name") {
             Data(
                 enabled = true,
                 showOnlyWhenActive = true,
@@ -86,7 +86,7 @@ class GameOverlayDisplaySettingsRepository(settingsService: SettingsService, nam
             )
         }
 
-        fun metaTag(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository(settingsService, name = "metatag") {
+        fun metaTag(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository(repo, name = "metatag") {
             Data(
                 enabled = true,
                 showOnlyWhenActive = true,
@@ -101,7 +101,7 @@ class GameOverlayDisplaySettingsRepository(settingsService: SettingsService, nam
             )
         }
 
-        fun version(settingsService: SettingsService) = GameOverlayDisplaySettingsRepository(settingsService, name = "version") {
+        fun version(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository(repo, name = "version") {
             Data(
                 enabled = true,
                 showOnlyWhenActive = true,

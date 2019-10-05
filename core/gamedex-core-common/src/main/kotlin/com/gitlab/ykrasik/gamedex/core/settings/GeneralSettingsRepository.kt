@@ -29,7 +29,7 @@ import javax.inject.Singleton
  * Time: 19:10
  */
 @Singleton
-class GeneralSettingsRepository @Inject constructor(settingsService: SettingsService) {
+class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
     data class Data(
         val prevDirectory: File,
         val exportDbDirectory: File,
@@ -39,7 +39,7 @@ class GeneralSettingsRepository @Inject constructor(settingsService: SettingsSer
         val searchResultLimit: Int
     )
 
-    private val storage = settingsService.storage(basePath = "", name = "general") {
+    private val storage = repo.storage(basePath = "", name = "general") {
         Data(
             prevDirectory = File("."),
             exportDbDirectory = File("."),

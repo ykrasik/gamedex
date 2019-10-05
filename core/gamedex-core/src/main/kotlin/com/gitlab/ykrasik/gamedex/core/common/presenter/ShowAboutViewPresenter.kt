@@ -14,29 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.common
+package com.gitlab.ykrasik.gamedex.core.common.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
+import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.ViewEvent
+import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 15/05/2019
- * Time: 20:19
+ * Date: 09/02/2019
+ * Time: 17:43
  */
 @Singleton
-class ExternalHidePresenter @Inject constructor(
-    eventBus: EventBus,
-    private val viewManager: ViewManager
-) {
-    private val session = object : ViewSession() {
+class ShowAboutViewPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    eventBus: EventBus
+) : Presenter<ViewCanShowAboutView> {
+    init {
+        eventBus.onHideViewRequested<AboutView> { viewManager.hide(it) }
+    }
+
+    override fun present(view: ViewCanShowAboutView) = object : ViewSession() {
         init {
-            viewManager.externalCloseRequests.forEach { view ->
-                eventBus.send(ViewEvent.RequestHide(view))
+            view.showAboutActions.forEach {
+                viewManager.showAboutView()
             }
         }
     }
