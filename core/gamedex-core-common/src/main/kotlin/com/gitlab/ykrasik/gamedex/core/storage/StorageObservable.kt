@@ -72,9 +72,9 @@ class StorageObservableImpl<T>(
         }
 
         launch {
-            valueObservable.valueChannel.subscribe().drop(1).consumeEach {
+            valueObservable.valueChannel.subscribe().drop(1).consumeEach { value ->
                 if (enableWrite) {
-                    flushValueToStorage()
+                    storage[key] = value
                 }
             }
         }

@@ -586,6 +586,7 @@ class JavaFxGameDetailsView(
                 wrapText = true
             }
             descriptionText {
+                maxWidth = 600.px
                 wrapText = true
             }
             genreItem {

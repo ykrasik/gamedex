@@ -120,6 +120,7 @@ class GameDetailsSummaryBuilder : Fragment() {
                     region()
                     label(description) {
                         isWrapText = true
+                        maxWidth = 600.0
                         addClass(Style.descriptionText)
                         descriptionOp?.invoke(this)
                     }
@@ -193,8 +194,6 @@ class GameDetailsSummaryBuilder : Fragment() {
             path {
             }
             descriptionText {
-                wrapText = true
-                maxWidth = 600.px
             }
         }
     }
