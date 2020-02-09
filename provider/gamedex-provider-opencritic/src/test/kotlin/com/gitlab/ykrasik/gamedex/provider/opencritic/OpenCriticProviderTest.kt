@@ -40,6 +40,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
             "be able to return a single search result" test {
                 val result = searchResult()
                 server.anySearchRequest().willReturn(listOf(result))
+                givenEmptyFetchResultFor(result)
 
                 provider.search(query, Platform.Windows, GameProvider.Account.Null, offset, limit) shouldBe GameProvider.SearchResponse(
                     results = listOf(
@@ -72,11 +73,46 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 val result1 = searchResult()
                 val result2 = searchResult()
                 server.anySearchRequest().willReturn(listOf(result1, result2))
+                givenEmptyFetchResultFor(result1)
 
                 val results = search()
                 results should haveSize(2)
                 results[0].name shouldBe result1.name
                 results[1].name shouldBe result2.name
+            }
+
+            "pre-fetch first search result" test {
+                val result1 = searchResult()
+                val result2 = searchResult()
+                server.anySearchRequest().willReturn(listOf(result1, result2))
+
+                val fetchResult = fetchResult(releaseDate = releaseDate)
+                givenFetchReturns(fetchResult, result1.id)
+
+                search() shouldBe listOf(
+                    GameProvider.SearchResult(
+                        providerGameId = result1.id.toString(),
+                        name = fetchResult.name,
+                        description = fetchResult.description,
+                        releaseDate = releaseDate.toLocalDate().toString(),
+                        criticScore = Score(fetchResult.averageScore, fetchResult.numReviews),
+                        userScore = null,
+                        thumbnailUrl = "http:${fetchResult.logoScreenshot!!.thumbnail}"
+                    ),
+                    GameProvider.SearchResult(
+                        providerGameId = result2.id.toString(),
+                        name = result2.name,
+                        description = null,
+                        releaseDate = null,
+                        criticScore = null,
+                        userScore = null,
+                        thumbnailUrl = null
+                    )
+                )
+
+                server.verify {
+                    getRequestedFor(urlPathEqualTo("/api/game/${result1.id}"))
+                }
             }
 
             "error cases" should {
@@ -278,6 +314,23 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
 
         fun givenFetchReturns(result: OpenCriticClient.FetchResult, providerGameId: Int = this.providerGameId) =
             server.aFetchRequest(providerGameId).willReturn(result)
+
+        fun givenEmptyFetchResultFor(result: OpenCriticClient.SearchResult) =
+            givenFetchReturns(emptyFetchResultFor(result), result.id)
+
+        fun emptyFetchResultFor(result: OpenCriticClient.SearchResult) = OpenCriticClient.FetchResult(
+            id = result.id,
+            name = result.name,
+            description = "",
+            averageScore = 0.0,
+            numReviews = 0,
+            Genres = emptyList(),
+            Platforms = emptyList(),
+            firstReleaseDate = null,
+            logoScreenshot = null,
+            mastheadScreenshot = null,
+            screenshots = emptyList()
+        )
 
         suspend fun search(query: String = randomName()) =
             provider.search(query, Platform.Windows, GameProvider.Account.Null, offset, limit).results

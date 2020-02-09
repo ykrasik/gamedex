@@ -48,7 +48,7 @@ class OpenCriticProvider @Inject constructor(
         limit: Int
     ): GameProvider.SearchResponse {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
-            client.search(query).map { it.toSearchResult() }
+            client.search(query).mapIndexed { i, result -> result.toSearchResult(platform, account, i) }
         }
         results.forEach { log.trace(it.toString()) }
 
@@ -56,15 +56,31 @@ class OpenCriticProvider @Inject constructor(
         return GameProvider.SearchResponse(results, canShowMoreResults = false)
     }
 
-    private fun OpenCriticClient.SearchResult.toSearchResult() = GameProvider.SearchResult(
-        providerGameId = id.toString(),
-        name = name,
-        description = null,
-        releaseDate = null,
-        criticScore = null,
-        userScore = null,
-        thumbnailUrl = null
-    )
+    private suspend fun OpenCriticClient.SearchResult.toSearchResult(platform: Platform, account: GameProvider.Account, index: Int): GameProvider.SearchResult {
+        if (index > 0) {
+            return GameProvider.SearchResult(
+                providerGameId = id.toString(),
+                name = name,
+                description = null,
+                releaseDate = null,
+                criticScore = null,
+                userScore = null,
+                thumbnailUrl = null
+            )
+        }
+
+        // Pre-fetch the first result, usually it's the correct one.
+        val data = fetch(id.toString(), platform, account).gameData
+        return GameProvider.SearchResult(
+            providerGameId = id.toString(),
+            name = data.name,
+            description = data.description,
+            releaseDate = data.releaseDate,
+            criticScore = data.criticScore,
+            userScore = data.userScore,
+            thumbnailUrl = data.thumbnailUrl
+        )
+    }
 
     override suspend fun fetch(providerGameId: String, platform: Platform, account: GameProvider.Account): GameProvider.FetchResponse =
         log.logResult("[$platform] Fetching OpenCritic game '$providerGameId'...", log = Logger::debug) {
@@ -74,7 +90,7 @@ class OpenCriticProvider @Inject constructor(
     private fun OpenCriticClient.FetchResult.toProviderData(platform: Platform) = GameProvider.FetchResponse(
         gameData = GameData(
             name = this.name,
-            description = this.description,
+            description = this.description.takeUnless { it.isBlank() },
             releaseDate = this.Platforms.findReleaseDate(platform) ?: firstReleaseDate?.toLocalDate()?.toString(),
             criticScore = if (averageScore > 0 && numReviews != 0) Score(averageScore, numReviews) else null,
             userScore = null,

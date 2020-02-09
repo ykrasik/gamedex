@@ -46,9 +46,9 @@ class OpenCriticProviderContractTest : Spec<OpenCriticProviderContractTest.Scope
                 result shouldBe GameProvider.SearchResult(
                     providerGameId = providerGameId,
                     name = name,
-                    description = null,
-                    releaseDate = null,
-                    criticScore = null,
+                    description = description,
+                    releaseDate = releaseDate,
+                    criticScore = result.criticScore.verifiedCriticScore,
                     userScore = null,
                     thumbnailUrl = null
                 )
