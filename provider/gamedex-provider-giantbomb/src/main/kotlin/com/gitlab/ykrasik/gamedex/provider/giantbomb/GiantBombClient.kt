@@ -102,7 +102,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val apiDetailUrl: String,
         val name: String,
         val deck: String?,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         override val originalReleaseDate: LocalDate?,
         override val expectedReleaseYear: Int?,
         override val expectedReleaseQuarter: Int?,
@@ -126,7 +126,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val siteDetailUrl: String,
         val name: String,
         val deck: String?,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         override val originalReleaseDate: LocalDate?,
         override val expectedReleaseYear: Int?,
         override val expectedReleaseQuarter: Int?,

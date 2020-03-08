@@ -73,8 +73,8 @@ class GiantBombProviderContractTest : Spec<GiantBombProviderContractTest.Scope>(
         val name = "No Man's Sky"
         val apiUrl = "https://www.giantbomb.com/api/game/3030-44656/"
         val releaseDate = "2016-08-09"
-        val thumbnailUrl = "https://www.giantbomb.com/api/image/scale_avatar/2927125-no%20man%27s%20sky.jpg"
-        val posterUrl = "https://www.giantbomb.com/api/image/scale_large/2927125-no%20man%27s%20sky.jpg"
+        val thumbnailUrl = "https://giantbomb1.cbsistatic.com/uploads/scale_avatar/0/3699/2927125-no%20man%27s%20sky.jpg"
+        val posterUrl = "https://giantbomb1.cbsistatic.com/uploads/scale_large/0/3699/2927125-no%20man%27s%20sky.jpg"
         val url = "https://www.giantbomb.com/no-mans-sky/3030-44656/"
         val deck = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
         val genres = listOf("Simulation", "Action-Adventure")
