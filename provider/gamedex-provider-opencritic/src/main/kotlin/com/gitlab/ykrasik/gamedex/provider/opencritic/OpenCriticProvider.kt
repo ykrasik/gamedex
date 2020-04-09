@@ -90,7 +90,7 @@ class OpenCriticProvider @Inject constructor(
     private fun OpenCriticClient.FetchResult.toProviderData(platform: Platform) = GameProvider.FetchResponse(
         gameData = GameData(
             name = this.name,
-            description = this.description.takeUnless { it.isBlank() },
+            description = this.description?.takeUnless { it.isBlank() },
             releaseDate = this.Platforms.findReleaseDate(platform) ?: firstReleaseDate?.toLocalDate()?.toString(),
             criticScore = if (averageScore > 0 && numReviews != 0) Score(averageScore, numReviews) else null,
             userScore = null,

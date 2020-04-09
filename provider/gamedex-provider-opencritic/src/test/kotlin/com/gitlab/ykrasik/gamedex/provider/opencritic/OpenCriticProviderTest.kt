@@ -152,6 +152,18 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 }
             }
 
+            "return null description if 'description' is null" test {
+                givenFetchReturns(fetchResult().copy(description = null))
+
+                fetch().gameData.description shouldBe null
+            }
+
+            "return null description if 'description' is empty" test {
+                givenFetchReturns(fetchResult().copy(description = ""))
+
+                fetch().gameData.description shouldBe null
+            }
+
             "return null criticScore if 'averageScore' is -1" test {
                 givenFetchReturns(fetchResult().copy(averageScore = -1.0))
 

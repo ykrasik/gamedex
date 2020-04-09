@@ -56,7 +56,7 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
     data class FetchResult(
         val id: Int,
         val name: String,
-        val description: String,
+        val description: String?,
         val averageScore: Double,
         val numReviews: Int,
         val Genres: List<Genre>,
