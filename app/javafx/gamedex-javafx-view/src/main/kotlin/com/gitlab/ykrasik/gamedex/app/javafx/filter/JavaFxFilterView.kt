@@ -137,12 +137,15 @@ class JavaFxFilterView(
 
         override val changes = MultiChannel<Filter>()
 
+        override val valueChannel = MultiChannel.conflated<Filter>()
+
         init {
-            filter.property.onInvalidated { filter ->
+            filter.onInvalidated { filter ->
                 if (filter !== prevExternalFilter) {
                     changes.offer(filter)
                 }
                 prevExternalFilter = null
+                valueChannel.offer(filter)
             }
         }
     }

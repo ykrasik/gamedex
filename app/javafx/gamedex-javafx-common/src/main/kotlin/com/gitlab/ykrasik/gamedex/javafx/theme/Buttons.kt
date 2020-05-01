@@ -163,6 +163,15 @@ inline fun EventTarget.excludeButton(
     op()
 }
 
+inline fun EventTarget.executeButton(
+    text: String? = "Execute",
+    isToolbarButton: Boolean = true,
+    crossinline op: JFXButton.() -> Unit = {}
+) = jfxButton(text, Icons.play) {
+    if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
+    op()
+}
+
 inline fun EventTarget.editButton(
     text: String? = null,
     isToolbarButton: Boolean = true,

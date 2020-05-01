@@ -57,7 +57,11 @@ typealias JavaFxObjectState<T> = JavaFxState<T, SimpleObjectProperty<T>>
 class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableState<T> {
     private var ignoreNextChange = false
 
+    override val valueChannel = MultiChannel.conflated(property.value)
+
     init {
+        property.onInvalidated { valueChannel.offer(it) }
+
         onChange {
             if (!ignoreNextChange) {
                 changes.offer(it)
@@ -88,6 +92,12 @@ class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableS
 
 class JavaFxState<T, P : Property<T>>(val property: P) : State<T> {
     override var value: T by property
+
+    override val valueChannel = MultiChannel.conflated(property.value)
+
+    init {
+        property.onInvalidated { valueChannel.offer(it) }
+    }
 
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)

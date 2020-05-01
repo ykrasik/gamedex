@@ -54,6 +54,8 @@ interface MultiReceiveChannel<T> : Closeable {
     fun distinctUntilChanged(equals: (T, T) -> Boolean = { t1, t2 -> t1 == t2 }): MultiReceiveChannel<T>
 
     fun drop(amount: Int): MultiReceiveChannel<T>
+
+    fun conflated(): MultiReceiveChannel<T>
 }
 
 val <T> MultiChannel<T>.onReceive: SelectClause1<T> get() = subscribe().onReceive
@@ -111,7 +113,7 @@ class MultiChannel<T>(
     }
 
     override fun <R> combineLatest(other: MultiReceiveChannel<R>): MultiReceiveChannel<Pair<T, R>> {
-        val channel = MultiChannel.conflated<Pair<T, R>>()
+        val channel = conflated<Pair<T, R>>()
 
         var latestA: T? = null
         var latestB: R? = null
@@ -164,6 +166,17 @@ class MultiChannel<T>(
         }
         return channel
     }
+
+    override fun conflated(): MultiReceiveChannel<T> =
+        if (capacity == Channel.CONFLATED) {
+            this
+        } else {
+            val channel = MultiChannel<T>(Channel.CONFLATED, coroutineContext)
+            subscribe {
+                channel.send(it)
+            }
+            channel
+        }
 
     operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
         offer(value)

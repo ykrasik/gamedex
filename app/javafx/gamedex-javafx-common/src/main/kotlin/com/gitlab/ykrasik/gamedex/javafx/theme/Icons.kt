@@ -45,6 +45,7 @@ object Icons {
     val cancel get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = Colors.red)
     val close get() = fontIcon(MaterialDesign.MDI_CLOSE, color = Colors.red)
     val closeCircle get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = Colors.red)
+    val play get() = fontIcon(MaterialDesign.MDI_PLAY_CIRCLE_OUTLINE, color = Colors.green)
     val stop get() = fontIcon(MaterialDesign.MDI_STOP, color = Colors.red)
     val redo get() = fontIcon(MaterialDesign.MDI_REDO, color = Colors.orange)
     val clear get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE_OUTLINE)

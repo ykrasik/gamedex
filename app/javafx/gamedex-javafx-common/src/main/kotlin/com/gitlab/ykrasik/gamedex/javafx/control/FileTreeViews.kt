@@ -40,7 +40,11 @@ import java.util.*
  * Date: 17/04/2019
  * Time: 08:15
  */
-fun EventTarget.prettyFileTreeView(root: FileTree, op: PrettyListView<FileTree>.() -> Unit = {}) = prettyListView<FileTree> {
+fun EventTarget.prettyFileTreeView(
+    root: FileTree,
+    mainExecutableFileTree: FileTree? = null,
+    op: PrettyListView<FileTree>.() -> Unit = {}
+) = prettyListView<FileTree> {
     val (files, indents) = processFileTree(root)
     items.setAll(files)
     prefHeight = files.size * 26.0
@@ -51,9 +55,10 @@ fun EventTarget.prettyFileTreeView(root: FileTree, op: PrettyListView<FileTree>.
         graphic = HBox().apply {
             gap(size = indents.getValue(fileTree) * 15)
 
-            val graphic = run {
-                if (item.isDirectory) Icons.folderOpenFilled
-                else fileIcons.getValue(item.name.substringAfterLast('.')).get()
+            val graphic = when {
+                item.isDirectory -> Icons.folderOpenFilled
+                item === mainExecutableFileTree -> Icons.play
+                else -> fileIcons.getValue(item.name.substringAfterLast('.')).get()
             }.size(20)
             label(item.name, graphic)
 

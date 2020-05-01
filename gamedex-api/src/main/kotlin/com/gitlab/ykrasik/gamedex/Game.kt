@@ -19,10 +19,9 @@ package com.gitlab.ykrasik.gamedex
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.Ref
-import com.gitlab.ykrasik.gamedex.util.ref
+import com.gitlab.ykrasik.gamedex.util.*
 import org.joda.time.DateTime
+import java.io.File
 
 /**
  * User: ykrasik
@@ -64,12 +63,15 @@ data class Game(
     val posterUrl get() = gameData.posterUrl
     val screenshotUrls get() = gameData.screenshotUrls
 
-    val tags get() = rawGame.userData.tags
+    val tags get() = userData.tags
 
     val providerData get() = rawGame.providerData
     val providerHeaders get() = providerData.asSequence().map { it.header }
     val existingProviders get() = providerHeaders.map { it.providerId }
     val excludedProviders get() = userData.excludedProviders
+
+    val mainExecutableFile get() = userData.mainExecutablePath?.let { path.resolve(it) }
+    val absoluteFileTree get() = fileTree.value?.copy(name = path.absolutePath)
 
     fun isProviderExcluded(providerId: ProviderId) = excludedProviders.contains(providerId)
 
@@ -131,7 +133,7 @@ data class ProviderData(
 ) {
     val providerId get() = header.providerId
     val providerGameId get() = header.providerGameId
-    
+
     fun updatedNow() = copy(timestamp = timestamp.updatedNow())
 }
 
@@ -191,6 +193,24 @@ data class FileTree(
     val isDirectory: Boolean,
     val children: List<FileTree>
 ) {
+    fun pathTo(target: FileTree): File? =
+        if (this === target) {
+            name.file
+        } else {
+            children.asSequence()
+                .mapNotNull { it.pathTo(target) }
+                .map { name.file.resolve(it) }
+                .firstNotNull()
+        }
+
+    fun find(target: File): FileTree? {
+        if (target.toString() == name) return this 
+        val leftover = target.relativeToOrNull(name.file) ?: return null
+        return children.asSequence()
+            .mapNotNull { it.find(leftover) }
+            .firstNotNull()
+    }
+
     companion object {
         val Null = FileTree(
             name = "Not Available",
@@ -226,7 +246,8 @@ enum class GameDataType(val displayName: String) {
 data class UserData(
     val overrides: Map<GameDataType, GameDataOverride> = emptyMap(),
     val tags: List<TagId> = emptyList(),
-    val excludedProviders: List<ProviderId> = emptyList()
+    val excludedProviders: List<ProviderId> = emptyList(),
+    val mainExecutablePath: String? = null
 ) {
     fun nameOverride() = overrides[GameDataType.Name]
     fun descriptionOverride() = overrides[GameDataType.Description]

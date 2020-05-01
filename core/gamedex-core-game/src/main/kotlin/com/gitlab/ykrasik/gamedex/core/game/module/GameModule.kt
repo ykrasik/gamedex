@@ -47,5 +47,7 @@ object GameModule : InternalCoreModule() {
 
         bindPresenter(ShowTagGamePresenter::class)
         bindPresenter(TagGamePresenter::class)
+
+        bindPresenter(SetMainExecutableFilePresenter::class)
     }
 }

@@ -32,13 +32,20 @@ import com.gitlab.ykrasik.gamedex.app.javafx.common.isNoImage
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
+import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.JodaDateTime
+import com.gitlab.ykrasik.gamedex.util.defaultTimeZone
+import com.gitlab.ykrasik.gamedex.util.humanReadable
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.geometry.VPos
+import javafx.scene.Node
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.*
@@ -67,12 +74,14 @@ class JavaFxGameDetailsView(
     ViewCanUpdateGame,
     ViewCanSyncGame,
     ViewCanOpenFile,
-    ViewCanBrowseUrl {
+    ViewCanBrowseUrl,
+    ViewCanSetMainExecutableFile,
+    ViewCanExecuteGame {
 
     private val commonOps: JavaFxCommonOps by di()
 
     override val gameParams = userMutableState(ViewGameParams(Game.Null, emptyList()))
-    override val gameChannel = gameParams.changes.map { it.game }
+    override val gameChannel = gameParams.valueChannel.map { it.game }
     private val game = gameParams.property.binding { it.game }
 
     override val currentGameIndex = state(-1)
@@ -99,6 +108,10 @@ class JavaFxGameDetailsView(
 
     override val openFileActions = channel<File>()
     override val browseUrlActions = channel<String>()
+
+    override val setMainExecutableFileActions = channel<SetMainExecutableFileParams>()
+    override val executeGameActions = channel<Unit>()
+    override val canExecuteGame = state(IsValid.valid)
 
     private val noBackground = Background(BackgroundFill(Colors.cloudyKnoxville, CornerRadii.EMPTY, Insets.EMPTY))
     private val noBackgroundProperty = noBackground.toProperty()
@@ -151,6 +164,27 @@ class JavaFxGameDetailsView(
         }
     }
 
+    private var selectedFileTreeItemProperty: ObjectProperty<FileTree?> = SimpleObjectProperty(null)
+    private val fileTreeMenu = object : InstallableContextMenu<SetMainExecutableFileParams>() {
+        private val setMainExecutableButton = jfxButton("Set Main Executable", Icons.play) {
+            action(setMainExecutableFileActions) { data }
+        }
+        private val unsetMainExecutableButton = jfxButton("Unset Main Executable", Icons.stop) {
+            action(setMainExecutableFileActions) { data.copy(file = null) }
+        }
+
+        override val root = vbox {
+            selectedFileTreeItemProperty.onChange {
+                replaceChildren {
+                    val isSelectedItemMainExecutable = selectedFileTreeItemProperty.value?.let {
+                        game.value.absoluteFileTree?.pathTo(it) == game.value.mainExecutableFile
+                    } ?: false
+                    children += if (isSelectedItemMainExecutable) unsetMainExecutableButton else setMainExecutableButton
+                }
+            }
+        }
+    }
+
     override val root = borderpane {
         addClass(Style.gameDetailsView)
         top = createToolbar()
@@ -173,6 +207,11 @@ class JavaFxGameDetailsView(
             cancelButton("Close") { action(hideViewActions) }
         }
         spacer()
+        executeButton("Execute") {
+            enableWhen(canExecuteGame)
+            action(executeGameActions)
+        }
+        gap()
         editButton("Edit") { action(editGameActions) { EditGameParams(game.value, initialView = GameDataType.Name) } }
         gap()
         toolbarButton("Tag", Icons.tag) { action(tagGameActions) { game.value } }
@@ -273,10 +312,7 @@ class JavaFxGameDetailsView(
         maxWidth = Region.USE_PREF_SIZE
 
         // Top Left
-        makeRoundCorners(imageview(commonOps.fetchPoster(game)) {
-            fitWidth = imageFitWidth ?: 0.0
-            fitHeight = imageFitHeight ?: 0.0
-        }) {
+        poster(game) {
             gridpaneConstraints { columnRowIndex(0, 0); rowSpan = 2; vAlignment = VPos.TOP; fillHeight = false }
         }
 
@@ -315,114 +351,142 @@ class JavaFxGameDetailsView(
 //        }
 
         // Top Right
-        defaultVbox {
+        gameDetails(game) {
             gridpaneConstraints { columnRowIndex(1, 0); vGrow = Priority.ALWAYS }
-            addClass(Style.gameDetails)
-            alignment = Pos.TOP_CENTER
-
-            defaultHbox {
-                gridpane {
-                    hgap = 5.0
-                    vgap = 7.0
-                    useMaxHeight = true
-                    maxDetailsWidth?.let { maxWidth = it }
-
-                    row {
-                        icon(game.platform.logo, size = 22)
-                        header(game.name) {
-                            addClass(Style.name)
-                        }
-                    }
-                    game.releaseDate?.let { releaseDate ->
-                        row {
-                            icon(Icons.date)
-                            label(releaseDate) {
-                                addClass(Style.releaseDate)
-                                tooltip("Release Date")
-                                usePrefWidth = true
-                            }
-                        }
-                    }
-                    game.description?.let { description ->
-                        row {
-                            region()
-                            label(description) {
-                                addClass(Style.descriptionText)
-                                gridpaneConstraints { vAlignment = VPos.TOP }
-                            }
-                        }
-                    }
-                    if (game.genres.isNotEmpty()) {
-                        row {
-                            icon(Icons.masks)
-                            flowpane {
-                                hgap = 5.0
-                                vgap = 3.0
-                                tooltip("Genres")
-                                game.genres.forEach { genre ->
-                                    label(genre.id) {
-                                        addClass(Style.genreItem)
-                                        background = genre.genreBackground
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (game.tags.isNotEmpty()) {
-                        row {
-                            icon(Icons.tag)
-                            flowpane {
-                                hgap = 5.0
-                                vgap = 3.0
-                                tooltip("Tags")
-                                game.tags.forEach {
-                                    label(it) {
-                                        addClass(Style.tag)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (game.filterTags.isNotEmpty()) {
-                        row {
-                            icon(Icons.tag)
-                            flowpane {
-                                hgap = 5.0
-                                vgap = 3.0
-                                tooltip("Tags generated by filters")
-                                game.filterTags.forEach {
-                                    label(it) {
-                                        addClass(Style.tag)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                defaultVbox {
-                    alignment = Pos.TOP_RIGHT
-                    criticScoreDisplay(game.criticScore)
-                    userScoreDisplay(game.userScore)
-                }
-            }
-            spacer()
-            stackpane {
-                createDate(game.createDate)
-                updateDate(game.updateDate)
-            }
         }
 
         // Center Right
-        val fileTree = game.fileTree.value
+        fileTree(game) {
+            gridpaneConstraints { rowIndex = 1; columnIndex = 1; vAlignment = VPos.BOTTOM }
+        }
+
+        // Bottom Left
+        screenshots(game) {
+            gridpaneConstraints { rowIndex = 2; columnIndex = 0 }
+        }
+
+        // Bottom Right
+        providerIcons(game) {
+            gridpaneConstraints { rowIndex = 2; columnIndex = 1 }
+        }
+    }
+
+    private inline fun EventTarget.poster(game: Game, crossinline op: VBox.() -> Unit = {}) = makeRoundCorners(imageview(commonOps.fetchPoster(game)) {
+        fitWidth = imageFitWidth ?: 0.0
+        fitHeight = imageFitHeight ?: 0.0
+    }, op = op)
+
+    private inline fun EventTarget.gameDetails(game: Game, crossinline op: VBox.() -> Unit = {}) = defaultVbox {
+        addClass(Style.gameDetails)
+        alignment = Pos.TOP_CENTER
+
+        defaultHbox {
+            gridpane {
+                hgap = 5.0
+                vgap = 7.0
+                useMaxHeight = true
+                maxDetailsWidth?.let { maxWidth = it }
+
+                row {
+                    icon(game.platform.logo, size = 22)
+                    header(game.name) {
+                        addClass(Style.name)
+                    }
+                }
+                game.releaseDate?.let { releaseDate ->
+                    row {
+                        icon(Icons.date)
+                        label(releaseDate) {
+                            addClass(Style.releaseDate)
+                            tooltip("Release Date")
+                            usePrefWidth = true
+                        }
+                    }
+                }
+                game.description?.let { description ->
+                    row {
+                        region()
+                        label(description) {
+                            addClass(Style.descriptionText)
+                            gridpaneConstraints { vAlignment = VPos.TOP }
+                        }
+                    }
+                }
+                if (game.genres.isNotEmpty()) {
+                    row {
+                        icon(Icons.masks)
+                        flowpane {
+                            hgap = 5.0
+                            vgap = 3.0
+                            tooltip("Genres")
+                            game.genres.forEach { genre ->
+                                label(genre.id) {
+                                    addClass(Style.genreItem)
+                                    background = genre.genreBackground
+                                }
+                            }
+                        }
+                    }
+                }
+                if (game.tags.isNotEmpty()) {
+                    row {
+                        icon(Icons.tag)
+                        flowpane {
+                            hgap = 5.0
+                            vgap = 3.0
+                            tooltip("Tags")
+                            game.tags.forEach {
+                                label(it) {
+                                    addClass(Style.tag)
+                                }
+                            }
+                        }
+                    }
+                }
+                if (game.filterTags.isNotEmpty()) {
+                    row {
+                        icon(Icons.tag)
+                        flowpane {
+                            hgap = 5.0
+                            vgap = 3.0
+                            tooltip("Tags generated by filters")
+                            game.filterTags.forEach {
+                                label(it) {
+                                    addClass(Style.tag)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            defaultVbox {
+                alignment = Pos.TOP_RIGHT
+                criticScoreDisplay(game.criticScore)
+                userScoreDisplay(game.userScore)
+            }
+        }
+        spacer()
+        stackpane {
+            createDate(game.createDate)
+            updateDate(game.updateDate)
+        }
+        op()
+    }
+
+    private inline fun EventTarget.fileTree(game: Game, crossinline op: Node.() -> Unit = {}) {
+        val fileTree = game.absoluteFileTree
         if (fileTree != null) {
-            val absoluteFileTree = fileTree.copy(name = game.path.absolutePath)
-            prettyFileTreeView(absoluteFileTree) {
+            val mainExecutableFileTree = game.mainExecutableFile?.let { fileTree.find(it) }
+            prettyFileTreeView(fileTree, mainExecutableFileTree = mainExecutableFileTree) {
                 addClass(Style.fileTree)
                 usePrefWidth = true
                 prefHeight += 20
 
+                selectedFileTreeItemProperty.bind(selectionModel.selectedItemProperty())
+                fileTreeMenu.install(this) { SetMainExecutableFileParams(game, selectedItem?.let { fileTree.pathTo(it) }) }
+
                 onUserSelect {
-                    val file = absoluteFileTree.pathTo(it)!!
+                    val file = fileTree.pathTo(it)!!
                     openFileActions.offer(file)
                 }
             }
@@ -433,60 +497,60 @@ class JavaFxGameDetailsView(
             }
         }.apply {
             addClass(Style.fileTreeContainer)
-            gridpaneConstraints { rowIndex = 1; columnIndex = 1; vAlignment = VPos.BOTTOM }
+            op()
         }
+    }
 
-        // Bottom Left
-        flowpane {
-            hgap = 15.0
-            vgap = 15.0
-            addClass(Style.screenshots)
-            gridpaneConstraints { rowIndex = 2; columnIndex = 0 }
+    private inline fun EventTarget.screenshots(game: Game, crossinline op: FlowPane.() -> Unit = {}) = flowpane {
+        hgap = 15.0
+        vgap = 15.0
+        addClass(Style.screenshots)
 
-            game.screenshotUrls.forEach { url ->
-                makeRoundCorners(imageview(commonOps.fetchImage(url, persist = true)) {
-                    fitWidth = 100.0
-                    fitHeight = 70.0
-                }, arc = 10) {
-                    scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
+        game.screenshotUrls.forEach { url ->
+            makeRoundCorners(imageview(commonOps.fetchImage(url, persist = true)) {
+                fitWidth = 100.0
+                fitHeight = 70.0
+            }, arc = 10) {
+                scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
 
-                    addClass(Style.screenshotItem)
-                    tooltip(url)
-                    setOnMouseClicked {
-                        viewImageActions.offer(ViewImageParams(imageUrl = url, imageUrls = game.screenshotUrls))
-                    }
+                addClass(Style.screenshotItem)
+                tooltip(url)
+                setOnMouseClicked {
+                    viewImageActions.offer(ViewImageParams(imageUrl = url, imageUrls = game.screenshotUrls))
                 }
             }
         }
 
-        // Bottom Right
-        flowpane {
-            hgap = 15.0
-            vgap = 15.0
-            addClass(Style.externalLinks)
-            gridpaneConstraints { rowIndex = 2; columnIndex = 1 }
+        op()
+    }
 
-            label(graphic = Icons.youTube.size(70)) {
-                minWidth = 100.0
-                alignment = Pos.CENTER
+    private inline fun EventTarget.providerIcons(game: Game, crossinline op: FlowPane.() -> Unit = {}) = flowpane {
+        hgap = 15.0
+        vgap = 15.0
+        addClass(Style.externalLinks)
+
+        label(graphic = Icons.youTube.size(70)) {
+            minWidth = 100.0
+            alignment = Pos.CENTER
+            useMaxHeight = true
+            addClass(Style.externalLinkItem)
+            scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
+            val url = commonOps.youTubeGameplayUrl(game)
+            tooltip(url)
+            setOnMouseClicked { browseUrlActions.offer(url) }
+        }
+        game.providerData.sortedBy { it.providerId }.forEach {
+            val url = it.siteUrl
+            label(graphic = commonOps.providerLogo(it.providerId).toImageView(height = 70, width = 100)) {
                 useMaxHeight = true
                 addClass(Style.externalLinkItem)
                 scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
-                val url = commonOps.youTubeGameplayUrl(game)
                 tooltip(url)
                 setOnMouseClicked { browseUrlActions.offer(url) }
             }
-            game.providerData.sortedBy { it.providerId }.forEach {
-                val url = it.siteUrl
-                label(graphic = commonOps.providerLogo(it.providerId).toImageView(height = 70, width = 100)) {
-                    useMaxHeight = true
-                    addClass(Style.externalLinkItem)
-                    scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
-                    tooltip(url)
-                    setOnMouseClicked { browseUrlActions.offer(url) }
-                }
-            }
         }
+
+        op()
     }
 
     private fun StackPane.createDate(createDate: JodaDateTime) = dateDisplay(createDate, Icons.createDate, Style.createDate, "Create Date", Pos.BOTTOM_RIGHT)
@@ -498,16 +562,6 @@ class JavaFxGameDetailsView(
             usePrefWidth = true
             tooltip(tooltip)
             stackpaneConstraints { this.alignment = alignment }
-        }
-
-    private fun FileTree.pathTo(target: FileTree): File? =
-        if (this === target) {
-            name.file
-        } else {
-            children.asSequence()
-                .mapNotNull { it.pathTo(target) }
-                .map { name.file.resolve(it) }
-                .firstNotNull()
         }
 
     private fun EventTarget.icon(icon: FontIcon, size: Int = 16) =
