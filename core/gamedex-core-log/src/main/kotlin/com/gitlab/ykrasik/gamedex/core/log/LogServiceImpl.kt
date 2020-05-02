@@ -32,7 +32,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler
  * Date: 07/02/2019
  * Time: 08:33
  */
-class LogServiceImpl(maxLogEntries: Int = 100000) : LogService {
+class LogServiceImpl(maxLogEntries: Int = 1000) : LogService {
     private val repo = LogRepository(maxLogEntries)
     override val entries = repo.entries
 
