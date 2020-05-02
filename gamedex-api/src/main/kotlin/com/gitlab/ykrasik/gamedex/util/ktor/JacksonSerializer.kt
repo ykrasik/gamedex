@@ -22,8 +22,8 @@ import io.ktor.client.features.json.JsonSerializer
 import io.ktor.http.ContentType
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.content.TextContent
-import kotlinx.io.core.Input
-import kotlinx.io.core.readText
+import io.ktor.utils.io.core.Input
+import io.ktor.utils.io.core.readText
 
 /**
  * User: ykrasik

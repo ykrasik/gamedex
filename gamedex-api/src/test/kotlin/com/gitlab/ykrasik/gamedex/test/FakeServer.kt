@@ -28,7 +28,6 @@ import io.ktor.response.respond
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import java.io.Closeable
-import java.util.concurrent.TimeUnit
 
 /**
  * User: ykrasik
@@ -73,7 +72,7 @@ abstract class KtorFakeServer(final override val port: Int = freePort) : FakeSer
         ktor.start()
     }
 
-    override fun close() = ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
+    override fun close() = ktor.stop(gracePeriodMillis = 100, timeoutMillis = 100)
 }
 
 interface FakeServerFactory {

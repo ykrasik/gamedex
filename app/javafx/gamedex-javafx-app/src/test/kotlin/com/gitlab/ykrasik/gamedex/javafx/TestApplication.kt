@@ -37,7 +37,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.Executors
-import kotlin.time.MonoClock
+import kotlin.time.measureTime
 
 /**
  * User: ykrasik
@@ -80,43 +80,44 @@ object TestApplication {
         persistenceService.dropDb()
         if (numGames == null) return
 
-        val clockMark = MonoClock.markNow()
-        val basePath = File(".").absoluteFile.normalize()
-        val libraries = listOf(
-            Triple(LibraryType.Digital, Platform.Windows, "app"),
-            Triple(LibraryType.Digital, Platform.Android, "build"),
-            Triple(LibraryType.Digital, Platform.Mac, "conf"),
-            Triple(LibraryType.Excluded, null, "core"),
-            Triple(LibraryType.Digital, Platform.Windows, "provider")
-        ).map { (type, platform, name) ->
-            persistenceService.insertLibrary(LibraryData(name, basePath.resolve(name), type, platform))
-        }.filter { it.type != LibraryType.Excluded }
+        val timeTaken = measureTime {
+            val basePath = File(".").absoluteFile.normalize()
+            val libraries = listOf(
+                Triple(LibraryType.Digital, Platform.Windows, "app"),
+                Triple(LibraryType.Digital, Platform.Android, "build"),
+                Triple(LibraryType.Digital, Platform.Mac, "conf"),
+                Triple(LibraryType.Excluded, null, "core"),
+                Triple(LibraryType.Digital, Platform.Windows, "provider")
+            ).map { (type, platform, name) ->
+                persistenceService.insertLibrary(LibraryData(name, basePath.resolve(name), type, platform))
+            }.filter { it.type != LibraryType.Excluded }
 
-        Executors.newFixedThreadPool(10).asCoroutineDispatcher().use { context ->
-            runBlocking {
-                (0 until numGames).map {
-                    async(context) {
-                        val providerServers = providerFakeServers.toMutableList()
-                        val path = randomPath(maxElements = 6, minElements = 3)
-                        persistenceService.insertGame(
-                            metadata = Metadata(
-                                libraryId = libraries.randomElement().id,
-                                path = path,
-                                timestamp = Timestamp.now
-                            ),
-                            providerData = randomList(providerServers.size) {
-                                val provider = providerServers.randomElement()
-                                providerServers -= provider
-                                randomProviderData(provider)
-                            },
-                            userData = UserData.Null
-                        )
-                    }
-                }.forEach { it.await() }
+            Executors.newFixedThreadPool(10).asCoroutineDispatcher().use { context ->
+                runBlocking {
+                    (0 until numGames).map {
+                        async(context) {
+                            val providerServers = providerFakeServers.toMutableList()
+                            val path = randomPath(maxElements = 6, minElements = 3)
+                            persistenceService.insertGame(
+                                metadata = Metadata(
+                                    libraryId = libraries.randomElement().id,
+                                    path = path,
+                                    timestamp = Timestamp.now
+                                ),
+                                providerData = randomList(providerServers.size) {
+                                    val provider = providerServers.randomElement()
+                                    providerServers -= provider
+                                    randomProviderData(provider)
+                                },
+                                userData = UserData.Null
+                            )
+                        }
+                    }.forEach { it.await() }
+                }
             }
         }
 
-        println("Initialized test db with $numGames games in ${clockMark.elapsedNow().humanReadable}")
+        println("Initialized test db with $numGames games in ${timeTaken.humanReadable}")
     }
 
     private fun randomProviderData(provider: GameProviderFakeServer) = ProviderData(

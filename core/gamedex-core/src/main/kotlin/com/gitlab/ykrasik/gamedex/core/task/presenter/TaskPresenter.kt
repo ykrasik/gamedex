@@ -35,7 +35,7 @@ import kotlinx.coroutines.channels.ClosedSendChannelException
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.time.MonoClock
+import kotlin.time.measureTimedValue
 
 /**
  * User: ykrasik
@@ -71,15 +71,14 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                 view.isRunningSubTask *= subTask != null
             }
 
-            val clockMark = MonoClock.markNow()
-            val deferred = GlobalScope.async(Dispatchers.IO) {
-                task.execute()
+            val (result, timeTaken) = measureTimedValue {
+                val deferred = GlobalScope.async(Dispatchers.IO) {
+                    task.execute()
+                }
+                view.job *= deferred
+                Try { deferred.await() }
             }
-            view.job *= deferred
-            val result = Try {
-                deferred.await()
-            }
-            val timeTaken = clockMark.elapsedNow()
+
             view.job *= null
             view.isCancellable *= false
             view.isRunningSubTask *= false

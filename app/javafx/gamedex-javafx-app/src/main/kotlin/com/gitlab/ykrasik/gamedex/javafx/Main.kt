@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import tornadofx.App
 import tornadofx.launch
-import kotlin.time.MonoClock
+import kotlin.time.TimeSource
 
 /**
  * User: ykrasik
@@ -29,7 +29,7 @@ import kotlin.time.MonoClock
  */
 class Main : App(JavaFxPreloaderView::class, GameDexStyle::class) {
     companion object {
-        val clockMark = MonoClock.markNow()
+        val clockMark = TimeSource.Monotonic.markNow()
 
         @JvmStatic
         fun main(args: Array<String>) = launch<Main>(args)

@@ -24,10 +24,11 @@ import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.UserAgent
 import io.ktor.client.features.json.Json
 import io.ktor.client.request.get
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.readBytes
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readBytes
 import io.ktor.http.contentLength
 import io.ktor.http.isSuccess
+import io.ktor.utils.io.consumeEachBufferRange
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.*
