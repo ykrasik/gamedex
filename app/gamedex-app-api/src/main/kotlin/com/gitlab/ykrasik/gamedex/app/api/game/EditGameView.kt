@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.State
 import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import java.io.File
 
 /**
  * User: ykrasik
@@ -41,6 +42,12 @@ interface EditGameView : ConfirmationView {
     val userScoreOverride: GameDataOverrideState<Score>
     val thumbnailUrlOverride: GameDataOverrideState<String>
     val posterUrlOverride: GameDataOverrideState<String>
+
+    val absoluteMainExecutablePath: UserMutableState<String>
+    val absoluteMainExecutablePathIsValid: State<IsValid>
+
+    val browseMainExecutableActions: MultiReceiveChannel<Unit>
+    fun browse(initialDirectory: File?): File?
 
     val resetAllToDefaultActions: MultiReceiveChannel<Unit>
 }

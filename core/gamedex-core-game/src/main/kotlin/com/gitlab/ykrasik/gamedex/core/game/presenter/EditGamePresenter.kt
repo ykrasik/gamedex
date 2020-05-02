@@ -25,8 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.*
 import org.joda.time.LocalDate
 import java.net.URL
 import javax.inject.Inject
@@ -45,6 +44,8 @@ class EditGamePresenter @Inject constructor(
 ) : Presenter<EditGameView> {
     override fun present(view: EditGameView) = object : ViewSession() {
         private val game by view.game
+        private var absoluteMainExecutablePath by view.absoluteMainExecutablePath
+        private var absoluteMainExecutablePathIsValid by view.absoluteMainExecutablePathIsValid
 
         private val allOverrides = with(view) {
             listOf(
@@ -68,6 +69,9 @@ class EditGamePresenter @Inject constructor(
             view.acceptActions.forEach { onAccept() }
             view.resetAllToDefaultActions.forEach { onResetAllToDefault() }
             view.cancelActions.forEach { onCancel() }
+
+            view.absoluteMainExecutablePath.forEach { onAbsoluteMainExecutablePathChanged() }
+            view.browseMainExecutableActions.forEach { onBrowseMainExecutable() }
         }
 
         private fun <T> GameDataOverrideState<T>.initState() {
@@ -86,9 +90,12 @@ class EditGamePresenter @Inject constructor(
         }
 
         private fun setCanAccept() {
-            view.canAccept *= Try {
+            view.canAccept *= absoluteMainExecutablePathIsValid and Try {
                 val updatedGame = gameService.buildGame(calcUpdatedGame())
-                check(updatedGame.gameData != game.gameData) { "Nothing changed!" }
+                check(
+                    updatedGame.gameData != game.gameData ||
+                        updatedGame.userData != game.userData
+                ) { "Nothing changed!" }
             }
         }
 
@@ -119,6 +126,8 @@ class EditGamePresenter @Inject constructor(
 
         private fun onResetAllToDefault() {
             allOverrides.forEach { it.onResetStateToDefault() }
+            absoluteMainExecutablePath = game.mainExecutableFile?.toString() ?: ""
+            absoluteMainExecutablePathIsValid = IsValid.valid
         }
 
         override suspend fun onShown() {
@@ -127,6 +136,9 @@ class EditGamePresenter @Inject constructor(
             gameWithoutOverrides = gameService.buildGame(game.rawGame.copy(userData = UserData.Null))
 
             view.canAccept *= IsValid.invalid("Nothing changed!")
+
+            absoluteMainExecutablePath = game.mainExecutableFile?.toString() ?: ""
+            absoluteMainExecutablePathIsValid = IsValid.valid
         }
 
         @Suppress("UNCHECKED_CAST")
@@ -223,8 +235,38 @@ class EditGamePresenter @Inject constructor(
                 }
             }.toMap()
 
-            val userData = game.userData.copy(overrides = overrides)
+            val userData = game.userData.copy(
+                overrides = overrides,
+                mainExecutablePath = absoluteMainExecutablePath.takeIf { it.isNotBlank() }
+            )
             return game.rawGame.copy(userData = userData)
+        }
+
+        private fun onAbsoluteMainExecutablePathChanged() {
+            validate()
+        }
+
+        private fun onBrowseMainExecutable() {
+            val selectedDirectory = view.browse(initialDirectory = game.path.existsOrNull())
+            if (selectedDirectory != null) {
+                absoluteMainExecutablePath = selectedDirectory.toString()
+            }
+            validate()
+        }
+
+        private fun validate() {
+            validateMainExecutablePath()
+            setCanAccept()
+        }
+
+        private fun validateMainExecutablePath() {
+            absoluteMainExecutablePathIsValid = Try {
+                if (absoluteMainExecutablePath.isEmpty()) return@Try
+                val file = absoluteMainExecutablePath.file
+                check(file.exists()) { "File doesn't exist!" }
+                check(!file.isDirectory) { "Main Executable must not be a directory!" }
+                check(file.startsWith(game.path)) { "Main Executable must be under the game's path!" }
+            }
         }
     }
 

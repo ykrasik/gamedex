@@ -41,6 +41,7 @@ import javafx.scene.control.ToggleGroup
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import tornadofx.*
+import java.io.File
 
 /**
  * User: ykrasik
@@ -65,6 +66,11 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     override val userScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.UserScore, Icons.starEmpty)
     override val thumbnailUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Thumbnail, Icons.thumbnail)
     override val posterUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Poster, Icons.poster)
+
+    override val absoluteMainExecutablePath = userMutableState("")
+    override val absoluteMainExecutablePathIsValid = state(IsValid.valid)
+
+    override val browseMainExecutableActions = channel<Unit>()
 
     override val resetAllToDefaultActions = channel<Unit>()
 
@@ -111,6 +117,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
             entry(userScoreOverride, Score(0.0, 0)) { displayScore(it) }
             entry(thumbnailUrlOverride, "") { imageDisplay(it) }
             entry(posterUrlOverride, "") { imageDisplay(it) }
+            generalSettings()
         }
         center = tabPane
     }
@@ -219,6 +226,27 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
             commonOps.fetchImage(if (url.isNotEmpty()) url else null, persist = false)
         })
     }
+
+    private fun VBox.generalSettings() = jfxToggleNode("General", graphic = Icons.settings, group = navigationToggle) {
+        useMaxWidth = true
+        tabPane.tab("General") {
+            this@jfxToggleNode.userData = this
+            form {
+                fieldset {
+                    horizontalField("Main Executable Path") {
+                        jfxTextField(absoluteMainExecutablePath.property, promptText = "Enter Main Executable Path...") {
+                            hgrow = Priority.ALWAYS
+                            validWhen(absoluteMainExecutablePathIsValid)
+                        }
+                        browseButton { action(browseMainExecutableActions) }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun browse(initialDirectory: File?) =
+        com.gitlab.ykrasik.gamedex.javafx.control.chooseFile("Select Main Executable File...", filters = emptyList(), initialDirectory = initialDirectory).firstOrNull()
 
     class JavaFxGameDataOverrideState<T>(override val type: GameDataType, val icon: Node) : GameDataOverrideState<T> {
         override val selection = userMutableState<OverrideSelectionType?>(null)
