@@ -27,9 +27,9 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Date: 01/05/2020
  * Time: 10:49
  */
-interface ViewCanExecuteGame : ViewCanDisplayError {
+interface ViewCanLaunchGame : ViewCanDisplayError {
     val gameChannel: MultiReceiveChannel<Game>
 
-    val canExecuteGame: State<IsValid>
-    val executeGameActions: MultiReceiveChannel<Unit>
+    val canLaunchGame: State<IsValid>
+    val launchGameActions: MultiReceiveChannel<Unit>
 }

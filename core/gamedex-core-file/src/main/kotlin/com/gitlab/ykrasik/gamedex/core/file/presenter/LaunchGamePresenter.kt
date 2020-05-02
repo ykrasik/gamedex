@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.file.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanExecuteGame
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanLaunchGame
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.Desktop
@@ -32,19 +32,20 @@ import javax.inject.Singleton
  * Time: 15:18
  */
 @Singleton
-class ExecuteGamePresenter @Inject constructor() : Presenter<ViewCanExecuteGame> {
-    override fun present(view: ViewCanExecuteGame) = object : ViewSession() {
+class LaunchGamePresenter @Inject constructor() : Presenter<ViewCanLaunchGame> {
+    override fun present(view: ViewCanLaunchGame) = object : ViewSession() {
         private val game by view.gameChannel
 
         init {
             view.gameChannel.forEach { game ->
-                view.canExecuteGame *= IsValid {
-                    checkNotNull(game.mainExecutableFile) { "No file marked as main executable!" }
+                view.canLaunchGame *= Try {
+                    val mainExecutableFile = checkNotNull(game.mainExecutableFile) { "No file marked as main executable!" }
+                    check(mainExecutableFile.exists()) { "Main Executable File doesn't exit!" }
                 }
             }
-            view.executeGameActions.forEach {
+            view.launchGameActions.forEach {
                 try {
-                    view.canExecuteGame.assert()
+                    view.canLaunchGame.assert()
                     withContext(Dispatchers.IO) {
                         // TODO: This is actually more like view-specific logic.
                         Desktop.getDesktop().open(game.mainExecutableFile)

@@ -76,7 +76,7 @@ class JavaFxGameDetailsView(
     ViewCanOpenFile,
     ViewCanBrowseUrl,
     ViewCanSetMainExecutableFile,
-    ViewCanExecuteGame {
+    ViewCanLaunchGame {
 
     private val commonOps: JavaFxCommonOps by di()
 
@@ -110,8 +110,8 @@ class JavaFxGameDetailsView(
     override val browseUrlActions = channel<String>()
 
     override val setMainExecutableFileActions = channel<SetMainExecutableFileParams>()
-    override val executeGameActions = channel<Unit>()
-    override val canExecuteGame = state(IsValid.valid)
+    override val launchGameActions = channel<Unit>()
+    override val canLaunchGame = state(IsValid.valid)
 
     private val noBackground = Background(BackgroundFill(Colors.cloudyKnoxville, CornerRadii.EMPTY, Insets.EMPTY))
     private val noBackgroundProperty = noBackground.toProperty()
@@ -207,9 +207,9 @@ class JavaFxGameDetailsView(
             cancelButton("Close") { action(hideViewActions) }
         }
         spacer()
-        executeButton("Execute") {
-            enableWhen(canExecuteGame)
-            action(executeGameActions)
+        executeButton("Launch") {
+            enableWhen(canLaunchGame)
+            action(launchGameActions)
         }
         gap()
         editButton("Edit") { action(editGameActions) { EditGameParams(game.value, initialView = GameDataType.Name) } }
