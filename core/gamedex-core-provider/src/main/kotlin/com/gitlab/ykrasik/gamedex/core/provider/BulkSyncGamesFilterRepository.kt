@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulMultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,17 +32,17 @@ import javax.inject.Singleton
 class BulkSyncGamesFilterRepository @Inject constructor(
     private val filterService: FilterService
 ) {
-    private val _bulkSyncGamesFilter = MultiChannel.conflated(Filter.Null)
-    val bulkSyncGamesFilter: MultiReceiveChannel<Filter> = _bulkSyncGamesFilter.distinctUntilChanged(Filter::isEqual)
+    private val _bulkSyncGamesFilter = conflatedChannel(Filter.Null)
+    val bulkSyncGamesFilter: StatefulMultiReadChannel<Filter> = _bulkSyncGamesFilter.distinctUntilChanged(Filter::isEqual)
 
     init {
         // Init default filter.
-        _bulkSyncGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) { Filter.Null })
+        _bulkSyncGamesFilter *= filterService.getOrPutSystemFilter(filterName) { Filter.Null }
     }
 
     fun update(filter: Filter) {
         filterService.putSystemFilter(filterName, filter)
-        _bulkSyncGamesFilter.offer(filter)
+        _bulkSyncGamesFilter *= filter
     }
 
     private companion object {

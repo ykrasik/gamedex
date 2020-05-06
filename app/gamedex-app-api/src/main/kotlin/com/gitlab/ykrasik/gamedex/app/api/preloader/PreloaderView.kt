@@ -17,15 +17,14 @@
 package com.gitlab.ykrasik.gamedex.app.api.preloader
 
 import com.gitlab.ykrasik.gamedex.Version
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 /**
  * User: ykrasik
  * Date: 08/06/2018
  * Time: 21:21
  */
 interface PreloaderView {
-    val version: State<Version>
-    val progress: State<Double>
-    val message: State<String>
+    val version: StatefulChannel<Version>
+    val progress: StatefulChannel<Double>
+    val message: StatefulChannel<String>
 }

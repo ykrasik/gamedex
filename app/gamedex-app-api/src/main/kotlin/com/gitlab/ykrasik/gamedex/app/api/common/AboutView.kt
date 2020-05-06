@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.common
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 17:34
  */
 interface AboutView {
-    val acceptActions: MultiReceiveChannel<Unit>
+    val acceptActions: MultiReadChannel<Unit>
 }

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import java.io.File
 
 /**
@@ -26,7 +26,7 @@ import java.io.File
  * Time: 14:31
  */
 interface ViewCanSetMainExecutableFile {
-    val setMainExecutableFileActions: MultiReceiveChannel<SetMainExecutableFileParams>
+    val setMainExecutableFileActions: MultiReadChannel<SetMainExecutableFileParams>
 }
 
 data class SetMainExecutableFileParams(val game: Game, val file: File?)

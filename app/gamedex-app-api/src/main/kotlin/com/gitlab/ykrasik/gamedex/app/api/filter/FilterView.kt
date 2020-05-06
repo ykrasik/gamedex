@@ -19,9 +19,10 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 import com.gitlab.ykrasik.gamedex.Genre
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlin.reflect.KClass
@@ -32,9 +33,8 @@ import kotlin.reflect.KClass
  * Time: 10:20
  */
 interface FilterView {
-    val filter: State<Filter>
-    val filterIsValid: State<IsValid>
-    val setFilterActions: MultiReceiveChannel<Filter>
+    val filter: ViewMutableStatefulChannel<Filter>
+    val filterIsValid: StatefulChannel<IsValid>
 
     val availableFilters: SettableList<KClass<out Filter.Rule>>
 
@@ -44,12 +44,11 @@ interface FilterView {
     val availableFilterTags: SettableList<TagId>
     val availableProviderIds: SettableList<ProviderId>
 
-    val wrapInAndActions: MultiReceiveChannel<Filter>
-    val wrapInOrActions: MultiReceiveChannel<Filter>
-    val wrapInNotActions: MultiReceiveChannel<Filter>
-    val unwrapNotActions: MultiReceiveChannel<Filter.Not>
-    val clearFilterActions: MultiReceiveChannel<Unit>
-    val updateFilterActions: MultiReceiveChannel<Pair<Filter.Rule, Filter.Rule>>
-    val replaceFilterActions: MultiReceiveChannel<Pair<Filter, KClass<out Filter>>>
-    val deleteFilterActions: MultiReceiveChannel<Filter>
+    val wrapInAndActions: MultiReadChannel<Filter>
+    val wrapInOrActions: MultiReadChannel<Filter>
+    val wrapInNotActions: MultiReadChannel<Filter>
+    val unwrapNotActions: MultiReadChannel<Filter.Not>
+    val updateFilterActions: MultiReadChannel<Pair<Filter.Rule, Filter.Rule>>
+    val replaceFilterActions: MultiReadChannel<Pair<Filter, KClass<out Filter>>>
+    val deleteFilterActions: MultiReadChannel<Filter>
 }

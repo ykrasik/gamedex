@@ -77,7 +77,7 @@ class GameServiceImpl @Inject constructor(
     override fun addAll(requests: List<AddGameRequest>) = task("Adding ${requests.size} Games...") {
         successMessage = { "Added $processedItems Games." }
 
-        totalItems = requests.size
+        totalItems.value = requests.size
         repo.games.conflate {
             requests.chunked(50).flatMap { requests ->
                 repo.addAll(requests) { incProgress() }.map { it.toGame() }
@@ -98,7 +98,7 @@ class GameServiceImpl @Inject constructor(
     override fun deleteAll(games: List<Game>) = task("Deleting ${games.size} Games...") {
         successMessage = { "Deleted $processedItems Games." }
 
-        totalItems = games.size
+        totalItems.value = games.size
         repo.games.conflate {
             games.chunked(200).forEach { chunk ->
                 repo.deleteAll(chunk.map { it.rawGame })

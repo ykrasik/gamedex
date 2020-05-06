@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.util.logger
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -57,7 +56,7 @@ class ViewRegistryImpl @Inject constructor(
     }
 
     override fun onShow(view: Any) {
-        GlobalScope.launch(Dispatchers.Main, CoroutineStart.UNDISPATCHED) {
+        GlobalScope.launch(Dispatchers.Main.immediate) {
             log.trace("Shown: $view")
             view.withSessions { it.onShow() }
         }

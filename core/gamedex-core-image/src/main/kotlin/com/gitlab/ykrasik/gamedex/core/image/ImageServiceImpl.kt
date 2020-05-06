@@ -46,7 +46,7 @@ class ImageServiceImpl @Inject constructor(
 
     override fun createImage(data: ByteArray) = imageFactory(data)
 
-    override suspend fun fetchImage(url: String, persist: Boolean) = withContext(Dispatchers.Main) {
+    override suspend fun fetchImage(url: String, persist: Boolean) = withContext(Dispatchers.Main.immediate) {
         try {
             cache.getOrPut(url) {
                 GlobalScope.async(Dispatchers.IO) {

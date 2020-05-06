@@ -19,11 +19,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.*
 import java.io.File
@@ -34,17 +34,17 @@ import java.io.File
  * Time: 08:38
  */
 class JavaFxImportDatabaseView : ConfirmationWindow("Import Database", Icons.import), ImportDatabaseView {
-    override val importDatabaseFile = userMutableState("")
-    override val importDatabaseFileIsValid = state(IsValid.valid)
+    override val importDatabaseFile = viewMutableStatefulChannel("")
+    override val importDatabaseFileIsValid = statefulChannel(IsValid.valid)
 
-    override val shouldImportLibrary = userMutableState(false)
-    override val canImportLibrary = state(IsValid.valid)
+    override val shouldImportLibrary = viewMutableStatefulChannel(false)
+    override val canImportLibrary = statefulChannel(IsValid.valid)
 
-    override val shouldImportProviderAccounts = userMutableState(false)
-    override val canImportProviderAccounts = state(IsValid.valid)
+    override val shouldImportProviderAccounts = viewMutableStatefulChannel(false)
+    override val canImportProviderAccounts = statefulChannel(IsValid.valid)
 
-    override val shouldImportFilters = userMutableState(false)
-    override val canImportFilters = state(IsValid.valid)
+    override val shouldImportFilters = viewMutableStatefulChannel(false)
+    override val canImportFilters = statefulChannel(IsValid.valid)
 
     override val browseActions = channel<Unit>()
 

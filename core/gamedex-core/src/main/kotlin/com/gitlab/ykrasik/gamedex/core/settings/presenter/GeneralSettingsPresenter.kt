@@ -34,7 +34,7 @@ class GeneralSettingsPresenter @Inject constructor(
 ) : Presenter<GeneralSettingsView> {
     override fun present(view: GeneralSettingsView) = object : ViewSession() {
         init {
-            settingsRepo.useInternalBrowserChannel.bind(view.useInternalBrowser)
+            view.useInternalBrowser.bindBidirectional(settingsRepo.useInternalBrowser)
         }
     }
 }

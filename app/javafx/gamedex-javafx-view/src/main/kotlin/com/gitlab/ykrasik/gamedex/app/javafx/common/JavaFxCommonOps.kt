@@ -31,10 +31,8 @@ import com.gitlab.ykrasik.gamedex.util.Ref
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
 import tornadofx.toProperty
 import javax.inject.Inject
@@ -70,7 +68,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     private inline fun loadImage(crossinline f: suspend () -> DomainImage?): ObservableValue<JavaFxImage> {
         val p = SimpleObjectProperty(loading)
-        GlobalScope.launch(Dispatchers.JavaFx, CoroutineStart.UNDISPATCHED) {
+        GlobalScope.launch(Dispatchers.Main.immediate) {
             val image = f()
             p.value = image?.image ?: noImage
         }

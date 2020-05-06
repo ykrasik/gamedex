@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.StorageObservableImpl
-import com.gitlab.ykrasik.gamedex.core.util.ValueObservableImpl
 import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,7 +43,7 @@ class SettingsRepositoryImpl @Inject constructor(private val factory: JsonStorag
     ) = addStorage {
         SettingsStorage(
             storage = StorageObservableImpl(
-                valueObservable = ValueObservableImpl(),
+                channel = conflatedChannel(),
                 storage = factory(basePath = "conf/$basePath", klass = klass),
                 key = name,
                 default = default

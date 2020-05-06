@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -27,15 +27,15 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:33
  */
 interface EditFilterView : ConfirmationView {
-    val initialNamedFilter: UserMutableState<NamedFilter>
+    val initialNamedFilter: ViewMutableStatefulChannel<NamedFilter>
 
-    val name: UserMutableState<String>
-    val nameIsValid: State<IsValid>
+    val name: ViewMutableStatefulChannel<String>
+    val nameIsValid: StatefulChannel<IsValid>
 
-    val filter: UserMutableState<Filter>
-    val filterIsValid: UserMutableState<IsValid>
+    val filter: ViewMutableStatefulChannel<Filter>
+    val filterIsValid: ViewMutableStatefulChannel<IsValid>
 
-    val isTag: UserMutableState<Boolean>
+    val isTag: ViewMutableStatefulChannel<Boolean>
 
     suspend fun confirmOverwrite(filterToOverwrite: NamedFilter): Boolean
 

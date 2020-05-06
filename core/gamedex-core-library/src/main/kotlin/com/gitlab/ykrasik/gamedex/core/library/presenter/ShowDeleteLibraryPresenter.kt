@@ -40,7 +40,7 @@ class ShowDeleteLibraryPresenter @Inject constructor(
 
     override fun present(view: ViewCanDeleteLibrary) = object : ViewSession() {
         init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canDeleteLibraries) { "Game sync in progress!" }
+            view.canDeleteLibraries.disableWhenTrue(commonData.isGameSyncRunning) { "Game sync in progress!" }
 
             view.deleteLibraryActions.forEach { library ->
                 view.canDeleteLibraries.assert()

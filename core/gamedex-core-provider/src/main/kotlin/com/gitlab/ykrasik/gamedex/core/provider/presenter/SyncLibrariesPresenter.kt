@@ -41,7 +41,7 @@ class SyncLibrariesPresenter @Inject constructor(
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
-            commonData.canSyncOrUpdateGames.bind(view.canSyncLibraries)
+            view.canSyncLibraries.bind(commonData.canSyncOrUpdateGames)
             view.syncLibrariesActions.forEach { onSyncLibrariesStarted() }
         }
 

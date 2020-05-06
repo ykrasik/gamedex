@@ -22,12 +22,12 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.icon
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.*
 import java.io.File
@@ -38,20 +38,20 @@ import java.io.File
  * Time: 10:56
  */
 class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibraryView {
-    override val library = userMutableState<Library?>(null)
+    override val library = viewMutableStatefulChannel<Library?>(null)
 
-    override val name = userMutableState("")
-    override val nameIsValid = state(IsValid.valid)
+    override val name = viewMutableStatefulChannel("")
+    override val nameIsValid = statefulChannel(IsValid.valid)
 
-    override val path = userMutableState("")
-    override val pathIsValid = state(IsValid.valid)
+    override val path = viewMutableStatefulChannel("")
+    override val pathIsValid = statefulChannel(IsValid.valid)
 
-    override val type = userMutableState(LibraryType.Digital)
-    override val canChangeType = state(IsValid.valid)
+    override val type = viewMutableStatefulChannel(LibraryType.Digital)
+    override val canChangeType = statefulChannel(IsValid.valid)
 
-    override val platform = userMutableState<Platform?>(null)
-    override val shouldShowPlatform = state(IsValid.valid)
-    override val canChangePlatform = state(IsValid.valid)
+    override val platform = viewMutableStatefulChannel<Platform?>(null)
+    override val shouldShowPlatform = statefulChannel(IsValid.valid)
+    override val canChangePlatform = statefulChannel(IsValid.valid)
 
     override val browseActions = channel<Unit>()
 

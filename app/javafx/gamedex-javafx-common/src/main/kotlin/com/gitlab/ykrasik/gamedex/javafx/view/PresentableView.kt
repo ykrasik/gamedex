@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiWriteChannel
 import com.gitlab.ykrasik.gamedex.javafx.NotificationType
 import com.gitlab.ykrasik.gamedex.javafx.notification
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
@@ -67,14 +67,14 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
 
     protected fun register() = viewRegistry.onCreate(this)
 
-    fun <E> MultiChannel<E>.event(e: E) = offer(e)
+    fun <E> MultiWriteChannel<E>.event(e: E) = offer(e)
 
-    fun <T> ObservableValue<T>.bindChanges(channel: MultiChannel<T>): ChangeListener<T> = bindChanges(channel) { it }
-    inline fun <T, R> ObservableValue<T>.bindChanges(channel: MultiChannel<R>, crossinline factory: (T) -> R): ChangeListener<T> =
+    fun <T> ObservableValue<T>.bindChanges(channel: MultiWriteChannel<T>): ChangeListener<T> = bindChanges(channel) { it }
+    inline fun <T, R> ObservableValue<T>.bindChanges(channel: MultiWriteChannel<R>, crossinline factory: (T) -> R): ChangeListener<T> =
         typeSafeOnChange { channel.event(factory(it)) }
 
-    fun ButtonBase.action(channel: MultiChannel<Unit>) = action(channel) { }
-    inline fun <T> ButtonBase.action(channel: MultiChannel<T>, crossinline f: () -> T) = apply {
+    fun ButtonBase.action(channel: MultiWriteChannel<Unit>) = action(channel) { }
+    inline fun <T> ButtonBase.action(channel: MultiWriteChannel<T>, crossinline f: () -> T) = apply {
         action { channel.offer(f()) }
     }
 }

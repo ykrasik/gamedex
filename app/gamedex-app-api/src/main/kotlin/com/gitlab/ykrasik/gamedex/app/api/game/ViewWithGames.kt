@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -29,11 +29,11 @@ import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
  */
 interface ViewWithGames {
     val games: SettableList<Game>
-    val sort: State<Comparator<Game>>
-    val filter: State<(Game) -> Boolean>
+    val sort: StatefulChannel<Comparator<Game>>
+    val filter: StatefulChannel<(Game) -> Boolean>
 
-    val searchText: UserMutableState<String>
-    val searchActions: MultiReceiveChannel<Unit>
+    val searchText: ViewMutableStatefulChannel<String>
+    val searchActions: MultiReadChannel<Unit>
 
     val searchSuggestions: SettableList<Game>
 }

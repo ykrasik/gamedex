@@ -16,15 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.ConflatedMultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import tornadofx.getValue
-import tornadofx.setValue
+import kotlinx.coroutines.Dispatchers
 
 /**
  * User: ykrasik
@@ -32,75 +32,69 @@ import tornadofx.setValue
  * Time: 16:57
  */
 
-fun <T> userMutableState(initial: T) = objectPropertyState(::JavaFxUserMutableState, initial)
-fun userMutableState(initial: Boolean) = booleanPropertyState(::JavaFxUserMutableState, initial)
-fun userMutableState(initial: Double) = doublePropertyState(::JavaFxUserMutableState, initial)
-fun userMutableState(initial: Int) = intPropertyState(::JavaFxUserMutableState, initial)
-fun userMutableState(initial: String) = stringPropertyState(::JavaFxUserMutableState, initial)
-fun <T, P : Property<T>> userMutableState(state: JavaFxState<T, P>) = JavaFxUserMutableState(state.property)
-fun <T, P : Property<T>> userMutableState(property: P) = JavaFxUserMutableState(property)
+fun <T> viewMutableStatefulChannel(initial: T) = objectPropertyState(::JavaFxViewMutableStatefulChannel, initial)
+fun viewMutableStatefulChannel(initial: Boolean) = booleanPropertyState(::JavaFxViewMutableStatefulChannel, initial)
+fun viewMutableStatefulChannel(initial: Double) = doublePropertyState(::JavaFxViewMutableStatefulChannel, initial)
+fun viewMutableStatefulChannel(initial: Int) = intPropertyState(::JavaFxViewMutableStatefulChannel, initial)
+fun viewMutableStatefulChannel(initial: String) = stringPropertyState(::JavaFxViewMutableStatefulChannel, initial)
+fun <T, P : Property<T>> viewMutableStatefulChannel(statefulChannel: JavaFxStatefulChannel<T, P>) = viewMutableStatefulChannel(statefulChannel.property)
+fun <T, P : Property<T>> viewMutableStatefulChannel(property: P) = JavaFxViewMutableStatefulChannel(conflatedChannel(property.value), property)
 
-fun <T> state(initial: T) = objectPropertyState(::JavaFxState, initial)
-fun state(initial: Boolean) = booleanPropertyState(::JavaFxState, initial)
-fun state(initial: Double) = doublePropertyState(::JavaFxState, initial)
-fun state(initial: Int) = intPropertyState(::JavaFxState, initial)
-fun state(initial: String) = stringPropertyState(::JavaFxState, initial)
+fun <T> statefulChannel(initial: T) = objectPropertyState(::JavaFxStatefulChannel, initial)
+fun statefulChannel(initial: Boolean) = booleanPropertyState(::JavaFxStatefulChannel, initial)
+fun statefulChannel(initial: Double) = doublePropertyState(::JavaFxStatefulChannel, initial)
+fun statefulChannel(initial: Int) = intPropertyState(::JavaFxStatefulChannel, initial)
+fun statefulChannel(initial: String) = stringPropertyState(::JavaFxStatefulChannel, initial)
 
-private inline fun <T, S> objectPropertyState(factory: (SimpleObjectProperty<T>) -> S, initial: T): S = factory(SimpleObjectProperty(initial))
-private inline fun <S> booleanPropertyState(factory: (SimpleBooleanProperty) -> S, initial: Boolean): S = factory(SimpleBooleanProperty(initial))
-private inline fun <S> doublePropertyState(factory: (SimpleObjectProperty<Double>) -> S, initial: Double): S = factory(SimpleObjectProperty(initial))
-private inline fun <S> intPropertyState(factory: (SimpleObjectProperty<Int>) -> S, initial: Int): S = factory(SimpleObjectProperty(initial))
-private inline fun <S> stringPropertyState(factory: (SimpleStringProperty) -> S, initial: String): S = factory(SimpleStringProperty(initial))
+private inline fun <T, S> objectPropertyState(factory: (ConflatedMultiChannel<T>, SimpleObjectProperty<T>) -> S, initial: T): S =
+    factory(conflatedChannel(initial), SimpleObjectProperty(initial))
 
-typealias JavaFxObjectState<T> = JavaFxState<T, SimpleObjectProperty<T>>
+private inline fun <S> booleanPropertyState(factory: (ConflatedMultiChannel<Boolean>, SimpleBooleanProperty) -> S, initial: Boolean): S =
+    factory(conflatedChannel(initial), SimpleBooleanProperty(initial))
 
-class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableState<T> {
-    private var ignoreNextChange = false
+private inline fun <S> doublePropertyState(factory: (ConflatedMultiChannel<Double>, SimpleObjectProperty<Double>) -> S, initial: Double): S =
+    factory(conflatedChannel(initial), SimpleObjectProperty(initial))
 
-    override val valueChannel = MultiChannel.conflated(property.value)
+private inline fun <S> intPropertyState(factory: (ConflatedMultiChannel<Int>, SimpleObjectProperty<Int>) -> S, initial: Int): S =
+    factory(conflatedChannel(initial), SimpleObjectProperty(initial))
 
+private inline fun <S> stringPropertyState(factory: (ConflatedMultiChannel<String>, SimpleStringProperty) -> S, initial: String): S =
+    factory(conflatedChannel(initial), SimpleStringProperty(initial))
+
+typealias JavaFxObjectStatefulChannel<T> = JavaFxStatefulChannel<T, SimpleObjectProperty<T>>
+
+class JavaFxViewMutableStatefulChannel<T, P : Property<T>>(private val channel: ConflatedMultiChannel<T>, val property: P) : StatefulChannel<T> by channel, ViewMutableStatefulChannel<T> {
     init {
-        property.onInvalidated { valueChannel.offer(it) }
+        var reportNextChangeToChannel = true
 
-        onChange {
-            if (!ignoreNextChange) {
-                changes.offer(it)
+        property.onInvalidated { value ->
+            if (reportNextChangeToChannel) {
+                channel.value = value
             }
         }
-    }
 
-    // Called from outside the view to let the view know about changes. Does not report a change event.
-    override var value: T
-        get() = property.value
-        set(value) {
-            ignoreNextChange = true
+        channel.subscribe(Dispatchers.Main.immediate) { value ->
+            reportNextChangeToChannel = false
             property.value = value
-            ignoreNextChange = false
+            reportNextChangeToChannel = true
         }
-
-    // To be used when the view needs to update the value programmatically and report a change event.
-    var valueFromView: T by property
-
-    override val changes = MultiChannel<T>()
+    }
 
     inline fun perform(crossinline f: (T) -> Unit) = property.perform(f)
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
 
-    override fun toString() = value.toString()
+    override fun toString() = property.value.toString()
 }
 
-class JavaFxState<T, P : Property<T>>(val property: P) : State<T> {
-    override var value: T by property
-
-    override val valueChannel = MultiChannel.conflated(property.value)
-
+class JavaFxStatefulChannel<T, P : Property<T>>(private val channel: ConflatedMultiChannel<T>, val property: P) : StatefulChannel<T> by channel {
     init {
-        property.onInvalidated { valueChannel.offer(it) }
+        channel.subscribe(Dispatchers.Main.immediate) { value ->
+            property.value = value
+        }
     }
 
+    inline fun perform(crossinline f: (T) -> Unit) = property.perform(f)
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
-
-    override fun toString() = value.toString()
 }

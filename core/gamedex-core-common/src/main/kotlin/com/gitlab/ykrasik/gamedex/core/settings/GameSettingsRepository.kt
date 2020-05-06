@@ -51,21 +51,10 @@ class GameSettingsRepository @Inject constructor(repo: SettingsRepository) {
         )
     }
 
-    val platformChannel = storage.biChannel(Data::platform) { copy(platform = it) }
-    var platform by platformChannel
-
-    val displayTypeChannel = storage.biChannel(Data::displayType) { copy(displayType = it) }
-    var displayType by displayTypeChannel
-
-    val sortByChannel = storage.biChannel(Data::sortBy) { copy(sortBy = it) }
-    var sortBy by sortByChannel
-
-    val sortOrderChannel = storage.biChannel(Data::sortOrder) { copy(sortOrder = it) }
-    var sortOrder by sortOrderChannel
-
-    val maxGenresChannel = storage.biChannel(Data::maxGenres) { copy(maxGenres = it) }
-    var maxGenres by maxGenresChannel
-
-    val maxScreenshotsChannel = storage.biChannel(Data::maxScreenshots) { copy(maxScreenshots = it) }
-    var maxScreenshots by maxScreenshotsChannel
+    val platform = storage.biChannel(Data::platform) { copy(platform = it) }
+    val displayType = storage.biChannel(Data::displayType) { copy(displayType = it) }
+    val sortBy = storage.biChannel(Data::sortBy) { copy(sortBy = it) }
+    val sortOrder = storage.biChannel(Data::sortOrder) { copy(sortOrder = it) }
+    val maxGenres = storage.biChannel(Data::maxGenres) { copy(maxGenres = it) }
+    val maxScreenshots = storage.biChannel(Data::maxScreenshots) { copy(maxScreenshots = it) }
 }

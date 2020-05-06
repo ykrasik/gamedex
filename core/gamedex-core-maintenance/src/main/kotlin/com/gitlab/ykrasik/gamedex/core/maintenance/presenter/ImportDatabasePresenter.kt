@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -24,11 +25,10 @@ import com.gitlab.ykrasik.gamedex.core.maintenance.ImportDbContent
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
+import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.file
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,70 +45,58 @@ class ImportDatabasePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<ImportDatabaseView> {
     override fun present(view: ImportDatabaseView) = object : ViewSession() {
-        private var importDatabaseFileIsValid by view.importDatabaseFileIsValid
-        private var importDatabaseFile by view.importDatabaseFile
-        private var canImportLibrary by view.canImportLibrary
-        private var shouldImportLibrary by view.shouldImportLibrary
-        private var canImportProviderAccounts by view.canImportProviderAccounts
-        private var shouldImportProviderAccounts by view.shouldImportProviderAccounts
-        private var canImportFilters by view.canImportFilters
-        private var shouldImportFilters by view.shouldImportFilters
-
-        private var importDbContent: ImportDbContent? = null
+        private val importDbContent = conflatedChannel<ImportDbContent?>(null)
 
         init {
-            view.importDatabaseFile.forEach { onFileChanged() }
-            view.shouldImportLibrary.forEach { view.canImportLibrary.assert(); setCanAccept() }
-            view.shouldImportProviderAccounts.forEach { view.canImportProviderAccounts.assert(); setCanAccept() }
-            view.shouldImportFilters.forEach { view.canImportFilters.assert(); setCanAccept() }
+            view.importDatabaseFile.mapTo(view.importDatabaseFileIsValid) { importDatabaseFile ->
+                Try {
+                    check(importDatabaseFile.isNotBlank()) { "Enter a path to a file!" }
+                    check(importDatabaseFile.file.isFile) { "File doesn't exist or is a directory!" }
+                }
+            }
+            view.importDatabaseFileIsValid.forEach { importDatabaseFileIsValid ->
+                importDbContent *= if (importDatabaseFileIsValid.isSuccess) {
+                    taskService.execute(maintenanceService.readImportDbFile(view.importDatabaseFile.value.file))
+                } else {
+                    null
+                }
+                view.canImportLibrary *= importDatabaseFileIsValid and Try { check(importDbContent.value!!.db != null) { "No library to import!" } }
+                view.shouldImportLibrary *= view.canImportLibrary.value.isSuccess
+
+                view.canImportProviderAccounts *= importDatabaseFileIsValid and Try { check(importDbContent.value!!.accounts != null) { "No accounts to import!" } }
+                view.shouldImportProviderAccounts *= view.canImportProviderAccounts.value.isSuccess
+
+                view.canImportFilters *= importDatabaseFileIsValid and Try { check(importDbContent.value!!.filters != null) { "No filters to import!" } }
+                view.shouldImportFilters *= view.canImportFilters.value.isSuccess
+            }
+
+            view.importDatabaseFileIsValid.combineLatest(
+                view.shouldImportLibrary,
+                view.shouldImportProviderAccounts,
+                view.shouldImportFilters
+            ) { importDatabaseFileIsValid, shouldImportLibrary, shouldImportProviderAccounts, shouldImportFilters ->
+                if (shouldImportLibrary) view.canImportLibrary.assert()
+                if (shouldImportProviderAccounts) view.canImportProviderAccounts.assert()
+                if (shouldImportFilters) view.canImportFilters.assert()
+                view.canAccept *= importDatabaseFileIsValid and Try {
+                    check(shouldImportLibrary || shouldImportProviderAccounts || shouldImportFilters) { "Must import something!" }
+                }
+            }
+
             view.browseActions.forEach { onBrowse() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShown() {
-            importDatabaseFile = ""
-            importDbContent = null
-            shouldImportLibrary = false
-            view.canImportLibrary *= IsValid.valid
-            shouldImportProviderAccounts = false
-            view.canImportProviderAccounts *= IsValid.valid
-            shouldImportFilters = false
-            view.canImportFilters *= IsValid.valid
-            launch {
-                onBrowse()
-            }
+            view.importDatabaseFile *= ""
+            onBrowse()
         }
 
-        private suspend fun onFileChanged() {
-            importDatabaseFileIsValid = Try {
-                check(importDatabaseFile.isNotBlank()) { "Please enter a path to a file!" }
-                check(importDatabaseFile.file.isFile) { "File doesn't exist or is a directory!" }
-                importDbContent = taskService.execute(maintenanceService.readImportDbFile(importDatabaseFile.file))
-            }
-            canImportLibrary = importDatabaseFileIsValid and Try { check(importDbContent!!.db != null) { "No library to import!" } }
-            canImportProviderAccounts = importDatabaseFileIsValid and Try { check(importDbContent!!.accounts != null) { "No accounts to import!" } }
-            canImportFilters = importDatabaseFileIsValid and Try { check(importDbContent!!.filters != null) { "No filters to import!" } }
-            shouldImportLibrary = canImportLibrary.isSuccess
-            shouldImportProviderAccounts = canImportProviderAccounts.isSuccess
-            shouldImportFilters = canImportFilters.isSuccess
-
-            setCanAccept()
-        }
-
-        private suspend fun onBrowse() {
-            val file = view.selectImportDatabaseFile(settingsRepo.exportDbDirectory)
+        private fun onBrowse() {
+            val file = view.selectImportDatabaseFile(settingsRepo.exportDbDirectory.value.existsOrNull())
             if (file != null) {
-                importDatabaseFile = file.absolutePath
-            }
-            onFileChanged()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= importDatabaseFileIsValid and Try {
-                check(shouldImportLibrary || shouldImportProviderAccounts || shouldImportFilters) {
-                    "Must import something!"
-                }
+                view.importDatabaseFile *= file.absolutePath
             }
         }
 
@@ -116,16 +104,16 @@ class ImportDatabasePresenter @Inject constructor(
             view.canAccept.assert()
             hideView()
 
-            val file = importDatabaseFile.file
-            val content = importDbContent!!.run {
+            val file = view.importDatabaseFile.value.file
+            val content = importDbContent.value!!.run {
                 copy(
-                    db = db?.takeIf { shouldImportLibrary },
-                    accounts = accounts?.takeIf { shouldImportProviderAccounts },
-                    filters = filters?.takeIf { shouldImportFilters }
+                    db = db?.takeIf { view.shouldImportLibrary.value },
+                    accounts = accounts?.takeIf { view.shouldImportProviderAccounts.value },
+                    filters = filters?.takeIf { view.shouldImportFilters.value }
                 )
             }
             taskService.execute(maintenanceService.importDatabase(content))
-            settingsRepo.exportDbDirectory = file.parentFile
+            settingsRepo.exportDbDirectory *= file.parentFile
         }
 
         private fun onCancel() {

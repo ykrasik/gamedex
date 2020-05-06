@@ -25,13 +25,13 @@ import com.gitlab.ykrasik.gamedex.javafx.binding
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.theme.subHeader
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -43,13 +43,13 @@ import java.io.File
  * Time: 19:47
  */
 class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView, ViewCanOpenFile {
-    override val initialName = userMutableState<String?>(null)
+    override val initialName = viewMutableStatefulChannel<String?>(null)
 
-    override val game = userMutableState(Game.Null)
+    override val game = viewMutableStatefulChannel(Game.Null)
 
-    override val newPath = userMutableState("")
-    override val newPathIsValid = state(IsValid.valid)
-    override val newPathLibrary = state(Library.Null)
+    override val newPath = viewMutableStatefulChannel("")
+    override val newPathIsValid = statefulChannel(IsValid.valid)
+    override val newPathLibrary = statefulChannel(Library.Null)
 
     override val browseActions = channel<Unit>()
     override val openFileActions = channel<File>()

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.jfoenix.utils.JFXNodeUtils
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -34,7 +34,6 @@ import javafx.scene.paint.Color
 import javafx.stage.Screen
 import javafx.stage.Stage
 import kotlinx.coroutines.*
-import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberFunctions
@@ -169,11 +168,11 @@ fun Bounds.containsDelta(x: Double, y: Double, delta: Double): Boolean {
     return !isEmpty && x in (minX - delta)..(maxX + delta) && y in (minY - delta)..(maxY + delta)
 }
 
-inline fun <T> MultiReceiveChannel<T>.forEach(crossinline f: (T) -> Unit) = subscribe(Dispatchers.Main) {
+inline fun <T> MultiReadChannel<T>.forEach(crossinline f: (T) -> Unit) = subscribe(Dispatchers.Main) {
     f(it)
 }
 
-inline fun debounce(millis: Long, crossinline f: () -> Unit): Job = GlobalScope.launch(Dispatchers.JavaFx) {
+inline fun debounce(millis: Long, crossinline f: () -> Unit): Job = GlobalScope.launch(Dispatchers.Main) {
     delay(millis)
     f()
 }

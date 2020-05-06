@@ -57,7 +57,7 @@ class LibraryServiceImpl @Inject constructor(
 
     override fun addAll(data: List<LibraryData>) = task("Adding ${data.size} Libraries...") {
         successMessage = { "Added $processedItems Libraries." }
-        totalItems = data.size
+        totalItems.value = data.size
         repo.addAll(data) { incProgress() }
     }
 

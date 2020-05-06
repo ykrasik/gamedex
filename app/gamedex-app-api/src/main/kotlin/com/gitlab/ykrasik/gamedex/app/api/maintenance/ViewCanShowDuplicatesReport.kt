@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 09:00
  */
 interface ViewCanShowDuplicatesReport {
-    val showDuplicatesReportActions: MultiReceiveChannel<Unit>
+    val showDuplicatesReportActions: MultiReadChannel<Unit>
 }

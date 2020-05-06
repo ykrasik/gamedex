@@ -34,7 +34,7 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 
 /**
@@ -45,7 +45,7 @@ import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
  * A required implementation by the view layer that allows showing & hiding views.
  */
 interface ViewManager {
-    val externalCloseRequests: MultiReceiveChannel<Any>
+    val externalCloseRequests: MultiReadChannel<Any>
 
     fun showTaskView(): TaskView
     fun hide(view: TaskView)

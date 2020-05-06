@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -26,6 +26,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 18:44
  */
 interface ViewCanBulkUpdateGames {
-    val canBulkUpdateGames: State<IsValid>
-    val bulkUpdateGamesActions: MultiReceiveChannel<Unit>
+    val canBulkUpdateGames: StatefulChannel<IsValid>
+    val bulkUpdateGamesActions: MultiReadChannel<Unit>
 }

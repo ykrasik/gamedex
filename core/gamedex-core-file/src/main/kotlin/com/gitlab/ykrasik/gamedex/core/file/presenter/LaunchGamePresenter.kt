@@ -34,25 +34,27 @@ import javax.inject.Singleton
 @Singleton
 class LaunchGamePresenter @Inject constructor() : Presenter<ViewCanLaunchGame> {
     override fun present(view: ViewCanLaunchGame) = object : ViewSession() {
-        private val game by view.gameChannel
-
         init {
-            view.gameChannel.forEach { game ->
-                view.canLaunchGame *= Try {
+            view.game.mapTo(view.canLaunchGame) { game ->
+                Try {
                     val mainExecutableFile = checkNotNull(game.mainExecutableFile) { "No file marked as main executable!" }
                     check(mainExecutableFile.exists()) { "Main Executable File doesn't exit!" }
                 }
             }
-            view.launchGameActions.forEach {
-                try {
-                    view.canLaunchGame.assert()
-                    withContext(Dispatchers.IO) {
-                        // TODO: This is actually more like view-specific logic.
-                        Desktop.getDesktop().open(game.mainExecutableFile)
-                    }
-                } catch (e: Exception) {
-                    view.onError(message = e.message!!, title = "Error executing '${game.name}'", e = e)
+            view.launchGameActions.forEach { onLaunchGame() }
+        }
+
+        private suspend fun onLaunchGame() {
+            val game = view.game.value
+            try {
+                view.canLaunchGame.assert()
+                withContext(Dispatchers.IO) {
+                    // TODO: This is actually more like view-specific logic.
+                    Desktop.getDesktop().open(game.mainExecutableFile)
                 }
+            } catch (e: Exception) {
+                // FIXME: This should happen by default to all views.
+                view.onError(message = e.message!!, title = "Error executing '${game.name}'", e = e)
             }
         }
     }

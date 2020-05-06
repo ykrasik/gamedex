@@ -26,7 +26,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ClosedSendChannelException
-import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
 import tornadofx.add
 import java.io.ByteArrayOutputStream
@@ -48,7 +47,7 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
         if (isCycle(error)) {
             log.info("Detected cycle handling error, aborting.", error)
         } else {
-            GlobalScope.launch(Dispatchers.JavaFx) {
+            GlobalScope.launch(Dispatchers.Main.immediate) {
                 showErrorDialog(error)
             }
         }

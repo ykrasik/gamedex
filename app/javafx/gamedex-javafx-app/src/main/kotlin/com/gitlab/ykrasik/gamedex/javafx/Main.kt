@@ -29,7 +29,7 @@ import kotlin.time.TimeSource
  */
 class Main : App(JavaFxPreloaderView::class, GameDexStyle::class) {
     companion object {
-        val clockMark = TimeSource.Monotonic.markNow()
+        val timeMark = TimeSource.Monotonic.markNow()
 
         @JvmStatic
         fun main(args: Array<String>) = launch<Main>(args)

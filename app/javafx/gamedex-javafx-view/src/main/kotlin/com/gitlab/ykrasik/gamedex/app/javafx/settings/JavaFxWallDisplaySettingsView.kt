@@ -39,7 +39,7 @@ class JavaFxWallDisplaySettingsView(settings: JavaFxGameWallDisplaySettings) : F
                 defaultHbox {
                     plusMinusSlider(settings.width.property, min = 20, max = 500)
                     jfxButton("Set from Height", Icons.equal.size(20)) {
-                        action { settings.width.valueFromView = settings.height.value }
+                        action { settings.width.value = settings.height.value }
                     }
                 }
             }
@@ -47,7 +47,7 @@ class JavaFxWallDisplaySettingsView(settings: JavaFxGameWallDisplaySettings) : F
                 defaultHbox {
                     plusMinusSlider(settings.height.property, min = 20, max = 500)
                     jfxButton("Set from Width", Icons.equal.size(20)) {
-                        action { settings.height.valueFromView = settings.width.value }
+                        action { settings.height.value = settings.width.value }
                     }
                 }
             }

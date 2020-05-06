@@ -27,7 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
 import com.gitlab.ykrasik.gamedex.util.file
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,53 +43,41 @@ class ExportDatabasePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<ExportDatabaseView> {
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
-        private var exportDatabaseDirectory by view.exportDatabaseDirectory
-        private var exportDatabaseFolderIsValid by view.exportDatabaseFolderIsValid
-        private var shouldExportLibrary by view.shouldExportLibrary
-        private var shouldExportProviderAccounts by view.shouldExportProviderAccounts
-        private var shouldExportFilters by view.shouldExportFilters
-
         init {
-            view.exportDatabaseDirectory.forEach { onDirectoryChanged() }
-            view.shouldExportLibrary.forEach { setCanAccept() }
-            view.shouldExportProviderAccounts.forEach { setCanAccept() }
-            view.shouldExportFilters.forEach { setCanAccept() }
+            view.exportDatabaseDirectory.mapTo(view.exportDatabaseFolderIsValid) { exportDatabaseDirectory ->
+                Try {
+                    check(exportDatabaseDirectory.isNotBlank()) { "Select export directory!" }
+                    check(exportDatabaseDirectory.file.isDirectory) { "Directory doesn't exist!" }
+                }
+            }
+
+            view.exportDatabaseFolderIsValid.combineLatest(
+                view.shouldExportLibrary,
+                view.shouldExportProviderAccounts,
+                view.shouldExportFilters
+            ) { exportDatabaseDirectoryIsValid, shouldExportLibrary, shouldExportProviderAccounts, shouldExportFilters ->
+                view.canAccept *= exportDatabaseDirectoryIsValid and Try {
+                    check(shouldExportLibrary || shouldExportProviderAccounts || shouldExportFilters) { "Select something to export!" }
+                }
+            }
+
             view.browseActions.forEach { onBrowse() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShown() {
-            exportDatabaseDirectory = ""
-            shouldExportLibrary = true
-            shouldExportProviderAccounts = true
-            shouldExportFilters = true
-            launch {
-                onBrowse()
-            }
-        }
-
-        private fun onDirectoryChanged() {
-            exportDatabaseFolderIsValid = Try {
-                check(exportDatabaseDirectory.isNotBlank()) { "Please enter a path to a directory!" }
-                check(exportDatabaseDirectory.file.isDirectory) { "Directory doesn't exist!" }
-            }
-            setCanAccept()
+            view.exportDatabaseDirectory *= ""
+            view.shouldExportLibrary *= true
+            view.shouldExportProviderAccounts *= true
+            view.shouldExportFilters *= true
+            onBrowse()
         }
 
         private fun onBrowse() {
-            val dir = view.selectExportDatabaseDirectory(settingsRepo.exportDbDirectory)
+            val dir = view.selectExportDatabaseDirectory(settingsRepo.exportDbDirectory.value)
             if (dir != null) {
-                exportDatabaseDirectory = dir.absolutePath
-            }
-            onDirectoryChanged()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= exportDatabaseFolderIsValid and Try {
-                check(shouldExportLibrary || shouldExportProviderAccounts || shouldExportFilters) {
-                    "Must export something!"
-                }
+                view.exportDatabaseDirectory *= dir.absolutePath
             }
         }
 
@@ -99,13 +86,13 @@ class ExportDatabasePresenter @Inject constructor(
             hideView()
 
             val params = ImportExportParams(
-                library = shouldExportLibrary,
-                providerAccounts = shouldExportProviderAccounts,
-                filters = shouldExportFilters
+                library = view.shouldExportLibrary.value,
+                providerAccounts = view.shouldExportProviderAccounts.value,
+                filters = view.shouldExportFilters.value
             )
-            val dir = exportDatabaseDirectory.file
+            val dir = view.exportDatabaseDirectory.value.file
             taskService.execute(maintenanceService.exportDatabase(dir, params))
-            settingsRepo.exportDbDirectory = dir
+            settingsRepo.exportDbDirectory *= dir
             view.openDirectory(dir)
         }
 

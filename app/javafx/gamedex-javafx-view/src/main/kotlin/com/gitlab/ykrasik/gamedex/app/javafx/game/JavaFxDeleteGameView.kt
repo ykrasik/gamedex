@@ -18,10 +18,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
+import com.gitlab.ykrasik.gamedex.javafx.control.gap
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import tornadofx.label
 import tornadofx.stringBinding
 
 /**
@@ -30,9 +33,9 @@ import tornadofx.stringBinding
  * Time: 22:08
  */
 class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGameView {
-    override val game = userMutableState(Game.Null)
+    override val game = viewMutableStatefulChannel(Game.Null)
 
-    override val fromFileSystem = userMutableState(false)
+    override val fromFileSystem = viewMutableStatefulChannel(false)
 
     init {
         titleProperty.bind(game.property.stringBinding { "Delete '${it!!.name}'?" })
@@ -40,6 +43,10 @@ class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGame
     }
 
     override val root = buildAreYouSure {
-        jfxCheckBox(fromFileSystem.property, "From File System")
+        defaultHbox {
+            jfxCheckBox(fromFileSystem.property, "From File System")
+            gap(10)
+            label(game.property.stringBinding { it!!.path.toString() })
+        }
     }
 }

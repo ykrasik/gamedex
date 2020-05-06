@@ -54,8 +54,8 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
 
-    override val searchText = userMutableState("")
-    override val matchingGame = state<Game?>(null)
+    override val searchText = viewMutableStatefulChannel("")
+    override val matchingGame = statefulChannel<Game?>(null)
 
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }

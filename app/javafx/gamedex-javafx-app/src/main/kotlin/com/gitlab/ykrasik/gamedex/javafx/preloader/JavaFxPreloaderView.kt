@@ -25,11 +25,10 @@ import com.gitlab.ykrasik.gamedex.javafx.Main
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import javafx.geometry.Pos
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.*
-import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.*
 import java.util.*
 
@@ -41,9 +40,9 @@ import java.util.*
 class JavaFxPreloaderView : View("GameDex"), PreloaderView {
     private var logo = resources.image("gamedex.jpg")
 
-    override val version = state(Version.Null)
-    override val progress = state(0.0)
-    override val message = state("")
+    override val version = statefulChannel(Version.Null)
+    override val progress = statefulChannel(0.0)
+    override val message = statefulChannel("")
 
     override val root = stackpane {
         alignment = Pos.CENTER
@@ -102,10 +101,10 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
             val preloader = ServiceLoader.load(Preloader::class.java).iterator().next()
             val injector = preloader.load(this@JavaFxPreloaderView, JavaFxModule)
             FX.dicontainer = GuiceDiContainer(injector)
-            withContext(Dispatchers.JavaFx) {
-                message.value = "Loading user interface..."
+            message.value = "Loading user interface..."
+            withContext(Dispatchers.Main) {
                 delay(5)       // Delay to allow the 'done' message to display.
-                replaceWith(find(MainView::class, params = mapOf(MainView.StartTimeParam to Main.clockMark)), ViewTransition.Fade(1.seconds))
+                replaceWith(find(MainView::class, params = mapOf(MainView.StartTimeParam to Main.timeMark)), ViewTransition.Fade(1.seconds))
             }
         }
     }

@@ -23,8 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -58,23 +57,23 @@ class GamesPresenter @Inject constructor(
 
     override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
-            commonData.platformGames.bind(view.games)
+            view.games.bind(commonData.platformGames)
 
-            settingsRepo.sortByChannel.combineLatest(settingsRepo.sortOrderChannel).forEach { (sortBy, sortOrder) ->
+            settingsRepo.sortBy.combineLatest(settingsRepo.sortOrder) { sortBy, sortOrder ->
                 setSort(sortBy, sortOrder)
             }
 
             view.searchText.debounce().forEach { onSearchTextChanged(it) }
 
-            val searchText = MultiChannel.conflated("")
-            view.searchActions.forEach { searchText.offer(view.searchText.value) }
+            val searchText = conflatedChannel("")
+            view.searchActions.forEach { searchText *= view.searchText.value }
 
-            searchText.subscribe().combineLatest(repo.currentPlatformFilter.subscribe()).forEach { (search, filter) ->
-                setSearchAndFilter(search, filter)
+            searchText.combineLatest(repo.currentPlatformFilter) { search, filter ->
+                searchAndFilter(search, filter)
             }
 
             eventBus.forEach<GameEvent> {
-                setSearchAndFilter(searchText.peek(), repo.currentPlatformFilter.peek())
+                searchAndFilter(searchText.value, repo.currentPlatformFilter.value)
             }
         }
 
@@ -108,7 +107,7 @@ class GamesPresenter @Inject constructor(
             view.searchSuggestions.setAll(suggestions)
         }
 
-        private fun setSearchAndFilter(query: String, filter: Filter) {
+        private fun searchAndFilter(query: String, filter: Filter) {
             val isEmpty = filter.isEmpty && query.isBlank()
             val matchingGameIds: Set<GameId> = if (!isEmpty) {
                 log.time("Filtering games...", { timeTaken, results -> "${results.size} results in $timeTaken" }, Logger::trace) {
@@ -126,7 +125,7 @@ class GamesPresenter @Inject constructor(
 
         private fun search(query: String): Sequence<Game> =
             gameSearchService.search(query).asSequence()
-                .filter { settingsRepo.platform.matches(it.platform) }
+                .filter { settingsRepo.platform.value.matches(it.platform) }
     }
 
     private companion object {

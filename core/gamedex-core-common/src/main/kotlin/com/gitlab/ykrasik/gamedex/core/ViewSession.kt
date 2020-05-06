@@ -20,13 +20,11 @@ import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.Modifier
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
-import kotlin.reflect.KProperty
 
 /**
  * User: ykrasik
@@ -38,7 +36,7 @@ interface Presenter<in V> {
 }
 
 abstract class ViewSession : CoroutineScope {
-    override val coroutineContext = Dispatchers.Main + Job()
+    override val coroutineContext = Dispatchers.Main.immediate + Job()
     private var _isShowing = false
     protected val isShowing get() = _isShowing
 
@@ -63,105 +61,99 @@ abstract class ViewSession : CoroutineScope {
         coroutineContext.cancel()
     }
 
-    operator fun <T> UserMutableState<T>.getValue(thisRef: Any, property: KProperty<*>) = value
-    operator fun <T> UserMutableState<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
-        this.value = value!!
-    }
-
-    operator fun <T> State<T>.getValue(thisRef: Any, property: KProperty<*>) = value
-    operator fun <T> State<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
-        this.value = value!!
-    }
-
-    fun <T> UserMutableState<T>.forEach(f: suspend (T) -> Unit) = changes.forEach(f)
-
-    operator fun <T> State<T>.timesAssign(value: T) {
-        this.value = value
-    }
-
-    inline fun <T> State<T>.modify(f: Modifier<T>) {
-        this.value = f(value)
-    }
-
-    infix fun State<IsValid>.and(other: State<IsValid>) = value and other.value
-
-    // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit): Job = launch {
+    inline fun <T> ReceiveChannel<T>.forEach(crossinline f: suspend (T) -> Unit): Job = launch {
         consumeEach {
             try {
                 f(it)
             } catch (e: Exception) {
-                // TODO: Delegate this to the view?
+                // FIXME: Handle this in a global error handler
                 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
             }
         }
     }
 
-    inline fun <T> ReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit): Job {
-        f(poll()!!)
-        return forEach { f(it) }
-    }
+    inline fun <T> MultiReadChannel<T>.forEach(crossinline f: suspend (T) -> Unit) = subscribe().forEach(f)
 
-    // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    fun <T> MultiReceiveChannel<T>.forEach(f: suspend (T) -> Unit) = subscribe().forEach(f)
-
-    inline fun <T> MultiReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) = subscribe().forEachImmediately(f)
-
-    fun <T> ListObservable<T>.bind(list: SettableList<T>) {
-        list.setAll(this)
-        changesChannel.forEach { event ->
-            when (event) {
-                is ListEvent.ItemAdded -> list += event.item
-                is ListEvent.ItemsAdded -> list += event.items
-                is ListEvent.ItemRemoved -> list.removeAt(event.index)
-                is ListEvent.ItemsRemoved -> list.removeAll(event.items)
-                is ListEvent.ItemSet -> list[event.index] = event.item
-                is ListEvent.ItemsSet -> list.setAll(event.items)
-                else -> Unit
+    inline fun <T> StatefulMultiReadChannel<T>.forEach(crossinline f: suspend (T) -> Unit) =
+        subscribe(coroutineContext, CoroutineStart.UNDISPATCHED) {
+            try {
+                f(it)
+            } catch (e: Exception) {
+                // FIXME: Handle this in a global error handler
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
             }
         }
-    }
 
-    fun <T> MultiChannel<T>.bind(userMutableState: UserMutableState<T>) {
-        forEachImmediately { userMutableState.value = it }
-        userMutableState.changes.forEach { offer(it) }
-    }
-
-    fun <T> MultiReceiveChannel<T>.bind(state: State<T>) =
-        forEachImmediately { state.value = it }
-
-    inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
-        on<E>(Dispatchers.Main) { event ->
-            handler(event)
+    inline fun <T> StatefulMultiReadChannel<T>.onChange(crossinline f: suspend (T) -> Unit) =
+        drop(1).distinctUntilChanged().subscribe(coroutineContext) {
+            try {
+                f(it)
+            } catch (e: Exception) {
+                // FIXME: Handle this in a global error handler
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
+            }
         }
 
-    inline fun <T> MultiReceiveChannel<T>.bindIsValid(state: State<IsValid>, crossinline reason: (value: T) -> String?) {
-        forEachImmediately { value ->
+    inline fun <T> StatefulChannel<T>.bind(channel: StatefulMultiReadChannel<T>, crossinline also: (T) -> Unit = {}) =
+        channel.distinctUntilChanged().subscribe(start = CoroutineStart.UNDISPATCHED) {
+            value = it
+            also(it)
+        }
+
+    fun <T> StatefulChannel<T>.bindBidirectional(channel: StatefulChannel<T>) {
+        this.bind(channel)
+        channel.bind(this.drop(1))
+    }
+
+    inline fun <T> StatefulChannel<IsValid>.bindIsValid(state: StatefulMultiReadChannel<T>, crossinline reason: (value: T) -> String?) {
+        state.forEach { value ->
             val reasonMessage = reason(value)
-            state *= Try {
+            this.value = Try {
                 check(reasonMessage == null) { reasonMessage!! }
             }
         }
     }
 
-    inline fun MultiReceiveChannel<Boolean>.enableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
+    inline fun StatefulChannel<IsValid>.enableWhenTrue(state: StatefulMultiReadChannel<Boolean>, crossinline reason: () -> String) =
         bindIsValid(state) {
             if (!it) reason() else null
         }
 
-    inline fun MultiReceiveChannel<Boolean>.disableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
+    inline fun StatefulChannel<IsValid>.disableWhenTrue(state: StatefulMultiReadChannel<Boolean>, crossinline reason: () -> String) =
         bindIsValid(state) {
             if (it) reason() else null
         }
 
-    fun <T> UserMutableState<T>.debounce(millis: Long = 200): ReceiveChannel<T> =
-        changes.subscribe().debounce(millis, scope = this@ViewSession)
+    infix fun StatefulChannel<IsValid>.and(other: StatefulChannel<IsValid>) = value and other.value
 
-    fun <V : Any> EventBus.requestHideView(view: V) = send(ViewEvent.RequestHide(view))
-
-    fun State<IsValid>.assert() {
+    fun StatefulChannel<IsValid>.assert() {
         value.get()
     }
+
+    fun <T> SettableList<T>.bind(list: ListObservable<T>) {
+        this.setAll(list)
+        list.changesChannel.forEach { event ->
+            when (event) {
+                is ListEvent.ItemAdded -> this += event.item
+                is ListEvent.ItemsAdded -> this += event.items
+                is ListEvent.ItemRemoved -> this.removeAt(event.index)
+                is ListEvent.ItemsRemoved -> this.removeAll(event.items)
+                is ListEvent.ItemSet -> this[event.index] = event.item
+                is ListEvent.ItemsSet -> this.setAll(event.items)
+                else -> Unit
+            }
+        }
+    }
+
+    fun <T> ViewMutableStatefulChannel<T>.debounce(millis: Long = 200): ReceiveChannel<T> =
+        subscribe().debounce(millis, scope = this@ViewSession)
+
+    inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
+        on<E>(coroutineContext) { event ->
+            handler(event)
+        }
+
+    fun <V : Any> EventBus.requestHideView(view: V) = send(ViewEvent.RequestHide(view))
 }
 
 //inline fun <reified V> EventBus.onShowViewRequested(crossinline handler: suspend () -> Unit) =

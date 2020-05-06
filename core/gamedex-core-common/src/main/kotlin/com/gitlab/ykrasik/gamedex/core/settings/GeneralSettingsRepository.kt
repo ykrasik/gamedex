@@ -17,8 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.util.modify
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,24 +48,10 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
         )
     }
 
-    val dataChannel: MultiReceiveChannel<Data> = storage.valueChannel
-    fun modify(f: Data.() -> Data) = storage.modify(f)
-
-    val prevDirectoryChannel = storage.biChannel(Data::prevDirectory) { copy(prevDirectory = it) }
-    var prevDirectory by prevDirectoryChannel
-
-    val exportDbDirectoryChannel = storage.biChannel(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
-    var exportDbDirectory by exportDbDirectoryChannel
-
-    val logFilterLevelChannel = storage.biChannel(Data::logFilterLevel) { copy(logFilterLevel = it) }
-    var logFilterLevel by logFilterLevelChannel
-
-    val logTailChannel = storage.biChannel(Data::logTail) { copy(logTail = it) }
-    var logTail by logTailChannel
-
-    val useInternalBrowserChannel = storage.biChannel(Data::useInternalBrowser) { copy(useInternalBrowser = it) }
-    var useInternalBrowser by useInternalBrowserChannel
-
-    val searchResultLimitChannel = storage.biChannel(Data::searchResultLimit) { copy(searchResultLimit = it) }
-    var searchResultLimit by searchResultLimitChannel
+    val prevDirectory = storage.biChannel(Data::prevDirectory) { copy(prevDirectory = it) }
+    val exportDbDirectory = storage.biChannel(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
+    val logFilterLevel = storage.biChannel(Data::logFilterLevel) { copy(logFilterLevel = it) }
+    val logTail = storage.biChannel(Data::logTail) { copy(logTail = it) }
+    val useInternalBrowser = storage.biChannel(Data::useInternalBrowser) { copy(useInternalBrowser = it) }
+    val searchResultLimit = storage.biChannel(Data::searchResultLimit) { copy(searchResultLimit = it) }
 }

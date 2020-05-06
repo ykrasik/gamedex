@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -27,14 +27,14 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 20:09
  */
 interface GameDetailsView {
-    val gameParams: UserMutableState<ViewGameParams>
-    val currentGameIndex: State<Int>
+    val gameParams: ViewMutableStatefulChannel<ViewGameParams>
+    val currentGameIndex: StatefulChannel<Int>
 
-    val canViewNextGame: State<IsValid>
-    val viewNextGameActions: MultiReceiveChannel<Unit>
+    val canViewNextGame: StatefulChannel<IsValid>
+    val viewNextGameActions: MultiReadChannel<Unit>
 
-    val canViewPrevGame: State<IsValid>
-    val viewPrevGameActions: MultiReceiveChannel<Unit>
+    val canViewPrevGame: StatefulChannel<IsValid>
+    val viewPrevGameActions: MultiReadChannel<Unit>
 
-    val hideViewActions: MultiReceiveChannel<Unit>
+    val hideViewActions: MultiReadChannel<Unit>
 }

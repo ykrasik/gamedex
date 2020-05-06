@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -40,19 +40,18 @@ class DuplicatesReportPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<DuplicatesView> {
     override fun present(view: DuplicatesView) = object : ViewSession() {
-        private val isDirtyChannel = MultiChannel.conflated(true)
-        private var isDirty by isDirtyChannel
+        private val isDirty = conflatedChannel(true)
 
         init {
-            eventBus.forEach<GameEvent> { isDirty = true }
+            eventBus.forEach<GameEvent> { isDirty *= true }
 
             view.searchText.debounce().forEach { onSearchTextChanged(it) }
             view.hideViewActions.forEach { hideView() }
 
-            isDirtyChannel.forEach { isDirty ->
+            isDirty.forEach { isDirty ->
                 if (isDirty && isShowing) {
                     detectDuplicates()
-                    this.isDirty = false
+                    this.isDirty *= false
                 }
             }
         }
@@ -63,8 +62,7 @@ class DuplicatesReportPresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            // Send the existing 'isDirty' value to the channel again, to cause the consumer to re-run
-            isDirty = isDirty
+            this.isDirty.resend()
         }
 
         private fun onSearchTextChanged(searchText: String) {

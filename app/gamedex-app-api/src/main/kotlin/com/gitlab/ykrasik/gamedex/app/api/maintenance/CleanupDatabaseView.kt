@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
@@ -31,7 +31,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 12:29
  */
 interface CleanupDatabaseView : ConfirmationView {
-    val staleData: UserMutableState<StaleData>
+    val staleData: ViewMutableStatefulChannel<StaleData>
 
     val librariesAndGames: StaleDataCategory
     val images: StaleDataCategory
@@ -51,6 +51,6 @@ data class StaleData(
 }
 
 interface StaleDataCategory {
-    val canDelete: State<IsValid>
-    val shouldDelete: UserMutableState<Boolean>
+    val canDelete: StatefulChannel<IsValid>
+    val shouldDelete: ViewMutableStatefulChannel<Boolean>
 }

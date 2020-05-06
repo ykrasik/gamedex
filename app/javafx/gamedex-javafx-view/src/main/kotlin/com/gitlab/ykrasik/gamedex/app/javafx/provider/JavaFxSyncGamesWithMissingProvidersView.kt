@@ -24,8 +24,8 @@ import com.gitlab.ykrasik.gamedex.javafx.control.jfx2SideToggleButton
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import tornadofx.borderpane
 import tornadofx.paddingAll
 import tornadofx.tooltip
@@ -38,10 +38,10 @@ import tornadofx.tooltip
 class JavaFxSyncGamesWithMissingProvidersView : ConfirmationWindow("Sync Games with Missing Providers", Icons.sync), SyncGamesWithMissingProvidersView {
     private val filterView = JavaFxFilterView()
 
-    override val bulkSyncGamesFilter = filterView.userMutableState
-    override val bulkSyncGamesFilterIsValid = userMutableState(filterView.filterIsValid)
+    override val bulkSyncGamesFilter = filterView.filter
+    override val bulkSyncGamesFilterIsValid = filterView.filterIsValid
 
-    override val syncOnlyMissingProviders = userMutableState(false)
+    override val syncOnlyMissingProviders = viewMutableStatefulChannel(false)
 
     init {
         register()

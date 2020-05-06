@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.filter.presenter
 
+import com.gitlab.ykrasik.gamedex.Genre
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
 import com.gitlab.ykrasik.gamedex.app.api.filter.find
@@ -26,7 +29,10 @@ import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.util.mapping
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -68,12 +74,12 @@ class FilterPresenter @Inject constructor(
             FilterBuilder.param(Filter::AvgScore) { 60.0 },
             FilterBuilder.param(Filter::MinScore) { 60.0 },
             FilterBuilder.param(Filter::MaxScore) { 60.0 },
-            FilterBuilder.param(Filter::TargetReleaseDate) { "2014-01-01".date },
+            FilterBuilder.param(Filter::TargetReleaseDate) { today - 3.years },
             FilterBuilder.param(Filter::PeriodReleaseDate) { 3.years },
             FilterBuilder.noParams(Filter::NullReleaseDate),
-            FilterBuilder.param(Filter::TargetCreateDate) { "2014-01-01".date },
+            FilterBuilder.param(Filter::TargetCreateDate) { today - 2.months },
             FilterBuilder.param(Filter::PeriodCreateDate) { 2.months },
-            FilterBuilder.param(Filter::TargetUpdateDate) { "2014-01-01".date },
+            FilterBuilder.param(Filter::TargetUpdateDate) { today - 2.months },
             FilterBuilder.param(Filter::PeriodUpdateDate) { 2.months },
             FilterBuilder.param(Filter::FileName) { ".*" },
             FilterBuilder.param(Filter::FileSize) { FileSize(1.gb) }
@@ -82,75 +88,70 @@ class FilterPresenter @Inject constructor(
         private val filters = filterBuilders.keys.toList()
 
         init {
-            genres.bind(view.availableGenres)
-            genres.changesChannel.forEach { setAvailableFilters() }
+            view.filter.mapTo(view.filterIsValid) { filter ->
+                Try {
+                    check(filter.isEmpty || filter.find(Filter.True::class) == null) { "Select a filter!" }
+                }
+            }
 
-            tags.bind(view.availableTags)
-            tags.changesChannel.forEach { setAvailableFilters() }
+            libraries.itemsChannel.combineLatest(providers.itemsChannel, genres.itemsChannel, tags.itemsChannel, filterTags.itemsChannel) { libraries, providers, genres, tags, filterTags ->
+                setAvailableFilters(libraries, providers, genres, tags, filterTags)
+            }
 
-            filterTags.bind(view.availableFilterTags)
-            filterTags.changesChannel.forEach { setAvailableFilters() }
+            view.availableProviderIds.bind(providers.mapping { it.id })
+            view.availableGenres.bind(genres)
+            view.availableTags.bind(tags)
+            view.availableFilterTags.bind(filterTags)
 
-            providers.mapping { it.id }.bind(view.availableProviderIds)
-            providers.changesChannel.forEach { setAvailableFilters() }
-
-            setState()
-            libraries.changesChannel.forEach { setState() }
-
-            view.setFilterActions.forEach { setFilter(it) }
             view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(listOf(it, Filter.True()))) }
             view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(listOf(it, Filter.True()))) }
             view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
             view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
-            view.clearFilterActions.forEach { replaceFilter(view.filter.value, Filter.Null) }
             view.updateFilterActions.subscribe().debounce(200).forEach { (filter, with) -> replaceFilter(filter, with) }
             view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
             view.deleteFilterActions.forEach { deleteFilter(it) }
         }
 
-        private fun setState() {
-            setAvailableLibraries()
-            setAvailableFilters()
-        }
+        private suspend fun setAvailableFilters(
+            libraries: List<Library>,
+            providers: List<GameProvider.Metadata>,
+            genres: List<Genre>,
+            tags: List<TagId>,
+            filterTags: List<TagId>
+        ) {
+            val allFilters = this.filters
+            withContext(Dispatchers.Main) {
+                if (libraries != view.availableLibraries) {
+                    view.availableLibraries.setAll(libraries)
+                }
 
-        private fun setAvailableLibraries() {
-            if (libraries != view.availableLibraries) {
-                view.availableLibraries.setAll(libraries)
-            }
-        }
+                val filters: List<KClass<out Filter.Rule>> = when {
+                    commonData.games.size <= 1 -> emptyList()
+                    else -> {
+                        val filters = allFilters.toMutableList()
+                        if (libraries.isEmpty()) {
+                            filters -= Filter.Library::class
+                        }
+                        if (genres.isEmpty()) {
+                            filters -= Filter.Genre::class
+                        }
+                        if (tags.isEmpty()) {
+                            filters -= Filter.Tag::class
+                        }
+                        if (filterTags.isEmpty()) {
+                            filters -= Filter.FilterTag::class
+                        }
+                        if (providers.isEmpty()) {
+                            filters -= Filter.Provider::class
+                        }
+                        filters
+                    }
+                }
 
-        private fun setAvailableFilters() {
-            val filters: List<KClass<out Filter.Rule>> = when {
-                commonData.games.size <= 1 -> emptyList()
-                else -> {
-                    val filters = this.filters.toMutableList()
-                    if (libraries.isEmpty()) {
-                        filters -= Filter.Library::class
-                    }
-                    if (genres.isEmpty()) {
-                        filters -= Filter.Genre::class
-                    }
-                    if (tags.isEmpty()) {
-                        filters -= Filter.Tag::class
-                    }
-                    if (filterTags.isEmpty()) {
-                        filters -= Filter.FilterTag::class
-                    }
-                    if (providers.isEmpty()) {
-                        filters -= Filter.Provider::class
-                    }
-                    filters
+                if (filters != view.availableFilters) {
+                    view.availableFilters.setAll(filters)
                 }
             }
-
-            if (filters != view.availableFilters) {
-                view.availableFilters.setAll(filters)
-            }
-        }
-
-        private fun setFilter(filter: Filter) {
-            view.filter *= filter
-            setIsValid()
         }
 
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
@@ -171,20 +172,9 @@ class FilterPresenter @Inject constructor(
             replaceFilter(filter, newFilter)
         }
 
-        private fun replaceFilter(filter: Filter, with: Filter) = modifyFilter { replace(filter, with) }
+        private fun replaceFilter(filter: Filter, with: Filter) = view.filter.modify { replace(filter, with) }
 
-        private fun deleteFilter(filter: Filter) = modifyFilter { delete(filter) ?: Filter.Null }
-
-        private inline fun modifyFilter(f: Modifier<Filter>) {
-            view.filter.modify(f)
-            setIsValid()
-        }
-
-        private fun setIsValid() {
-            view.filterIsValid *= Try {
-                check(view.filter.value.isEmpty || view.filter.value.find(Filter.True::class) == null) { "Please select a filter!" }
-            }
-        }
+        private fun deleteFilter(filter: Filter) = view.filter.modify { delete(filter) ?: Filter.Null }
 
         private fun Filter.replace(target: Filter, with: Filter): Filter {
             fun doReplace(current: Filter): Filter = when {

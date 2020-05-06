@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulMultiReadChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
@@ -64,8 +64,8 @@ interface CommonData {
     val platformsWithLibraries: ListObservable<Platform>
     val platformsWithEnabledProviders: ListObservable<Platform>
 
-    val isGameSyncRunning: MultiReceiveChannel<Boolean>
-    val canSyncOrUpdateGames: MultiReceiveChannel<IsValid>
+    val isGameSyncRunning: StatefulMultiReadChannel<Boolean>
+    val canSyncOrUpdateGames: StatefulMultiReadChannel<IsValid>
 }
 
 @Singleton
@@ -80,7 +80,7 @@ class CommonDataImpl @Inject constructor(
     override val games = gameService.games
     // The platform doesn't change often, so an unoptimized filter is acceptable here.
     override val platformGames =
-        games.filtering(settingsRepo.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+        games.filtering(settingsRepo.platform.subscribe().map(Dispatchers.Default) { platform ->
             { game: Game -> platform.matches(game.platform) }
         })
 
@@ -99,13 +99,13 @@ class CommonDataImpl @Inject constructor(
     override val libraries = libraryService.libraries
     override val contentLibraries = libraries.filtering { it.type != LibraryType.Excluded }
     override val platformLibraries =
-        contentLibraries.filtering(settingsRepo.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+        contentLibraries.filtering(settingsRepo.platform.subscribe().map(Dispatchers.Default) { platform ->
             { library: Library -> platform.matches(library.platform) }
         })
 
     override val allProviders = ListObservableImpl(gameProviderService.allProviders)
     override val platformProviders =
-        allProviders.filtering(settingsRepo.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+        allProviders.filtering(settingsRepo.platform.subscribe().map(Dispatchers.Default) { platform ->
             { provider: GameProvider.Metadata ->
                 when (platform) {
                     is AvailablePlatform.All -> true
@@ -119,17 +119,13 @@ class CommonDataImpl @Inject constructor(
     override val platformsWithEnabledProviders = enabledProviders.flatMapping { provider -> provider.supportedPlatforms }.distincting()
 
     override val isGameSyncRunning = syncGameService.isGameSyncRunning
-    override val canSyncOrUpdateGames: MultiReceiveChannel<IsValid> = contentLibraries.itemsChannel
-        .combineLatest(platformsWithEnabledProviders.itemsChannel)
-        .combineLatest(isGameSyncRunning)
-        .map {
-            val (libraries, platformsWithEnabledProviders) = it.first
-            val isGameSyncRunning = it.second
+    override val canSyncOrUpdateGames: StatefulMultiReadChannel<IsValid> =
+        contentLibraries.itemsChannel.combineLatest(platformsWithEnabledProviders.itemsChannel, isGameSyncRunning) { libraries, platformsWithEnabledProviders, isGameSyncRunning ->
             Try {
                 check(!isGameSyncRunning) { "Game sync in progress!" }
                 check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
-                check(platformsWithEnabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
-                check(libraries.any { it.platform in platformsWithEnabledProviders }) { "Please enable a provider that supports your platform!" }
+                check(platformsWithEnabledProviders.isNotEmpty()) { "Enable at least 1 provider!" }
+                check(libraries.any { it.platform in platformsWithEnabledProviders }) { "Enable a provider that supports your platform!" }
             }
         }
 }

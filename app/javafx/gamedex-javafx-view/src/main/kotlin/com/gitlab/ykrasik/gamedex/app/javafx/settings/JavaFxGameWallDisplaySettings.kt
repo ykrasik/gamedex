@@ -19,8 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.api.settings.GameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
 import com.gitlab.ykrasik.gamedex.app.api.settings.MutableGameWallDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
-import tornadofx.onChange
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -28,14 +27,14 @@ import tornadofx.onChange
  * Time: 12:08
  */
 class JavaFxGameWallDisplaySettings : MutableGameWallDisplaySettings, GameWallDisplaySettings {
-    override val imageDisplayType = userMutableState(ImageDisplayType.Fixed)
-    override val showBorder = userMutableState(false)
-    override val width = userMutableState(0.0)
-    override val height = userMutableState(0.0)
-    override val horizontalSpacing = userMutableState(0.0)
-    override val verticalSpacing = userMutableState(0.0)
+    override val imageDisplayType = viewMutableStatefulChannel(ImageDisplayType.Fixed)
+    override val showBorder = viewMutableStatefulChannel(false)
+    override val width = viewMutableStatefulChannel(1.0)
+    override val height = viewMutableStatefulChannel(1.0)
+    override val horizontalSpacing = viewMutableStatefulChannel(0.0)
+    override val verticalSpacing = viewMutableStatefulChannel(0.0)
 
     inline fun onChange(crossinline f: () -> Unit) = listOf(
-        imageDisplayType.property, showBorder.property, width.property, height.property, horizontalSpacing.property, verticalSpacing.property
+        imageDisplayType, showBorder, width, height, horizontalSpacing, verticalSpacing
     ).forEach { it.onChange { f() } }
 }

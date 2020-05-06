@@ -25,18 +25,15 @@ import com.gitlab.ykrasik.gamedex.core.log.LogServiceImpl
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.StorageObservableImpl
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
-import com.gitlab.ykrasik.gamedex.core.util.ValueObservableImpl
-import com.gitlab.ykrasik.gamedex.core.util.modify
 import com.gitlab.ykrasik.gamedex.core.version.ApplicationVersion
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.time.measureTimedValue
 
 /**
@@ -51,14 +48,12 @@ class PreloaderImpl : Preloader {
         val (injector, timeTaken) = measureTimedValue {
             val logService = LogServiceImpl()
 
-            withContext(Dispatchers.Main) {
-                view.version.value = ApplicationVersion
-                view.progress.value = 0.0
-                view.message.value = "Loading..."
-            }
+            view.version.value = ApplicationVersion
+            view.progress.value = 0.0
+            view.message.value = "Loading..."
 
             // While loading, display all log messages in the task
-            val subscription = logService.entries.itemsChannel.subscribe(Dispatchers.Main) {
+            val subscription = logService.entries.itemsChannel.subscribe {
                 it.lastOrNull()?.let {
                     if (it.level.canLog(LogLevel.Info)) {
                         view.message.value = it.message
@@ -67,15 +62,15 @@ class PreloaderImpl : Preloader {
             }
 
             val preloaderData = StorageObservableImpl(
-                valueObservable = ValueObservableImpl(),
+                channel = conflatedChannel(),
                 storage = StringIdJsonStorageFactory(basePath = "data"),
                 key = "preloader"
             ) {
                 PreloaderData(numClassesToInit = 133)
             }
 
-            val progressChannel = conflatedChannel(0.0)
-            launch(Dispatchers.Main) {
+            val progressChannel = Channel<Double>(Channel.CONFLATED).apply { offer(0.0) }
+            launch {
                 progressChannel.consumeEach {
                     view.progress.value = it
                 }
@@ -103,12 +98,14 @@ class PreloaderImpl : Preloader {
             subscription.cancel()
 
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-            preloaderData.modify { copy(numClassesToInit = numClassesToInit) }
-            preloaderData.close()
-
-            withContext(Dispatchers.Main) {
-                view.message.value = "Done loading."
+            preloaderData *= PreloaderData(numClassesToInit)
+            GlobalScope.launch {
+                // Delay with enough time for the consumers of this channel to consume the message and write it to a file, then close.
+                delay(1000)
+                preloaderData.close()
             }
+
+            view.message.value = "Done loading."
 
             injector
         }

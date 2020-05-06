@@ -19,8 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.app.api.settings.MutableOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
-import tornadofx.onChange
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -28,19 +27,18 @@ import tornadofx.onChange
  * Time: 14:29
  */
 class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings, OverlayDisplaySettings {
-    override val enabled = userMutableState(false)
-    override val showOnlyWhenActive = userMutableState(false)
-    override val position = userMutableState(DisplayPosition.Center)
-    override val fillWidth = userMutableState(false)
-    override val fontSize = userMutableState(0)
-    override val boldFont = userMutableState(false)
-    override val italicFont = userMutableState(false)
-    override val textColor = userMutableState("#000000")
-    override val backgroundColor = userMutableState("#000000")
-    override val opacity = userMutableState(0.0)
+    override val enabled = viewMutableStatefulChannel(false)
+    override val showOnlyWhenActive = viewMutableStatefulChannel(false)
+    override val position = viewMutableStatefulChannel(DisplayPosition.Center)
+    override val fillWidth = viewMutableStatefulChannel(false)
+    override val fontSize = viewMutableStatefulChannel(1)
+    override val boldFont = viewMutableStatefulChannel(false)
+    override val italicFont = viewMutableStatefulChannel(false)
+    override val textColor = viewMutableStatefulChannel("#000000")
+    override val backgroundColor = viewMutableStatefulChannel("#000000")
+    override val opacity = viewMutableStatefulChannel(0.0)
 
     inline fun onChange(crossinline f: () -> Unit) = listOf(
-        enabled.property, showOnlyWhenActive.property, position.property, fillWidth.property, fontSize.property, boldFont.property,
-        italicFont.property, textColor.property, backgroundColor.property, opacity.property
+        enabled, showOnlyWhenActive, position, fillWidth, fontSize, boldFont, italicFont, textColor, backgroundColor, opacity
     ).forEach { it.onChange { f() } }
 }

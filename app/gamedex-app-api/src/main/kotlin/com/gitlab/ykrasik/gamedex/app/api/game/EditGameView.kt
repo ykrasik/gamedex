@@ -20,9 +20,9 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import java.io.File
@@ -33,7 +33,7 @@ import java.io.File
  * Time: 08:08
  */
 interface EditGameView : ConfirmationView {
-    val game: UserMutableState<Game>
+    val game: ViewMutableStatefulChannel<Game>
 
     val nameOverride: GameDataOverrideState<String>
     val descriptionOverride: GameDataOverrideState<String>
@@ -43,28 +43,28 @@ interface EditGameView : ConfirmationView {
     val thumbnailUrlOverride: GameDataOverrideState<String>
     val posterUrlOverride: GameDataOverrideState<String>
 
-    val absoluteMainExecutablePath: UserMutableState<String>
-    val absoluteMainExecutablePathIsValid: State<IsValid>
+    val absoluteMainExecutablePath: ViewMutableStatefulChannel<String>
+    val absoluteMainExecutablePathIsValid: StatefulChannel<IsValid>
 
-    val browseMainExecutableActions: MultiReceiveChannel<Unit>
+    val browseMainExecutableActions: MultiReadChannel<Unit>
     fun browse(initialDirectory: File?): File?
 
-    val resetAllToDefaultActions: MultiReceiveChannel<Unit>
+    val resetAllToDefaultActions: MultiReadChannel<Unit>
 }
 
 interface GameDataOverrideState<T> {
     val type: GameDataType
-    val customValue: State<T?>
-    val providerValues: State<Map<ProviderId, T>>
-    val selection: UserMutableState<OverrideSelectionType?>
+    val customValue: StatefulChannel<T?>
+    val providerValues: StatefulChannel<Map<ProviderId, T>>
+    val selection: ViewMutableStatefulChannel<OverrideSelectionType?>
 
-    val canSelectCustomOverride: State<IsValid>
-    val rawCustomValue: UserMutableState<String>
-    val isCustomValueValid: State<IsValid>
-    val customValueAcceptActions: MultiReceiveChannel<Unit>
-    val customValueRejectActions: MultiReceiveChannel<Unit>
+    val canSelectCustomOverride: StatefulChannel<IsValid>
+    val rawCustomValue: ViewMutableStatefulChannel<String>
+    val isCustomValueValid: StatefulChannel<IsValid>
+    val customValueAcceptActions: MultiReadChannel<Unit>
+    val customValueRejectActions: MultiReadChannel<Unit>
 
-    val resetToDefaultActions: MultiReceiveChannel<Unit>
+    val resetToDefaultActions: MultiReadChannel<Unit>
 }
 
 sealed class OverrideSelectionType {

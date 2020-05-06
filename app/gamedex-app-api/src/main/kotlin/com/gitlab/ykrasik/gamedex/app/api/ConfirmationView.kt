@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:37
  */
 interface ConfirmationView {
-    val canAccept: State<IsValid>
-    val acceptActions: MultiReceiveChannel<Unit>
-    val cancelActions: MultiReceiveChannel<Unit>
+    val canAccept: StatefulChannel<IsValid>
+    val acceptActions: MultiReadChannel<Unit>
+    val cancelActions: MultiReadChannel<Unit>
 }

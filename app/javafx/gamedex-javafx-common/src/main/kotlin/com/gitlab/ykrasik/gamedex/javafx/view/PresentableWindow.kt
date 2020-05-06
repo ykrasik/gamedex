@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.cancelButton
@@ -44,7 +44,7 @@ import tornadofx.*
  * Time: 20:50
  */
 abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : PresentableView(title, icon), ConfirmationView {
-    override val canAccept = state(IsValid.valid)
+    override val canAccept = statefulChannel(IsValid.valid)
     override val acceptActions = channel<Unit>()
     override val cancelActions = channel<Unit>()
 

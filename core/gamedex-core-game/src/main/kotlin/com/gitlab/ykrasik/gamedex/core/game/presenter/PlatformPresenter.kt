@@ -44,11 +44,10 @@ class PlatformPresenter @Inject constructor(
 
                 if (availablePlatforms.size == 1) {
                     val platform = availablePlatforms.first()
-                    view.currentPlatform *= platform
-                    settingsRepo.platform = platform
+                    settingsRepo.platform *= platform
                 }
             }
-            settingsRepo.platformChannel.bind(view.currentPlatform)
+            view.currentPlatform.bindBidirectional(settingsRepo.platform)
         }
     }
 }

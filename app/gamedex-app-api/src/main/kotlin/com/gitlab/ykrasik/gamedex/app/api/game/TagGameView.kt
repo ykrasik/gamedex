@@ -18,10 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -30,17 +30,17 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 18:10
  */
 interface TagGameView : ConfirmationView {
-    val game: UserMutableState<Game>
+    val game: ViewMutableStatefulChannel<Game>
 
     val tags: SettableList<String>
     val checkedTags: MutableSet<String>
 
-    val toggleAll: UserMutableState<Boolean>
+    val toggleAll: ViewMutableStatefulChannel<Boolean>
 
-    val checkTagChanges: MultiReceiveChannel<Pair<String, Boolean>>
+    val checkTagChanges: MultiReadChannel<Pair<String, Boolean>>
 
-    val newTagName: UserMutableState<String>
-    val newTagNameIsValid: State<IsValid>
+    val newTagName: ViewMutableStatefulChannel<String>
+    val newTagNameIsValid: StatefulChannel<IsValid>
 
-    val addNewTagActions: MultiReceiveChannel<Unit>
+    val addNewTagActions: MultiReadChannel<Unit>
 }

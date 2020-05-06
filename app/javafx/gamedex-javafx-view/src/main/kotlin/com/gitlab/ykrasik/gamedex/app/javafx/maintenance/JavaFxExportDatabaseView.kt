@@ -23,11 +23,11 @@ import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.*
 import java.io.File
@@ -41,12 +41,12 @@ import java.io.File
 // FIXME: Since we call browse onShow which in turn calls onAccept, any views that come after ExportDatabaseView
 // FIXME: Will not have their onShow called.
 class JavaFxExportDatabaseView : ConfirmationWindow("Export Database", Icons.export), ViewCanOpenFile, ExportDatabaseView {
-    override val exportDatabaseDirectory = userMutableState("")
-    override val exportDatabaseFolderIsValid = state(IsValid.valid)
+    override val exportDatabaseDirectory = viewMutableStatefulChannel("")
+    override val exportDatabaseFolderIsValid = statefulChannel(IsValid.valid)
 
-    override val shouldExportLibrary = userMutableState(false)
-    override val shouldExportProviderAccounts = userMutableState(false)
-    override val shouldExportFilters = userMutableState(false)
+    override val shouldExportLibrary = viewMutableStatefulChannel(false)
+    override val shouldExportProviderAccounts = viewMutableStatefulChannel(false)
+    override val shouldExportFilters = viewMutableStatefulChannel(false)
 
     override val browseActions = channel<Unit>()
 

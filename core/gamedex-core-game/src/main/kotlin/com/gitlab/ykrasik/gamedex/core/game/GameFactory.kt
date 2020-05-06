@@ -73,14 +73,15 @@ class GameFactory @Inject constructor(
         val criticScoreOrder = providerData.sortedByDescending { it.gameData.criticScore?.numReviews ?: -1 }.map { it.providerId }
         val userScoreOrder = providerData.sortedByDescending { it.gameData.userScore?.numReviews ?: -1 }.map { it.providerId }
 
-        val thumbnailUrl = firstBy(providerOrderSettingsRepo.thumbnail, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
-        val posterUrl = firstBy(providerOrderSettingsRepo.poster, userData.posterOverride()) { it.gameData.posterUrl }
-        val screenshotUrls = listBy(providerOrderSettingsRepo.screenshot, userData.screenshotsOverride()) { it.gameData.screenshotUrls }.take(gameSettingsRepository.maxScreenshots)
+        val thumbnailUrl = firstBy(providerOrderSettingsRepo.thumbnail.value, userData.thumbnailOverride()) { it.gameData.thumbnailUrl }
+        val posterUrl = firstBy(providerOrderSettingsRepo.poster.value, userData.posterOverride()) { it.gameData.posterUrl }
+        val screenshotUrls = listBy(providerOrderSettingsRepo.screenshot.value, userData.screenshotsOverride()) { it.gameData.screenshotUrls }
+            .take(gameSettingsRepository.maxScreenshots.value)
 
         return GameData(
-            name = firstBy(providerOrderSettingsRepo.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
-            description = firstBy(providerOrderSettingsRepo.description, userData.descriptionOverride()) { it.gameData.description },
-            releaseDate = firstBy(providerOrderSettingsRepo.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
+            name = firstBy(providerOrderSettingsRepo.name.value, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
+            description = firstBy(providerOrderSettingsRepo.description.value, userData.descriptionOverride()) { it.gameData.description },
+            releaseDate = firstBy(providerOrderSettingsRepo.releaseDate.value, userData.releaseDateOverride()) { it.gameData.releaseDate },
             criticScore = firstBy(criticScoreOrder, userData.criticScoreOverride(), converter = ::asCustomScore) {
                 it.gameData.criticScore.minOrNull()
             },

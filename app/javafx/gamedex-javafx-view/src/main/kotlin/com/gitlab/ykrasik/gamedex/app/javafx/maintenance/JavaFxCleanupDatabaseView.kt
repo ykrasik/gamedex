@@ -21,12 +21,12 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleDataCategory
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.mapToList
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.color
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -41,7 +41,7 @@ import tornadofx.*
  * Time: 09:57
  */
 class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.databaseCleanup), CleanupDatabaseView {
-    override val staleData = userMutableState(StaleData(emptyList(), emptyList(), emptyMap(), emptyMap()))
+    override val staleData = viewMutableStatefulChannel(StaleData(emptyList(), emptyList(), emptyMap(), emptyMap()))
 
     override val librariesAndGames = JavaFxStaleDataCategory()
     override val images = JavaFxStaleDataCategory()
@@ -101,7 +101,7 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
         }
 
     class JavaFxStaleDataCategory : StaleDataCategory {
-        override val canDelete = state(IsValid.valid)
-        override val shouldDelete = userMutableState(false)
+        override val canDelete = statefulChannel(IsValid.valid)
+        override val shouldDelete = viewMutableStatefulChannel(false)
     }
 }

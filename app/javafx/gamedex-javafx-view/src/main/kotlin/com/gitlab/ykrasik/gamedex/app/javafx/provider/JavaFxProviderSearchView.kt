@@ -45,30 +45,30 @@ import tornadofx.*
 class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val state = state(GameSearchState.Null)
+    override val state = statefulChannel(GameSearchState.Null)
     private val currentProviderId = state.property.stringBinding { it!!.currentProvider ?: "" }
 
-    override val query = userMutableState("")
+    override val query = viewMutableStatefulChannel("")
     override val searchResults = settableList<GameProvider.SearchResult>()
 
-    override val selectedSearchResult = userMutableState<GameProvider.SearchResult?>(null)
+    override val selectedSearchResult = viewMutableStatefulChannel<GameProvider.SearchResult?>(null)
     override val fetchSearchResultActions = channel<GameProvider.SearchResult>()
 
-    override val canChangeState = state(IsValid.valid)
-    override val canSearchCurrentQuery = state(IsValid.valid)
-    override val canAcceptSearchResult = state(IsValid.valid)
-    override val canExcludeSearchResult = state(IsValid.valid)
+    override val canChangeState = statefulChannel(IsValid.valid)
+    override val canSearchCurrentQuery = statefulChannel(IsValid.valid)
+    override val canAcceptSearchResult = statefulChannel(IsValid.valid)
+    override val canExcludeSearchResult = statefulChannel(IsValid.valid)
 
-    override val canToggleFilterPreviouslyDiscardedResults = state(IsValid.valid)
-    override val isFilterPreviouslyDiscardedResults = userMutableState(false)
+//    override val canToggleFilterPreviouslyDiscardedResults = statefulChannel(IsValid.valid)
+//    override val isFilterPreviouslyDiscardedResults = viewMutableStatefulChannel(false)
 
-    override val isAllowSmartChooseResults = state(false)
-    override val canSmartChooseResult = state(false)
+    override val isAllowSmartChooseResults = statefulChannel(false)
+    override val canSmartChooseResult = statefulChannel(false)
 
     override val choiceActions = channel<GameSearchState.ProviderSearch.Choice>()
     override val changeProviderActions = channel<ProviderId>()
 
-    override val canShowMoreResults = state(IsValid.valid)
+    override val canShowMoreResults = statefulChannel(IsValid.valid)
     override val showMoreResultsActions = channel<Unit>()
 
     private val resultsView = prettyListView(searchResults) {
@@ -113,8 +113,8 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
             }
         }
 
-        selectionModel.selectedItemProperty().onChange {
-            selectedSearchResult.valueFromView = it
+        selectionModel.selectedItemProperty().typeSafeOnChange {
+            selectedSearchResult.value = it
         }
     }
 
@@ -275,16 +275,16 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                     }
                 }
 
-                jfxButton {
-                    showWhen { canToggleFilterPreviouslyDiscardedResults.property.booleanBinding { it!!.isSuccess } }
-                    graphicProperty().bind(isFilterPreviouslyDiscardedResults.property.binding { if (it) Icons.expand else Icons.collapse })
-                    tooltip {
-                        textProperty().bind(isFilterPreviouslyDiscardedResults.property.stringBinding { "${if (it!!) "Show" else "Hide"} previously discarded search results" })
-                    }
-                    setOnAction {
-                        isFilterPreviouslyDiscardedResults.valueFromView = !isFilterPreviouslyDiscardedResults.valueFromView
-                    }
-                }
+//                jfxButton {
+//                    showWhen { canToggleFilterPreviouslyDiscardedResults.property.booleanBinding { it!!.isSuccess } }
+//                    graphicProperty().bind(isFilterPreviouslyDiscardedResults.property.binding { if (it) Icons.expand else Icons.collapse })
+//                    tooltip {
+//                        textProperty().bind(isFilterPreviouslyDiscardedResults.property.stringBinding { "${if (it!!) "Show" else "Hide"} previously discarded search results" })
+//                    }
+//                    action {
+//                        isFilterPreviouslyDiscardedResults.value = !isFilterPreviouslyDiscardedResults.value
+//                    }
+//                }
                 header(searchResults.sizeProperty.stringBinding { "Results: $it" })
             }
         }

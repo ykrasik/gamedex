@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffFilterMode
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -42,21 +42,35 @@ class FolderNameDiffReportPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<FolderNameDiffView> {
     override fun present(view: FolderNameDiffView) = object : ViewSession() {
-        private val isDirtyChannel = MultiChannel.conflated(true)
-        private var isDirty by isDirtyChannel
+        private val isDirty = conflatedChannel(true)
 
         init {
-            eventBus.forEach<GameEvent> { isDirty = true }
-
-            view.searchText.debounce().forEach { onSearchTextChanged(it) }
+            eventBus.forEach<GameEvent> { isDirty *= true }
             view.hideViewActions.forEach { hideView() }
 
-            view.filterMode.forEach { onFilterModeChanged(it) }
+            view.searchText.debounce().forEach { searchText ->
+                if (searchText.isNotBlank()) {
+                    view.matchingGame *= view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+                }
+            }
 
-            isDirtyChannel.forEach { isDirty ->
+            view.filterMode.mapTo(view.predicate) { filterMode ->
+                when (filterMode) {
+                    FolderNameDiffFilterMode.None -> Predicate { true }
+                    FolderNameDiffFilterMode.IgnoreIfSingleMatch -> Predicate { diff ->
+                        diff.diffs.none { it.patch == null }
+                    }
+                    FolderNameDiffFilterMode.IgnoreIfMajorityMatch -> Predicate { diff ->
+                        val matches = diff.diffs.count { it.patch == null }
+                        matches.toDouble() / diff.diffs.size < 0.5
+                    }
+                }
+            }
+
+            isDirty.forEach { isDirty ->
                 if (isDirty && isShowing) {
                     detectFolderNameDiffs()
-                    this.isDirty = false
+                    this.isDirty *= false
                 }
             }
         }
@@ -68,31 +82,12 @@ class FolderNameDiffReportPresenter @Inject constructor(
 
         override suspend fun onShown() {
             // Send the existing 'isDirty' value to the channel again, to cause the consumer to re-run
-            isDirty = isDirty
-        }
-
-        private fun onSearchTextChanged(searchText: String) {
-            if (searchText.isNotBlank()) {
-                view.matchingGame *= view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
-            }
+            isDirty.resend()
         }
 
         // TODO: Do I need the better search capabilities of searchService?
         private fun Game.matchesSearchQuery(query: String) =
             query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
-
-        private fun onFilterModeChanged(filterMode: FolderNameDiffFilterMode) {
-            view.predicate *= when (filterMode) {
-                FolderNameDiffFilterMode.None -> Predicate { true }
-                FolderNameDiffFilterMode.IgnoreIfSingleMatch -> Predicate { diff ->
-                    diff.diffs.none { it.patch == null }
-                }
-                FolderNameDiffFilterMode.IgnoreIfMajorityMatch -> Predicate { diff ->
-                    val matches = diff.diffs.count { it.patch == null }
-                    matches.toDouble() / diff.diffs.size < 0.5
-                }
-            }
-        }
 
         private fun hideView() = eventBus.requestHideView(view)
     }

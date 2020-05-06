@@ -49,7 +49,7 @@ class BrowseUrlPresenter @Inject constructor(
     override fun present(view: ViewCanBrowseUrl) = object : ViewSession() {
         init {
             view.browseUrlActions.forEach {
-                if (settingsRepo.useInternalBrowser) {
+                if (settingsRepo.useInternalBrowser.value) {
                     viewManager.showBrowserView(it)
                 } else {
                     launch(Dispatchers.IO) {

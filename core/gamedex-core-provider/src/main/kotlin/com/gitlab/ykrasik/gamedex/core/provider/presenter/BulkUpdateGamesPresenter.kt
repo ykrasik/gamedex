@@ -40,19 +40,14 @@ class BulkUpdateGamesPresenter @Inject constructor(
 ) : Presenter<BulkUpdateGamesView> {
     override fun present(view: BulkUpdateGamesView) = object : ViewSession() {
         init {
-//            view.bulkUpdateGamesFilter.forEach { setCanAccept() }
-            view.bulkUpdateGamesFilterIsValid.forEach { setCanAccept() }
+            view.bulkUpdateGamesFilter.bind(repo.bulkUpdateGamesFilter)
+            view.canAccept.bind(view.bulkUpdateGamesFilterIsValid)
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShown() {
-            view.bulkUpdateGamesFilter *= repo.bulkUpdateGamesFilter.peek()
-            setCanAccept()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= view.bulkUpdateGamesFilterIsValid.value
+            repo.bulkUpdateGamesFilter.resend()
         }
 
         private suspend fun onAccept() {

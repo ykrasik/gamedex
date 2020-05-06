@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
  * Time: 10:42
  */
 interface DeleteGameView : ConfirmationView, ViewCanDisplayError {
-    val game: UserMutableState<Game>
+    val game: ViewMutableStatefulChannel<Game>
 
-    val fromFileSystem: UserMutableState<Boolean>
+    val fromFileSystem: ViewMutableStatefulChannel<Boolean>
 }

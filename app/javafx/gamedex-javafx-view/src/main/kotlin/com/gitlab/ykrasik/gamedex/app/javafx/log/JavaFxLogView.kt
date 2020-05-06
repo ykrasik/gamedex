@@ -24,8 +24,8 @@ import com.gitlab.ykrasik.gamedex.javafx.settableSortedFilteredList
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.jfoenix.controls.JFXListCell
 import javafx.scene.layout.Region
 import tornadofx.*
@@ -43,8 +43,8 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
     ViewCanChangeLogTail {
     override val entries = settableSortedFilteredList<LogEntry>()
 
-    override var level = userMutableState(LogLevel.Info)
-    override var logTail = userMutableState(false)
+    override var level = viewMutableStatefulChannel(LogLevel.Info)
+    override var logTail = viewMutableStatefulChannel(false)
 
     init {
         entries.predicate = { entry -> entry.level.canLog(level.value) }

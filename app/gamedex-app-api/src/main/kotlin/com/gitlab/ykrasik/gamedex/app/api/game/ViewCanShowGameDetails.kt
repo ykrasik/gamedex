@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 
 /**
  * User: ykrasik
@@ -25,11 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 09:39
  */
 interface ViewCanShowGameDetails {
-    val viewGameDetailsActions: MultiReceiveChannel<ViewGameParams>
+    val viewGameDetailsActions: MultiReadChannel<ViewGameParams>
 }
 
-data class ViewGameParams(val game: Game, val games: List<Game>) {
-    companion object {
-        val Null = ViewGameParams(Game.Null, emptyList())
-    }
-}
+data class ViewGameParams(val game: Game, val games: List<Game>)

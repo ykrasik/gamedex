@@ -42,39 +42,34 @@ class GameDetailsPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : ViewSession() {
-        private var currentIndex by view.currentGameIndex
-        private var gameParams by view.gameParams
-
         init {
-            currentIndex = -1
-            view.gameParams *= ViewGameParams.Null
-            view.gameParams.forEach { onParamsChanged(it) }
+            view.gameParams.forEach { (game, allGames) ->
+                view.currentGameIndex *= allGames.indexOfFirst { it.id == game.id }
+            }
+            view.currentGameIndex.forEach { currentGameIndex ->
+                view.canViewNextGame *= Try { check(currentGameIndex + 1 < view.gameParams.value.games.size) { "No more games!" } }
+                view.canViewPrevGame *= Try { check(currentGameIndex - 1 >= 0) { "No more games!" } }
+            }
+
             view.viewNextGameActions.subscribe().debounce(100).forEach { onViewNextGame() }
             view.viewPrevGameActions.subscribe().debounce(100).forEach { onViewPrevGame() }
             view.hideViewActions.forEach { hideView() }
 
             eventBus.forEach<GameEvent.Updated> { e ->
                 if (!isShowing) return@forEach
-                val game = gameParams.game
+
+                val (game, allGames) = view.gameParams.value
                 val updatedGame = e.games.findTransform({ it.second }) { it.id == game.id } ?: return@forEach
-                gameParams = ViewGameParams(
-                    game = updatedGame,
-                    games = gameParams.games.replaceWhere(updatedGame) { it.id == game.id }
-                )
-                onParamsChanged(gameParams)
+                view.gameParams *= ViewGameParams(updatedGame, allGames.replaceWhere(updatedGame) { it.id == game.id })
             }
             eventBus.forEach<GameEvent.Deleted> { e ->
                 if (!isShowing) return@forEach
-                val game = gameParams.game
+
+                val game = view.gameParams.value.game
                 if (e.games.any { it.id == game.id }) {
                     hideView()
                 }
             }
-        }
-
-        private fun onParamsChanged(params: ViewGameParams) {
-            currentIndex = params.games.indexOfFirst { it.id == params.game.id }
-            setCanNavigate()
         }
 
         private fun onViewNextGame() {
@@ -88,23 +83,20 @@ class GameDetailsPresenter @Inject constructor(
         }
 
         private fun navigate(offset: Int) {
-            currentIndex += offset
-            gameParams = gameParams.copy(game = gameParams.games[currentIndex])
-            setCanNavigate()
-        }
-
-        private fun setCanNavigate() {
-            view.canViewNextGame *= Try { check(currentIndex + 1 < gameParams.games.size) { "No more games!" } }
-            view.canViewPrevGame *= Try { check(currentIndex - 1 >= 0) { "No more games!" } }
+            view.currentGameIndex.value += offset
+            view.gameParams.modify { copy(game = games[view.currentGameIndex.value]) }
         }
 
         override suspend fun onShown() {
             // This is a workaround to cover the case where the game is re-synced.
-            // Re-syncing will hide this view (which will make it not update the gameParams on GameEvent.Updated)
+            // Re-syncing will hide this view (which will make it not update the game on GameEvent.Updated)
             // this view will then be re-opened again after syncing, but will show the old game, unless we run this code.
-            if (gameParams.game.id != Game.Null.id) {
-                val game = gameService[gameParams.game.id]
-                gameParams = gameParams.copy(game = game)
+            val game = view.gameParams.value.game
+            if (game.id != Game.Null.id) {
+                val upToDateGame = gameService[game.id]
+                if (game != upToDateGame) {
+                    view.gameParams.modify { copy(game = upToDateGame) }
+                }
             }
         }
 

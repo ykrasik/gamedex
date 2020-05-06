@@ -52,7 +52,11 @@ class SyncGamesPresenter @Inject constructor(
             // TODO: Consider launching a job here that can be cancelled.
             eventBus.forEach<SyncGamesEvent.RequestSync> { onSyncGamesRequested(it.requests, it.isAllowSmartChooseResults) }
             eventBus.forEach<GameSearchEvent.Updated> { onGameSearchStateUpdated(it.state) }
-            view.currentState.forEach { onCurrentStateChanged(it) }
+            view.currentState.forEach { currentState ->
+                if (currentState != null) {
+                    eventBus.send(GameSearchEvent.Started(currentState, view.isAllowSmartChooseResults.value))
+                }
+            }
             view.restartStateActions.forEach { onRestart(it) }
             view.cancelActions.forEach { onCancel() }
         }
@@ -108,12 +112,6 @@ class SyncGamesPresenter @Inject constructor(
             }
         }
 
-        private fun onCurrentStateChanged(currentState: GameSearchState?) {
-            if (currentState != null) {
-                startGameSearch(currentState)
-            }
-        }
-
         private fun onRestart(state: GameSearchState) {
             check(view.isGameSyncRunning.value) { "Game sync not running!" }
             val newState = state.providerOrder.fold(
@@ -154,7 +152,7 @@ class SyncGamesPresenter @Inject constructor(
             check(view.isGameSyncRunning.value) { "Game sync not running!" }
             view.isGameSyncRunning *= false
 
-            view.currentState.value?.let { currentState ->
+            view.currentState.peek()?.let { currentState ->
                 // This will update the current search that it's finished.
                 startGameSearch(currentState.copy(status = if (success) GameSearchState.Status.Success else GameSearchState.Status.Cancelled))
             }
@@ -163,7 +161,6 @@ class SyncGamesPresenter @Inject constructor(
 
         private fun startGameSearch(state: GameSearchState) {
             view.currentState *= state
-            eventBus.send(GameSearchEvent.Started(state, view.isAllowSmartChooseResults.value))
         }
 
         private fun initState(request: SyncPathRequest): GameSearchState? {
@@ -171,7 +168,7 @@ class SyncGamesPresenter @Inject constructor(
                 .filter { it.supports(request.platform) }
                 .map { it.id }
                 .toList()
-                .sortedBy { settingsRepo.search.indexOf(it) }
+                .sortedBy { settingsRepo.search.value.indexOf(it) }
 
             if (providersToSync.isEmpty()) {
                 log.debug("Skipping ${request.libraryPath}, game=${request.existingGame} because no enabled providers support the platform '${request.platform}'.")

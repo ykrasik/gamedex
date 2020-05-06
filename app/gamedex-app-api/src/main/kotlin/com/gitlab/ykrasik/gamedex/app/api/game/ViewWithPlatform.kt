@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -30,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 interface ViewWithPlatform {
     val availablePlatforms: SettableList<AvailablePlatform>
 
-    val currentPlatform: UserMutableState<AvailablePlatform>
+    val currentPlatform: ViewMutableStatefulChannel<AvailablePlatform>
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

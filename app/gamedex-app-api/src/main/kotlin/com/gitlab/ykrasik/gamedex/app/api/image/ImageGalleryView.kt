@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.image
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -27,12 +27,12 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:03
  */
 interface ImageGalleryView {
-    val imageParams: UserMutableState<ViewImageParams>
-    val currentImageIndex: State<Int>
+    val imageParams: ViewMutableStatefulChannel<ViewImageParams>
+    val currentImageIndex: StatefulChannel<Int>
 
-    val canViewNextImage: State<IsValid>
-    val viewNextImageActions: MultiReceiveChannel<Unit>
+    val canViewNextImage: StatefulChannel<IsValid>
+    val viewNextImageActions: MultiReadChannel<Unit>
 
-    val canViewPrevImage: State<IsValid>
-    val viewPrevImageActions: MultiReceiveChannel<Unit>
+    val canViewPrevImage: StatefulChannel<IsValid>
+    val viewPrevImageActions: MultiReadChannel<Unit>
 }

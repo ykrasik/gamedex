@@ -59,7 +59,7 @@ class UpdateGameServiceImpl @Inject constructor(
 
     private fun updateGames(games: List<Game>, swallowExceptions: Boolean) = task(
         "Updating ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}",
-        isCancellable = true
+        isCancellable = games.size > 1
     ) {
         gameProviderService.assertHasEnabledProvider()
 

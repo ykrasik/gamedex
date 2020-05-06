@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.PopOverMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.popOverSubMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -55,10 +55,10 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     override val clearUserDataActions = channel<Unit>()
     override val cleanupDatabaseActions = channel<Unit>()
 
-    override val canBulkUpdateGames = state(IsValid.valid)
+    override val canBulkUpdateGames = statefulChannel(IsValid.valid)
     override val bulkUpdateGamesActions = channel<Unit>()
 
-    override val canSyncGamesWithMissingProviders = state(IsValid.valid)
+    override val canSyncGamesWithMissingProviders = statefulChannel(IsValid.valid)
     override val syncGamesWithMissingProvidersActions = channel<Unit>()
 
     override val showDuplicatesReportActions = channel<Unit>()

@@ -25,11 +25,11 @@ import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.color
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
@@ -49,15 +49,15 @@ import tornadofx.*
 class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAlphabetical), ProviderOrderSettingsView {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val canChangeProviderOrder = state(IsValid.valid)
+    override val canChangeProviderOrder = statefulChannel(IsValid.valid)
 
-    override val search = userMutableState<Order>(emptyList())
-    override val name = userMutableState<Order>(emptyList())
-    override val description = userMutableState<Order>(emptyList())
-    override val releaseDate = userMutableState<Order>(emptyList())
-    override val thumbnail = userMutableState<Order>(emptyList())
-    override val poster = userMutableState<Order>(emptyList())
-    override val screenshot = userMutableState<Order>(emptyList())
+    override val search = viewMutableStatefulChannel<Order>(emptyList())
+    override val name = viewMutableStatefulChannel<Order>(emptyList())
+    override val description = viewMutableStatefulChannel<Order>(emptyList())
+    override val releaseDate = viewMutableStatefulChannel<Order>(emptyList())
+    override val thumbnail = viewMutableStatefulChannel<Order>(emptyList())
+    override val poster = viewMutableStatefulChannel<Order>(emptyList())
+    override val screenshot = viewMutableStatefulChannel<Order>(emptyList())
 
     init {
         register()

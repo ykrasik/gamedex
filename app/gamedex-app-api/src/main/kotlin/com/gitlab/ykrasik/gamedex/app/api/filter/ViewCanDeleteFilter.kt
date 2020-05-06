@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 09:48
  */
 interface ViewCanDeleteFilter {
-    val deleteNamedFilterActions: MultiReceiveChannel<NamedFilter>
+    val deleteNamedFilterActions: MultiReadChannel<NamedFilter>
 }

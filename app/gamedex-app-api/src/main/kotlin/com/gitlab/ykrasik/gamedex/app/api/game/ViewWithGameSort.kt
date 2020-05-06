@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -24,9 +24,9 @@ import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
  * Time: 17:47
  */
 interface ViewWithGameSort {
-    val sortBy: UserMutableState<SortBy>
+    val sortBy: ViewMutableStatefulChannel<SortBy>
 
-    val sortOrder: UserMutableState<SortOrder>
+    val sortOrder: ViewMutableStatefulChannel<SortOrder>
 }
 
 enum class SortBy(val displayName: String) {

@@ -29,7 +29,7 @@ class LogTailPresenter @Inject constructor(
 ) : Presenter<ViewCanChangeLogTail> {
     override fun present(view: ViewCanChangeLogTail) = object : ViewSession() {
         init {
-            settingsRepo.logTailChannel.bind(view.logTail)
+            view.logTail.bindBidirectional(settingsRepo.logTail)
         }
     }
 }

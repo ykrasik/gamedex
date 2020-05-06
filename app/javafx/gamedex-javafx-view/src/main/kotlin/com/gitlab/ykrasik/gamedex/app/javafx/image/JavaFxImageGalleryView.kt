@@ -42,13 +42,13 @@ import tornadofx.*
 class JavaFxImageGalleryView : PresentableView(), ImageGalleryView {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val imageParams = userMutableState(ViewImageParams(imageUrl = "", imageUrls = emptyList()))
-    override val currentImageIndex = state(-1)
+    override val imageParams = viewMutableStatefulChannel(ViewImageParams(imageUrl = "", imageUrls = emptyList()))
+    override val currentImageIndex = statefulChannel(-1)
 
-    override val canViewNextImage = state(IsValid.valid)
+    override val canViewNextImage = statefulChannel(IsValid.valid)
     override val viewNextImageActions = channel<Unit>()
 
-    override val canViewPrevImage = state(IsValid.valid)
+    override val canViewPrevImage = statefulChannel(IsValid.valid)
     override val viewPrevImageActions = channel<Unit>()
 
     private var slideDirection = ViewTransition.Direction.LEFT

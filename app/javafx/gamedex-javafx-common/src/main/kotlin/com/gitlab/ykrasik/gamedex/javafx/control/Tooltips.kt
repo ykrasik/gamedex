@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxObjectState
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxObjectStatefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -75,5 +75,5 @@ inline fun Node.nullableTooltip(text: ObservableValue<String?>, graphic: Node? =
 inline fun Node.errorTooltip(text: ObservableValue<String?>, crossinline op: Tooltip.() -> Unit = {}) =
     nullableTooltip(text, Icons.validationError.size(20), op)
 
-fun Node.errorTooltip(state: JavaFxObjectState<IsValid>) =
+fun Node.errorTooltip(state: JavaFxObjectStatefulChannel<IsValid>) =
     errorTooltip(state.property.stringBinding { it?.errorText() })

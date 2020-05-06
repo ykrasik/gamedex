@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -27,17 +27,17 @@ import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
  * Time: 09:47
  */
 interface SyncGamesView {
-    val cancelActions: MultiReceiveChannel<Unit>
+    val cancelActions: MultiReadChannel<Unit>
 
-    val isAllowSmartChooseResults: State<Boolean>
+    val isAllowSmartChooseResults: StatefulChannel<Boolean>
 
-    val isGameSyncRunning: State<Boolean>
-    val numProcessed: State<Int>
+    val isGameSyncRunning: StatefulChannel<Boolean>
+    val numProcessed: StatefulChannel<Int>
 
     val state: SettableList<GameSearchState>
 
-    val currentState: UserMutableState<GameSearchState?>
-    val restartStateActions: MultiReceiveChannel<GameSearchState>
+    val currentState: ViewMutableStatefulChannel<GameSearchState?>
+    val restartStateActions: MultiReadChannel<GameSearchState>
 
     fun successMessage(message: String)
     fun cancelledMessage(message: String)

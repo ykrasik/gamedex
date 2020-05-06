@@ -50,6 +50,8 @@ object TestApplication {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        System.setProperty("kotlinx.coroutines.debug", "on")
+
         if (System.getProperty("gameDex.env") == null) {
             System.setProperty("gameDex.env", "dev")
         }

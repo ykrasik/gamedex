@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import tornadofx.borderpane
 import tornadofx.paddingAll
@@ -35,8 +34,8 @@ import tornadofx.paddingAll
 class JavaFxBulkUpdateGamesView : ConfirmationWindow("Bulk Update Games", Icons.download), BulkUpdateGamesView {
     private val filterView = JavaFxFilterView()
 
-    override val bulkUpdateGamesFilter = filterView.userMutableState
-    override val bulkUpdateGamesFilterIsValid = userMutableState(filterView.filterIsValid)
+    override val bulkUpdateGamesFilter = filterView.filter
+    override val bulkUpdateGamesFilterIsValid = filterView.filterIsValid
 
     init {
         register()

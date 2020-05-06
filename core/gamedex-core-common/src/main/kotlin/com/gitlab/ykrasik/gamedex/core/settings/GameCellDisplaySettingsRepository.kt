@@ -47,22 +47,10 @@ class GameCellDisplaySettingsRepository @Inject constructor(repo: SettingsReposi
         )
     }
 
-    val imageDisplayTypeChannel = storage.biChannel(Data::imageDisplayType) { copy(imageDisplayType = it) }
-    var imageDisplayType by imageDisplayTypeChannel
-
-    val showBorderChannel = storage.biChannel(Data::showBorder) { copy(showBorder = it) }
-    var showBorder by showBorderChannel
-
-    val widthChannel = storage.biChannel(Data::width) { copy(width = it) }
-    var width by widthChannel
-
-    val heightChannel = storage.biChannel(Data::height) { copy(height = it) }
-    var height by heightChannel
-
-    val horizontalSpacingChannel = storage.biChannel(Data::horizontalSpacing) { copy(horizontalSpacing = it) }
-    var horizontalSpacing by horizontalSpacingChannel
-
-    val verticalSpacingChannel = storage.biChannel(Data::verticalSpacing) { copy(verticalSpacing = it) }
-    var verticalSpacing by verticalSpacingChannel
-
+    val imageDisplayType = storage.biChannel(Data::imageDisplayType) { copy(imageDisplayType = it) }
+    val showBorder = storage.biChannel(Data::showBorder) { copy(showBorder = it) }
+    val width = storage.biChannel(Data::width) { copy(width = it) }
+    val height = storage.biChannel(Data::height) { copy(height = it) }
+    val horizontalSpacing = storage.biChannel(Data::horizontalSpacing) { copy(horizontalSpacing = it) }
+    val verticalSpacing = storage.biChannel(Data::verticalSpacing) { copy(verticalSpacing = it) }
 }

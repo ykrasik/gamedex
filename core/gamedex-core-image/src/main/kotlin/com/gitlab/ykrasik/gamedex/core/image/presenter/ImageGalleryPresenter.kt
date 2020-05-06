@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.image.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -33,20 +32,17 @@ import javax.inject.Singleton
 @Singleton
 class ImageGalleryPresenter @Inject constructor() : Presenter<ImageGalleryView> {
     override fun present(view: ImageGalleryView) = object : ViewSession() {
-        private var currentIndex by view.currentImageIndex
-        private var imageParams by view.imageParams
-
         init {
-            currentIndex = -1
-            view.imageParams *= ViewImageParams(imageUrl = "", imageUrls = emptyList())
-            view.imageParams.forEach { onParamsChanged(it) }
+            view.imageParams.forEach { params ->
+                view.currentImageIndex.value = params.imageUrls.indexOfFirst { it == params.imageUrl }
+            }
+            view.currentImageIndex.forEach { currentImageIndex ->
+                view.canViewNextImage *= Try { check(currentImageIndex + 1 < view.imageParams.value.imageUrls.size) { "No more images!" } }
+                view.canViewPrevImage *= Try { check(currentImageIndex - 1 >= 0) { "No more images!" } }
+            }
+
             view.viewNextImageActions.subscribe().debounce(100).forEach { onViewNextImage() }
             view.viewPrevImageActions.subscribe().debounce(100).forEach { onViewPrevImage() }
-        }
-
-        private fun onParamsChanged(params: ViewImageParams) {
-            currentIndex = params.imageUrls.indexOfFirst { it == params.imageUrl }
-            setCanNavigate()
         }
 
         private fun onViewNextImage() {
@@ -60,14 +56,8 @@ class ImageGalleryPresenter @Inject constructor() : Presenter<ImageGalleryView> 
         }
 
         private fun navigate(offset: Int) {
-            currentIndex += offset
-            imageParams = imageParams.copy(imageUrl = imageParams.imageUrls[currentIndex])
-            setCanNavigate()
-        }
-
-        private fun setCanNavigate() {
-            view.canViewNextImage *= Try { check(currentIndex + 1 < imageParams.imageUrls.size) { "No more images!" } }
-            view.canViewPrevImage *= Try { check(currentIndex - 1 >= 0) { "No more images!" } }
+            view.currentImageIndex.value += offset
+            view.imageParams.modify { copy(imageUrl = imageUrls[view.currentImageIndex.value]) }
         }
     }
 }

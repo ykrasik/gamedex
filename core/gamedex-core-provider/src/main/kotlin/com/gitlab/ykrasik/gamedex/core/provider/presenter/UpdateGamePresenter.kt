@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
-import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
@@ -36,15 +35,11 @@ class UpdateGamePresenter @Inject constructor(
 ) : Presenter<ViewCanUpdateGame> {
     override fun present(view: ViewCanUpdateGame) = object : ViewSession() {
         init {
-            gameProviderService.enabledProviders.itemsChannel.subscribe()
-                .combineLatest(view.gameChannel.subscribe())
-                .forEach {
-                    val (enabledProviders, game) = it
-
-                    view.canUpdateGame *= Try {
-                        check(enabledProviders.any { it.supports(game.platform) }) { "Please enable at least 1 provider which supports the platform '${game.platform}'!" }
-                    }
+            gameProviderService.enabledProviders.itemsChannel.combineLatest(view.game) { enabledProviders, game ->
+                view.canUpdateGame *= Try {
+                    check(enabledProviders.any { it.supports(game.platform) }) { "Enable at least 1 provider which supports the platform '${game.platform}'!" }
                 }
+            }
 
             view.updateGameActions.forEach { updateGame(it) }
         }

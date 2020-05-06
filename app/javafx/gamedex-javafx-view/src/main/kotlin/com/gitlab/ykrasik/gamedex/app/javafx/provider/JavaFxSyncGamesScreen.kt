@@ -43,15 +43,15 @@ import java.io.File
 class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesView, ViewCanOpenFile {
     override val cancelActions = channel<Unit>()
 
-    override val isAllowSmartChooseResults = state(false)
+    override val isAllowSmartChooseResults = statefulChannel(false)
 
-    override val isGameSyncRunning = state(false)
+    override val isGameSyncRunning = statefulChannel(false)
 
     override val state = settableList<GameSearchState>()
     private val pathsToProcessSize = state.sizeProperty
-    override val numProcessed = state(0)
+    override val numProcessed = statefulChannel(0)
 
-    override val currentState = userMutableState<GameSearchState?>(null)
+    override val currentState = viewMutableStatefulChannel<GameSearchState?>(null)
     override val restartStateActions = channel<GameSearchState>()
 
     override val openFileActions = channel<File>()
@@ -97,7 +97,7 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
         var ignoreNextSelectionChange = false
         selectionModel.selectedItemProperty().addListener { _, oldValue, selectedItem ->
             if (selectedItem?.index != oldValue?.index && !ignoreNextSelectionChange) {
-                currentState.valueFromView = selectedItem
+                currentState *= selectedItem
             }
         }
 

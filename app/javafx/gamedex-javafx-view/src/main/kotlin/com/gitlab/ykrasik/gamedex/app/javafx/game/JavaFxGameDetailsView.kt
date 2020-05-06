@@ -80,16 +80,15 @@ class JavaFxGameDetailsView(
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val gameParams = userMutableState(ViewGameParams(Game.Null, emptyList()))
-    override val gameChannel = gameParams.valueChannel.map { it.game }
-    private val game = gameParams.property.binding { it.game }
+    override val gameParams = viewMutableStatefulChannel(ViewGameParams(Game.Null, emptyList()))
+    override val game = viewMutableStatefulChannel(gameParams.property.map { it.game })
 
-    override val currentGameIndex = state(-1)
+    override val currentGameIndex = statefulChannel(-1)
 
-    override val canViewNextGame = state(IsValid.valid)
+    override val canViewNextGame = statefulChannel(IsValid.valid)
     override val viewNextGameActions = channel<Unit>()
 
-    override val canViewPrevGame = state(IsValid.valid)
+    override val canViewPrevGame = statefulChannel(IsValid.valid)
     override val viewPrevGameActions = channel<Unit>()
 
     override val hideViewActions = channel<Unit>()
@@ -100,10 +99,10 @@ class JavaFxGameDetailsView(
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
 
-    override val canUpdateGame = state(IsValid.valid)
+    override val canUpdateGame = statefulChannel(IsValid.valid)
     override val updateGameActions = channel<Game>()
 
-    override val canSyncGame = state(IsValid.valid)
+    override val canSyncGame = statefulChannel(IsValid.valid)
     override val syncGameActions = channel<Game>()
 
     override val openFileActions = channel<File>()
@@ -111,7 +110,7 @@ class JavaFxGameDetailsView(
 
     override val setMainExecutableFileActions = channel<SetMainExecutableFileParams>()
     override val launchGameActions = channel<Unit>()
-    override val canLaunchGame = state(IsValid.valid)
+    override val canLaunchGame = statefulChannel(IsValid.valid)
 
     private val noBackground = Background(BackgroundFill(Colors.cloudyKnoxville, CornerRadii.EMPTY, Insets.EMPTY))
     private val noBackgroundProperty = noBackground.toProperty()
@@ -165,7 +164,7 @@ class JavaFxGameDetailsView(
     }
 
     private var selectedFileTreeItemProperty: ObjectProperty<FileTree?> = SimpleObjectProperty(null)
-    private val fileTreeMenu = object : InstallableContextMenu<SetMainExecutableFileParams>() {
+    private val fileTreeMenu = object : InstallableContextMenu<SetMainExecutableFileParams>(SetMainExecutableFileParams(Game.Null, null)) {
         private val setMainExecutableButton = jfxButton("Set Main Executable", Icons.play) {
             action(setMainExecutableFileActions) { data }
         }
@@ -248,7 +247,7 @@ class JavaFxGameDetailsView(
         stackpane {
             addClass(Style.gameDetailsBackground)
             // Background screenshot
-            backgroundProperty().bind(game.flatMap { game ->
+            backgroundProperty().bind(game.property.flatMap { game ->
                 if (game.screenshotUrls.isNotEmpty()) {
                     val image = commonOps.fetchImage(game.screenshotUrls.first(), persist = true)
                     image.binding {
@@ -291,7 +290,7 @@ class JavaFxGameDetailsView(
                 }
             }
 
-            game.typeSafeOnChange { game ->
+            game.onChange { game ->
                 val new = gameDisplay(game)
                 val current = children.firstOrNull()
                 if (current == null) {
@@ -575,7 +574,7 @@ class JavaFxGameDetailsView(
 
         register()
 
-        titleProperty.bind(game.stringBinding { it?.name })
+        titleProperty.bind(game.property.stringBinding { it?.name })
     }
 
     class Style : Stylesheet() {

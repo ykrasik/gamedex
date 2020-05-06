@@ -20,9 +20,9 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import java.io.File
 
@@ -32,13 +32,13 @@ import java.io.File
  * Time: 09:10
  */
 interface RenameMoveGameView : ConfirmationView, ViewCanDisplayError {
-    val initialName: UserMutableState<String?>
-    val game: UserMutableState<Game>
+    val initialName: ViewMutableStatefulChannel<String?>
+    val game: ViewMutableStatefulChannel<Game>
 
-    val newPath: UserMutableState<String>
-    val newPathIsValid: State<IsValid>
-    val newPathLibrary: State<Library>
+    val newPath: ViewMutableStatefulChannel<String>
+    val newPathIsValid: StatefulChannel<IsValid>
+    val newPathLibrary: StatefulChannel<Library>
 
-    val browseActions: MultiReceiveChannel<Unit>
+    val browseActions: MultiReadChannel<Unit>
     fun browse(initialDirectory: File): File?
 }

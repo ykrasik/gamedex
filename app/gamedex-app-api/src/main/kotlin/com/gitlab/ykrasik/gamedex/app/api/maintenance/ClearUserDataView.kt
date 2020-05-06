@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 
 /**
  * User: ykrasik
@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 12:28
  */
 interface ClearUserDataView {
-    val clearUserDataActions: MultiReceiveChannel<Unit>
+    val clearUserDataActions: MultiReadChannel<Unit>
 
     suspend fun confirmClearUserData(): Boolean
 }

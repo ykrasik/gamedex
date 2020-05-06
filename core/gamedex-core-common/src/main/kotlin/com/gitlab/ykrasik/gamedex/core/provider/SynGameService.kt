@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.provider
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulMultiReadChannel
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 
@@ -29,7 +29,7 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
  * Time: 15:43
  */
 interface SyncGameService {
-    val isGameSyncRunning: MultiReceiveChannel<Boolean>
+    val isGameSyncRunning: StatefulMultiReadChannel<Boolean>
 
     fun syncGame(game: Game)
 

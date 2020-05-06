@@ -65,7 +65,7 @@ class FilterServiceImpl @Inject constructor(
     }
 
     override fun saveAll(filters: List<NamedFilter>) = task("Saving ${filters.size} Filters...") {
-        totalItems = filters.size
+        totalItems.value = filters.size
         userFilters.conflate {
             filters.map {
                 userFilterRepo.set(it).apply {

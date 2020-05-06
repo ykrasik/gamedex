@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -33,21 +33,21 @@ interface ViewCanChangeGameWallDisplaySettings {
 }
 
 interface GameWallDisplaySettings {
-    val imageDisplayType: State<ImageDisplayType>
-    val showBorder: State<Boolean>
-    val width: State<Double>
-    val height: State<Double>
-    val horizontalSpacing: State<Double>
-    val verticalSpacing: State<Double>
+    val imageDisplayType: StatefulChannel<ImageDisplayType>
+    val showBorder: StatefulChannel<Boolean>
+    val width: StatefulChannel<Double>
+    val height: StatefulChannel<Double>
+    val horizontalSpacing: StatefulChannel<Double>
+    val verticalSpacing: StatefulChannel<Double>
 }
 
 interface MutableGameWallDisplaySettings {
-    val imageDisplayType: UserMutableState<ImageDisplayType>
-    val showBorder: UserMutableState<Boolean>
-    val width: UserMutableState<Double>
-    val height: UserMutableState<Double>
-    val horizontalSpacing: UserMutableState<Double>
-    val verticalSpacing: UserMutableState<Double>
+    val imageDisplayType: ViewMutableStatefulChannel<ImageDisplayType>
+    val showBorder: ViewMutableStatefulChannel<Boolean>
+    val width: ViewMutableStatefulChannel<Double>
+    val height: ViewMutableStatefulChannel<Double>
+    val horizontalSpacing: ViewMutableStatefulChannel<Double>
+    val verticalSpacing: ViewMutableStatefulChannel<Double>
 }
 
 enum class ImageDisplayType(val displayName: String) {

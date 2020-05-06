@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.provider
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
@@ -42,7 +42,7 @@ class SyncGameServiceImpl @Inject constructor(
     private val filterService: FilterService,
     private val eventBus: EventBus
 ) : SyncGameService {
-    override val isGameSyncRunning = MultiChannel.conflated(false).apply {
+    override val isGameSyncRunning = conflatedChannel(false).apply {
         eventBus.on<SyncGamesEvent.Started> { send(true) }
         eventBus.on<SyncGamesEvent.Finished> { send(false) }
     }

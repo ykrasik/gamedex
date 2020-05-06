@@ -16,6 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
+import com.gitlab.ykrasik.gamedex.util.Modifier
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlin.reflect.KProperty
+
 /**
  * User: ykrasik
  * Date: 02/12/2018
@@ -23,31 +27,52 @@ package com.gitlab.ykrasik.gamedex.app.api.util
  */
 
 /**
- * State that can be changed by setting [value] from code.
- * The view holding this state is expected to react to such changes, in a manner appropriate to the view.
+ * A conflated channel that always has a value.
+ * By convention, this channel is read-only for any view that receives it,
+ * i.e. the view should not update its' value or send messages to this channel, only read them.
  */
-interface State<T> {
-    /**
-     * Used to notify the view about value changes.
-     */
-    var value: T
+interface StatefulChannel<T> : StatefulMultiReadChannel<T>, MultiWriteChannel<T> {
+    override var value: T
 
-    val valueChannel: MultiReceiveChannel<T>
+    operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        offer(value)
+    }
+
+    operator fun timesAssign(element: T) {
+        offer(element)
+    }
+
+    fun modify(f: Modifier<T>) {
+        value = f(value)
+    }
+
+    override fun <R> map(transform: suspend (T) -> R): StatefulChannel<R>
+    override fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): StatefulChannel<R>
+    override fun <T2, R> combineLatest(channel: MultiReadChannel<T2>, f: suspend (T, T2) -> R): StatefulChannel<R>
+    override fun <T2, T3, R> combineLatest(channel2: MultiReadChannel<T2>, channel3: MultiReadChannel<T3>, f: suspend (T, T2, T3) -> R): StatefulChannel<R>
+    override fun <T2, T3, T4, R> combineLatest(
+        channel2: MultiReadChannel<T2>,
+        channel3: MultiReadChannel<T3>,
+        channel4: MultiReadChannel<T4>,
+        f: suspend (T, T2, T3, T4) -> R
+    ): StatefulChannel<R>
+
+    override fun <T2, T3, T4, T5, R> combineLatest(
+        channel2: MultiReadChannel<T2>,
+        channel3: MultiReadChannel<T3>,
+        channel4: MultiReadChannel<T4>,
+        channel5: MultiReadChannel<T5>,
+        f: suspend (T, T2, T3, T4, T5) -> R
+    ): StatefulChannel<R>
+
+    override fun filter(filter: suspend (T) -> Boolean): StatefulChannel<T>
+    override fun distinctUntilChanged(equals: (T, T) -> Boolean): StatefulChannel<T>
+    override fun drop(amount: Int): StatefulChannel<T>
 }
 
 /**
- * State that can both be changed from code by setting [value] (in which case the view should react to the change)
- * as well as be changed by the user, in which case the change is reported to the [changes] channel.
- * Such changes will trigger code listening to these changes to react.
+ * Same as [StatefulChannel], except by convention the view has permissions to write to this channel as well,
+ * to notify about changes to its' data.
+ * Presenters should react to these changes.
  */
-interface UserMutableState<T> : State<T> {
-    /**
-     * Used to notify the view about value changes. Must not trigger an event on [changes]!
-     */
-    override var value: T
-
-    /**
-     * Reports changes the user made to the value from the view.
-     */
-    val changes: MultiReceiveChannel<T>
-}
+interface ViewMutableStatefulChannel<T> : StatefulChannel<T>

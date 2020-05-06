@@ -17,13 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.task
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.properties.Delegates
 
 /**
  * User: ykrasik
@@ -36,14 +34,9 @@ class Task<T>(
     initialImage: Image?,
     private val run: suspend Task<*>.() -> T
 ) {
-    // TODO: should probably be a conflated channel
-    private val _messageChannel = MultiChannel<String>()
-    val messageChannel: MultiReceiveChannel<String> = _messageChannel
-    var message by Delegates.observable("") { _, _, value -> _messageChannel.offer(value) }
+    val message = conflatedChannel("")
 
-    // TODO: should probably be a conflated channel
-    private val _processedItemsChannel = MultiChannel<Int>()
-    val processedItemsChannel: MultiReceiveChannel<Int> = _processedItemsChannel
+    val processedItemsChannel = conflatedChannel(0)
     private val _processedItems = AtomicInteger(0)
     var processedItems: Int
         get() = _processedItems.get()
@@ -53,27 +46,19 @@ class Task<T>(
 
     private inline fun withProcessedItems(f: (AtomicInteger) -> Int) {
         val value = f(_processedItems)
-        _processedItemsChannel.offer(value)
+        processedItemsChannel.value = value
     }
 
-    // TODO: should probably be a conflated channel
-    private val _totalItemsChannel = MultiChannel<Int>().apply {
+    val totalItems = conflatedChannel(0).apply {
         subscribe {
             // When totalItems changes, reset processedItems.
-            processedItems = 0
+            processedItems *= 0
         }
     }
-    val totalItemsChannel: MultiReceiveChannel<Int> = _totalItemsChannel
-    var totalItems by Delegates.observable(0) { _, _, value -> _totalItemsChannel.offer(value) }
 
-    // TODO: should probably be a conflated channel
-    private val _imageChannel = MultiChannel<Image?>()
-    val imageChannel: MultiReceiveChannel<Image?> = _imageChannel
-    var image by Delegates.observable(initialImage) { _, _, value -> _imageChannel.offer(value) }
+    val image = conflatedChannel(initialImage)
 
-    // TODO: should probably be a conflated channel
-    private val _subTaskChannel = MultiChannel<Task<*>?>()
-    val subTaskChannel: MultiReceiveChannel<Task<*>?> = _subTaskChannel
+    val subTask = conflatedChannel<Task<*>?>(null)
 
     var successMessage: ((T) -> String)? = { "Done." }
     var cancelMessage: (() -> String)? = { "Cancelled." }
@@ -90,70 +75,70 @@ class Task<T>(
 
     private val lock = Mutex()
     suspend fun execute(): T = lock.withLock {
-        check(_messageChannel.isActive) { "Task was already executed: $this[$title]" }
+        check(message.isActive) { "Task was already executed: $this[$title]" }
 
         return try {
             run()
         } finally {
             listOf(
-                _messageChannel,
-                _processedItemsChannel,
-                _totalItemsChannel,
-                _imageChannel,
-                _subTaskChannel
+                message,
+                processedItemsChannel,
+                totalItems,
+                image,
+                subTask
             ).forEach { it.close() }
         }
     }
 
     suspend fun <R> executeSubTask(task: Task<R>): R {
-        _subTaskChannel.send(task)
+        subTask *= task
         return try {
             task.execute()
         } finally {
-            _subTaskChannel.send(null)
+            subTask *= null
         }
     }
 
     inline fun <R> withMessage(message: String, f: () -> R): R {
-        this.message = message
+        this.message *= message
         val result = f()
-        this.message = "$message Done."
+        this.message *= "$message Done."
         return result
     }
 
     inline fun <R> withImage(image: Image, f: () -> R): R {
         val prevImage = this.image
-        this.image = image
+        this.image *= image
         return try {
             f()
         } finally {
-            this.image = prevImage
+            this.image *= prevImage.value
         }
     }
 
     inline fun <T, R> List<T>.mapWithProgress(f: (T) -> R): List<R> {
-        totalItems = size
-        return map { f(it).apply { incProgress() } }
+        totalItems.value = size
+        return map { incProgress(); f(it) }
     }
 
     inline fun <T, R : Any> List<T>.mapNotNullWithProgress(f: (T) -> R?): List<R> {
-        totalItems = size
-        return mapNotNull { f(it).apply { incProgress() } }
+        totalItems.value = size
+        return mapNotNull { incProgress(); f(it) }
     }
 
     inline fun <T, R> List<T>.flatMapWithProgress(f: (T) -> List<R>): List<R> {
-        totalItems = size
-        return flatMap { f(it).apply { incProgress() } }
+        totalItems.value = size
+        return flatMap { incProgress(); f(it) }
     }
 
     inline fun <T> List<T>.filterWithProgress(f: (T) -> Boolean): List<T> {
-        totalItems = size
-        return filter { f(it).apply { incProgress() } }
+        totalItems.value = size
+        return filter { incProgress(); f(it) }
     }
 
     inline fun <T> List<T>.forEachWithProgress(f: (T) -> Unit) {
-        totalItems = size
-        return forEach { f(it).apply { incProgress() } }
+        totalItems.value = size
+        return forEach { incProgress(); f(it) }
     }
 }
 

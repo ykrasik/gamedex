@@ -38,6 +38,7 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import tornadofx.*
+import kotlin.math.floor
 
 /**
  * User: ykrasik
@@ -84,8 +85,8 @@ class GameWallCellFragment(
                 maxWidthProperty().cleanBind(root.widthProperty())
                 maxHeightProperty().cleanBind(root.heightProperty())
             } else {
-                maxWidthProperty().cleanBind(imageView.boundsInParentProperty().doubleBinding { Math.floor(it!!.width) })
-                maxHeightProperty().cleanBind(imageView.boundsInParentProperty().doubleBinding { Math.floor(it!!.height) })
+                maxWidthProperty().cleanBind(imageView.boundsInParentProperty().doubleBinding { floor(it!!.width) })
+                maxHeightProperty().cleanBind(imageView.boundsInParentProperty().doubleBinding { floor(it!!.height) })
             }
             content.requestLayout()
 

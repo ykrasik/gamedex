@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulMultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
@@ -39,8 +39,8 @@ class CurrentPlatformFilterRepository @Inject constructor(
     private val filterService: FilterService,
     eventBus: EventBus
 ) {
-    private val _currentPlatformFilter = MultiChannel.conflated(Filter.Null)
-    val currentPlatformFilter: MultiReceiveChannel<Filter> = _currentPlatformFilter.distinctUntilChanged(Filter::isEqual)
+    private val _currentPlatformFilter = conflatedChannel(Filter.Null)
+    val currentPlatformFilter: StatefulMultiReadChannel<Filter> = _currentPlatformFilter.distinctUntilChanged(Filter::isEqual)
 
     init {
         eventBus.on<DatabaseInvalidatedEvent> {
@@ -56,15 +56,14 @@ class CurrentPlatformFilterRepository @Inject constructor(
             filterService.getOrPutSystemFilter(filterName(platform)) { Filter.Null }
         }
 
-        settingsRepo.platformChannel.subscribe { platform ->
-            val filter = filterService.getSystemFilter(filterName(platform))!!
-            _currentPlatformFilter.offer(filter)
+        settingsRepo.platform.mapTo(_currentPlatformFilter) { platform ->
+            filterService.getSystemFilter(filterName(platform))!!
         }
     }
 
     fun update(filter: Filter) {
-        filterService.putSystemFilter(filterName(settingsRepo.platform), filter)
-        _currentPlatformFilter.offer(filter)
+        filterService.putSystemFilter(filterName(settingsRepo.platform.value), filter)
+        _currentPlatformFilter *= filter
     }
 
     private fun filterName(platform: AvailablePlatform) = "${CurrentPlatformFilterRepository::class.qualifiedName!!}_$platform"

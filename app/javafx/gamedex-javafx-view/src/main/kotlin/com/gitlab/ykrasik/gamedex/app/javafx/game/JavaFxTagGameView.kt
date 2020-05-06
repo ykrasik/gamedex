@@ -35,18 +35,18 @@ import tornadofx.*
  * Time: 10:12
  */
 class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
-    override val game = userMutableState(Game.Null)
+    override val game = viewMutableStatefulChannel(Game.Null)
 
     override val tags = settableList<String>()
     override val checkedTags = mutableSetOf<String>().observable()
 
-    override val toggleAll = userMutableState(false)
+    override val toggleAll = viewMutableStatefulChannel(false)
 
     override val checkTagChanges = channel<Pair<String, Boolean>>()
 
-    override val newTagName = userMutableState("")
+    override val newTagName = viewMutableStatefulChannel("")
 
-    override val newTagNameIsValid = state(IsValid.valid)
+    override val newTagNameIsValid = statefulChannel(IsValid.valid)
 
     override val addNewTagActions = channel<Unit>()
 

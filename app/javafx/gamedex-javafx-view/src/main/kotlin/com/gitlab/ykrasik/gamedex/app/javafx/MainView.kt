@@ -31,7 +31,7 @@ import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -48,7 +48,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.FontWeight
 import tornadofx.*
 import java.util.*
-import kotlin.time.ClockMark
+import kotlin.time.TimeMark
 
 /**
  * User: ykrasik
@@ -73,7 +73,7 @@ class MainView : PresentableView("GameDex"),
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
-    override val canSyncLibraries = state(IsValid.valid)
+    override val canSyncLibraries = statefulChannel(IsValid.valid)
     override val syncLibrariesActions = channel<Unit>()
 
     override val showLogViewActions = channel<Unit>()
@@ -169,7 +169,7 @@ class MainView : PresentableView("GameDex"),
         prepareNewTab(tabPane.selectionModel.selectedItem)
 
         whenDockedOnce {
-            (params[StartTimeParam] as? ClockMark)?.let { clockMark ->
+            (params[StartTimeParam] as? TimeMark)?.let { clockMark ->
                 val applicationStartTimeTaken = clockMark.elapsedNow()
                 log.info("Total application start time: ${applicationStartTimeTaken.humanReadable}")
             }

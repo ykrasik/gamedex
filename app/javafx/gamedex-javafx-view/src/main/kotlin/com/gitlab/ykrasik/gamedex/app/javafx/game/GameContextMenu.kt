@@ -22,15 +22,17 @@ import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.jfoenix.controls.JFXButton
+import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.VBox
@@ -44,7 +46,7 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGameParams>(),
+class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGameParams>(ViewGameParams(Game.Null, emptyList())),
     ViewCanShowGameDetails,
     ViewCanEditGame,
     ViewCanDeleteGame,
@@ -53,7 +55,7 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
     ViewCanUpdateGame,
     ViewCanSyncGame {
 
-    override val gameChannel = dataChannel.map { it.game }
+    override val game = JavaFxViewMutableStatefulChannel(dataChannel.map { it.game }, SimpleObjectProperty(Game.Null))
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
     override val editGameActions = channel<EditGameParams>()
@@ -61,10 +63,10 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
     override val tagGameActions = channel<Game>()
 
-    override val canUpdateGame = state(IsValid.valid)
+    override val canUpdateGame = statefulChannel(IsValid.valid)
     override val updateGameActions = channel<Game>()
 
-    override val canSyncGame = state(IsValid.valid)
+    override val canSyncGame = statefulChannel(IsValid.valid)
     override val syncGameActions = channel<Game>()
 
     override val root = vbox {

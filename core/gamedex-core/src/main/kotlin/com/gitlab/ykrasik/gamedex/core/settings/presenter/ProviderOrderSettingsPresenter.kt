@@ -36,15 +36,15 @@ class ProviderOrderSettingsPresenter @Inject constructor(
 ) : Presenter<ProviderOrderSettingsView> {
     override fun present(view: ProviderOrderSettingsView) = object : ViewSession() {
         init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canChangeProviderOrder) { "Game sync in progress!" }
+            view.canChangeProviderOrder.disableWhenTrue(commonData.isGameSyncRunning) { "Game sync in progress!" }
 
-            settingsRepo.searchChannel.bind(view.search)
-            settingsRepo.nameChannel.bind(view.name)
-            settingsRepo.descriptionChannel.bind(view.description)
-            settingsRepo.releaseDateChannel.bind(view.releaseDate)
-            settingsRepo.thumbnailChannel.bind(view.thumbnail)
-            settingsRepo.posterChannel.bind(view.poster)
-            settingsRepo.screenshotChannel.bind(view.screenshot)
+            view.search.bindBidirectional(settingsRepo.search)
+            view.name.bindBidirectional(settingsRepo.name)
+            view.description.bindBidirectional(settingsRepo.description)
+            view.releaseDate.bindBidirectional(settingsRepo.releaseDate)
+            view.thumbnail.bindBidirectional(settingsRepo.thumbnail)
+            view.poster.bindBidirectional(settingsRepo.poster)
+            view.screenshot.bindBidirectional(settingsRepo.screenshot)
         }
 
         private fun verifyCanChange() = view.canChangeProviderOrder.assert()

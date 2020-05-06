@@ -36,12 +36,12 @@ class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
     override fun present(view: ViewCanChangeGameWallDisplaySettings) = object : ViewSession() {
         init {
             with(view.mutableGameWallDisplaySettings) {
-                settingsRepo.imageDisplayTypeChannel.bind(imageDisplayType)
-                settingsRepo.showBorderChannel.bind(showBorder)
-                settingsRepo.widthChannel.bind(width)
-                settingsRepo.heightChannel.bind(height)
-                settingsRepo.horizontalSpacingChannel.bind(horizontalSpacing)
-                settingsRepo.verticalSpacingChannel.bind(verticalSpacing)
+                imageDisplayType.bindBidirectional(settingsRepo.imageDisplayType)
+                showBorder.bindBidirectional(settingsRepo.showBorder)
+                width.bindBidirectional(settingsRepo.width)
+                height.bindBidirectional(settingsRepo.height)
+                horizontalSpacing.bindBidirectional(settingsRepo.horizontalSpacing)
+                verticalSpacing.bindBidirectional(settingsRepo.verticalSpacing)
             }
         }
     }
@@ -54,12 +54,12 @@ class GameWallDisplaySettingsPresenter @Inject constructor(
     override fun present(view: ViewWithGameWallDisplaySettings) = object : ViewSession() {
         init {
             with(view.gameWallDisplaySettings) {
-                settingsRepo.imageDisplayTypeChannel.bind(imageDisplayType)
-                settingsRepo.showBorderChannel.bind(showBorder)
-                settingsRepo.widthChannel.bind(width)
-                settingsRepo.heightChannel.bind(height)
-                settingsRepo.horizontalSpacingChannel.bind(horizontalSpacing)
-                settingsRepo.verticalSpacingChannel.bind(verticalSpacing)
+                imageDisplayType.bind(settingsRepo.imageDisplayType)
+                showBorder.bind(settingsRepo.showBorder)
+                width.bind(settingsRepo.width)
+                height.bind(settingsRepo.height)
+                horizontalSpacing.bind(settingsRepo.horizontalSpacing)
+                verticalSpacing.bind(settingsRepo.verticalSpacing)
             }
         }
     }

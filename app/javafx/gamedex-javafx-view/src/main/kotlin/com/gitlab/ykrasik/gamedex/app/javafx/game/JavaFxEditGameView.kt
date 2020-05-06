@@ -56,7 +56,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     private val initialViewProperty = SimpleObjectProperty(GameDataType.Name)
     var initialView: GameDataType by initialViewProperty
 
-    override val game = userMutableState(Game.Null)
+    override val game = viewMutableStatefulChannel(Game.Null)
 
     // TODO: Consider representing this as a CustomProvider in the UserData
     override val nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.Name, Icons.text)
@@ -67,8 +67,8 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     override val thumbnailUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Thumbnail, Icons.thumbnail)
     override val posterUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Poster, Icons.poster)
 
-    override val absoluteMainExecutablePath = userMutableState("")
-    override val absoluteMainExecutablePathIsValid = state(IsValid.valid)
+    override val absoluteMainExecutablePath = viewMutableStatefulChannel("")
+    override val absoluteMainExecutablePathIsValid = statefulChannel(IsValid.valid)
 
     override val browseMainExecutableActions = channel<Unit>()
 
@@ -249,12 +249,12 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
         com.gitlab.ykrasik.gamedex.javafx.control.chooseFile("Select Main Executable File...", filters = emptyList(), initialDirectory = initialDirectory).firstOrNull()
 
     class JavaFxGameDataOverrideState<T>(override val type: GameDataType, val icon: Node) : GameDataOverrideState<T> {
-        override val selection = userMutableState<OverrideSelectionType?>(null)
-        override val customValue = state<T?>(null)
-        override val providerValues = state<Map<ProviderId, T>>(emptyMap())
-        override val canSelectCustomOverride = state(IsValid.valid)
-        override val rawCustomValue = userMutableState("")
-        override val isCustomValueValid = state(IsValid.valid)
+        override val selection = viewMutableStatefulChannel<OverrideSelectionType?>(null)
+        override val customValue = statefulChannel<T?>(null)
+        override val providerValues = statefulChannel<Map<ProviderId, T>>(emptyMap())
+        override val canSelectCustomOverride = statefulChannel(IsValid.valid)
+        override val rawCustomValue = viewMutableStatefulChannel("")
+        override val isCustomValueValid = statefulChannel(IsValid.valid)
         override val customValueAcceptActions = channel<Unit>()
         override val customValueRejectActions = channel<Unit>()
         override val resetToDefaultActions = channel<Unit>()

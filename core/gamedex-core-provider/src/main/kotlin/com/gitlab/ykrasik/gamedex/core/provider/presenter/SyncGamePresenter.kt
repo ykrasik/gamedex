@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGame
-import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -39,18 +38,12 @@ class SyncGamePresenter @Inject constructor(
 ) : Presenter<ViewCanSyncGame> {
     override fun present(view: ViewCanSyncGame) = object : ViewSession() {
         init {
-            commonData.enabledProviders.itemsChannel.subscribe()
-                .combineLatest(view.gameChannel.subscribe())
-                .combineLatest(commonData.isGameSyncRunning.subscribe())
-                .forEach {
-                    val (enabledProviders, game) = it.first
-                    val isGameSyncRunning = it.second
-
-                    view.canSyncGame *= Try {
-                        check(!isGameSyncRunning) { "Game sync in progress!" }
-                        check(enabledProviders.any { it.supports(game.platform) }) { "Please enable at least 1 provider which supports the platform '${game.platform}'!" }
-                    }
+            commonData.enabledProviders.itemsChannel.combineLatest(view.game, commonData.isGameSyncRunning) { enabledProviders, game, isGameSyncRunning ->
+                view.canSyncGame *= Try {
+                    check(!isGameSyncRunning) { "Game sync in progress!" }
+                    check(enabledProviders.any { it.supports(game.platform) }) { "Enable at least 1 provider which supports the platform '${game.platform}'!" }
                 }
+            }
 
             view.syncGameActions.forEach { syncGame(it) }
         }

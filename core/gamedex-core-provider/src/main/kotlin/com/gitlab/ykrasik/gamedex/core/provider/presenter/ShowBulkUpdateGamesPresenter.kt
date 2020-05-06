@@ -40,8 +40,11 @@ class ShowBulkUpdateGamesPresenter @Inject constructor(
 
     override fun present(view: ViewCanBulkUpdateGames) = object : ViewSession() {
         init {
-            commonData.canSyncOrUpdateGames.bind(view.canBulkUpdateGames)
+            view.canBulkUpdateGames.bind(commonData.canSyncOrUpdateGames)
+
             view.bulkUpdateGamesActions.forEach {
+                view.canBulkUpdateGames.assert()
+
                 viewManager.showBulkUpdateGamesView()
             }
         }

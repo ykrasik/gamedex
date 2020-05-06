@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
@@ -30,15 +30,15 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
 interface ProviderSettingsView {
     val provider: GameProvider.Metadata
 
-    val canChangeProviderSettings: State<IsValid>
+    val canChangeProviderSettings: StatefulChannel<IsValid>
 
-    val status: State<ProviderAccountStatus>
-    val enabled: UserMutableState<Boolean>
+    val status: StatefulChannel<ProviderAccountStatus>
+    val enabled: ViewMutableStatefulChannel<Boolean>
 
-    val currentAccount: UserMutableState<Map<String, String>>
+    val currentAccount: ViewMutableStatefulChannel<Map<String, String>>
 
-    val canVerifyAccount: State<IsValid>
-    val verifyAccountActions: MultiReceiveChannel<Unit>
+    val canVerifyAccount: StatefulChannel<IsValid>
+    val verifyAccountActions: MultiReadChannel<Unit>
 }
 
 enum class ProviderAccountStatus {

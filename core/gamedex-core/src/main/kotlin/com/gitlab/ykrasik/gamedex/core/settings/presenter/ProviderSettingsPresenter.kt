@@ -47,17 +47,17 @@ class ProviderSettingsPresenter @Inject constructor(
         var currentAccount by view.currentAccount
 
         init {
-            commonData.isGameSyncRunning.disableWhenTrue(view.canChangeProviderSettings) { "Game sync in progress!" }
+            view.canChangeProviderSettings.disableWhenTrue(commonData.isGameSyncRunning) { "Game sync in progress!" }
             view.enabled.forEach { onEnabledChanged(it) }
             view.currentAccount.forEach { onCurrentAccountChanged(it) }
             view.verifyAccountActions.forEach { verifyAccount() }
         }
 
         override suspend fun onShown() {
-            view.enabled *= settings.enabled
+            view.enabled *= settings.enabled.value
 
             // This will not update if settings are reset to default - by design.
-            val account = settings.account
+            val account = settings.account.value
             currentAccount = account
             lastVerifiedAccount = if (account.isNotEmpty()) account else emptyMap()
             status = when {
@@ -85,7 +85,7 @@ class ProviderSettingsPresenter @Inject constructor(
                     view.enabled *= false
                 }
             } else {
-                settings.enabled = false
+                settings.enabled *= false
             }
         }
 

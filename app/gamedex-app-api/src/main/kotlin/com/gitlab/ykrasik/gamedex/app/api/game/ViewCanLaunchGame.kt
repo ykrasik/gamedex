@@ -18,8 +18,9 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -28,8 +29,8 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:49
  */
 interface ViewCanLaunchGame : ViewCanDisplayError {
-    val gameChannel: MultiReceiveChannel<Game>
+    val game: ViewMutableStatefulChannel<Game>
 
-    val canLaunchGame: State<IsValid>
-    val launchGameActions: MultiReceiveChannel<Unit>
+    val canLaunchGame: StatefulChannel<IsValid>
+    val launchGameActions: MultiReadChannel<Unit>
 }

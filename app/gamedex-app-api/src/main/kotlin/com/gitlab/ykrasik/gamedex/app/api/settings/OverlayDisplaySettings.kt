@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.State
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -49,29 +49,29 @@ interface ViewWithVersionOverlayDisplaySettings {
 }
 
 interface OverlayDisplaySettings {
-    val enabled: State<Boolean>
-    val showOnlyWhenActive: State<Boolean>
-    val position: State<DisplayPosition>
-    val fillWidth: State<Boolean>
-    val fontSize: State<Int>
-    val boldFont: State<Boolean>
-    val italicFont: State<Boolean>
-    val textColor: State<String>
-    val backgroundColor: State<String>
-    val opacity: State<Double>
+    val enabled: StatefulChannel<Boolean>
+    val showOnlyWhenActive: StatefulChannel<Boolean>
+    val position: StatefulChannel<DisplayPosition>
+    val fillWidth: StatefulChannel<Boolean>
+    val fontSize: StatefulChannel<Int>
+    val boldFont: StatefulChannel<Boolean>
+    val italicFont: StatefulChannel<Boolean>
+    val textColor: StatefulChannel<String>
+    val backgroundColor: StatefulChannel<String>
+    val opacity: StatefulChannel<Double>
 }
 
 interface MutableOverlayDisplaySettings {
-    val enabled: UserMutableState<Boolean>
-    val showOnlyWhenActive: UserMutableState<Boolean>
-    val position: UserMutableState<DisplayPosition>
-    val fillWidth: UserMutableState<Boolean>
-    val fontSize: UserMutableState<Int>
-    val boldFont: UserMutableState<Boolean>
-    val italicFont: UserMutableState<Boolean>
-    val textColor: UserMutableState<String>
-    val backgroundColor: UserMutableState<String>
-    val opacity: UserMutableState<Double>
+    val enabled: ViewMutableStatefulChannel<Boolean>
+    val showOnlyWhenActive: ViewMutableStatefulChannel<Boolean>
+    val position: ViewMutableStatefulChannel<DisplayPosition>
+    val fillWidth: ViewMutableStatefulChannel<Boolean>
+    val fontSize: ViewMutableStatefulChannel<Int>
+    val boldFont: ViewMutableStatefulChannel<Boolean>
+    val italicFont: ViewMutableStatefulChannel<Boolean>
+    val textColor: ViewMutableStatefulChannel<String>
+    val backgroundColor: ViewMutableStatefulChannel<String>
+    val opacity: ViewMutableStatefulChannel<Double>
 }
 
 enum class DisplayPosition(val displayName: String) {

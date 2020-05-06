@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.settableSortedFilteredList
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -49,10 +49,10 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
 
     override val libraries = settableSortedFilteredList(comparator = caseInsensitiveStringComparator(Library::name))
 
-    override val canAddOrEditLibraries = state(IsValid.valid)
+    override val canAddOrEditLibraries = statefulChannel(IsValid.valid)
     override val addOrEditLibraryActions = channel<Library?>()
 
-    override val canDeleteLibraries = state(IsValid.valid)
+    override val canDeleteLibraries = statefulChannel(IsValid.valid)
     override val deleteLibraryActions = channel<Library>()
 
     override val openFileActions = channel<File>()

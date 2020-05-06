@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 
 /**
  * User: ykrasik
@@ -25,5 +25,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
  * Time: 13:04
  */
 interface DeleteFilterView : ConfirmationView {
-    val filter: UserMutableState<NamedFilter>
+    val filter: ViewMutableStatefulChannel<NamedFilter>
 }

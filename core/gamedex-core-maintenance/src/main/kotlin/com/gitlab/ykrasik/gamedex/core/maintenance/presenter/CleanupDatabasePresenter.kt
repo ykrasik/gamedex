@@ -38,61 +38,39 @@ class CleanupDatabasePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<CleanupDatabaseView> {
     override fun present(view: CleanupDatabaseView) = object : ViewSession() {
-        private val staleData by view.staleData
-
         init {
-            view.librariesAndGames.shouldDelete.forEach { onLibrariesAndGamesShouldDeleteChanged() }
-            view.images.shouldDelete.forEach { onImagesShouldDeleteChanged() }
-            view.fileCache.shouldDelete.forEach { onFileCacheShouldDeleteChanged() }
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            view.librariesAndGames.canDelete *= Try {
-                check(staleData.libraries.isNotEmpty() || staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" }
+            view.staleData.mapTo(view.librariesAndGames.canDelete) { staleData ->
+                Try { check(staleData.libraries.isNotEmpty() || staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" } }
             }
-            view.librariesAndGames.shouldDelete *= view.librariesAndGames.canDelete.value.isSuccess
+            view.librariesAndGames.canDelete.mapTo(view.librariesAndGames.shouldDelete) { it.isSuccess }
 
-            view.images.canDelete *= Try {
-                check(staleData.images.isNotEmpty()) { "No stale images to delete!" }
+            view.staleData.mapTo(view.images.canDelete) { staleData ->
+                Try { check(staleData.images.isNotEmpty()) { "No stale images to delete!" } }
             }
-            view.images.shouldDelete *= view.images.canDelete.value.isSuccess
+            view.images.canDelete.mapTo(view.images.shouldDelete) { it.isSuccess }
 
-            view.fileCache.canDelete *= Try {
-                check(staleData.fileTrees.isNotEmpty()) { "No stale file cache to delete!" }
+            view.staleData.mapTo(view.fileCache.canDelete) { staleData ->
+                Try { check(staleData.fileTrees.isNotEmpty()) { "No stale images to delete!" } }
             }
-            view.fileCache.shouldDelete *= view.fileCache.canDelete.value.isSuccess
+            view.fileCache.canDelete.mapTo(view.fileCache.shouldDelete) { it.isSuccess }
 
-            setCanAccept()
-        }
-
-        private fun onLibrariesAndGamesShouldDeleteChanged() {
-            view.librariesAndGames.canDelete.assert()
-            setCanAccept()
-        }
-
-        private fun onImagesShouldDeleteChanged() {
-            view.images.canDelete.assert()
-            setCanAccept()
-        }
-
-        private fun onFileCacheShouldDeleteChanged() {
-            view.fileCache.canDelete.assert()
-            setCanAccept()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= Try {
-                check(view.librariesAndGames.shouldDelete.value || view.images.shouldDelete.value || view.fileCache.shouldDelete.value) {
-                    "Please select stale data to delete!"
+            view.librariesAndGames.shouldDelete.combineLatest(view.images.shouldDelete, view.fileCache.shouldDelete) { deleteLibrariesAndGames, deleteImages, deleteFileCache ->
+                view.canAccept *= Try {
+                    if (deleteLibrariesAndGames) view.librariesAndGames.canDelete.assert()
+                    if (deleteImages) view.images.canDelete.assert()
+                    if (deleteFileCache) view.fileCache.canDelete.assert()
+                    check(deleteLibrariesAndGames || deleteImages || deleteFileCache) { "Select stale data to delete!" }
                 }
             }
+
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {
             hideView()
 
+            val staleData = view.staleData.value
             val staleDataToDelete = staleData.copy(
                 libraries = if (view.librariesAndGames.shouldDelete.value) staleData.libraries else emptyList(),
                 games = if (view.librariesAndGames.shouldDelete.value) staleData.games else emptyList(),

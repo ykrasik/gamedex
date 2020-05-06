@@ -28,8 +28,10 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.*
-import kotlinx.coroutines.launch
+import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.and
+import com.gitlab.ykrasik.gamedex.util.existsOrNull
+import com.gitlab.ykrasik.gamedex.util.file
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,16 +49,44 @@ class EditLibraryPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<EditLibraryView> {
     override fun present(view: EditLibraryView) = object : ViewSession() {
-        private val library by view.library
+        private val library get() = view.library.peek()
+        private var nextTypeChangeIsExpected = false
+        private var nextPlatformChangeIsExpected = false
 
         init {
-            view.name.forEach { onNameChanged() }
-            view.path.forEach { onPathChanged() }
-            view.type.forEach {
-                view.canChangeType.assert()
-                onTypeChanged(it)
+            view.library.forEach { library ->
+                nextTypeChangeIsExpected = true
+                nextPlatformChangeIsExpected = true
+
+                view.platform *= library?.platformOrNull ?: Platform.Windows
+                view.name *= library?.name ?: ""
+                view.path *= library?.path?.toString() ?: ""
+                view.type *= library?.type ?: LibraryType.Digital
+                view.canChangeType *= assertEmptyLibrary("type")
             }
-            view.platform.forEach { onPlatformChanged() }
+
+            view.name.mapTo(view.nameIsValid) { validateName(it) }
+            view.path.mapTo(view.pathIsValid) { validatePath(it) }
+            view.type.forEach { onTypeChanged(it) }
+
+            view.nameIsValid.combineLatest(view.pathIsValid) { nameIsValid, pathIsValid ->
+                view.canAccept *= pathIsValid and nameIsValid and Try {
+                    val library = library
+                    if (library != null) {
+                        check(
+                            library.path.toString() != view.path.value ||
+                                library.name != view.name.value ||
+                                library.type != view.type.value ||
+                                library.platformOrNull != view.platform.value
+                        ) { "Nothing changed!" }
+                    }
+                }
+            }
+
+            view.platform.forEach {
+                if (!nextPlatformChangeIsExpected) view.canChangePlatform.assert()
+                nextPlatformChangeIsExpected = false
+            }
 
             view.browseActions.forEach { onBrowse() }
             view.acceptActions.forEach { onAccept() }
@@ -64,76 +94,35 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            view.platform *= library?.platformOrNull ?: Platform.Windows
-
-            view.name *= library?.name ?: ""
-            view.nameIsValid *= IsValid.valid
-
-            view.path *= library?.path?.toString() ?: ""
-            view.pathIsValid *= IsValid.valid
-
-            view.type *= library?.type ?: LibraryType.Digital
-            view.canChangeType *= Try { assertEmptyLibrary("type") }
-            onTypeChanged(view.type.value)
-
-            setCanAccept()
             if (library == null) {
-                launch {
-                    onBrowse()
-                }
+                onBrowse()
             }
-        }
-
-        private fun onNameChanged() {
-            validateName()
-            setCanAccept()
-        }
-
-        private fun onPathChanged() {
-            validatePath()
-            setCanAccept()
         }
 
         private fun onTypeChanged(type: LibraryType) {
-            view.shouldShowPlatform *= Try {
-                check(type != LibraryType.Excluded) { "Excluded libraries don't have a platform!" }
-            }
-            view.canChangePlatform *= view.shouldShowPlatform.value and Try {
-                assertEmptyLibrary("platform")
-            }
-            validate()
+            if (!nextTypeChangeIsExpected) view.canChangeType.assert()
+            nextTypeChangeIsExpected = false
+            view.shouldShowPlatform *= Try { check(type != LibraryType.Excluded) { "Excluded libraries don't have a platform!" } }
+            view.canChangePlatform *= view.shouldShowPlatform.value and assertEmptyLibrary("platform")
         }
 
-        private fun onPlatformChanged() {
-            view.canChangePlatform.assert()
-            validate()
-        }
-
-        private fun validate() {
-            validatePath()
-            validateName()
-            setCanAccept()
-        }
-
-        private fun validateName() {
-            view.nameIsValid *= Try {
-                val name = view.name.value
-                if (name.isEmpty()) error("Name is required!")
-                if (!isAvailableNewLibrary { libraryService[name] } &&
-                    !isAvailableUpdatedLibrary { libraryService[name] })
-                    error("Name already in use!")
+        private fun validateName(name: String) = Try {
+            if (name.isEmpty()) error("Name is required!")
+            if (!isAvailableNewLibrary { libraryService[name] } &&
+                !isAvailableUpdatedLibrary { libraryService[name] }) {
+                error("Name already in use!")
             }
         }
 
-        private fun validatePath() {
-            view.pathIsValid *= Try {
-                if (view.path.value.isEmpty()) error("Path is required!")
+        private fun validatePath(path: String) = Try {
+            if (path == library?.path?.toString()) return@Try
 
-                val file = view.path.value.file
-                if (!file.isDirectory) error("Path doesn't exist!")
-                if (!isAvailableNewLibrary { libraryService[file] } &&
-                    !isAvailableUpdatedLibrary { libraryService[file] })
-                    error("Path already in use!")
+            if (path.isEmpty()) error("Path is required!")
+            val file = path.file
+            if (!file.isDirectory) error("Path doesn't exist!")
+            if (!isAvailableNewLibrary { libraryService[file] } &&
+                !isAvailableUpdatedLibrary { libraryService[file] }) {
+                error("Path already in use!")
             }
         }
 
@@ -143,34 +132,19 @@ class EditLibraryPresenter @Inject constructor(
         private inline fun isAvailableUpdatedLibrary(findExisting: (Library) -> Library?): Boolean =
             library?.let { library -> (findExisting(library) ?: library) == library } ?: false
 
-        private fun setCanAccept() {
-            view.canAccept *= view.pathIsValid and view.nameIsValid and Try {
-                val library = library
-                if (library != null) {
-                    check(
-                        library.path.toString() != view.path.value ||
-                            library.name != view.name.value ||
-                            library.type != view.type.value ||
-                            library.platformOrNull != view.platform.value
-                    ) { "Nothing changed!" }
-                }
-            }
-        }
-
         private fun onBrowse() {
-            val initialDirectory = settingsRepo.prevDirectory.existsOrNull()
+            val initialDirectory = settingsRepo.prevDirectory.value.existsOrNull()
             val selectedDirectory = view.browse(initialDirectory)
             if (selectedDirectory != null) {
-                settingsRepo.prevDirectory = selectedDirectory
+                settingsRepo.prevDirectory *= selectedDirectory
                 view.path *= selectedDirectory.toString()
                 if (view.name.value.isEmpty()) {
                     view.name *= selectedDirectory.name
                 }
             }
-            validate()
         }
 
-        private fun assertEmptyLibrary(name: String) {
+        private fun assertEmptyLibrary(name: String) = Try {
             val library = library
             check(library == null || gameService.games.none { it.library.id == library.id }) { "Cannot change the $name of a library with games!" }
         }

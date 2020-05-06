@@ -42,12 +42,11 @@ class DeleteLibraryPresenter @Inject constructor(
         private val library by view.library
 
         init {
+            view.library.forEach { library ->
+                view.gamesToBeDeleted.setAll(gameService.games.filter { it.library.id == library.id })
+            }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            view.gamesToBeDeleted.setAll(gameService.games.filter { it.library.id == library.id })
         }
 
         private suspend fun onAccept() {

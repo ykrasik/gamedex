@@ -35,16 +35,16 @@ abstract class ChangeGameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
     override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
-                settingsRepo.enabledChannel.bind(enabled)
-                settingsRepo.showOnlyWhenActiveChannel.bind(showOnlyWhenActive)
-                settingsRepo.positionChannel.bind(position)
-                settingsRepo.fillWidthChannel.bind(fillWidth)
-                settingsRepo.fontSizeChannel.bind(fontSize)
-                settingsRepo.boldFontChannel.bind(boldFont)
-                settingsRepo.italicFontChannel.bind(italicFont)
-                settingsRepo.textColorChannel.bind(textColor)
-                settingsRepo.backgroundColorChannel.bind(backgroundColor)
-                settingsRepo.opacityChannel.bind(opacity)
+                enabled.bindBidirectional(settingsRepo.enabled)
+                showOnlyWhenActive.bindBidirectional(settingsRepo.showOnlyWhenActive)
+                position.bindBidirectional(settingsRepo.position)
+                fillWidth.bindBidirectional(settingsRepo.fillWidth)
+                fontSize.bindBidirectional(settingsRepo.fontSize)
+                boldFont.bindBidirectional(settingsRepo.boldFont)
+                italicFont.bindBidirectional(settingsRepo.italicFont)
+                textColor.bindBidirectional(settingsRepo.textColor)
+                backgroundColor.bindBidirectional(settingsRepo.backgroundColor)
+                opacity.bindBidirectional(settingsRepo.opacity)
             }
         }
     }
@@ -78,16 +78,16 @@ abstract class GameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
     override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
-                settingsRepo.enabledChannel.bind(enabled)
-                settingsRepo.showOnlyWhenActiveChannel.bind(showOnlyWhenActive)
-                settingsRepo.positionChannel.bind(position)
-                settingsRepo.fillWidthChannel.bind(fillWidth)
-                settingsRepo.fontSizeChannel.bind(fontSize)
-                settingsRepo.boldFontChannel.bind(boldFont)
-                settingsRepo.italicFontChannel.bind(italicFont)
-                settingsRepo.textColorChannel.bind(textColor)
-                settingsRepo.backgroundColorChannel.bind(backgroundColor)
-                settingsRepo.opacityChannel.bind(opacity)
+                enabled.bind(settingsRepo.enabled)
+                showOnlyWhenActive.bind(settingsRepo.showOnlyWhenActive)
+                position.bind(settingsRepo.position)
+                fillWidth.bind(settingsRepo.fillWidth)
+                fontSize.bind(settingsRepo.fontSize)
+                boldFont.bind(settingsRepo.boldFont)
+                italicFont.bind(settingsRepo.italicFont)
+                textColor.bind(settingsRepo.textColor)
+                backgroundColor.bind(settingsRepo.backgroundColor)
+                opacity.bind(settingsRepo.opacity)
             }
         }
     }

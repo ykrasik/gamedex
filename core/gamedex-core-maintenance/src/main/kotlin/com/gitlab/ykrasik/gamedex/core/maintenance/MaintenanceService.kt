@@ -118,7 +118,7 @@ class MaintenanceServiceImpl @Inject constructor(
                 objectMapper.writerWithDefaultPrettyPrinter().writeValue(zos, data)
             }
 
-            totalItems = 3
+            totalItems.value = 3
 
             if (params.library) {
                 withMessage("Exporting Library...") {
@@ -135,8 +135,8 @@ class MaintenanceServiceImpl @Inject constructor(
                 withMessage("Exporting Provider Accounts...") {
                     val accounts = PortableProviderAccounts(
                         settingsRepo.providers
-                            .filter { (_, repo) -> repo.account.isNotEmpty() }
-                            .mapValues { (_, repo) -> repo.account }
+                            .filter { (_, repo) -> repo.account.value.isNotEmpty() }
+                            .mapValues { (_, repo) -> repo.account.value }
                     )
                     write(providerAccountsEntry, accounts)
                 }
@@ -181,7 +181,7 @@ class MaintenanceServiceImpl @Inject constructor(
     }
 
     override fun importDatabase(content: ImportDbContent) = task("Importing Database...") {
-        totalItems = 3
+        totalItems.value = 3
 
         content.db?.let { db ->
             withMessage("Importing Library...") {
@@ -240,28 +240,28 @@ class MaintenanceServiceImpl @Inject constructor(
     }
 
     override fun deleteStaleData(staleData: StaleData) = task("Deleting Stale Data...") {
-        totalItems = 4
+        totalItems.value = 4
 
         staleData.games.emptyToNull()?.let { games ->
-            message = "Deleting stale games..."
+            message *= "Deleting stale games..."
             executeSubTask(gameService.deleteAll(games))
         }
         incProgress()
 
         staleData.libraries.emptyToNull()?.let { libraries ->
-            message = "Deleting stale libraries..."
+            message *= "Deleting stale libraries..."
             executeSubTask(libraryService.deleteAll(libraries))
         }
         incProgress()
 
         staleData.images.toList().emptyToNull()?.let { images ->
-            message = "Deleting stale images..."
+            message *= "Deleting stale images..."
             imageService.deleteImages(images.map { it.first })
         }
         incProgress()
 
         staleData.fileTrees.toList().emptyToNull()?.let { fileTrees ->
-            message = "Deleting stale file cache..."
+            message *= "Deleting stale file cache..."
             fileTrees.forEach { fileSystemService.deleteCachedFileTree(it.first) }
         }
         incProgress()
@@ -292,7 +292,7 @@ class MaintenanceServiceImpl @Inject constructor(
             games.groupBy { it.platform }.flatMap { (_, games) -> if (games.size > 1) games else emptyList() }
         }.filterValues { it.take(2).toList().size > 1 }
 
-        totalItems = duplicateHeaders.values.sumBy { it.size }
+        totalItems.value = duplicateHeaders.values.sumBy { it.size }
 
         val gameIdsToDuplicates = mutableMapOf<GameId, MutableList<Pair<Game, ProviderId>>>()
         duplicateHeaders.forEach { (header, games) ->

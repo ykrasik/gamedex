@@ -76,7 +76,7 @@ class GameListView(games: ObservableList<Game>) : PresentableView("Game List"), 
             root.hgrow = Priority.ALWAYS
             gamesView.selectionModel.selectedItemProperty().typeSafeOnChange {
                 if (it != null) {
-                    gameParams.valueFromView = ViewGameParams(it, emptyList())
+                    gameParams *= ViewGameParams(it, emptyList())
                 }
             }
         }

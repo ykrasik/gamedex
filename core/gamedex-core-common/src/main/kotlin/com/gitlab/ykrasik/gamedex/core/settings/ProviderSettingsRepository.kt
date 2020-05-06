@@ -18,11 +18,10 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.core.log.LogService
 import com.gitlab.ykrasik.gamedex.core.storage.StorageObservable
-import com.gitlab.ykrasik.gamedex.core.util.modify
-import com.gitlab.ykrasik.gamedex.core.util.perform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Modifier
+import kotlinx.coroutines.CoroutineStart
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,14 +41,11 @@ class ProviderSettingsRepository @Inject constructor(
     )
 
     class Repo(private val storage: StorageObservable<Data>) {
-        val enabledChannel = storage.biChannel(Data::enabled) { copy(enabled = it) }
-        var enabled by enabledChannel
-
-        val accountChannel = storage.biChannel(Data::account) { copy(account = it) }
-        var account by accountChannel
+        val enabled = storage.biChannel(Data::enabled) { copy(enabled = it) }
+        val account = storage.biChannel(Data::account) { copy(account = it) }
 
         fun modify(modifier: Modifier<Data>) = storage.modify(modifier)
-        fun perform(f: suspend (Data) -> Unit) = storage.perform(f)
+        fun perform(f: suspend (Data) -> Unit) = storage.subscribe(start = CoroutineStart.UNDISPATCHED, f = f)
     }
 
     private val _providers = mutableMapOf<ProviderId, Repo>()
@@ -64,7 +60,7 @@ class ProviderSettingsRepository @Inject constructor(
         })
         _providers[provider.id] = repo
 
-        repo.accountChannel.subscribe { account ->
+        repo.account.subscribe { account ->
             account.values.forEach {
                 logService.addBlacklistValue(it)
             }

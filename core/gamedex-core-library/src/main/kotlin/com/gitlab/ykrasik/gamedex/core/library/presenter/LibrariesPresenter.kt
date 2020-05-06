@@ -27,7 +27,7 @@ import javax.inject.Singleton
 class LibrariesPresenter @Inject constructor(private val libraryService: LibraryService) : Presenter<ViewWithLibraries> {
     override fun present(view: ViewWithLibraries) = object : ViewSession() {
         init {
-            libraryService.libraries.bind(view.libraries)
+            view.libraries.bind(libraryService.libraries)
         }
     }
 }

@@ -69,18 +69,18 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
 
-    override val searchText = userMutableState("")
-    override val matchingGame = state<Game?>(null)
+    override val searchText = viewMutableStatefulChannel("")
+    override val matchingGame = statefulChannel<Game?>(null)
 
-    override val filterMode = userMutableState(FolderNameDiffFilterMode.None)
-    override val predicate = state(Predicate<FolderNameDiffs> { true })
+    override val filterMode = viewMutableStatefulChannel(FolderNameDiffFilterMode.None)
+    override val predicate = statefulChannel(Predicate<FolderNameDiffs> { true })
 
     override val renameMoveGameActions = channel<RenameMoveGameParams>()
 
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
-    private val diffContextMenu = object : InstallableContextMenu<Pair<Game, FolderNameDiff>>() {
+    private val diffContextMenu = object : InstallableContextMenu<Pair<Game, FolderNameDiff>>(Game.Null to FolderNameDiff("", "", "", null)) {
         override val root = vbox {
             jfxButton("Rename to Expected", Icons.folderEdit) {
                 action(renameMoveGameActions) { RenameMoveGameParams(data.first, initialSuggestion = data.second.expectedFolderName) }

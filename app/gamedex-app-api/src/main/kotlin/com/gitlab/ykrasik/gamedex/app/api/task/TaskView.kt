@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.task
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import kotlinx.coroutines.Job
 
 /**
@@ -29,14 +29,14 @@ import kotlinx.coroutines.Job
  * Supports displaying a single running task, with an optional single sub-task.
  */
 interface TaskView {
-    val job: State<Job?>
+    val job: StatefulChannel<Job?>
 
-    val isCancellable: State<Boolean>
-    val cancelTaskActions: MultiReceiveChannel<Unit>
+    val isCancellable: StatefulChannel<Boolean>
+    val cancelTaskActions: MultiReadChannel<Unit>
 
     val taskProgress: TaskProgress
     val subTaskProgress: TaskProgress
-    val isRunningSubTask: State<Boolean>
+    val isRunningSubTask: StatefulChannel<Boolean>
 
     fun taskSuccess(title: String, message: String)
     fun taskCancelled(title: String, message: String)
@@ -44,11 +44,11 @@ interface TaskView {
 }
 
 interface TaskProgress {
-    val title: State<String>
-    val image: State<Image?>
-    val message: State<String>
+    val title: StatefulChannel<String>
+    val image: StatefulChannel<Image?>
+    val message: StatefulChannel<String>
 
-    val processedItems: State<Int>
-    val totalItems: State<Int>
-    val progress: State<Double>
+    val processedItems: StatefulChannel<Int>
+    val totalItems: StatefulChannel<Int>
+    val progress: StatefulChannel<Double>
 }

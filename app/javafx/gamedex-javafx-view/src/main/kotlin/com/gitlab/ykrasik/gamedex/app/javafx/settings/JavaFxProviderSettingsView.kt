@@ -47,16 +47,16 @@ class JavaFxProviderSettingsView(override val provider: GameProvider.Metadata, i
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val canChangeProviderSettings = state(IsValid.valid)
+    override val canChangeProviderSettings = statefulChannel(IsValid.valid)
 
-    override val status = state(ProviderAccountStatus.Empty)
-    override val enabled = userMutableState(false)
+    override val status = statefulChannel(ProviderAccountStatus.Empty)
+    override val enabled = viewMutableStatefulChannel(false)
 
-    override val currentAccount = userMutableState(emptyMap<String, String>())
+    override val currentAccount = viewMutableStatefulChannel(emptyMap<String, String>())
 
     override val browseUrlActions = channel<String>()
 
-    override val canVerifyAccount = state(IsValid.valid)
+    override val canVerifyAccount = statefulChannel(IsValid.valid)
 
     override val verifyAccountActions = channel<Unit>()
 
@@ -158,7 +158,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider.Metadata, i
             val currentValue = currentAccount.property.map { it[field] ?: "" }
             jfxTextField(currentValue, promptText = "Enter $field...") {
                 textProperty().typeSafeOnChange {
-                    currentAccount.valueFromView += field to it
+                    currentAccount.value += field to it
                 }
             }
         }

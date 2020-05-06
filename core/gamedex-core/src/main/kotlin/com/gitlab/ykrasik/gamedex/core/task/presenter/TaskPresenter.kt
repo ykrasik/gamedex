@@ -47,24 +47,26 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
     private val log = logger()
 
     override fun present(view: TaskView) = object : ViewSession() {
+        private val job get() = view.job.peek()
+
         init {
             eventBus.forEach<TaskEvent.RequestStart<*>> { execute(it.task) }
             view.cancelTaskActions.forEach { cancelTask() }
         }
 
         private suspend fun <T> execute(task: Task<T>) {
-            if (view.job.value != null) {
+            if (job != null) {
                 log.warn("Trying to execute a task(${task.title}) when one is already executing(${view.taskProgress.title})")
                 eventBus.awaitEvent<TaskEvent.Finished<T>>()
                 log.warn("Previous task(${view.taskProgress.title}) finished, executing new task(${task.title})")
             }
-            check(view.job.value == null) { "Already running a job: ${view.taskProgress.title}" }
+            check(job == null) { "Already running a job: ${view.taskProgress.title}" }
 
             view.isCancellable *= task.isCancellable
             view.isRunningSubTask *= false
             bindTaskProgress(task, view.taskProgress)
             // TODO: It's possible that before this coroutine is launched the subtask will send some messages to its message channel that will be lost.
-            task.subTaskChannel.forEach { subTask ->
+            task.subTask.forEach { subTask ->
                 if (subTask != null) {
                     bindTaskProgress(subTask, view.subTaskProgress)
                 }
@@ -124,36 +126,33 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
 
         private fun bindTaskProgress(task: Task<*>, taskProgress: TaskProgress) {
             taskProgress.title *= task.title
-            message(task.title, taskProgress)
-            task.messageChannel.forEach { message(it, taskProgress) }
 
-            taskProgress.totalItems *= task.totalItems
-            task.totalItemsChannel.forEach { taskProgress.totalItems *= it }
+            taskProgress.message.bind(task.message) { msg ->
+                log.info(msg)
+            }
+            task.message *= task.title
 
-            taskProgress.processedItems *= task.processedItems
-            task.processedItemsChannel.forEach { processedItems ->
-                taskProgress.processedItems *= processedItems
+            taskProgress.totalItems.bind(task.totalItems)
 
-                if (task.totalItems > 1) {
-                    taskProgress.progress *= processedItems.toDouble() / task.totalItems
+            taskProgress.processedItems.bind(task.processedItemsChannel) { processedItems ->
+                // FIXME: Remove this once StateFlow is available
+                if (!task.totalItems.isClosed) {
+                    val totalItems = task.totalItems.value
+                    if (totalItems > 1) {
+                        taskProgress.progress *= processedItems.toDouble() / totalItems
 //                    log.debug("Progress: $processedItems/${task.totalItems} ${String.format("%.3f", taskProgress.progress * 100)}%")
+                    }
                 }
             }
 
             taskProgress.progress *= -1.0
 
-            taskProgress.image *= task.image
-            task.imageChannel.forEach { taskProgress.image *= it }
-        }
-
-        private fun message(msg: String, taskProgress: TaskProgress) {
-            log.info(msg)
-            taskProgress.message *= msg
+            taskProgress.image.bind(task.image)
         }
 
         private fun cancelTask() {
-            val job = checkNotNull(view.job.value) { "Cannot cancel, not running any job!" }
-            check(view.isCancellable.value) { "Cannot cancel, current job is non-cancellable: ${view.job}" }
+            val job = checkNotNull(job) { "Cannot cancel, not running any job!" }
+            check(view.isCancellable.value) { "Cannot cancel, current job is non-cancellable: $job" }
             job.cancel()
         }
     }

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.web
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 09:46
  */
 interface ViewCanBrowseUrl {
-    val browseUrlActions: MultiReceiveChannel<String>
+    val browseUrlActions: MultiReadChannel<String>
 }

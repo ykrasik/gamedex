@@ -39,64 +39,35 @@ class EditFilterPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<EditFilterView> {
     override fun present(view: EditFilterView) = object : ViewSession() {
-        private var initialNamedFilter by view.initialNamedFilter
-        private var name by view.name
-        private var filter by view.filter
-        private var isTag by view.isTag
-
         init {
-            view.name.forEach { onNameChanged() }
-            view.filter.forEach { onFilterChanged() }
-            view.filterIsValid.forEach { onFilterIsValidChanged() }
-            view.isTag.forEach { onIsTagChanged() }
+            view.initialNamedFilter.forEach { initialNamedFilter ->
+                view.name *= initialNamedFilter.id
+                view.filter *= initialNamedFilter.filter
+                view.isTag *= if (!initialNamedFilter.isAnonymous) initialNamedFilter.isTag else true
+            }
+            view.name.mapTo(view.nameIsValid) { name ->
+                Try { check(name.isNotBlank()) { "Name is required!" } }
+            }
+
+            view.name.combineLatest(view.nameIsValid, view.filter, view.filterIsValid, view.isTag) { name, nameIsValid, filter, filterIsValid, isTag ->
+                view.canAccept *= nameIsValid and filterIsValid and Try {
+                    val initialNamedFilter = view.initialNamedFilter.value
+                    check(!filter.isEmpty) { "Filter is empty!" }
+                    if (name == initialNamedFilter.id &&
+                        filter.isEqual(initialNamedFilter.filter) &&
+                        isTag == initialNamedFilter.isTag/* &&
+                            view.excludedGames.map { it.id } == view.report?.excludedGames*/) {
+                        error("Nothing changed!")
+                    }
+                    if (isTag && filter.find(Filter.FilterTag::class) != null) {
+                        error("Filters that tag games may not depend on FilterTag filters!")
+                    }
+                }
+            }
 
 //            view.unexcludeGameActions.forEach { onUnexcludeGame(it) }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            name = initialNamedFilter.id
-            filter = initialNamedFilter.filter
-            view.isTag *= if (!initialNamedFilter.isAnonymous) initialNamedFilter.isTag else true
-//            view.excludedGames.setAll(filter?.excludedGames?.map { gameService[it] } ?: emptyList())
-            validateName()
-        }
-
-        private fun onNameChanged() {
-            validateName()
-        }
-
-        private fun onFilterChanged() {
-            setCanAccept()
-        }
-
-        private fun onFilterIsValidChanged() {
-            setCanAccept()
-        }
-
-        private fun onIsTagChanged() {
-            setCanAccept()
-        }
-
-        private fun validateName() {
-            view.nameIsValid *= Try { check(name.isNotBlank()) { "Name is required!" } }
-            setCanAccept()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= view.nameIsValid and view.filterIsValid and Try {
-                check(!filter.isEmpty) { "Filter is empty!" }
-                if (name == initialNamedFilter.id &&
-                    filter.isEqual(initialNamedFilter.filter) &&
-                    isTag == initialNamedFilter.isTag/* &&
-                    view.excludedGames.map { it.id } == view.report?.excludedGames*/) {
-                    error("Nothing changed!")
-                }
-                if (isTag && filter.find(Filter.FilterTag::class) != null) {
-                    error("Filters that tag games may not depend on FilterTag filters!")
-                }
-            }
         }
 
 //        private fun onUnexcludeGame(game: Game) {
@@ -106,6 +77,9 @@ class EditFilterPresenter @Inject constructor(
 
         private suspend fun onAccept() {
             view.canAccept.assert()
+
+            val name = view.name.value
+            val initialNamedFilter = view.initialNamedFilter.value
 
             val isRenamed = name != initialNamedFilter.id
             val filterToOverwrite = if (isRenamed) {
@@ -120,8 +94,8 @@ class EditFilterPresenter @Inject constructor(
 
             val namedFilter = NamedFilter(
                 id = name,
-                filter = filter,
-                isTag = isTag
+                filter = view.filter.value,
+                isTag = view.isTag.value
             )
 
             taskService.execute(filterService.save(namedFilter))

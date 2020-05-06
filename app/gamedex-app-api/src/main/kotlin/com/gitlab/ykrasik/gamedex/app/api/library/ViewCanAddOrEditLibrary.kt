@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:26
  */
 interface ViewCanAddOrEditLibrary {
-    val canAddOrEditLibraries: State<IsValid>
+    val canAddOrEditLibraries: StatefulChannel<IsValid>
 
-    val addOrEditLibraryActions: MultiReceiveChannel<Library?>
+    val addOrEditLibraryActions: MultiReadChannel<Library?>
 }

@@ -50,7 +50,7 @@ class SyncGamesWithMissingProvidersPresenter @Inject constructor(
         }
 
         override suspend fun onShown() {
-            view.bulkSyncGamesFilter *= repo.bulkSyncGamesFilter.peek()
+            view.bulkSyncGamesFilter *= repo.bulkSyncGamesFilter.value
             setCanAccept()
         }
 

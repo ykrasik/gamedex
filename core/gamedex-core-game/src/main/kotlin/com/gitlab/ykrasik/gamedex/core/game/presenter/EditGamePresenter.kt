@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideState
 import com.gitlab.ykrasik.gamedex.app.api.game.OverrideSelectionType
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -44,8 +45,6 @@ class EditGamePresenter @Inject constructor(
 ) : Presenter<EditGameView> {
     override fun present(view: EditGameView) = object : ViewSession() {
         private val game by view.game
-        private var absoluteMainExecutablePath by view.absoluteMainExecutablePath
-        private var absoluteMainExecutablePathIsValid by view.absoluteMainExecutablePathIsValid
 
         private val allOverrides = with(view) {
             listOf(
@@ -59,90 +58,62 @@ class EditGamePresenter @Inject constructor(
             )
         }
 
-        private lateinit var gameWithoutOverrides: Game
+        private val gameWithoutOverrides = conflatedChannel(Game.Null)
 
         init {
-            allOverrides.forEach { it.initState() }
+            allOverrides.forEach { it.init() }
 
-            view.canAccept *= IsValid.invalid("Nothing changed!")
+            view.game.forEach { game ->
+                gameWithoutOverrides *= if (game.id != Game.Null.id) {
+                    gameService.buildGame(game.rawGame.copy(userData = UserData.Null))
+                } else {
+                    game
+                }
+                view.absoluteMainExecutablePath *= game.mainExecutableFile?.toString() ?: ""
+            }
 
             view.acceptActions.forEach { onAccept() }
             view.resetAllToDefaultActions.forEach { onResetAllToDefault() }
             view.cancelActions.forEach { onCancel() }
 
-            view.absoluteMainExecutablePath.forEach { onAbsoluteMainExecutablePathChanged() }
+            view.absoluteMainExecutablePath.mapTo(view.absoluteMainExecutablePathIsValid) { validateMainExecutablePath(it) }
+            view.absoluteMainExecutablePathIsValid.forEach { setCanAccept() }
             view.browseMainExecutableActions.forEach { onBrowseMainExecutable() }
         }
 
-        private fun <T> GameDataOverrideState<T>.initState() {
-            selection.forEach { onSelectionChanged(it) }
-            rawCustomValue.forEach { onRawCustomValueChanged(it) }
-            customValueAcceptActions.forEach { onCustomValueAccepted() }
+        private fun <T> GameDataOverrideState<T>.init() {
+            view.game.forEach { initProviderAndCustomValues(it) }
+
+            selection.forEach { selection ->
+                if (selection is OverrideSelectionType.Custom) {
+                    canSelectCustomOverride.assert()
+                }
+
+                setCanAccept()
+            }
+
+            rawCustomValue.mapTo(isCustomValueValid) { rawValue ->
+                Try {
+                    if (rawValue.isEmpty()) error("Empty value!")
+                    try {
+                        type.deserializeCustomValue<Any>(rawValue)
+                    } catch (_: Exception) {
+                        error("Invalid $type!")
+                    }
+                }
+            }
+
+            customValueAcceptActions.forEach {
+                isCustomValueValid.assert()
+                customValue *= type.deserializeCustomValue(rawCustomValue.value)
+                canSelectCustomOverride *= IsValid.valid
+                selection *= OverrideSelectionType.Custom
+            }
+
             resetToDefaultActions.forEach { onResetStateToDefault() }
         }
 
-        private fun <T> GameDataOverrideState<T>.onSelectionChanged(selection: OverrideSelectionType?) {
-            if (selection is OverrideSelectionType.Custom) {
-                canSelectCustomOverride.assert()
-            }
-
-            setCanAccept()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= absoluteMainExecutablePathIsValid and Try {
-                val updatedGame = gameService.buildGame(calcUpdatedGame())
-                check(
-                    updatedGame.gameData != game.gameData ||
-                        updatedGame.userData != game.userData
-                ) { "Nothing changed!" }
-            }
-        }
-
-        private fun GameDataOverrideState<*>.onRawCustomValueChanged(rawValue: String) {
-            isCustomValueValid *= Try {
-                if (rawValue.isEmpty()) error("Empty value!")
-                try {
-                    type.deserializeCustomValue<Any>(rawValue)
-                } catch (_: Exception) {
-                    error("Invalid $type!")
-                }
-            }
-        }
-
-        private fun <T> GameDataOverrideState<T>.onCustomValueAccepted() {
-            isCustomValueValid.assert()
-            customValue *= type.deserializeCustomValue(rawCustomValue.value)
-            canSelectCustomOverride *= IsValid.valid
-            selection *= OverrideSelectionType.Custom
-            onSelectionChanged(selection.value)
-        }
-
-        private fun <T> GameDataOverrideState<T>.onResetStateToDefault() {
-            val defaultValue = type.extractValue<T>(gameWithoutOverrides.gameData)
-            selection *= if (defaultValue != null) findProviderWithValue(defaultValue) else null
-            onSelectionChanged(selection.value)
-        }
-
-        private fun onResetAllToDefault() {
-            allOverrides.forEach { it.onResetStateToDefault() }
-            absoluteMainExecutablePath = game.mainExecutableFile?.toString() ?: ""
-            absoluteMainExecutablePathIsValid = IsValid.valid
-        }
-
-        override suspend fun onShown() {
-            allOverrides.forEach { it.initStateOnShow() }
-
-            gameWithoutOverrides = gameService.buildGame(game.rawGame.copy(userData = UserData.Null))
-
-            view.canAccept *= IsValid.invalid("Nothing changed!")
-
-            absoluteMainExecutablePath = game.mainExecutableFile?.toString() ?: ""
-            absoluteMainExecutablePathIsValid = IsValid.valid
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        private fun <T> GameDataOverrideState<T>.initStateOnShow() {
+        private fun <T> GameDataOverrideState<T>.initProviderAndCustomValues(game: Game) {
             providerValues *= game.providerData
                 .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.providerId to value } }
                 .toMap()
@@ -174,13 +145,6 @@ class EditGamePresenter @Inject constructor(
             }
         }
 
-        private fun <T> GameDataOverrideState<T>.findProviderWithValue(value: T): OverrideSelectionType? {
-            // TODO: Would be more correct to use the order of providers from SettingsService
-            return providerValues.value.entries
-                .find { it.value == value }
-                ?.let { OverrideSelectionType.Provider(it.key) }
-        }
-
         @Suppress("UNCHECKED_CAST")
         private fun <T> GameDataType.deserializeCustomValue(value: String): T = when (this) {
             GameDataType.CriticScore, GameDataType.UserScore -> {
@@ -199,18 +163,39 @@ class EditGamePresenter @Inject constructor(
             else -> value
         } as T
 
+        private fun setCanAccept() {
+            view.canAccept *= view.absoluteMainExecutablePathIsValid.value and Try {
+                val updatedGame = gameService.buildGame(calcUpdatedGame())
+                check(
+                    updatedGame.gameData != game.gameData ||
+                        updatedGame.userData != game.userData
+                ) { "Nothing changed!" }
+            }
+        }
+
+        private fun <T> GameDataOverrideState<T>.onResetStateToDefault() {
+            val defaultValue = type.extractValue<T>(gameWithoutOverrides.value.gameData)
+            selection *= if (defaultValue != null) findProviderWithValue(defaultValue) else null
+        }
+
+        private fun <T> GameDataOverrideState<T>.findProviderWithValue(value: T): OverrideSelectionType? {
+            // TODO: Would be more correct to use the order of providers from SettingsService
+            return providerValues.value.entries
+                .find { it.value == value }
+                ?.let { OverrideSelectionType.Provider(it.key) }
+        }
+
+        private fun onResetAllToDefault() {
+            allOverrides.forEach { it.onResetStateToDefault() }
+            view.absoluteMainExecutablePath *= game.mainExecutableFile?.toString() ?: ""
+        }
+
         private suspend fun onAccept() {
             view.canAccept.assert()
             val newRawGame = calcUpdatedGame()
             taskService.execute(gameService.replace(game, newRawGame))
             hideView()
         }
-
-        private fun onCancel() {
-            hideView()
-        }
-
-        private fun hideView() = eventBus.requestHideView(view)
 
         private fun calcUpdatedGame(): RawGame {
             val overrides: Map<GameDataType, GameDataOverride> = allOverrides.mapNotNull { override ->
@@ -227,7 +212,7 @@ class EditGamePresenter @Inject constructor(
                         override.providerValues.value[selection.providerId] to GameDataOverride.Provider(selection.providerId)
                     else -> null to null
                 }
-                val defaultValue = override.type.extractValue<Any?>(gameWithoutOverrides.gameData)
+                val defaultValue = override.type.extractValue<Any?>(gameWithoutOverrides.value.gameData)
                 if (value != defaultValue) {
                     override.type to gameDataOverride!!
                 } else {
@@ -237,36 +222,30 @@ class EditGamePresenter @Inject constructor(
 
             val userData = game.userData.copy(
                 overrides = overrides,
-                mainExecutablePath = absoluteMainExecutablePath.takeIf { it.isNotBlank() }
+                mainExecutablePath = view.absoluteMainExecutablePath.value.takeIf { it.isNotBlank() }
             )
             return game.rawGame.copy(userData = userData)
         }
 
-        private fun onAbsoluteMainExecutablePathChanged() {
-            validate()
+        private fun onCancel() {
+            hideView()
         }
+
+        private fun hideView() = eventBus.requestHideView(view)
 
         private fun onBrowseMainExecutable() {
             val selectedDirectory = view.browse(initialDirectory = game.path.existsOrNull())
             if (selectedDirectory != null) {
-                absoluteMainExecutablePath = selectedDirectory.toString()
+                view.absoluteMainExecutablePath *= selectedDirectory.toString()
             }
-            validate()
         }
 
-        private fun validate() {
-            validateMainExecutablePath()
-            setCanAccept()
-        }
-
-        private fun validateMainExecutablePath() {
-            absoluteMainExecutablePathIsValid = Try {
-                if (absoluteMainExecutablePath.isEmpty()) return@Try
-                val file = absoluteMainExecutablePath.file
-                check(file.exists()) { "File doesn't exist!" }
-                check(!file.isDirectory) { "Main Executable must not be a directory!" }
-                check(file.startsWith(game.path)) { "Main Executable must be under the game's path!" }
-            }
+        private fun validateMainExecutablePath(absoluteMainExecutablePath: String) = Try {
+            if (absoluteMainExecutablePath.isEmpty() || absoluteMainExecutablePath == game.mainExecutableFile?.toString()) return@Try
+            val file = absoluteMainExecutablePath.file
+            check(file.exists()) { "File doesn't exist!" }
+            check(!file.isDirectory) { "Main Executable must not be a directory!" }
+            check(file.startsWith(game.path)) { "Main Executable must be under the game's path!" }
         }
     }
 

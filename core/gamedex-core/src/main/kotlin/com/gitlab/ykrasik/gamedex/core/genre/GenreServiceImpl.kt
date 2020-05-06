@@ -40,7 +40,7 @@ class GenreServiceImpl @Inject constructor(
     override fun get(id: GenreId) = genresById.getOrElse(id) { Genre.default(id) }
 
     override fun processGenres(genres: List<GenreId>): List<GenreId> {
-        return genres.flatMap(::mapGenre).distinct().take(gameSettingsRepository.maxGenres)
+        return genres.flatMap(::mapGenre).distinct().take(gameSettingsRepository.maxGenres.value)
     }
 
     private fun mapGenre(genreId: GenreId): List<GenreId> =

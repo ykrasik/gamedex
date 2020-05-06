@@ -22,11 +22,11 @@ import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.*
 
@@ -41,15 +41,15 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
     private val viewManager: JavaFxViewManager by inject()
     private val overwriteFilterView = JavaFxFilterView(allowSaveLoad = false, readOnly = true)
 
-    override val initialNamedFilter = userMutableState(NamedFilter.Null)
+    override val initialNamedFilter = viewMutableStatefulChannel(NamedFilter.Null)
 
-    override val name = userMutableState("")
-    override val nameIsValid = state(IsValid.valid)
+    override val name = viewMutableStatefulChannel("")
+    override val nameIsValid = statefulChannel(IsValid.valid)
 
-    override val filter = filterView.userMutableState
-    override val filterIsValid = userMutableState(filterView.filterIsValid)
+    override val filter = filterView.filter
+    override val filterIsValid = filterView.filterIsValid
 
-    override val isTag = userMutableState(false)
+    override val isTag = viewMutableStatefulChannel(false)
 
 //    override val excludedGames = mutableListOf<Game>().asObservable()
 
@@ -103,7 +103,7 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
     }
 
     override suspend fun confirmOverwrite(filterToOverwrite: NamedFilter): Boolean {
-        overwriteFilterView.userMutableState.value = filterToOverwrite.filter
+        overwriteFilterView.filter.value = filterToOverwrite.filter
 
         return viewManager.showAreYouSureDialog("Overwrite filter '${filterToOverwrite.id}'?", Icons.warning) {
             prettyScrollPane {

@@ -39,7 +39,6 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.layout.*
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.javafx.JavaFx
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -60,18 +59,18 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     override val games = settableSortedFilteredList<Game>()
 
-    override val sort = state(Comparator.comparing(Game::name))
-    override val filter = state { _: Game -> true }
+    override val sort = statefulChannel(Comparator.comparing(Game::name))
+    override val filter = statefulChannel { _: Game -> true }
 
     override val availablePlatforms = settableList<AvailablePlatform>()
-    override val currentPlatform = userMutableState<AvailablePlatform>(AvailablePlatform.All)
+    override val currentPlatform = viewMutableStatefulChannel<AvailablePlatform>(AvailablePlatform.All)
 
-    override val gameDisplayType = userMutableState(GameDisplayType.Wall)
+    override val gameDisplayType = viewMutableStatefulChannel(GameDisplayType.Wall)
 
     private val lastSearchProperty = SimpleStringProperty("")
-    override val searchText = userMutableState("")
+    override val searchText = viewMutableStatefulChannel("")
     override val searchActions = channel<Unit>().apply {
-        subscribe(Dispatchers.JavaFx) {
+        subscribe(Dispatchers.Main.immediate) {
             lastSearchProperty.value = searchText.value
         }
     }
@@ -79,8 +78,8 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val searchSuggestions = settableList<Game>()
     private val isShowSearchSuggestions = Bindings.isNotEmpty(searchSuggestions)
 
-    override val sortBy = userMutableState(SortBy.Name)
-    override val sortOrder = userMutableState(SortOrder.Asc)
+    override val sortBy = viewMutableStatefulChannel(SortBy.Name)
+    override val sortOrder = viewMutableStatefulChannel(SortOrder.Asc)
 
     private val gameWallView = GameWallView(games)
     private val gameListView = GameListView(games)
@@ -100,8 +99,8 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
         }
     }
-    override val currentPlatformFilter = filterView.userMutableState
-    override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
+    override val currentPlatformFilter = filterView.filter
+    override val currentPlatformFilterIsValid = filterView.filterIsValid
 
     override val viewGameDetailsActions = channel<ViewGameParams>()
 
@@ -130,7 +129,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val root = stackpane {
         gameDisplayType.perform { type ->
             replaceChildren {
-                when (type!!) {
+                when (type) {
                     GameDisplayType.Wall -> addComponent(gameWallView)
                     GameDisplayType.List -> addComponent(gameListView)
                 }
@@ -172,7 +171,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                     textProperty().bind(sortOrder.property.stringBinding { it!!.displayName })
                 }
                 action {
-                    sortOrder.valueFromView = sortOrder.value.toggle()
+                    sortOrder.value = sortOrder.value.toggle()
                 }
             }
         }

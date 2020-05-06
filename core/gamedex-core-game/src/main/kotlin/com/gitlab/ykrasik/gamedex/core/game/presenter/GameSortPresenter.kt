@@ -34,8 +34,8 @@ class GameSortPresenter @Inject constructor(
 ) : Presenter<ViewWithGameSort> {
     override fun present(view: ViewWithGameSort) = object : ViewSession() {
         init {
-            settingsRepo.sortByChannel.bind(view.sortBy)
-            settingsRepo.sortOrderChannel.bind(view.sortOrder)
+            view.sortBy.bindBidirectional(settingsRepo.sortBy)
+            view.sortOrder.bindBidirectional(settingsRepo.sortOrder)
         }
     }
 }

@@ -112,7 +112,7 @@ class GameProviderServiceImpl @Inject constructor(
     override fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Fetching '$name'...") {
         if (headers.isEmpty()) return@task emptyList<ProviderData>()
         successMessage = null
-        totalItems = headers.size
+        totalItems.value = headers.size
         headers.map { header ->
             // TODO: Link to task scope.
             GlobalScope.async {

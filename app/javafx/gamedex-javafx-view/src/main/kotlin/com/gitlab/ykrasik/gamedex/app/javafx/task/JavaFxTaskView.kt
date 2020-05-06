@@ -38,15 +38,15 @@ import tornadofx.*
  * Time: 10:02
  */
 class JavaFxTaskView : PresentableView(), TaskView {
-    override val job = state<Job?>(null)
+    override val job = statefulChannel<Job?>(null)
 
-    override val isCancellable = state(false)
+    override val isCancellable = statefulChannel(false)
     override val cancelTaskActions = channel<Unit>()
 
     override val taskProgress = JavaFxTaskProgress()
     override val subTaskProgress = JavaFxTaskProgress()
 
-    override val isRunningSubTask = state(false)
+    override val isRunningSubTask = statefulChannel(false)
 
     init {
         register()
@@ -88,6 +88,11 @@ class JavaFxTaskView : PresentableView(), TaskView {
                 addClass(Style.progressText, textStyle)
             }
             spacer()
+            label(taskProgress.processedItems.property.combineLatest(taskProgress.totalItems.property).binding { (processed, total) -> "$processed/$total" }) {
+                visibleWhen { taskProgress.totalItems.property.booleanBinding { it!! > 1 } }
+                addClass(Style.progressText, textStyle)
+            }
+            gap(3)
             label(taskProgress.progress.property.asPercent()) {
                 visibleWhen { taskProgress.totalItems.property.booleanBinding { it!! > 1 } }
                 addClass(Style.progressText, textStyle)
@@ -106,15 +111,15 @@ class JavaFxTaskView : PresentableView(), TaskView {
     }
 
     class JavaFxTaskProgress : TaskProgress {
-        override val title = state("")
+        override val title = statefulChannel("")
 
-        override val image = state<Image?>(null)
+        override val image = statefulChannel<Image?>(null)
         val javaFxImage = image.property.binding { it?.image }
 
-        override val message = state("")
-        override val processedItems = state(0)
-        override val totalItems = state(0)
-        override val progress = state(ProgressIndicator.INDETERMINATE_PROGRESS)
+        override val message = statefulChannel("")
+        override val processedItems = statefulChannel(0)
+        override val totalItems = statefulChannel(0)
+        override val progress = statefulChannel(ProgressIndicator.INDETERMINATE_PROGRESS)
 
 //        val processedItemsCount = processedItemsProperty.combineLatest(totalItemsProperty).stringBinding {
 //            val (processedItems, totalItems) = it!!

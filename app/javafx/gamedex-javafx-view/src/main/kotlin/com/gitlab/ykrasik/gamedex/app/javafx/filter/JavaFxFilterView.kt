@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.filter.*
 import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -71,9 +70,8 @@ class JavaFxFilterView(
     ViewCanAddOrEditFilter,
     ViewCanDeleteFilter {
 
-    override val filter = state(Filter.Null)
-    override val filterIsValid = state(IsValid.valid)
-    override val setFilterActions = channel<Filter>()
+    override val filter = viewMutableStatefulChannel(Filter.Null)
+    override val filterIsValid = viewMutableStatefulChannel(IsValid.valid)
 
     override val availableFilters = settableList<KClass<out Filter.Rule>>()
 
@@ -99,7 +97,6 @@ class JavaFxFilterView(
     override val wrapInOrActions = channel<Filter>()
     override val wrapInNotActions = channel<Filter>()
     override val unwrapNotActions = channel<Filter.Not>()
-    override val clearFilterActions = channel<Unit>()
     override val updateFilterActions = channel<Pair<Filter.Rule, Filter.Rule>>()
     override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
     override val deleteFilterActions = channel<Filter>()
@@ -121,35 +118,6 @@ class JavaFxFilterView(
     private val prevCache: MutableMap<Filter, Pane> = IdentityHashMap()
     private val currentCache: MutableMap<Filter, Pane> = IdentityHashMap()
 
-    val userMutableState = object : UserMutableState<Filter> {
-        private var prevExternalFilter: Filter? = null
-
-        override var value: Filter
-            get() = filter.value
-            set(value) {
-                prevExternalFilter = value
-                // We have to set the value of the filter manually before sending an event to setFilterActions,
-                // because due to the async nature of channels, the code that relies on this value to have
-                // been set will actually run before the code of setFilterActions had a chance to run.
-                filter.value = value
-                setFilterActions.offer(value)
-            }
-
-        override val changes = MultiChannel<Filter>()
-
-        override val valueChannel = MultiChannel.conflated<Filter>()
-
-        init {
-            filter.onInvalidated { filter ->
-                if (filter !== prevExternalFilter) {
-                    changes.offer(filter)
-                }
-                prevExternalFilter = null
-                valueChannel.offer(filter)
-            }
-        }
-    }
-
     override val root = defaultVbox {
         isMouseTransparent = readOnly
         if (allowSaveLoad) {
@@ -157,7 +125,7 @@ class JavaFxFilterView(
                 preProcessHeader()
                 spacer()
                 buttonWithPopover("Saved Filters", Icons.files.size(22), arrowLocation = PopOver.ArrowLocation.LEFT_TOP, closeOnAction = false) {
-                    setFilterActions.forEach { hide() }
+                    filter.forEach { hide() }
                     addOrEditFilterActions.forEach { hide() }
                     deleteNamedFilterActions.forEach { hide() }
 
@@ -182,20 +150,20 @@ class JavaFxFilterView(
                                     hgap = 5.0
                                     vgap = 3.0
                                     usePrefWidth = true
-                                    filters.forEach { filter ->
+                                    filters.forEach { namedFilter ->
                                         row {
-                                            infoButton(filter.id, graphic = Icons.load.size(22)) {
+                                            infoButton(namedFilter.id, graphic = Icons.load.size(22)) {
                                                 useMaxWidth = true
                                                 gridpaneColumnConstraints { hgrow = Priority.ALWAYS }
                                                 alignment = Pos.CENTER_LEFT
-                                                previewFilterOnHover(filter.filter)
-                                                action(setFilterActions) { filter.filter }
+                                                previewFilterOnHover(namedFilter.filter)
+                                                action(filter) { namedFilter.filter }
                                             }
                                             editButton(isToolbarButton = false) {
-                                                action(addOrEditFilterActions) { filter }
+                                                action(addOrEditFilterActions) { namedFilter }
                                             }
                                             deleteButton(isToolbarButton = false) {
-                                                action(deleteNamedFilterActions) { filter }
+                                                action(deleteNamedFilterActions) { namedFilter }
                                             }
                                         }
                                     }
@@ -240,7 +208,7 @@ class JavaFxFilterView(
         setOnMouseEntered {
             debounceJob?.cancel()
             debounceJob = debounce(millis = 200) {
-                savedFilterPreviewContent.userMutableState.value = filter
+                savedFilterPreviewContent.filter.value = filter
                 savedFilterPreview.show(this@previewFilterOnHover)
             }
         }

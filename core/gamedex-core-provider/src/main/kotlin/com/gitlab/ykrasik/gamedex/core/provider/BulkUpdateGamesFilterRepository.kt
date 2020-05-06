@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.not
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulMultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.util.months
 import javax.inject.Inject
@@ -34,17 +34,17 @@ import javax.inject.Singleton
 class BulkUpdateGamesFilterRepository @Inject constructor(
     private val filterService: FilterService
 ) {
-    private val _bulkUpdateGamesFilter = MultiChannel.conflated(Filter.Null)
-    val bulkUpdateGamesFilter: MultiReceiveChannel<Filter> = _bulkUpdateGamesFilter.distinctUntilChanged(Filter::isEqual)
+    private val _bulkUpdateGamesFilter = conflatedChannel(Filter.Null)
+    val bulkUpdateGamesFilter: StatefulMultiReadChannel<Filter> = _bulkUpdateGamesFilter.distinctUntilChanged(Filter::isEqual)
 
     init {
         // Init default filter.
-        _bulkUpdateGamesFilter.offer(filterService.getOrPutSystemFilter(filterName) { Filter.PeriodUpdateDate(2.months).not })
+        _bulkUpdateGamesFilter *= filterService.getOrPutSystemFilter(filterName) { Filter.PeriodUpdateDate(2.months).not }
     }
 
     fun update(filter: Filter) {
         filterService.putSystemFilter(filterName, filter)
-        _bulkUpdateGamesFilter.offer(filter)
+        _bulkUpdateGamesFilter *= filter
     }
 
     private companion object {

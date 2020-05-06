@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.util.onChange
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import javax.inject.Inject
@@ -61,24 +60,11 @@ class ProviderOrderSettingsRepository @Inject constructor(
 
     fun onChange(f: suspend () -> Unit) = storage.onChange { f() }
 
-    val searchChannel = storage.biChannel(Data::search) { copy(search = it) }
-    var search by searchChannel
-
-    val nameChannel = storage.biChannel(Data::name) { copy(name = it) }
-    var name by nameChannel
-
-    val descriptionChannel = storage.biChannel(Data::description) { copy(description = it) }
-    var description by descriptionChannel
-
-    val releaseDateChannel = storage.biChannel(Data::releaseDate) { copy(releaseDate = it) }
-    var releaseDate by releaseDateChannel
-
-    val thumbnailChannel = storage.biChannel(Data::thumbnail) { copy(thumbnail = it) }
-    var thumbnail by thumbnailChannel
-
-    val posterChannel = storage.biChannel(Data::poster) { copy(poster = it) }
-    var poster by posterChannel
-
-    val screenshotChannel = storage.biChannel(Data::screenshot) { copy(screenshot = it) }
-    var screenshot by screenshotChannel
+    val search = storage.biChannel(Data::search) { copy(search = it) }
+    val name = storage.biChannel(Data::name) { copy(name = it) }
+    val description = storage.biChannel(Data::description) { copy(description = it) }
+    val releaseDate = storage.biChannel(Data::releaseDate) { copy(releaseDate = it) }
+    val thumbnail = storage.biChannel(Data::thumbnail) { copy(thumbnail = it) }
+    val poster = storage.biChannel(Data::poster) { copy(poster = it) }
+    val screenshot = storage.biChannel(Data::screenshot) { copy(screenshot = it) }
 }

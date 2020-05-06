@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 
 /**
  * User: ykrasik
@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
  * Time: 10:19
  */
 interface ViewCanEditGame {
-    val editGameActions: MultiReceiveChannel<EditGameParams>
+    val editGameActions: MultiReadChannel<EditGameParams>
 }
 
 data class EditGameParams(val game: Game, val initialView: GameDataType)

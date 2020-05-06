@@ -17,8 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.State
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
@@ -27,9 +28,9 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:43
  */
 interface ViewCanSyncGame {
-    val gameChannel: MultiReceiveChannel<Game>
+    val game: ViewMutableStatefulChannel<Game>
 
-    val canSyncGame: State<IsValid>
+    val canSyncGame: StatefulChannel<IsValid>
 
-    val syncGameActions: MultiReceiveChannel<Game>
+    val syncGameActions: MultiReadChannel<Game>
 }

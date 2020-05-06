@@ -98,15 +98,12 @@ class RenameMoveGamePresenter @Inject constructor(
                     }
 
                     // Detect library
-                    val library = checkNotNull(libraryService.libraries
+                    newPathLibrary = checkNotNull(libraryService.libraries
                         .asSequence()
                         .mapNotNull { library -> matchPath(library) }
                         .maxBy { it.numElements }
                         ?.library
                     ) { "Path doesn't belong to any library!" }
-                    withContext(Dispatchers.Main) {
-                        newPathLibrary = library
-                    }
 
                     check(game.path.exists()) { "Source path doesn't exist!" }
 

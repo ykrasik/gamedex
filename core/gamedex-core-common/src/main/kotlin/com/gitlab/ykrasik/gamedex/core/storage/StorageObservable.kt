@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.storage
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.util.ValueObservable
-import com.gitlab.ykrasik.gamedex.core.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.ConflatedMultiChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.CoroutineScope
@@ -36,21 +36,25 @@ import kotlin.reflect.KProperty1
  * Date: 02/10/2019
  * Time: 21:47
  */
-interface StorageObservable<T> : ValueObservable<T> {
-    fun <R> channel(extractor: KProperty1<T, R>): MultiReceiveChannel<R>
-    fun <R> biChannel(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): MultiChannel<R>
+interface StorageObservable<T> : StatefulChannel<T> {
+    fun <R> channel(extractor: KProperty1<T, R>): MultiReadChannel<R>
+    fun <R> biChannel(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): StatefulChannel<R>
+
+    fun onChange(f: suspend (T) -> Unit)
 }
 
 /**
- * A [ValueObservable] which synchronizes its value with a [Storage].
+ * A [StatefulChannel] which synchronizes its value with a [Storage].
  */
 class StorageObservableImpl<T>(
-    private val valueObservable: ValueObservable<T>,
+    private val channel: ConflatedMultiChannel<T>,
     private val storage: Storage<String, T>,
     private val key: String,
     private val default: () -> T
-) : StorageObservable<T>, ValueObservable<T> by valueObservable, CoroutineScope {
+) : StatefulChannel<T> by channel, StorageObservable<T>, CoroutineScope {
     override val coroutineContext = dispatcher
+
+    private val distinctValueChannel = channel.distinctUntilChanged()
 
     private val log = logger("Storage")
     private val displayName = "$storage/$key".file.toString()
@@ -62,7 +66,7 @@ class StorageObservableImpl<T>(
             log.error("[$displayName] Error!", e)
             null
         }
-        valueObservable.value = if (existingValue == null) {
+        channel *= if (existingValue == null) {
             log.info("[$displayName] Creating default...")
             val defaultValue = default()
             storage[key] = defaultValue
@@ -72,7 +76,7 @@ class StorageObservableImpl<T>(
         }
 
         launch {
-            valueObservable.valueChannel.subscribe().drop(1).consumeEach { value ->
+            distinctValueChannel.subscribe().drop(1).consumeEach { value ->
                 if (enableWrite) {
                     storage[key] = value
                 }
@@ -80,17 +84,17 @@ class StorageObservableImpl<T>(
         }
     }
 
-    override fun <R> channel(extractor: KProperty1<T, R>): MultiReceiveChannel<R> {
-        return valueObservable.channel(extractor).apply {
+    override fun <R> channel(extractor: KProperty1<T, R>): MultiReadChannel<R> {
+        return distinctValueChannel.map { extractor(it) }.apply {
             subscribe(dispatcher) {
                 log.debug("[$displayName] ${extractor.name} = $it")
             }
         }
     }
 
-    override fun <R> biChannel(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): MultiChannel<R> {
-        val channel = MultiChannel.conflated<R>()
-        valueChannel.distinctUntilChanged().subscribe(start = CoroutineStart.UNDISPATCHED) {
+    override fun <R> biChannel(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): StatefulChannel<R> {
+        val channel = conflatedChannel<R>()
+        distinctValueChannel.subscribe(dispatcher, start = CoroutineStart.UNDISPATCHED) {
             channel.send(extractor(it))
         }
         channel.distinctUntilChanged().subscribe(dispatcher) {
@@ -98,6 +102,10 @@ class StorageObservableImpl<T>(
             value = reverseMapper(value, it)
         }
         return channel
+    }
+
+    override fun onChange(f: suspend (T) -> Unit) {
+        distinctValueChannel.drop(1).subscribe(dispatcher, f = f)
     }
 
     fun enableWrite() {
@@ -113,7 +121,12 @@ class StorageObservableImpl<T>(
     }
 
     fun resetDefault() {
-        valueObservable.value = default()
+        value = default()
+    }
+
+    override fun close() {
+        distinctValueChannel.close()
+        channel.close()
     }
 
     companion object {
