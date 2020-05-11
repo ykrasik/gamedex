@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -30,15 +30,15 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
 interface ProviderSettingsView {
     val provider: GameProvider.Metadata
 
-    val canChangeProviderSettings: StatefulChannel<IsValid>
+    val canChangeProviderSettings: MutableStateFlow<IsValid>
 
-    val status: StatefulChannel<ProviderAccountStatus>
-    val enabled: ViewMutableStatefulChannel<Boolean>
+    val status: MutableStateFlow<ProviderAccountStatus>
+    val enabled: ViewMutableStateFlow<Boolean>
 
-    val currentAccount: ViewMutableStatefulChannel<Map<String, String>>
+    val currentAccount: ViewMutableStateFlow<Map<String, String>>
 
-    val canVerifyAccount: StatefulChannel<IsValid>
-    val verifyAccountActions: MultiReadChannel<Unit>
+    val canVerifyAccount: MutableStateFlow<IsValid>
+    val verifyAccountActions: Flow<Unit>
 }
 
 enum class ProviderAccountStatus {

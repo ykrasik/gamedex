@@ -21,7 +21,8 @@ import com.gitlab.ykrasik.gamedex.javafx.forEachWith
 import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.plusButton
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.asPercent
 import com.gitlab.ykrasik.gamedex.util.roundBy
 import com.jfoenix.controls.JFXSlider
@@ -31,7 +32,6 @@ import javafx.geometry.Orientation
 import tornadofx.action
 import tornadofx.label
 import tornadofx.opcr
-import tornadofx.stringBinding
 
 /**
  * User: ykrasik
@@ -89,23 +89,23 @@ inline fun EventTarget.plusMinusSlider(
     val slider = jfxSlider(property, min, max, conflateValueChanges = conflateValueChanges, valueProcess = { it.toDouble().roundBy(step) }) {
         if (valueDisplay != null) {
             setValueFactory {
-                valueProperty().stringBinding {
-                    valueDisplay(it!!.toDouble())
+                valueProperty().typesafeStringBinding {
+                    valueDisplay(it.toDouble())
                 }
             }
         }
         op()
     }
-    label(slider.valueProperty().stringBinding {
-        val value = it!!.toDouble().roundBy(step)
+    label(slider.valueProperty().typesafeStringBinding {
+        val value = it.toDouble().roundBy(step)
         valueDisplay?.invoke(value) ?: value.toInt().toString()
     })
     val plusButton = plusButton()
 
     with(minusButton) {
         enableWhen(slider.valueProperty().binding { value ->
-            Try<Any> {
-                check(value!!.toDouble() - step >= min.toDouble()) { "Limit reached!" }
+            IsValid {
+                check(value.toDouble() - step >= min.toDouble()) { "Limit reached!" }
             }
         })
         action { slider.value = slider.value - step }
@@ -113,8 +113,8 @@ inline fun EventTarget.plusMinusSlider(
 
     with(plusButton) {
         enableWhen(slider.valueProperty().binding { value ->
-            Try<Any> {
-                check(value!!.toDouble() + step <= max.toDouble()) { "Limit reached!" }
+            IsValid {
+                check(value.toDouble() + step <= max.toDouble()) { "Limit reached!" }
             }
         })
         action { slider.value = slider.value + step }

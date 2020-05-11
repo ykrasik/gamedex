@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
 import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -28,8 +28,7 @@ import javafx.scene.input.MouseEvent
  * Time: 10:29
  */
 abstract class InstallableContextMenu<T : Any>(initialData: T) : PresentableView() {
-    protected val dataChannel = conflatedChannel(initialData)
-    protected var data by dataChannel
+    protected val data = MutableStateFlow(initialData)
 
     private val popover by lazy {
         popOver { children += root }.apply { isAutoFix = false }
@@ -47,7 +46,7 @@ abstract class InstallableContextMenu<T : Any>(initialData: T) : PresentableView
         }
         node.setOnContextMenuRequested { e ->
 //            contextMenuRequested = true
-            this.data = data()
+            this.data.value = data()
             popover.determineArrowLocation(e.screenX, e.screenY).show(node, e.screenX, e.screenY)
         }
     }

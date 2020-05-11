@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.provider
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
@@ -41,20 +41,20 @@ import java.io.File
  * Time: 09:18
  */
 class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesView, ViewCanOpenFile {
-    override val cancelActions = channel<Unit>()
+    override val cancelActions = broadcastFlow<Unit>()
 
-    override val isAllowSmartChooseResults = statefulChannel(false)
+    override val isAllowSmartChooseResults = mutableStateFlow(false, debugName = "isAllowSmartChooseResults")
 
-    override val isGameSyncRunning = statefulChannel(false)
+    override val isGameSyncRunning = mutableStateFlow(false, debugName = "isGameSyncRunning")
 
     override val state = settableList<GameSearchState>()
     private val pathsToProcessSize = state.sizeProperty
-    override val numProcessed = statefulChannel(0)
+    override val numProcessed = mutableStateFlow(0, debugName = "numProcessed")
 
-    override val currentState = viewMutableStatefulChannel<GameSearchState?>(null)
-    override val restartStateActions = channel<GameSearchState>()
+    override val currentState = viewMutableStateFlow<GameSearchState?>(null, debugName = "currentState")
+    override val restartStateActions = broadcastFlow<GameSearchState>()
 
-    override val openFileActions = channel<File>()
+    override val openFileActions = broadcastFlow<File>()
 
     private val providerSearchView: JavaFxProviderSearchView by inject()
 
@@ -110,7 +110,7 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
 
     override val root = hbox {
         useMaxWidth = true
-        visibleWhen { pathsToProcessSize.booleanBinding { it!!.toInt() > 0 } }
+        visibleWhen { pathsToProcessSize.typesafeBooleanBinding { it!!.toInt() > 0 } }
 
         add(paths)
         add(providerSearchView)

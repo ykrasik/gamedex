@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.task
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -29,14 +29,14 @@ import kotlinx.coroutines.Job
  * Supports displaying a single running task, with an optional single sub-task.
  */
 interface TaskView {
-    val job: StatefulChannel<Job?>
+    val job: MutableStateFlow<Job?>
 
-    val isCancellable: StatefulChannel<Boolean>
-    val cancelTaskActions: MultiReadChannel<Unit>
+    val isCancellable: MutableStateFlow<Boolean>
+    val cancelTaskActions: Flow<Unit>
 
     val taskProgress: TaskProgress
     val subTaskProgress: TaskProgress
-    val isRunningSubTask: StatefulChannel<Boolean>
+    val isRunningSubTask: MutableStateFlow<Boolean>
 
     fun taskSuccess(title: String, message: String)
     fun taskCancelled(title: String, message: String)
@@ -44,11 +44,11 @@ interface TaskView {
 }
 
 interface TaskProgress {
-    val title: StatefulChannel<String>
-    val image: StatefulChannel<Image?>
-    val message: StatefulChannel<String>
+    val title: MutableStateFlow<String>
+    val image: MutableStateFlow<Image?>
+    val message: MutableStateFlow<String>
 
-    val processedItems: StatefulChannel<Int>
-    val totalItems: StatefulChannel<Int>
-    val progress: StatefulChannel<Double>
+    val processedItems: MutableStateFlow<Int>
+    val totalItems: MutableStateFlow<Int>
+    val progress: MutableStateFlow<Double>
 }

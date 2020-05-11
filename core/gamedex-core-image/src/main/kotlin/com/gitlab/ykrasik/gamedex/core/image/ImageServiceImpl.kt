@@ -18,13 +18,22 @@ package com.gitlab.ykrasik.gamedex.core.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
+import com.gitlab.ykrasik.gamedex.app.api.util.AsyncValue
+import com.gitlab.ykrasik.gamedex.app.api.util.AsyncValueState
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
 import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.BindingAnnotation
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -42,16 +51,20 @@ class ImageServiceImpl @Inject constructor(
 ) : ImageService {
     private val log = logger()
 
-    private val cache = Cache<String, Deferred<Image>>(config.cacheSize)
+    private val cache = Cache<String, StateFlow<AsyncValueState<Image>>>(config.cacheSize)
+
+    // Do not allow downloading more than 'maxConcurrentDownloads' images at the same time, otherwise we may get throttled by some CDNs
+    private val downloadSemaphore = Semaphore(permits = config.maxConcurrentDownloads)
 
     override fun createImage(data: ByteArray) = imageFactory(data)
 
-    override suspend fun fetchImage(url: String, persist: Boolean) = withContext(Dispatchers.Main.immediate) {
-        try {
-            cache.getOrPut(url) {
-                GlobalScope.async(Dispatchers.IO) {
+    override suspend fun fetchImage(url: String, persist: Boolean): AsyncValue<Image> = withContext(Dispatchers.Main.immediate) {
+        cache.getOrPut(url) {
+            val flow = MutableStateFlow<AsyncValueState<Image>>(AsyncValueState.loading())
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
                     val bytes = storage[url] ?: run {
-                        val downloadedBytes = httpClient.download(url)
+                        val downloadedBytes = downloadSemaphore.withPermit { httpClient.download(url) }
                         // Save downloaded image
                         if (persist) {
                             launch {
@@ -60,20 +73,22 @@ class ImageServiceImpl @Inject constructor(
                         }
                         downloadedBytes
                     }
-                    createImage(bytes)
+                    flow.value = AsyncValueState.Result(createImage(bytes))
+                } catch (e: Exception) {
+                    log.error("Error fetching image $url", e)
+                    flow.value = AsyncValueState.Error(e)
+                    withContext(Dispatchers.Main) {
+                        cache -= url
+                    }
                 }
-            }.await()
-        } catch (e: Exception) {
-            log.error("Error fetching image $url", e)
-            cache -= url
-            null
+            }
+            flow
         }
     }
 
-    override fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> {
-        val excludedKeys = exceptUrls.toSet()
+    override fun fetchImageSizesExcept(exceptUrls: Set<String>): Map<String, FileSize> {
         return storage.ids().asSequence()
-            .filter { it !in excludedKeys }
+            .filter { it !in exceptUrls }
             .map { it to FileSize(storage.sizeTaken(it)) }
             .toMap()
     }

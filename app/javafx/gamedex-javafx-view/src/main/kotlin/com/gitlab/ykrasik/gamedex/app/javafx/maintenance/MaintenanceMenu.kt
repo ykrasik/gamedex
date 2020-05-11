@@ -19,13 +19,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkUpdateGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGamesWithMissingProviders
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.javafx.control.PopOverMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.popOverSubMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -50,19 +50,19 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
     ViewCanShowDuplicatesReport,
     ViewCanShowFolderNameDiffReport {
 
-    override val importDatabaseActions = channel<Unit>()
-    override val exportDatabaseActions = channel<Unit>()
-    override val clearUserDataActions = channel<Unit>()
-    override val cleanupDatabaseActions = channel<Unit>()
+    override val importDatabaseActions = broadcastFlow<Unit>()
+    override val exportDatabaseActions = broadcastFlow<Unit>()
+    override val clearUserDataActions = broadcastFlow<Unit>()
+    override val cleanupDatabaseActions = broadcastFlow<Unit>()
 
-    override val canBulkUpdateGames = statefulChannel(IsValid.valid)
-    override val bulkUpdateGamesActions = channel<Unit>()
+    override val canBulkUpdateGames = mutableStateFlow(IsValid.valid, debugName = "canBulkUpdateGames")
+    override val bulkUpdateGamesActions = broadcastFlow<Unit>()
 
-    override val canSyncGamesWithMissingProviders = statefulChannel(IsValid.valid)
-    override val syncGamesWithMissingProvidersActions = channel<Unit>()
+    override val canSyncGamesWithMissingProviders = mutableStateFlow(IsValid.valid, debugName = "canSyncGamesWithMissingProviders")
+    override val syncGamesWithMissingProvidersActions = broadcastFlow<Unit>()
 
-    override val showDuplicatesReportActions = channel<Unit>()
-    override val showFolderNameDiffReportActions = channel<Unit>()
+    override val showDuplicatesReportActions = broadcastFlow<Unit>()
+    override val showFolderNameDiffReportActions = broadcastFlow<Unit>()
 
     private val viewManager: JavaFxViewManager by inject()
 

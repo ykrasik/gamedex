@@ -20,6 +20,8 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkUpdateGames
 import com.gitlab.ykrasik.gamedex.core.*
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,14 +37,18 @@ class ShowBulkUpdateGamesPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanBulkUpdateGames> {
     init {
-        eventBus.onHideViewRequested<BulkUpdateGamesView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<BulkUpdateGamesView>().forEach(debugName = "hideBulkUpdateGamesView") {
+                viewManager.hide(it)
+            }
+        }
     }
 
     override fun present(view: ViewCanBulkUpdateGames) = object : ViewSession() {
         init {
-            view.canBulkUpdateGames.bind(commonData.canSyncOrUpdateGames)
+            view.canBulkUpdateGames *= commonData.canSyncOrUpdateGames withDebugName "canBulkUpdateGames"
 
-            view.bulkUpdateGamesActions.forEach {
+            view.bulkUpdateGamesActions.forEach(debugName = "showBulkUpdateGamesView") {
                 view.canBulkUpdateGames.assert()
 
                 viewManager.showBulkUpdateGamesView()

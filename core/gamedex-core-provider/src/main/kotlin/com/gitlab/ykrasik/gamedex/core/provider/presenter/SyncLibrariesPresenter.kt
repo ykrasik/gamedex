@@ -41,15 +41,14 @@ class SyncLibrariesPresenter @Inject constructor(
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
-            view.canSyncLibraries.bind(commonData.canSyncOrUpdateGames)
-            view.syncLibrariesActions.forEach { onSyncLibrariesStarted() }
-        }
+            view.canSyncLibraries *= commonData.canSyncOrUpdateGames withDebugName "canSyncLibraries"
 
-        private suspend fun onSyncLibrariesStarted() {
-            view.canSyncLibraries.assert()
+            view.syncLibrariesActions.forEach(debugName = "onSyncLibraries") {
+                view.canSyncLibraries.assert()
 
-            val paths = taskService.execute(syncLibraryService.detectNewPaths())
-            syncGameService.syncGames(paths.map { SyncPathRequest(it) }, isAllowSmartChooseResults = true)
+                val paths = taskService.execute(syncLibraryService.detectNewPaths())
+                syncGameService.syncGames(paths.map { SyncPathRequest(it) }, isAllowSmartChooseResults = true)
+            }
         }
     }
 }

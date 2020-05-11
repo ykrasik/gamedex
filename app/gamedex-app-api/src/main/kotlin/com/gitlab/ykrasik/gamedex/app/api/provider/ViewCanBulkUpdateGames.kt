@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -26,6 +26,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 18:44
  */
 interface ViewCanBulkUpdateGames {
-    val canBulkUpdateGames: StatefulChannel<IsValid>
-    val bulkUpdateGamesActions: MultiReadChannel<Unit>
+    val canBulkUpdateGames: MutableStateFlow<IsValid>
+    val bulkUpdateGamesActions: Flow<Unit>
 }

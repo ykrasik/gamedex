@@ -23,18 +23,19 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
-import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -57,27 +58,37 @@ class GamesPresenter @Inject constructor(
 
     override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
-            view.games.bind(commonData.platformGames)
+            view.games *= commonData.currentPlatformGames
 
-            settingsRepo.sortBy.combineLatest(settingsRepo.sortOrder) { sortBy, sortOrder ->
-                setSort(sortBy, sortOrder)
-            }
+            view.sort *= settingsRepo.sortBy.combine(settingsRepo.sortOrder) { sortBy, sortOrder -> sort(sortBy, sortOrder) } withDebugName "sort"
 
-            view.searchText.debounce().forEach { onSearchTextChanged(it) }
+            view.searchSuggestions *= view.searchText.onlyChangesFromView().debounce(100).map { query ->
+                if (query.isNotBlank()) {
+                    search(query).take(20).toList()
+                } else {
+                    emptyList()
+                }
+            } withDebugName "searchSuggestions"
 
-            val searchText = conflatedChannel("")
-            view.searchActions.forEach { searchText *= view.searchText.value }
+            val lastSearchText = MutableStateFlow("")
+//            lastSearchText *= view.searchActions.map { view.searchText.v }
+            view.searchActions.forEach(debugName = "onSearch") { lastSearchText *= view.searchText.v }
+            view.canSearch *= view.searchText.onlyChangesFromView().combine(lastSearchText) { currentSearchText, lastSearchText ->
+                IsValid {
+                    check(currentSearchText != lastSearchText) { "Already searched!" }
+                }
+            } withDebugName "canSearch"
 
-            searchText.combineLatest(repo.currentPlatformFilter) { search, filter ->
+            view.filter *= lastSearchText.combine(repo.currentPlatformFilter) { search, filter ->
                 searchAndFilter(search, filter)
-            }
+            } withDebugName "filter"
 
-            eventBus.forEach<GameEvent> {
-                searchAndFilter(searchText.value, repo.currentPlatformFilter.value)
+            eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") {
+                view.filter *= searchAndFilter(lastSearchText.value, repo.currentPlatformFilter.value)
             }
         }
 
-        private fun setSort(sortBy: SortBy, sortOrder: SortOrder) {
+        private fun sort(sortBy: SortBy, sortOrder: SortOrder): Comparator<Game> {
             val comparator = when (sortBy) {
                 SortBy.Name -> nameComparator
                 SortBy.CriticScore -> criticScoreComparator.then(nameComparator)
@@ -91,36 +102,21 @@ class GamesPresenter @Inject constructor(
                 SortBy.UpdateDate -> compareBy(Game::updateDate)
             }
 
-            view.sort *= if (sortOrder == SortOrder.Asc) {
-                comparator
-            } else {
-                comparator.reversed()
-            }
+            return if (sortOrder == SortOrder.Asc) comparator else comparator.reversed()
         }
 
-        private fun onSearchTextChanged(query: String) {
-            val suggestions = if (query.isNotBlank()) {
-                search(query).take(20).toList()
-            } else {
-                emptyList()
+        private fun searchAndFilter(query: String, filter: Filter): (Game) -> Boolean {
+            if (filter.isEmpty && query.isBlank()) {
+                return AlwaysTrue
             }
-            view.searchSuggestions.setAll(suggestions)
-        }
 
-        private fun searchAndFilter(query: String, filter: Filter) {
-            val isEmpty = filter.isEmpty && query.isBlank()
-            val matchingGameIds: Set<GameId> = if (!isEmpty) {
+            val matchingGameIds: Set<GameId> =
                 log.time("Filtering games...", { timeTaken, results -> "${results.size} results in $timeTaken" }, Logger::trace) {
                     val searchedGames = search(query)
                     val matchingGames = filterService.filter(searchedGames, filter)
                     matchingGames.mapTo(mutableSetOf()) { it.id }
                 }
-            } else {
-                emptySet()
-            }
-            view.filter *= { game: Game ->
-                isEmpty || matchingGameIds.contains(game.id)
-            }
+            return { game -> matchingGameIds.contains(game.id) }
         }
 
         private fun search(query: String): Sequence<Game> =
@@ -132,5 +128,7 @@ class GamesPresenter @Inject constructor(
         val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
         val criticScoreComparator = compareBy(Game::criticScore)
         val userScoreComparator = compareBy(Game::userScore)
+
+        val AlwaysTrue = { _: Game -> true }
     }
 }

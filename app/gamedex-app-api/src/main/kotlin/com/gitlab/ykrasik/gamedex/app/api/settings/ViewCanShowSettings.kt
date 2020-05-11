@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 09:44
  */
 interface ViewCanShowSettings {
-    val showSettingsActions: MultiReadChannel<Unit>
+    val showSettingsActions: Flow<Unit>
 }

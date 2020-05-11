@@ -110,12 +110,7 @@ conf/
 logs/
 data/
 db/
-cache/thumbnails
-cache/posters
-cache/screenshots
-cache/images
-cache/image
-cache/files
+cache/*
 *.iss
 db*.json
 dist/

@@ -18,7 +18,10 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiWriteChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastFlow
+import com.gitlab.ykrasik.gamedex.app.api.util.Value
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import com.gitlab.ykrasik.gamedex.app.api.util.fromView
 import com.gitlab.ykrasik.gamedex.javafx.NotificationType
 import com.gitlab.ykrasik.gamedex.javafx.notification
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
@@ -28,6 +31,8 @@ import javafx.scene.Node
 import javafx.scene.control.Button
 import javafx.scene.control.ButtonBase
 import javafx.scene.layout.HBox
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.View
 import tornadofx.action
@@ -67,16 +72,23 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
 
     protected fun register() = viewRegistry.onCreate(this)
 
-    fun <E> MultiWriteChannel<E>.event(e: E) = offer(e)
+    fun <E> BroadcastFlow<E>.event(e: E) = offer(e)
 
-    fun <T> ObservableValue<T>.bindChanges(channel: MultiWriteChannel<T>): ChangeListener<T> = bindChanges(channel) { it }
-    inline fun <T, R> ObservableValue<T>.bindChanges(channel: MultiWriteChannel<R>, crossinline factory: (T) -> R): ChangeListener<T> =
-        typeSafeOnChange { channel.event(factory(it)) }
+    fun <T> ObservableValue<T>.bindChanges(flow: BroadcastFlow<T>): ChangeListener<T> = bindChanges(flow) { it }
+    inline fun <T, R> ObservableValue<T>.bindChanges(flow: BroadcastFlow<R>, crossinline factory: (T) -> R): ChangeListener<T> =
+        typeSafeOnChange { flow.event(factory(it)) }
 
-    fun ButtonBase.action(channel: MultiWriteChannel<Unit>) = action(channel) { }
-    inline fun <T> ButtonBase.action(channel: MultiWriteChannel<T>, crossinline f: () -> T) = apply {
+    fun ButtonBase.action(channel: BroadcastFlow<Unit>) = action(channel) { }
+    inline fun <T> ButtonBase.action(channel: BroadcastFlow<T>, crossinline f: () -> T) = apply {
         action { channel.offer(f()) }
     }
+
+    operator fun <T> ViewMutableStateFlow<T>.timesAssign(value: T) {
+        this.valueFromView = value
+    }
+
+    fun <T> Flow<T>.asFromView(): Flow<Value.FromView<T>> = map { it.fromView }
+
 }
 
 abstract class PresentableTabView(title: String? = null, icon: Node? = null) : PresentableView(title, icon) {

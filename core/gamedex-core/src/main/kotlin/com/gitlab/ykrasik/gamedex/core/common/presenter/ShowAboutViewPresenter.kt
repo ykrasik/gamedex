@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowAboutViewPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanShowAboutView> {
     init {
-        eventBus.onHideViewRequested<AboutView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<AboutView>().forEach(debugName = "hideAboutView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanShowAboutView) = object : ViewSession() {
         init {
-            view.showAboutActions.forEach {
+            view.showAboutActions.forEach(debugName = "showAboutView") {
                 viewManager.showAboutView()
             }
         }

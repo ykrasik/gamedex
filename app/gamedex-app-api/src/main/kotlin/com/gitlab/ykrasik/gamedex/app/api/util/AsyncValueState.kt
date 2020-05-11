@@ -14,25 +14,24 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.image
+package com.gitlab.ykrasik.gamedex.app.api.util
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * User: ykrasik
- * Date: 12/05/2019
- * Time: 09:03
+ * Date: 16/05/2020
+ * Time: 17:15
  */
-interface ImageGalleryView {
-    val imageParams: ViewMutableStateFlow<ViewImageParams>
-    val currentImageIndex: MutableStateFlow<Int>
+typealias AsyncValue<T> = StateFlow<AsyncValueState<T>>
 
-    val canViewNextImage: MutableStateFlow<IsValid>
-    val viewNextImageActions: Flow<Unit>
+sealed class AsyncValueState<T> {
+    object Loading : AsyncValueState<Any>()
+    data class Result<T>(val result: T) : AsyncValueState<T>()
+    data class Error<T>(val e: Exception) : AsyncValueState<T>()
 
-    val canViewPrevImage: MutableStateFlow<IsValid>
-    val viewPrevImageActions: Flow<Unit>
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        fun <T> loading(): AsyncValueState<T> = Loading as AsyncValueState<T>
+    }
 }

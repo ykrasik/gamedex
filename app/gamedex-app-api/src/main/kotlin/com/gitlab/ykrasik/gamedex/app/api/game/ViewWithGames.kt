@@ -17,10 +17,11 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -29,11 +30,12 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
  */
 interface ViewWithGames {
     val games: SettableList<Game>
-    val sort: StatefulChannel<Comparator<Game>>
-    val filter: StatefulChannel<(Game) -> Boolean>
+    val sort: MutableStateFlow<Comparator<Game>>
+    val filter: MutableStateFlow<(Game) -> Boolean>
 
-    val searchText: ViewMutableStatefulChannel<String>
-    val searchActions: MultiReadChannel<Unit>
+    val searchText: ViewMutableStateFlow<String>
+    val canSearch: MutableStateFlow<IsValid>
+    val searchActions: Flow<Unit>
 
     val searchSuggestions: SettableList<Game>
 }

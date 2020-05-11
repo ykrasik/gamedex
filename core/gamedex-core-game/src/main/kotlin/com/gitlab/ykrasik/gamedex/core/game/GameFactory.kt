@@ -89,8 +89,8 @@ class GameFactory @Inject constructor(
                 it.gameData.userScore.minOrNull()
             },
             genres = genreService.processGenres(unsortedListBy(userData.genresOverride()) { it.gameData.genres }),
-            thumbnailUrl = thumbnailUrl ?: posterUrl,
-            posterUrl = posterUrl ?: thumbnailUrl,
+            thumbnailUrl = thumbnailUrl,
+            posterUrl = posterUrl,
             screenshotUrls = screenshotUrls
         )
     }

@@ -16,14 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.UpdateGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,18 +35,16 @@ class UpdateGamePresenter @Inject constructor(
 ) : Presenter<ViewCanUpdateGame> {
     override fun present(view: ViewCanUpdateGame) = object : ViewSession() {
         init {
-            gameProviderService.enabledProviders.itemsChannel.combineLatest(view.game) { enabledProviders, game ->
-                view.canUpdateGame *= Try {
+            view.canUpdateGame *= view.game.onlyChangesFromView().combine(gameProviderService.enabledProviders.items) { game, enabledProviders ->
+                IsValid {
                     check(enabledProviders.any { it.supports(game.platform) }) { "Enable at least 1 provider which supports the platform '${game.platform}'!" }
                 }
+            } withDebugName "canUpdateGame"
+
+            view.updateGameActions.forEach(debugName = "onUpdateGame") {
+                view.canUpdateGame.assert()
+                taskService.execute(updateGameService.updateGame(it))
             }
-
-            view.updateGameActions.forEach { updateGame(it) }
-        }
-
-        private suspend fun updateGame(game: Game) {
-            view.canUpdateGame.assert()
-            taskService.execute(updateGameService.updateGame(game))
         }
     }
 }

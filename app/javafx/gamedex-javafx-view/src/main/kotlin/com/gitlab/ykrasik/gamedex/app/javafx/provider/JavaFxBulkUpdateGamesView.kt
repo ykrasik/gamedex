@@ -16,13 +16,20 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
+import com.gitlab.ykrasik.gamedex.app.api.util.fromView
+import com.gitlab.ykrasik.gamedex.app.api.util.writeFrom
+import com.gitlab.ykrasik.gamedex.app.api.util.writeTo
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.borderpane
 import tornadofx.paddingAll
 
@@ -34,8 +41,12 @@ import tornadofx.paddingAll
 class JavaFxBulkUpdateGamesView : ConfirmationWindow("Bulk Update Games", Icons.download), BulkUpdateGamesView {
     private val filterView = JavaFxFilterView()
 
-    override val bulkUpdateGamesFilter = filterView.filter
-    override val bulkUpdateGamesFilterIsValid = filterView.filterIsValid
+    override val bulkUpdateGamesFilter = viewMutableStateFlow(Filter.Null, debugName = "bulkUpdateGamesFilter")
+        .writeTo(filterView.filter) { it.asFromView() }
+        .writeFrom(filterView.filter) { it.asFromView() }
+
+    override val bulkUpdateGamesFilterValidatedValue = viewMutableStateFlow(ValidatedValue(Filter.Null, IsValid.valid), debugName = "bulkUpdateGamesFilterValidatedValue")
+        .writeFrom(filterView.filterValidatedValue) { it.fromView }
 
     init {
         register()

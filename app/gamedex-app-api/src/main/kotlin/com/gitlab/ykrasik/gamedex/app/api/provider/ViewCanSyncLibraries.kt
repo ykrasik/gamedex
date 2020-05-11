@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 13:33
  */
 interface ViewCanSyncLibraries {
-    val canSyncLibraries: StatefulChannel<IsValid>
+    val canSyncLibraries: MutableStateFlow<IsValid>
 
-    val syncLibrariesActions: MultiReadChannel<Unit>
+    val syncLibrariesActions: Flow<Unit>
 }

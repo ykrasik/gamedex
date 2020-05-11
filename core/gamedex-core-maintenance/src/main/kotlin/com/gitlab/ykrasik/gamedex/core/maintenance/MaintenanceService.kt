@@ -41,6 +41,7 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.*
 import com.google.inject.ImplementedBy
 import difflib.DiffUtils
+import kotlinx.coroutines.delay
 import java.io.File
 import java.io.RandomAccessFile
 import java.util.zip.ZipEntry
@@ -186,7 +187,8 @@ class MaintenanceServiceImpl @Inject constructor(
         content.db?.let { db ->
             withMessage("Importing Library...") {
                 persistenceService.dropDb()
-                eventBus.send(DatabaseInvalidatedEvent).join()
+                eventBus.send(DatabaseInvalidatedEvent)
+                delay(200)  // Should be enough time for the above event to take effect
 
                 val libraries: Map<Int, Library> = executeSubTask(libraryService.addAll(db.libraries.map { it.toLibraryData() }))
                     .associateBy { library -> db.findLib(library.path, library.type, library.platformOrNull).id }
@@ -200,7 +202,7 @@ class MaintenanceServiceImpl @Inject constructor(
             withMessage("Importing Provider Accounts...") {
                 accounts.accounts.forEach { (providerId, account) ->
                     if (account.isNotEmpty()) {
-                        settingsRepo.providers[providerId]?.modify { copy(account = account) }
+                        settingsRepo.providers[providerId]?.account?.value = account
                     }
                 }
             }
@@ -216,18 +218,23 @@ class MaintenanceServiceImpl @Inject constructor(
     }
 
     override fun detectStaleData() = task("Detecting stale data...") {
-        val libraries = libraryService.libraries.filterWithProgress { !it.path.isDirectory }
+        totalItems.value = 4
+        val libraries = libraryService.libraries.filter { !it.path.isDirectory }
+        incProgress()
 
-        val games = gameService.games.filterWithProgress { !it.path.isDirectory }
+        val games = gameService.games.filter { !it.path.isDirectory }
+        incProgress()
 
         val images = run {
-            val usedImages = gameService.games.flatMapWithProgress { game ->
+            val usedImages = gameService.games.flatMapTo(mutableSetOf()) { game ->
                 game.screenshotUrls + listOfNotNull(game.thumbnailUrl, game.posterUrl)
             }
             imageService.fetchImageSizesExcept(usedImages)
         }
+        incProgress()
 
         val fileTree = fileSystemService.getFileTreeSizeTakenExcept(gameService.games)
+        incProgress()
 
         val staleData = StaleData(libraries, games, images, fileTree)
 
@@ -243,25 +250,25 @@ class MaintenanceServiceImpl @Inject constructor(
         totalItems.value = 4
 
         staleData.games.emptyToNull()?.let { games ->
-            message *= "Deleting stale games..."
+            message.value = "Deleting stale games..."
             executeSubTask(gameService.deleteAll(games))
         }
         incProgress()
 
         staleData.libraries.emptyToNull()?.let { libraries ->
-            message *= "Deleting stale libraries..."
+            message.value = "Deleting stale libraries..."
             executeSubTask(libraryService.deleteAll(libraries))
         }
         incProgress()
 
         staleData.images.toList().emptyToNull()?.let { images ->
-            message *= "Deleting stale images..."
+            message.value = "Deleting stale images..."
             imageService.deleteImages(images.map { it.first })
         }
         incProgress()
 
         staleData.fileTrees.toList().emptyToNull()?.let { fileTrees ->
-            message *= "Deleting stale file cache..."
+            message.value = "Deleting stale file cache..."
             fileTrees.forEach { fileSystemService.deleteCachedFileTree(it.first) }
         }
         incProgress()

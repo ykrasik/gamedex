@@ -28,7 +28,7 @@ import tornadofx.form
  * Date: 05/06/2017
  * Time: 15:21
  */
-class JavaFxGameDisplaySettingsView(settings: JavaFxOverlayDisplaySettings, name: String) : Fragment("$name Display", Icons.display) {
+class JavaFxGameDisplaySettingsView(settings: JavaFxMutableOverlayDisplaySettings, name: String) : Fragment("$name Display", Icons.display) {
     override val root = form {
         fieldset("Enabled") {
             horizontalField("Show") { jfxCheckBox(settings.enabled.property) }

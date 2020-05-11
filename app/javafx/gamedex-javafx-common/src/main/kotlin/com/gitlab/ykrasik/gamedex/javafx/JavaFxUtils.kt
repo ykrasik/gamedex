@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.jfoenix.utils.JFXNodeUtils
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -168,11 +167,7 @@ fun Bounds.containsDelta(x: Double, y: Double, delta: Double): Boolean {
     return !isEmpty && x in (minX - delta)..(maxX + delta) && y in (minY - delta)..(maxY + delta)
 }
 
-inline fun <T> MultiReadChannel<T>.forEach(crossinline f: (T) -> Unit) = subscribe(Dispatchers.Main) {
-    f(it)
-}
-
-inline fun debounce(millis: Long, crossinline f: () -> Unit): Job = GlobalScope.launch(Dispatchers.Main) {
+inline fun debounce(millis: Long, crossinline f: () -> Unit): Job = JavaFxScope.launch {
     delay(millis)
     f()
 }
@@ -192,4 +187,8 @@ fun UIComponent.localShortcut(button: ButtonBase, combination: KeyCombination) {
     runLater {
         root.localShortcut(combination) { button.fire() }
     }
+}
+
+object JavaFxScope : CoroutineScope {
+    override val coroutineContext = Dispatchers.Main.immediate
 }

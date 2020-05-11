@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
  * Time: 22:15
  */
 interface GeneralSettingsView {
-    val useInternalBrowser: ViewMutableStatefulChannel<Boolean>
+    val useInternalBrowser: ViewMutableStateFlow<Boolean>
 }

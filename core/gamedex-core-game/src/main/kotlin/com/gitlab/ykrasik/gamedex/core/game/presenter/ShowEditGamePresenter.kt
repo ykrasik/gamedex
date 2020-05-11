@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowEditGamePresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanEditGame> {
     init {
-        eventBus.onHideViewRequested<EditGameView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<EditGameView>().forEach(debugName = "hideEditGameView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanEditGame) = object : ViewSession() {
         init {
-            view.editGameActions.forEach { params ->
+            view.editGameActions.forEach(debugName = "showEditGameView") { params ->
                 viewManager.showEditGameView(params)
             }
         }

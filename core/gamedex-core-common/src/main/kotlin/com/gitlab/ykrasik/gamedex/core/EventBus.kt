@@ -16,10 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
 /**
@@ -28,34 +27,14 @@ import kotlin.reflect.KClass
  * Time: 09:07
  */
 interface EventBus {
-    fun <E : CoreEvent> on(
-        eventClass: KClass<E>,
-        context: CoroutineContext = EmptyCoroutineContext,
-        handler: suspend (E) -> Unit
-    ): EventSubscription
+    fun <E : CoreEvent> flowOf(eventClass: KClass<E>): Flow<E>
 
-    fun <E : CoreEvent> send(event: E): Job
+    fun <E : CoreEvent> send(event: E)
 }
 
-inline fun <reified E : CoreEvent> EventBus.on(
-    context: CoroutineContext = EmptyCoroutineContext,
-    noinline handler: suspend (E) -> Unit
-) = on(E::class, context, handler)
+inline fun <reified E : CoreEvent> EventBus.flowOf(): Flow<E> = flowOf(E::class)
 
-suspend inline fun <E : CoreEvent> EventBus.awaitEvent(event: KClass<E>, crossinline predicate: (E) -> Boolean = { true }): E {
-    val result = CompletableDeferred<E>()
-    val subscription = on(event) {
-        if (predicate(it)) {
-            result.complete(it)
-        }
-    }
-    return result.await().apply { subscription.cancel() }
-}
-
-suspend inline fun <reified E : CoreEvent> EventBus.awaitEvent(crossinline predicate: (E) -> Boolean = { true }) = awaitEvent(E::class, predicate)
-
-interface EventSubscription {
-    fun cancel()
-}
+suspend inline fun <reified E : CoreEvent> EventBus.awaitEvent(crossinline predicate: (E) -> Boolean = { true }) =
+    flowOf<E>().filter { predicate(it) }.first()
 
 interface CoreEvent

@@ -19,8 +19,9 @@ package com.gitlab.ykrasik.gamedex.core.file.presenter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanLaunchGame
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.awt.Desktop
 import javax.inject.Inject
@@ -35,26 +36,26 @@ import javax.inject.Singleton
 class LaunchGamePresenter @Inject constructor() : Presenter<ViewCanLaunchGame> {
     override fun present(view: ViewCanLaunchGame) = object : ViewSession() {
         init {
-            view.game.mapTo(view.canLaunchGame) { game ->
-                Try {
-                    val mainExecutableFile = checkNotNull(game.mainExecutableFile) { "No file marked as main executable!" }
-                    check(mainExecutableFile.exists()) { "Main Executable File doesn't exit!" }
-                }
-            }
-            view.launchGameActions.forEach { onLaunchGame() }
-        }
-
-        private suspend fun onLaunchGame() {
-            val game = view.game.value
-            try {
-                view.canLaunchGame.assert()
+            view.canLaunchGame *= view.game.onlyChangesFromView().map { game ->
                 withContext(Dispatchers.IO) {
-                    // TODO: This is actually more like view-specific logic.
-                    Desktop.getDesktop().open(game.mainExecutableFile)
+                    IsValid {
+                        val mainExecutableFile = checkNotNull(game.mainExecutableFile) { "No file marked as main executable!" }
+                        check(mainExecutableFile.exists()) { "Main Executable File doesn't exit!" }
+                    }
                 }
-            } catch (e: Exception) {
-                // FIXME: This should happen by default to all views.
-                view.onError(message = e.message!!, title = "Error executing '${game.name}'", e = e)
+            } withDebugName "onGameChanged"
+            view.launchGameActions.forEach(debugName = "onLaunchGame") {
+                val game = view.game.v
+                try {
+                    view.canLaunchGame.assert()
+                    withContext(Dispatchers.IO) {
+                        // TODO: This is actually more like view-specific logic.
+                        Desktop.getDesktop().open(game.mainExecutableFile)
+                    }
+                } catch (e: Exception) {
+                    // FIXME: This should happen by default to all views.
+                    view.onError(message = e.message!!, title = "Error executing '${game.name}'", e = e)
+                }
             }
         }
     }

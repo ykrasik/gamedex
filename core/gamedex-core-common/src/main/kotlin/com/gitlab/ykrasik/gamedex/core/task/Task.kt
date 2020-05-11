@@ -17,8 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.task
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicInteger
@@ -34,9 +33,9 @@ class Task<T>(
     initialImage: Image?,
     private val run: suspend Task<*>.() -> T
 ) {
-    val message = conflatedChannel("")
+    val message = MutableStateFlow("")
 
-    val processedItemsChannel = conflatedChannel(0)
+    val processedItemsFlow = MutableStateFlow(0)
     private val _processedItems = AtomicInteger(0)
     var processedItems: Int
         get() = _processedItems.get()
@@ -46,19 +45,14 @@ class Task<T>(
 
     private inline fun withProcessedItems(f: (AtomicInteger) -> Int) {
         val value = f(_processedItems)
-        processedItemsChannel.value = value
+        processedItemsFlow.value = value
     }
 
-    val totalItems = conflatedChannel(0).apply {
-        subscribe {
-            // When totalItems changes, reset processedItems.
-            processedItems *= 0
-        }
-    }
+    val totalItems = MutableStateFlow(0)
 
-    val image = conflatedChannel(initialImage)
+    val image = MutableStateFlow(initialImage)
 
-    val subTask = conflatedChannel<Task<*>?>(null)
+    val subTask = MutableStateFlow<Task<*>?>(null)
 
     var successMessage: ((T) -> String)? = { "Done." }
     var cancelMessage: (() -> String)? = { "Cancelled." }
@@ -75,44 +69,32 @@ class Task<T>(
 
     private val lock = Mutex()
     suspend fun execute(): T = lock.withLock {
-        check(message.isActive) { "Task was already executed: $this[$title]" }
-
-        return try {
-            run()
-        } finally {
-            listOf(
-                message,
-                processedItemsChannel,
-                totalItems,
-                image,
-                subTask
-            ).forEach { it.close() }
-        }
+        run()
     }
 
     suspend fun <R> executeSubTask(task: Task<R>): R {
-        subTask *= task
+        subTask.value = task
         return try {
             task.execute()
         } finally {
-            subTask *= null
+            subTask.value = null
         }
     }
 
     inline fun <R> withMessage(message: String, f: () -> R): R {
-        this.message *= message
+        this.message.value = message
         val result = f()
-        this.message *= "$message Done."
+        this.message.value = "$message Done."
         return result
     }
 
     inline fun <R> withImage(image: Image, f: () -> R): R {
         val prevImage = this.image
-        this.image *= image
+        this.image.value = image
         return try {
             f()
         } finally {
-            this.image *= prevImage.value
+            this.image.value = prevImage.value
         }
     }
 
@@ -140,6 +122,8 @@ class Task<T>(
         totalItems.value = size
         return forEach { incProgress(); f(it) }
     }
+
+    override fun toString() = title
 }
 
 fun <T> task(
@@ -148,3 +132,5 @@ fun <T> task(
     initialImage: Image? = null,
     run: suspend Task<*>.() -> T
 ): Task<T> = Task(title, isCancellable, initialImage, run)
+
+class ExpectedException(cause: Exception) : RuntimeException(cause)

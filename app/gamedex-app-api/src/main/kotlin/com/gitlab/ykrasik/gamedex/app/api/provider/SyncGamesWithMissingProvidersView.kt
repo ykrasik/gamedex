@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 
 /**
  * User: ykrasik
@@ -27,8 +27,8 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 15:49
  */
 interface SyncGamesWithMissingProvidersView : ConfirmationView {
-    val bulkSyncGamesFilter: ViewMutableStatefulChannel<Filter>
-    val bulkSyncGamesFilterIsValid: ViewMutableStatefulChannel<IsValid>
+    val bulkSyncGamesFilter: ViewMutableStateFlow<Filter>
+    val bulkSyncGamesFilterValidatedValue: ViewMutableStateFlow<ValidatedValue<Filter>>
 
-    val syncOnlyMissingProviders: ViewMutableStatefulChannel<Boolean>
+    val syncOnlyMissingProviders: ViewMutableStateFlow<Boolean>
 }

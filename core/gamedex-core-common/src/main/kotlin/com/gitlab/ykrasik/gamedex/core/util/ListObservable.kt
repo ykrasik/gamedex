@@ -16,17 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.util
 
-import com.gitlab.ykrasik.gamedex.app.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.util.Extractor
-import com.gitlab.ykrasik.gamedex.util.replace
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.map
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 /**
@@ -34,32 +31,30 @@ import kotlinx.coroutines.launch
  * Date: 31/03/2018
  * Time: 10:37
  */
-interface ListObservable<T> : List<T>, CoroutineScope {
-    val itemsChannel: StatefulMultiReadChannel<List<T>>
-    val changesChannel: MultiReadChannel<ListEvent<T>>
+interface ListObservable<T> : List<T> {
+    val items: StateFlow<List<T>>
+    val changes: Flow<ListEvent<T>>
 
     // Record all changes that happened while executing f() and execute them as a single 'set' operation.
     suspend fun <R> conflate(f: suspend () -> R): R
 }
 
 class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> {
-    override val coroutineContext = Dispatchers.Default + Job()
-
     private var _list: List<T> = initial
-    override val itemsChannel = conflatedChannel(initial)
-    override val changesChannel = BufferedMultiChannel<ListEvent<T>>(coroutineContext = coroutineContext)
+    override val items = MutableStateFlow(initial)
+    override val changes = broadcastFlow<ListEvent<T>>()
 
     private var conflate = false
 
     operator fun plusAssign(t: T) = add(t)
     fun add(t: T) {
-        _list += t
+        _list = _list + t
         notifyChange(ListEvent.ItemAdded(t))
     }
 
     operator fun plusAssign(items: List<T>) = addAll(items)
     fun addAll(items: List<T>) {
-        _list += items
+        _list = _list + items
         notifyChange(ListEvent.ItemsAdded(items))
     }
 
@@ -128,8 +123,10 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
 
     private fun notifyChange(event: ListEvent<T>) {
         if (!conflate) {
-            itemsChannel.offer(_list)
-            changesChannel.offer(event)
+            items.value = _list
+            GlobalScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                changes.send(event)
+            }
         }
     }
 
@@ -174,66 +171,62 @@ sealed class ListEvent<out T> {
     data class ItemsSet<out T>(val items: List<T>, val prevItems: List<T>) : SetEvent<T>()
 }
 
-inline fun <T, R> ListObservable<T>.mapping(crossinline f: (T) -> R): ListObservable<R> {
+// TODO: Make this inline when the compiler stops throwing errors
+fun <T, R> ListObservable<T>.mapObservable(f: (T) -> R): ListObservable<R> {
     val list = ListObservableImpl(this.map(f))
-    changesChannel.subscribe { event ->
-        when (event) {
-            is ListEvent.ItemAdded -> list += f(event.item)
-            is ListEvent.ItemsAdded -> list += event.items.map(f)
-            is ListEvent.ItemRemoved -> list.removeAt(event.index)
-            is ListEvent.ItemsRemoved -> list.removeAllAt(event.indices)
-            is ListEvent.ItemSet -> list[event.index] = f(event.item)
-            is ListEvent.ItemsSet -> list.setAll(event.items.map(f))
-            else -> Unit
+    flowScope(Dispatchers.Default) {
+        changes.forEach(debugName = "mapObservable") { event ->
+            when (event) {
+                is ListEvent.ItemAdded -> list += f(event.item)
+                is ListEvent.ItemsAdded -> list += event.items.map(f)
+                is ListEvent.ItemRemoved -> list.removeAt(event.index)
+                is ListEvent.ItemsRemoved -> list.removeAllAt(event.indices)
+                is ListEvent.ItemSet -> list[event.index] = f(event.item)
+                is ListEvent.ItemsSet -> list.setAll(event.items.map(f))
+                else -> Unit
+            }
         }
     }
     return list
 }
 
-inline fun <T, R> ListObservable<T>.flatMapping(crossinline f: (T) -> List<R>): ListObservable<R> =
-    subscribeTransform { it.flatMap(f) }
+// TODO: Make this inline when the compiler stops throwing errors
+fun <T> ListObservable<T>.filterObservable(f: (T) -> Boolean): ListObservable<T> =
+    transform { it.filter(f) }
 
-inline fun <T> ListObservable<T>.filtering(crossinline f: (T) -> Boolean): ListObservable<T> =
-    subscribeTransform { it.filter(f) }
+fun <T> ListObservable<T>.filterObservable(flow: Flow<(T) -> Boolean>): ListObservable<T> =
+    transform(flow.map { f -> { list: List<T> -> list.filter(f) } })
 
-fun <T> ListObservable<T>.filtering(channel: ReceiveChannel<(T) -> Boolean>): ListObservable<T> =
-    subscribeTransformChannel(channel.map { f -> { list: List<T> -> list.filter(f) } })
-
-fun <T> ListObservable<T>.distincting(): ListObservable<T> =
-    subscribeTransform { it.distinct() }
-
-inline fun <T, R : Comparable<R>> ListObservable<T>.sortingBy(crossinline selector: (T) -> R?): ListObservable<T> =
-    subscribeTransform { it.sortedBy(selector) }
-
-fun <T> ListObservable<T>.sortingWith(channel: ReceiveChannel<Comparator<T>>): ListObservable<T> =
-    subscribeTransformChannel(channel.map { c -> { list: List<T> -> list.sortedWith(c) } })
-
-inline fun <T, R> ListObservable<T>.subscribeTransform(crossinline f: (List<T>) -> List<R>): ListObservable<R> {
-    val list = ListObservableImpl<R>()
-    itemsChannel.subscribe {
-        list.setAll(f(it))
-    }
-    return list
-}
-
-fun <T, R> ListObservable<T>.subscribeTransformChannel(channel: ReceiveChannel<(List<T>) -> List<R>>): ListObservable<R> {
-    val list = ListObservableImpl<R>()
-    launch {
-        itemsChannel.subscribe().combineLatest(channel).consumeEach { (items, f) ->
-            list.setAll(f(items))
+// TODO: Make this inline when the compiler stops throwing errors
+fun <T, R> ListObservable<T>.transform(f: (List<T>) -> List<R>): ListObservable<R> {
+    val list = ListObservableImpl(f(this))
+    flowScope(Dispatchers.Default) {
+        items.forEach(debugName = "transform") {
+            list.setAll(f(it))
         }
     }
     return list
 }
 
-inline fun <T, K> ListObservable<T>.broadcastTo(
+fun <T, R> ListObservable<T>.transform(flow: Flow<(List<T>) -> List<R>>): ListObservable<R> {
+    val list = ListObservableImpl<R>()
+    flowScope(Dispatchers.Default) {
+        items.combine(flow) { items, transform -> transform(items) }.forEach(debugName = "transformFlow") {
+            list.setAll(it)
+        }
+    }
+    return list
+}
+
+// TODO: Make this inline when the compiler stops throwing errors
+fun <T, K> ListObservable<T>.broadcastTo(
     eventBus: EventBus,
-    crossinline idExtractor: Extractor<T, K>,
-    crossinline itemsAddedEvent: (List<T>) -> CoreEvent,
-    crossinline itemsDeletedEvent: (List<T>) -> CoreEvent,
-    crossinline itemsUpdatedEvent: (List<Pair<T, T>>) -> CoreEvent
-) {
-    changesChannel.subscribe { e ->
+    idExtractor: Extractor<T, K>,
+    itemsAddedEvent: (List<T>) -> CoreEvent,
+    itemsDeletedEvent: (List<T>) -> CoreEvent,
+    itemsUpdatedEvent: (List<Pair<T, T>>) -> CoreEvent
+) = flowScope(Dispatchers.Default) {
+    changes.forEach(debugName = "broadcastTo.onChange") { e ->
         val broadcastEvents = when (e) {
             is ListEvent.ItemAdded -> listOf(itemsAddedEvent(listOf(e.item)))
             is ListEvent.ItemsAdded -> listOf(itemsAddedEvent(e.items))
@@ -273,42 +266,48 @@ inline fun <T, K> ListObservable<T>.broadcastTo(
     }
 }
 
-inline fun <K, V> ListObservable<V>.toMap(crossinline keyExtractor: Extractor<V, K>): MutableMap<K, V> {
+// TODO: Make this inline when the compiler stops throwing errors
+fun <K, V> ListObservable<V>.toMap(keyExtractor: Extractor<V, K>): MutableMap<K, V> {
     val map = associateByTo(LinkedHashMap(), keyExtractor)
-    changesChannel.subscribe { e ->
-        when (e) {
-            is ListEvent.ItemAdded -> map += keyExtractor(e.item) to e.item
-            is ListEvent.ItemsAdded -> map += e.items.map { keyExtractor(it) to it }
-            is ListEvent.ItemRemoved -> map -= keyExtractor(e.item)
-            is ListEvent.ItemsRemoved -> map -= e.items.map(keyExtractor)
-            is ListEvent.ItemSet -> map += keyExtractor(e.item) to e.item
-            is ListEvent.ItemsSet -> map += e.items.map { keyExtractor(it) to it }
-            else -> error("Unexpected event: $e")
-        }
-    }
-    return map
-}
-
-// This assumes that related values are always associated to the same key.
-// If a value is replaced by another value, there is an implicit assumption that both values map to the same key.
-inline fun <K, V> ListObservable<V>.toMultiMap(crossinline keyExtractor: Extractor<V, K>): MutableMap<K, MutableList<V>> {
-    val map = groupByTo(LinkedHashMap(), keyExtractor)
-    val listFor = { item: V -> map.getOrPut(keyExtractor(item)) { mutableListOf() } }
-
-    changesChannel.subscribe { e ->
-        when (e) {
-            is ListEvent.ItemAdded -> listFor(e.item) += e.item
-            is ListEvent.ItemsAdded -> e.items.forEach { listFor(it) += it }
-            is ListEvent.ItemRemoved -> listFor(e.item) -= e.item
-            is ListEvent.ItemsRemoved -> e.items.forEach { listFor(it) -= it }
-            is ListEvent.ItemSet -> listFor(e.item).replace(e.prevItem, e.item)
-            is ListEvent.ItemsSet -> {
-                // Screw it. This event is only called as a replace-all-content event.
-                map.clear()
-                e.items.groupByTo(map, keyExtractor)
+    flowScope(Dispatchers.Default) {
+        changes.forEach(debugName = "toMap.onChange") { e ->
+            when (e) {
+                is ListEvent.ItemAdded -> map += keyExtractor(e.item) to e.item
+                is ListEvent.ItemsAdded -> map += e.items.map { keyExtractor(it) to it }
+                is ListEvent.ItemRemoved -> map -= keyExtractor(e.item)
+                is ListEvent.ItemsRemoved -> map -= e.items.map(keyExtractor)
+                is ListEvent.ItemSet -> map += keyExtractor(e.item) to e.item
+                is ListEvent.ItemsSet -> map += e.items.map { keyExtractor(it) to it }
+                else -> error("Unexpected event: $e")
             }
-            else -> error("Unexpected event: $e")
         }
     }
     return map
 }
+
+//// TODO: Make this inline when the compiler stops throwing errors
+//// This assumes that related values are always associated to the same key.
+//// If a value is replaced by another value, there is an implicit assumption that both values map to the same key.
+//fun <K, V> ListObservable<V>.toMultiMap(keyExtractor: Extractor<V, K>): MutableMap<K, MutableList<V>> {
+//    val map = groupByTo(LinkedHashMap(), keyExtractor)
+//    val listFor = { item: V -> map.getOrPut(keyExtractor(item)) { mutableListOf() } }
+//
+//    flowScope(Dispatchers.Default) {
+//        changes.forEach(debugName = "toMultiMap.onChange") { e ->
+//            when (e) {
+//                is ListEvent.ItemAdded -> listFor(e.item) += e.item
+//                is ListEvent.ItemsAdded -> e.items.forEach { listFor(it) += it }
+//                is ListEvent.ItemRemoved -> listFor(e.item) -= e.item
+//                is ListEvent.ItemsRemoved -> e.items.forEach { listFor(it) -= it }
+//                is ListEvent.ItemSet -> listFor(e.item).replace(e.prevItem, e.item)
+//                is ListEvent.ItemsSet -> {
+//                    // Screw it. This event is only called as a replace-all-content event.
+//                    map.clear()
+//                    e.items.groupByTo(map, keyExtractor)
+//                }
+//                else -> error("Unexpected event: $e")
+//            }
+//        }
+//    }
+//    return map
+//}

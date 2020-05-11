@@ -18,20 +18,20 @@ package com.gitlab.ykrasik.gamedex.core.task.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskProgress
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.awaitEvent
+import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.TaskEvent
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.onEach
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,11 +47,13 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
     private val log = logger()
 
     override fun present(view: TaskView) = object : ViewSession() {
-        private val job get() = view.job.peek()
+        private var job by view.job
 
         init {
-            eventBus.forEach<TaskEvent.RequestStart<*>> { execute(it.task) }
-            view.cancelTaskActions.forEach { cancelTask() }
+            eventBus.flowOf<TaskEvent.RequestStart<*>>().forEach(debugName = "onTask") {
+                execute(it.task)
+            }
+            view.cancelTaskActions.forEach(debugName = "onCancelTask") { cancelTask() }
         }
 
         private suspend fun <T> execute(task: Task<T>) {
@@ -74,18 +76,18 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
             }
 
             val (result, timeTaken) = measureTimedValue {
-                val deferred = GlobalScope.async(Dispatchers.IO) {
+                val deferred = GlobalScope.async(Dispatchers.IO + CoroutineName(task.title)) {
                     task.execute()
                 }
-                view.job *= deferred
+                job = deferred
                 Try { deferred.await() }
             }
 
-            view.job *= null
+            view.job.value = null
             view.isCancellable *= false
             view.isRunningSubTask *= false
-            view.taskProgress.image *= null
-            view.subTaskProgress.image *= null
+            view.taskProgress.image.value = null
+            view.subTaskProgress.image.value = null
 
             var resultToReturn = result
             when (result) {
@@ -97,10 +99,9 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                     successMessage?.let { view.taskSuccess(title = task.title, message = it) }
                     log.info("${successMessage ?: "${task.title} Done:"} [${timeTaken.humanReadable}]")
                 }
-                is Try.Error -> {
-                    val error = result.error
-                    when {
-                        error is CancellationException && error !is ClosedSendChannelException -> {
+                is Try.Failure -> {
+                    when (val error = result.error) {
+                        is CancellationException -> {
                             val cancelMessage = task.cancelMessage?.invoke()
                             cancelMessage?.let { view.taskCancelled(title = task.title, message = it) }
                             log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${timeTaken.humanReadable}]")
@@ -125,29 +126,24 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
         }
 
         private fun bindTaskProgress(task: Task<*>, taskProgress: TaskProgress) {
-            taskProgress.title *= task.title
+            taskProgress.title.value = task.title
 
-            taskProgress.message.bind(task.message) { msg ->
-                log.info(msg)
-            }
-            task.message *= task.title
+            taskProgress.message.value = task.title
+            taskProgress.message *= task.message.drop(1).onEach { msg -> log.info(msg) } withDebugName "message"
 
-            taskProgress.totalItems.bind(task.totalItems)
+            taskProgress.totalItems *= task.totalItems withDebugName "totalItems"
 
-            taskProgress.processedItems.bind(task.processedItemsChannel) { processedItems ->
-                // FIXME: Remove this once StateFlow is available
-                if (!task.totalItems.isClosed) {
-                    val totalItems = task.totalItems.value
-                    if (totalItems > 1) {
-                        taskProgress.progress *= processedItems.toDouble() / totalItems
-//                    log.debug("Progress: $processedItems/${task.totalItems} ${String.format("%.3f", taskProgress.progress * 100)}%")
-                    }
+            taskProgress.processedItems *= task.processedItemsFlow withDebugName "processedItems"
+
+            taskProgress.progress *= task.processedItemsFlow.combine(task.totalItems) { processedItems, totalItems ->
+                if (totalItems > 1) {
+                    processedItems.toDouble() / totalItems
+                } else {
+                    -1.0
                 }
-            }
+            } withDebugName "progress"
 
-            taskProgress.progress *= -1.0
-
-            taskProgress.image.bind(task.image)
+            taskProgress.image *= task.image withDebugNameWithoutTrace "image"
         }
 
         private fun cancelTask() {

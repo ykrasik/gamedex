@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -26,6 +26,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:43
  */
 interface ViewCanSyncGamesWithMissingProviders {
-    val canSyncGamesWithMissingProviders: StatefulChannel<IsValid>
-    val syncGamesWithMissingProvidersActions: MultiReadChannel<Unit>
+    val canSyncGamesWithMissingProviders: MutableStateFlow<IsValid>
+    val syncGamesWithMissingProvidersActions: Flow<Unit>
 }

@@ -16,15 +16,21 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.app.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import com.gitlab.ykrasik.gamedex.app.api.util.Value
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import com.gitlab.ykrasik.gamedex.app.api.util.fromPresenter
+import com.gitlab.ykrasik.gamedex.core.util.FlowScope
+import com.gitlab.ykrasik.gamedex.core.util.FlowWithDebugInfo
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.view.ViewExceptionHandler
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.and
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.*
+import kotlin.reflect.KProperty
 
 /**
  * User: ykrasik
@@ -35,104 +41,87 @@ interface Presenter<in V> {
     fun present(view: V): ViewSession
 }
 
-abstract class ViewSession : CoroutineScope {
-    override val coroutineContext = Dispatchers.Main.immediate + Job()
-    private var _isShowing = false
-    protected val isShowing get() = _isShowing
+// TODO: A lot of these actions can actually happen on the Default context.
+abstract class ViewSession : FlowScope(
+    coroutineContext = SupervisorJob() + ViewExceptionHandler + Dispatchers.Main.immediate,
+    baseDebugName = ""
+) {
+    override val baseDebugName: String get() = this.javaClass.enclosingClass!!.simpleName
 
-    suspend fun onShow() {
-        check(!_isShowing) { "Presenter already showing: $this" }
-        _isShowing = true
-        onShown()
+    private var _isShowing = MutableStateFlow(false)
+    protected val isShowing: StateFlow<Boolean> = _isShowing
+
+    fun onShow() {
+        check(!_isShowing.value) { "Session already showing: $this" }
+        _isShowing.value = true
     }
-
-    protected open suspend fun onShown() {}
 
     fun onHide() {
-        check(_isShowing) { "Presenter wasn't showing: $this" }
-        _isShowing = false
-        onHidden()
+        check(_isShowing.value) { "Session wasn't showing: $this" }
+        _isShowing.value = false
     }
 
-    protected open fun onHidden() {}
-
     fun destroy() {
-        if (_isShowing) onHide()
+        if (_isShowing.value) onHide()
         coroutineContext.cancel()
     }
 
-    inline fun <T> ReceiveChannel<T>.forEach(crossinline f: suspend (T) -> Unit): Job = launch {
-        consumeEach {
-            try {
-                f(it)
-            } catch (e: Exception) {
-                // FIXME: Handle this in a global error handler
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-        }
-    }
-
-    inline fun <T> MultiReadChannel<T>.forEach(crossinline f: suspend (T) -> Unit) = subscribe().forEach(f)
-
-    inline fun <T> StatefulMultiReadChannel<T>.forEach(crossinline f: suspend (T) -> Unit) =
-        subscribe(coroutineContext, CoroutineStart.UNDISPATCHED) {
-            try {
-                f(it)
-            } catch (e: Exception) {
-                // FIXME: Handle this in a global error handler
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-        }
-
-    inline fun <T> StatefulMultiReadChannel<T>.onChange(crossinline f: suspend (T) -> Unit) =
-        drop(1).distinctUntilChanged().subscribe(coroutineContext) {
-            try {
-                f(it)
-            } catch (e: Exception) {
-                // FIXME: Handle this in a global error handler
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-        }
-
-    inline fun <T> StatefulChannel<T>.bind(channel: StatefulMultiReadChannel<T>, crossinline also: (T) -> Unit = {}) =
-        channel.distinctUntilChanged().subscribe(start = CoroutineStart.UNDISPATCHED) {
-            value = it
-            also(it)
-        }
-
-    fun <T> StatefulChannel<T>.bindBidirectional(channel: StatefulChannel<T>) {
-        this.bind(channel)
-        channel.bind(this.drop(1))
-    }
-
-    inline fun <T> StatefulChannel<IsValid>.bindIsValid(state: StatefulMultiReadChannel<T>, crossinline reason: (value: T) -> String?) {
+    inline fun <T> MutableStateFlow<IsValid>.bindIsValid(state: Flow<T>, crossinline reason: (value: T) -> String?) {
         state.forEach { value ->
             val reasonMessage = reason(value)
-            this.value = Try {
+            this.value = IsValid {
                 check(reasonMessage == null) { reasonMessage!! }
             }
         }
     }
 
-    inline fun StatefulChannel<IsValid>.enableWhenTrue(state: StatefulMultiReadChannel<Boolean>, crossinline reason: () -> String) =
+    inline fun MutableStateFlow<IsValid>.enableWhenTrue(state: Flow<Boolean>, crossinline reason: () -> String) =
         bindIsValid(state) {
             if (!it) reason() else null
         }
 
-    inline fun StatefulChannel<IsValid>.disableWhenTrue(state: StatefulMultiReadChannel<Boolean>, crossinline reason: () -> String) =
+    inline fun MutableStateFlow<IsValid>.disableWhenTrue(state: Flow<Boolean>, crossinline reason: () -> String) =
         bindIsValid(state) {
             if (it) reason() else null
         }
 
-    infix fun StatefulChannel<IsValid>.and(other: StatefulChannel<IsValid>) = value and other.value
-
-    fun StatefulChannel<IsValid>.assert() {
-        value.get()
+    fun StateFlow<IsValid>.assert() {
+        value.getOrThrow()
     }
 
+    fun <T> Flow<Value<T>>.allValues(): Flow<T> = map { it.value }
+    fun <T> StateFlow<Value<T>>.onlyChangesFromView(): Flow<T> = drop(1).transform { if (it is Value.FromView) emit(it.value) }
+
+//    fun <T> Flow<T>.asValuesFromPresenter(): Flow<Value.FromPresenter<T>> = map { it.fromPresenter }
+    fun <T> FlowWithDebugInfo<T>.asValuesFromPresenter(): FlowWithDebugInfo<Value.FromPresenter<T>> = flow.map { it.fromPresenter }.withDebugInfoFrom(this)
+    fun <T> Flow<Value<T>>.unwrap(): Flow<T> = map { it.value }
+
+    operator fun <T> MutableStateFlow<T>.timesAssign(flow: ViewMutableStateFlow<T>) {
+        timesAssign(flow.unwrap())
+    }
+
+    operator fun <T> ViewMutableStateFlow<T>.timesAssign(value: T) {
+        valueFromPresenter = value
+    }
+
+    operator fun <T> ViewMutableStateFlow<T>.timesAssign(flow: FlowWithDebugInfo<T>) {
+        timesAssign(flow.asValuesFromPresenter())
+    }
+
+    operator fun <T> ViewMutableStateFlow<T>.getValue(thisRef: Any, property: KProperty<*>): T = v
+    operator fun <T> ViewMutableStateFlow<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        this *= value
+    }
+
+    fun <T> ViewMutableStateFlow<T>.bindBidirectional(flow: MutableStateFlow<T>) {
+        flow.forEach { valueFromPresenter = it }
+        this.onlyChangesFromView().forEach { flow.value = it }
+    }
+
+    // FIXME: Only SettableList operations are limited by their context, the rest of the operations arent
     fun <T> SettableList<T>.bind(list: ListObservable<T>) {
         this.setAll(list)
-        list.changesChannel.forEach { event ->
+        list.changes.forEach { event ->
             when (event) {
                 is ListEvent.ItemAdded -> this += event.item
                 is ListEvent.ItemsAdded -> this += event.items
@@ -145,8 +134,17 @@ abstract class ViewSession : CoroutineScope {
         }
     }
 
-    fun <T> ViewMutableStatefulChannel<T>.debounce(millis: Long = 200): ReceiveChannel<T> =
-        subscribe().debounce(millis, scope = this@ViewSession)
+    operator fun <T> SettableList<T>.timesAssign(list: ListObservable<T>) {
+        bind(list)
+    }
+
+    operator fun <T> SettableList<T>.timesAssign(list: List<T>) {
+        setAll(list)
+    }
+
+    operator fun <T> SettableList<T>.timesAssign(flow: Flow<Collection<T>>) {
+        flow.forEach { if (this != it) setAll(it) }
+    }
 
     inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
         on<E>(coroutineContext) { event ->
@@ -163,10 +161,5 @@ abstract class ViewSession : CoroutineScope {
 //        }
 //    }
 
-inline fun <reified V> EventBus.onHideViewRequested(crossinline handler: suspend (V) -> Unit) =
-    on<ViewEvent.RequestHide>(Dispatchers.Main) {
-        val view = it.view as? V
-        if (view != null) {
-            handler(view)
-        }
-    }
+inline fun <reified V> EventBus.hideViewRequests() =
+    flowOf<ViewEvent.RequestHide>().transform { (it.view as? V)?.let { emit(it) } }

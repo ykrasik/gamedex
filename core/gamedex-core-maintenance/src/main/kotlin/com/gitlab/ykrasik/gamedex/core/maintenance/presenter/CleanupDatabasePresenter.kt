@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,45 +38,29 @@ class CleanupDatabasePresenter @Inject constructor(
 ) : Presenter<CleanupDatabaseView> {
     override fun present(view: CleanupDatabaseView) = object : ViewSession() {
         init {
-            view.staleData.mapTo(view.librariesAndGames.canDelete) { staleData ->
-                Try { check(staleData.libraries.isNotEmpty() || staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" } }
-            }
-            view.librariesAndGames.canDelete.mapTo(view.librariesAndGames.shouldDelete) { it.isSuccess }
+            view.isDeleteLibrariesAndGames *= isShowing withDebugName "isDeleteLibrariesAndGames"
+            view.isDeleteImages *= isShowing withDebugName "isDeleteImages"
+            view.isDeleteFileCache *= isShowing withDebugName "isDeleteFileCache"
 
-            view.staleData.mapTo(view.images.canDelete) { staleData ->
-                Try { check(staleData.images.isNotEmpty()) { "No stale images to delete!" } }
-            }
-            view.images.canDelete.mapTo(view.images.shouldDelete) { it.isSuccess }
-
-            view.staleData.mapTo(view.fileCache.canDelete) { staleData ->
-                Try { check(staleData.fileTrees.isNotEmpty()) { "No stale images to delete!" } }
-            }
-            view.fileCache.canDelete.mapTo(view.fileCache.shouldDelete) { it.isSuccess }
-
-            view.librariesAndGames.shouldDelete.combineLatest(view.images.shouldDelete, view.fileCache.shouldDelete) { deleteLibrariesAndGames, deleteImages, deleteFileCache ->
-                view.canAccept *= Try {
-                    if (deleteLibrariesAndGames) view.librariesAndGames.canDelete.assert()
-                    if (deleteImages) view.images.canDelete.assert()
-                    if (deleteFileCache) view.fileCache.canDelete.assert()
-                    check(deleteLibrariesAndGames || deleteImages || deleteFileCache) { "Select stale data to delete!" }
-                }
-            }
-
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
+            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
         }
 
         private suspend fun onAccept() {
+            view.canAccept.assert()
+
             hideView()
 
-            val staleData = view.staleData.value
+            val staleData = view.staleData.v
             val staleDataToDelete = staleData.copy(
-                libraries = if (view.librariesAndGames.shouldDelete.value) staleData.libraries else emptyList(),
-                games = if (view.librariesAndGames.shouldDelete.value) staleData.games else emptyList(),
-                images = if (view.images.shouldDelete.value) staleData.images else emptyMap(),
-                fileTrees = if (view.fileCache.shouldDelete.value) staleData.fileTrees else emptyMap()
+                libraries = if (view.isDeleteLibrariesAndGames.v) staleData.libraries else emptyList(),
+                games = if (view.isDeleteLibrariesAndGames.v) staleData.games else emptyList(),
+                images = if (view.isDeleteImages.v) staleData.images else emptyMap(),
+                fileTrees = if (view.isDeleteFileCache.v) staleData.fileTrees else emptyMap()
             )
-            taskService.execute(maintenanceService.deleteStaleData(staleDataToDelete))
+            if (!staleDataToDelete.isEmpty) {
+                taskService.execute(maintenanceService.deleteStaleData(staleDataToDelete))
+            }
         }
 
         private fun onCancel() {

@@ -48,10 +48,10 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
         )
     }
 
-    val prevDirectory = storage.biChannel(Data::prevDirectory) { copy(prevDirectory = it) }
-    val exportDbDirectory = storage.biChannel(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
-    val logFilterLevel = storage.biChannel(Data::logFilterLevel) { copy(logFilterLevel = it) }
-    val logTail = storage.biChannel(Data::logTail) { copy(logTail = it) }
-    val useInternalBrowser = storage.biChannel(Data::useInternalBrowser) { copy(useInternalBrowser = it) }
-    val searchResultLimit = storage.biChannel(Data::searchResultLimit) { copy(searchResultLimit = it) }
+    val prevDirectory = storage.biMap(Data::prevDirectory) { copy(prevDirectory = it) }
+    val exportDbDirectory = storage.biMap(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
+    val logFilterLevel = storage.biMap(Data::logFilterLevel) { copy(logFilterLevel = it) }
+    val logTail = storage.biMap(Data::logTail) { copy(logTail = it) }
+    val useInternalBrowser = storage.biMap(Data::useInternalBrowser) { copy(useInternalBrowser = it) }
+    val searchResultLimit = storage.biMap(Data::searchResultLimit) { copy(searchResultLimit = it) }
 }

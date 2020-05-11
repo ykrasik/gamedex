@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -25,7 +25,11 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 09:39
  */
 interface ViewCanShowGameDetails {
-    val viewGameDetailsActions: MultiReadChannel<ViewGameParams>
+    val viewGameDetailsActions: Flow<ViewGameParams>
 }
 
-data class ViewGameParams(val game: Game, val games: List<Game>)
+data class ViewGameParams(val game: Game, val games: List<Game>) {
+    companion object {
+        val Null = ViewGameParams(Game.Null, emptyList())
+    }
+}

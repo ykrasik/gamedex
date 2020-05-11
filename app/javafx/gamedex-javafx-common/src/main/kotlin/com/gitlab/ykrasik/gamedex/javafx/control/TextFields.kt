@@ -16,11 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxObjectStatefulChannel
-import com.gitlab.ykrasik.gamedex.javafx.binding
-import com.gitlab.ykrasik.gamedex.javafx.padding
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
-import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
@@ -84,13 +81,27 @@ inline fun <reified T : Number> EventTarget.numberTextField(
     withButtons: Boolean = true,
     crossinline op: JFXTextField.() -> Unit = {}
 ): ObjectBinding<Try<T>> {
-    val (parse: (String) -> T, stringify: (Double) -> String) = when (T::class) {
-        Number::class -> Pair({ s: String -> s.toDouble() as T }, { d: Double -> d.toString() })
-        BigDecimal::class -> Pair({ s -> BigDecimal(s) as T }, { d -> d.toString() })
+    lateinit var parse: (String) -> T
+    var stringify: (Double) -> String = { it.toString() }
+    when (T::class) {
+        Number::class -> {
+            parse = { it.toDouble() as T }
+        }
+        BigDecimal::class -> {
+            parse = { BigDecimal(it) as T }
+        }
         else -> when (T::class.javaPrimitiveType) {
-            Int::class.javaPrimitiveType -> Pair({ s -> s.toInt() as T }, { d -> d.toInt().toString() })
-            Long::class.javaPrimitiveType -> Pair({ s -> s.toLong() as T }, { d -> d.toLong().toString() })
-            Double::class.javaPrimitiveType -> Pair({ s -> s.toDouble() as T }, { d -> d.toString() })
+            Int::class.javaPrimitiveType -> {
+                parse = { it.toInt() as T }
+                stringify = { it.toInt().toString() }
+            }
+            Long::class.javaPrimitiveType -> {
+                parse = { it.toLong() as T }
+                stringify = { it.toLong().toString() }
+            }
+            Double::class.javaPrimitiveType -> {
+                parse = { it.toDouble() as T }
+            }
             else -> throw IllegalArgumentException("Unsupported type: ${T::class}")
         }
     }
@@ -114,24 +125,24 @@ inline fun <reified T : Number> EventTarget.numberTextField(
             }
         }
         value.typeSafeOnChange {
-            it.valueOrNull?.let { property.value = it }
+            it.getOrNull()?.let { property.value = it }
         }
 
         minusButton?.run {
             enableWhen(value.binding { value ->
-                val canDecrement = Try {
+                val canDecrement = IsValid {
                     check(property.value.toDouble() - 1 >= min.toDouble()) { "Limit reached!" }
                 }
-                value!! and canDecrement
+                value and canDecrement
             })
             action { textfield.text = stringify(parse(textfield.text).toDouble() - 1) }
         }
         plusButton?.run {
             enableWhen(value.binding { value ->
-                val canIncrement = Try {
+                val canIncrement = IsValid {
                     check(property.value.toDouble() + 1 <= max.toDouble()) { "Limit reached!" }
                 }
-                value!! and canIncrement
+                value and canIncrement
             })
             action { textfield.text = stringify(parse(textfield.text).toDouble() + 1) }
         }
@@ -335,21 +346,20 @@ class CustomJFXTextField : JFXTextField() {
     }
 }
 
-
 inline fun <T> JFXTextField.bindParser(crossinline parser: (String) -> T): ObjectBinding<Try<T>> {
     val value = textProperty().binding { text -> Try { parser(text ?: "") } }
     validWhen(value)
     return value
 }
 
-fun JFXTextField.validWhen(isValid: JavaFxObjectStatefulChannel<IsValid>): Unit = validWhen(isValid.property)
+fun JFXTextField.validWhen(isValid: JavaFxObjectMutableStateFlow<IsValid>): Unit = validWhen(isValid.property)
 fun <T> JFXTextField.validWhen(isValid: ObservableValue<Try<T>>) {
     skinProperty().onChangeOnce {
         // The jfx ValidationPane causes our tooltip to be displayed incorrectly.
         (it as JFXTextFieldSkin<*>).getChildren().removeAll { it is ValidationPane<*> }
     }
 
-    val errorProperty = isValid.stringBinding { it?.errorOrNull?.message }
+    val errorProperty = isValid.typesafeStringBinding { it.exceptionOrNull()?.message ?: "" }
 
     val tooltip = Tooltip().apply {
         textProperty().bind(errorProperty)
@@ -365,12 +375,12 @@ fun <T> JFXTextField.validWhen(isValid: ObservableValue<Try<T>>) {
     }
 
     focusedProperty().onChange { focused ->
-        if (focused && isValid.value.isError) showTooltip() else tooltip.hide()
+        if (focused && isValid.value.isFailure) showTooltip() else tooltip.hide()
     }
 
     isValid.typeSafeOnChange {
         validate()
-        if (it.isError) {
+        if (it.isFailure) {
             this.tooltip = tooltip
             if (isFocused) {
                 showTooltip()
@@ -383,7 +393,7 @@ fun <T> JFXTextField.validWhen(isValid: ObservableValue<Try<T>>) {
 
     validators += object : ValidatorBase() {
         override fun eval() {
-            hasErrors.set(isValid.value.isError)
+            hasErrors.set(isValid.value.isFailure)
             setMessage(null)
         }
     }

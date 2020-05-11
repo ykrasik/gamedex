@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import tornadofx.fieldset
 import tornadofx.form
 
@@ -31,7 +31,7 @@ import tornadofx.form
  * Time: 22:22
  */
 class JavaFxGeneralSettingsView : PresentableTabView("General", Icons.tune), GeneralSettingsView {
-    override val useInternalBrowser = viewMutableStatefulChannel(true)
+    override val useInternalBrowser = viewMutableStateFlow(true, debugName = "useInternalBrowser")
 
     override val root = form {
         fieldset {

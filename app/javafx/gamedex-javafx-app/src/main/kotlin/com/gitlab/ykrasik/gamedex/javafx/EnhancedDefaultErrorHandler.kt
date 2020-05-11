@@ -16,17 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.scene.control.Alert
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.layout.VBox
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.ClosedSendChannelException
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import tornadofx.add
 import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
@@ -39,15 +34,12 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
     private val log = logger("ErrorHandler")
 
     override fun uncaughtException(t: Thread, error: Throwable) {
-        if (error is ExpectedException) return
-        if (error is CancellationException && error !is ClosedSendChannelException) return
-
         log.error("Uncaught error", error)
 
         if (isCycle(error)) {
             log.info("Detected cycle handling error, aborting.", error)
         } else {
-            GlobalScope.launch(Dispatchers.Main.immediate) {
+            GlobalScope.launch(Dispatchers.Main.immediate + CoroutineName("uncaughtException")) {
                 showErrorDialog(error)
             }
         }

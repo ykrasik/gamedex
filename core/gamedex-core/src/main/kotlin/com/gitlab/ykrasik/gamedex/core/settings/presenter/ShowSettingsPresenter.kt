@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,16 @@ class ShowSettingsPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanShowSettings> {
     init {
-        eventBus.onHideViewRequested<SettingsView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<SettingsView>().forEach(debugName = "hideSettingsView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanShowSettings) = object : ViewSession() {
         init {
-            view.showSettingsActions.forEach { viewManager.showSettingsView() }
+            view.showSettingsActions.forEach(debugName = "showSettingsView") {
+                viewManager.showSettingsView()
+            }
         }
     }
 }

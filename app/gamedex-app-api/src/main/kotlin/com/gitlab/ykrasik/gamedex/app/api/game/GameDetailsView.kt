@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -27,14 +27,14 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 20:09
  */
 interface GameDetailsView {
-    val gameParams: ViewMutableStatefulChannel<ViewGameParams>
-    val currentGameIndex: StatefulChannel<Int>
+    val gameParams: ViewMutableStateFlow<ViewGameParams>
+    val currentGameIndex: MutableStateFlow<Int>
 
-    val canViewNextGame: StatefulChannel<IsValid>
-    val viewNextGameActions: MultiReadChannel<Unit>
+    val canViewNextGame: MutableStateFlow<IsValid>
+    val viewNextGameActions: Flow<Unit>
 
-    val canViewPrevGame: StatefulChannel<IsValid>
-    val viewPrevGameActions: MultiReadChannel<Unit>
+    val canViewPrevGame: MutableStateFlow<IsValid>
+    val viewPrevGameActions: Flow<Unit>
 
-    val hideViewActions: MultiReadChannel<Unit>
+    val hideViewActions: Flow<Unit>
 }

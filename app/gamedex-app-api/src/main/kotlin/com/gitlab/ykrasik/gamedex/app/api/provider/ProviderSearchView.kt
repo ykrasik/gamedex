@@ -19,16 +19,16 @@ package com.gitlab.ykrasik.gamedex.app.api.provider
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.ProviderData
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Modifier
 import com.gitlab.ykrasik.gamedex.util.MultiMap
 import com.gitlab.ykrasik.gamedex.util.modifyLast
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -36,30 +36,30 @@ import com.gitlab.ykrasik.gamedex.util.modifyLast
  * Time: 20:22
  */
 interface ProviderSearchView {
-    val state: StatefulChannel<GameSearchState>
+    val state: MutableStateFlow<GameSearchState>
 
-    val query: ViewMutableStatefulChannel<String>
+    val query: ViewMutableStateFlow<String>
 
     val searchResults: SettableList<GameProvider.SearchResult>
-    val selectedSearchResult: ViewMutableStatefulChannel<GameProvider.SearchResult?>
-    val fetchSearchResultActions: MultiReadChannel<GameProvider.SearchResult>
+    val selectedSearchResult: ViewMutableStateFlow<GameProvider.SearchResult?>
+    val fetchSearchResultActions: Flow<GameProvider.SearchResult>
 
-    val canChangeState: StatefulChannel<IsValid>
-    val canSearchCurrentQuery: StatefulChannel<IsValid>
-    val canAcceptSearchResult: StatefulChannel<IsValid>
-    val canExcludeSearchResult: StatefulChannel<IsValid>
+    val canChangeState: MutableStateFlow<IsValid>
+    val canSearchCurrentQuery: MutableStateFlow<IsValid>
+    val canAcceptSearchResult: MutableStateFlow<IsValid>
+    val canExcludeSearchResult: MutableStateFlow<IsValid>
 
-//    val canToggleFilterPreviouslyDiscardedResults: StatefulChannel<IsValid>
-//    val isFilterPreviouslyDiscardedResults: ViewMutableStatefulChannel<Boolean>
+    val canToggleFilterPreviouslyDiscardedResults: MutableStateFlow<IsValid>
+    val isFilterPreviouslyDiscardedResults: ViewMutableStateFlow<Boolean>
 
-    val isAllowSmartChooseResults: StatefulChannel<Boolean>
-    val canSmartChooseResult: StatefulChannel<Boolean>
+    val isAllowSmartChooseResults: MutableStateFlow<Boolean>
+    val canSmartChooseResult: MutableStateFlow<Boolean>
 
-    val choiceActions: MultiReadChannel<GameSearchState.ProviderSearch.Choice>
-    val changeProviderActions: MultiReadChannel<ProviderId>
+    val choiceActions: Flow<GameSearchState.ProviderSearch.Choice>
+    val changeProviderActions: Flow<ProviderId>
 
-    val canShowMoreResults: StatefulChannel<IsValid>
-    val showMoreResultsActions: MultiReadChannel<Unit>
+    val canShowMoreResults: MutableStateFlow<IsValid>
+    val showMoreResultsActions: Flow<Unit>
 }
 
 data class GameSearchState(

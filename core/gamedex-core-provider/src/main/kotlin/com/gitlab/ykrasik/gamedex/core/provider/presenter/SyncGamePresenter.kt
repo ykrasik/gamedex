@@ -16,13 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGame
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.and
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,19 +39,22 @@ class SyncGamePresenter @Inject constructor(
 ) : Presenter<ViewCanSyncGame> {
     override fun present(view: ViewCanSyncGame) = object : ViewSession() {
         init {
-            commonData.enabledProviders.itemsChannel.combineLatest(view.game, commonData.isGameSyncRunning) { enabledProviders, game, isGameSyncRunning ->
-                view.canSyncGame *= Try {
-                    check(!isGameSyncRunning) { "Game sync in progress!" }
+            view.canSyncGame *= combine(
+                commonData.disableWhenGameSyncIsRunning,
+                commonData.enabledProviders.items,
+                view.game.onlyChangesFromView()
+            ) { disableWhenGameSyncIsRunning, enabledProviders, game ->
+                disableWhenGameSyncIsRunning and IsValid {
                     check(enabledProviders.any { it.supports(game.platform) }) { "Enable at least 1 provider which supports the platform '${game.platform}'!" }
                 }
-            }
+            } withDebugName "canSyncGame"
 
-            view.syncGameActions.forEach { syncGame(it) }
+            view.syncGameActions.forEach(debugName = "onSyncGame") { syncGame() }
         }
 
-        private fun syncGame(game: Game) {
+        private fun syncGame() {
             view.canSyncGame.assert()
-            syncGameService.syncGame(game)
+            syncGameService.syncGame(view.game.v)
         }
     }
 }

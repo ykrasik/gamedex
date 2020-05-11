@@ -87,7 +87,7 @@ object TestApplication {
             val libraries = listOf(
                 Triple(LibraryType.Digital, Platform.Windows, "app"),
                 Triple(LibraryType.Digital, Platform.Android, "build"),
-                Triple(LibraryType.Digital, Platform.Mac, "conf"),
+                Triple(LibraryType.Digital, Platform.Mac, "data"),
                 Triple(LibraryType.Excluded, null, "core"),
                 Triple(LibraryType.Digital, Platform.Windows, "provider")
             ).map { (type, platform, name) ->

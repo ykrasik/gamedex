@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.ImplementedBy
@@ -29,6 +30,7 @@ import com.miguelfonseca.completely.text.analyze.tokenize.WordTokenizer
 import com.miguelfonseca.completely.text.analyze.transform.LowerCaseTransformer
 import com.miguelfonseca.completely.text.index.PatriciaTrie
 import com.miguelfonseca.completely.text.match.EditDistanceAutomaton
+import kotlinx.coroutines.Dispatchers
 import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -58,23 +60,25 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
         log.time("Building search index...") {
             addGames(gameService.games)
         }
-        gameService.games.changesChannel.subscribe { event ->
-            when (event) {
-                is ListEvent.ItemAdded -> addGame(event.item)
-                is ListEvent.ItemsAdded -> addGames(event.items)
-                is ListEvent.ItemRemoved -> removeGame(event.item)
-                is ListEvent.ItemsRemoved -> removeGames(event.items)
-                is ListEvent.ItemSet -> {
-                    removeGame(event.prevItem)
-                    addGame(event.item)
-                }
-                is ListEvent.ItemsSet -> {
-                    if (event.prevItems.isNotEmpty()) {
-                        removeGames(event.prevItems)
+        flowScope(Dispatchers.Default) {
+            gameService.games.changes.forEach(debugName = "onGamesChanged") { event ->
+                when (event) {
+                    is ListEvent.ItemAdded -> addGame(event.item)
+                    is ListEvent.ItemsAdded -> addGames(event.items)
+                    is ListEvent.ItemRemoved -> removeGame(event.item)
+                    is ListEvent.ItemsRemoved -> removeGames(event.items)
+                    is ListEvent.ItemSet -> {
+                        removeGame(event.prevItem)
+                        addGame(event.item)
                     }
-                    addGames(event.items)
+                    is ListEvent.ItemsSet -> {
+                        if (event.prevItems.isNotEmpty()) {
+                            removeGames(event.prevItems)
+                        }
+                        addGames(event.items)
+                    }
+                    else -> Unit
                 }
-                else -> Unit
             }
         }
     }

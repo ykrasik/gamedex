@@ -18,10 +18,11 @@ package com.gitlab.ykrasik.gamedex.core
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.merge
 import javax.inject.Singleton
-import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 /**
@@ -34,42 +35,23 @@ class EventBusImpl : EventBus, CoroutineScope {
     override val coroutineContext = Dispatchers.Default
 
     // TODO: Consider serializing all access to this with a special dispatcher.
-    private val handlers = mutableMapOf<KClass<out CoreEvent>, MutableList<EventHandler>>()
+    private val channels = mutableMapOf<KClass<out CoreEvent>, BroadcastChannel<out CoreEvent>>()
+
+    override fun <E : CoreEvent> flowOf(eventClass: KClass<E>): Flow<E> {
+        return if (eventClass.isSealed) {
+            val channels = eventClass.sealedSubclasses.map { it.channel }
+            channels.map { it.asFlow() }.merge()
+        } else {
+            eventClass.channel.asFlow()
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : CoreEvent> on(eventClass: KClass<E>, context: CoroutineContext, handler: suspend (E) -> Unit): EventSubscription {
-        return if (eventClass.isSealed) {
-            val subscriptions = eventClass.sealedSubclasses.map {
-                on(it, context, handler)
-            }
-            object : EventSubscription {
-                override fun cancel() {
-                    subscriptions.forEach { it.cancel() }
-                }
-            }
-        } else {
-            val eventHandler = EventHandler(context, handler as (suspend (CoreEvent) -> Unit))
-            handlersFor(eventClass) += eventHandler
-            object : EventSubscription {
-                override fun cancel() {
-                    handlersFor(eventClass) -= eventHandler
-                }
-            }
-        }
+    private val <E : CoreEvent> KClass<E>.channel: BroadcastChannel<E>
+        get() = channels.getOrPut(this) { BroadcastChannel(32) } as BroadcastChannel<E>
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <E : CoreEvent> send(event: E) {
+        (event::class.channel as BroadcastChannel<E>).offer(event)
     }
-
-    override fun <E : CoreEvent> send(event: E) = launch(Job()) {
-        handlersFor(event::class).forEach { (context, handler) ->
-            launch(context) {
-                handler(event)
-            }
-        }
-    }
-
-    private fun handlersFor(event: KClass<out CoreEvent>) = handlers.getOrPut(event) { mutableListOf() }
-
-    private data class EventHandler(
-        val context: CoroutineContext,
-        val handler: suspend (CoreEvent) -> Unit
-    )
 }

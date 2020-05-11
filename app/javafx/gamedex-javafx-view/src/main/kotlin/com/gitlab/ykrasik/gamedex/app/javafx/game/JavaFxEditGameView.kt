@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideState
 import com.gitlab.ykrasik.gamedex.app.api.game.OverrideSelectionType
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -56,7 +56,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     private val initialViewProperty = SimpleObjectProperty(GameDataType.Name)
     var initialView: GameDataType by initialViewProperty
 
-    override val game = viewMutableStatefulChannel(Game.Null)
+    override val game = viewMutableStateFlow(Game.Null, debugName = "game")
 
     // TODO: Consider representing this as a CustomProvider in the UserData
     override val nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.Name, Icons.text)
@@ -67,12 +67,12 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     override val thumbnailUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Thumbnail, Icons.thumbnail)
     override val posterUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Poster, Icons.poster)
 
-    override val absoluteMainExecutablePath = viewMutableStatefulChannel("")
-    override val absoluteMainExecutablePathIsValid = statefulChannel(IsValid.valid)
+    override val absoluteMainExecutablePath = viewMutableStateFlow("", debugName = "absoluteMainExecutablePath")
+    override val absoluteMainExecutablePathIsValid = mutableStateFlow(IsValid.valid, debugName = "absoluteMainExecutablePathIsValid")
 
-    override val browseMainExecutableActions = channel<Unit>()
+    override val browseMainExecutableActions = broadcastFlow<Unit>()
 
-    override val resetAllToDefaultActions = channel<Unit>()
+    override val resetAllToDefaultActions = broadcastFlow<Unit>()
 
     private val tabPane: JFXTabPane = jfxTabPane {
         addClass(GameDexStyle.hiddenTabPaneHeader)
@@ -211,7 +211,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     }
 
     private fun EventTarget.displayScore(score: ObservableValue<Score>) =
-        displayText(score.stringBinding { "${it?.score} Based on ${it?.numReviews} reviews." })
+        displayText(score.typesafeStringBinding { "${it.score} Based on ${it.numReviews} reviews." })
 
     private fun EventTarget.displayText(text: ObservableValue<String>, maxWidth: Double? = null) = text(text) {
         addClass(Style.textData)
@@ -249,15 +249,15 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
         com.gitlab.ykrasik.gamedex.javafx.control.chooseFile("Select Main Executable File...", filters = emptyList(), initialDirectory = initialDirectory).firstOrNull()
 
     class JavaFxGameDataOverrideState<T>(override val type: GameDataType, val icon: Node) : GameDataOverrideState<T> {
-        override val selection = viewMutableStatefulChannel<OverrideSelectionType?>(null)
-        override val customValue = statefulChannel<T?>(null)
-        override val providerValues = statefulChannel<Map<ProviderId, T>>(emptyMap())
-        override val canSelectCustomOverride = statefulChannel(IsValid.valid)
-        override val rawCustomValue = viewMutableStatefulChannel("")
-        override val isCustomValueValid = statefulChannel(IsValid.valid)
-        override val customValueAcceptActions = channel<Unit>()
-        override val customValueRejectActions = channel<Unit>()
-        override val resetToDefaultActions = channel<Unit>()
+        override val selection = viewMutableStateFlow<OverrideSelectionType?>(null, debugName = "${type}.selection")
+        override val customValue = mutableStateFlow<T?>(null, debugName = "${type}.customValue")
+        override val providerValues = mutableStateFlow<Map<ProviderId, T>>(emptyMap(), debugName = "${type}.providerValues")
+        override val canSelectCustomOverride = mutableStateFlow(IsValid.valid, debugName = "${type}.canSelectCustomOverride")
+        override val rawCustomValue = viewMutableStateFlow("", debugName = "${type}.rawCustomValue")
+        override val isCustomValueValid = mutableStateFlow(IsValid.valid, debugName = "${type}.isCustomValueValid")
+        override val customValueAcceptActions = broadcastFlow<Unit>()
+        override val customValueRejectActions = broadcastFlow<Unit>()
+        override val resetToDefaultActions = broadcastFlow<Unit>()
     }
 
     class Style : Stylesheet() {

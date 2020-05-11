@@ -14,25 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.image
+package com.gitlab.ykrasik.gamedex.core.view
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlin.coroutines.CoroutineContext
 
 /**
  * User: ykrasik
- * Date: 12/05/2019
- * Time: 09:03
+ * Date: 21/05/2020
+ * Time: 09:17
  */
-interface ImageGalleryView {
-    val imageParams: ViewMutableStateFlow<ViewImageParams>
-    val currentImageIndex: MutableStateFlow<Int>
+object ViewExceptionHandler : CoroutineExceptionHandler {
+    override val key = CoroutineExceptionHandler
 
-    val canViewNextImage: MutableStateFlow<IsValid>
-    val viewNextImageActions: Flow<Unit>
-
-    val canViewPrevImage: MutableStateFlow<IsValid>
-    val viewPrevImageActions: Flow<Unit>
+    override fun handleException(context: CoroutineContext, exception: Throwable) {
+        Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), exception)
+    }
 }

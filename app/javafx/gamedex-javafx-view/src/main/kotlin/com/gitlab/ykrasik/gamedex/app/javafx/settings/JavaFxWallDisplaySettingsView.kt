@@ -30,7 +30,7 @@ import tornadofx.form
  * Date: 29/11/2018
  * Time: 08:20
  */
-class JavaFxWallDisplaySettingsView(settings: JavaFxGameWallDisplaySettings) : Fragment("Game Wall", Icons.grid) {
+class JavaFxWallDisplaySettingsView(settings: JavaFxMutableGameWallDisplaySettings) : Fragment("Game Wall", Icons.grid) {
     override val root = form {
         fieldset {
             horizontalField("Cell Size") { enumComboMenu(settings.imageDisplayType.property, text = ImageDisplayType::displayName) }

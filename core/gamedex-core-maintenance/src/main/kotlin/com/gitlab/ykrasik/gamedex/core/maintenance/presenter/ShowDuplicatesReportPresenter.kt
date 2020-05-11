@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanShowDuplicatesRepor
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowDuplicatesReportPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanShowDuplicatesReport> {
     init {
-        eventBus.onHideViewRequested<DuplicatesView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<DuplicatesView>().forEach(debugName = "hideDuplicatesView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanShowDuplicatesReport) = object : ViewSession() {
         init {
-            view.showDuplicatesReportActions.forEach {
+            view.showDuplicatesReportActions.forEach(debugName = "showDuplicatesView") {
                 viewManager.showDuplicatesView()
             }
         }

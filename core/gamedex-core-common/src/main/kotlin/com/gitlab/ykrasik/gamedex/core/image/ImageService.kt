@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.util.AsyncValue
 import com.gitlab.ykrasik.gamedex.util.FileSize
 
 /**
@@ -27,9 +28,9 @@ import com.gitlab.ykrasik.gamedex.util.FileSize
 interface ImageService {
     fun createImage(data: ByteArray): Image
 
-    suspend fun fetchImage(url: String, persist: Boolean): Image?
+    suspend fun fetchImage(url: String, persist: Boolean): AsyncValue<Image>
 
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
+    fun fetchImageSizesExcept(exceptUrls: Set<String>): Map<String, FileSize>
 
     fun deleteImages(imageUrls: List<String>)
 }

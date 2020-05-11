@@ -18,11 +18,11 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -30,17 +30,17 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 18:10
  */
 interface TagGameView : ConfirmationView {
-    val game: ViewMutableStatefulChannel<Game>
+    val game: ViewMutableStateFlow<Game>
 
     val tags: SettableList<String>
     val checkedTags: MutableSet<String>
 
-    val toggleAll: ViewMutableStatefulChannel<Boolean>
+    val toggleAll: ViewMutableStateFlow<Boolean>
 
-    val checkTagChanges: MultiReadChannel<Pair<String, Boolean>>
+    val checkTagChanges: Flow<Pair<String, Boolean>>
 
-    val newTagName: ViewMutableStatefulChannel<String>
-    val newTagNameIsValid: StatefulChannel<IsValid>
+    val newTagName: ViewMutableStateFlow<String>
+    val newTagNameIsValid: MutableStateFlow<IsValid>
 
-    val addNewTagActions: MultiReadChannel<Unit>
+    val addNewTagActions: Flow<Unit>
 }

@@ -19,7 +19,11 @@ package com.gitlab.ykrasik.gamedex
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.FileSize
+import com.gitlab.ykrasik.gamedex.util.file
+import com.gitlab.ykrasik.gamedex.util.firstNotNull
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.joda.time.DateTime
 import java.io.File
 
@@ -35,7 +39,7 @@ data class Game(
     val library: Library,
     val gameData: GameData,
     val folderName: FolderName,
-    val fileTree: Ref<FileTree?>,
+    val fileTree: StateFlow<FileTree?>,
     val genres: List<Genre>,
     val filterTags: List<TagId>
 ) {
@@ -59,8 +63,8 @@ data class Game(
     private inline fun withBothScores(f: (criticScore: Double, userScore: Double) -> Double): Double? =
         criticScore?.let { c -> userScore?.let { u -> f(c.score, u.score) } }
 
-    val thumbnailUrl get() = gameData.thumbnailUrl
-    val posterUrl get() = gameData.posterUrl
+    val thumbnailUrl get() = gameData.thumbnailUrl ?: gameData.posterUrl
+    val posterUrl get() = gameData.posterUrl ?: gameData.thumbnailUrl
     val screenshotUrls get() = gameData.screenshotUrls
 
     val tags get() = userData.tags
@@ -103,12 +107,12 @@ data class Game(
             ),
             folderName = FolderName(
                 rawName = "",
-                gameName = "",
+                processedName = "",
                 order = null,
                 metaTag = null,
                 version = null
             ),
-            fileTree = ref(null),
+            fileTree = MutableStateFlow(null),
             genres = emptyList(),
             filterTags = emptyList()
         )
@@ -204,7 +208,7 @@ data class FileTree(
         }
 
     fun find(target: File): FileTree? {
-        if (target.toString() == name) return this 
+        if (target.toString() == name) return this
         val leftover = target.relativeToOrNull(name.file) ?: return null
         return children.asSequence()
             .mapNotNull { it.find(leftover) }
@@ -223,7 +227,7 @@ data class FileTree(
 
 data class FolderName(
     val rawName: String,
-    val gameName: String,
+    val processedName: String,
     val order: String?,            // TODO: Consider adding option to display this.
     val metaTag: String?,
     val version: String?

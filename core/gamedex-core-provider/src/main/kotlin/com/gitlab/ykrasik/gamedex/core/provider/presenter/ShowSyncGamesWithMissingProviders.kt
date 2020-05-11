@@ -20,6 +20,8 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGamesWithMissingProviders
 import com.gitlab.ykrasik.gamedex.core.*
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,14 +37,18 @@ class ShowSyncGamesWithMissingProviders @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanSyncGamesWithMissingProviders> {
     init {
-        eventBus.onHideViewRequested<SyncGamesWithMissingProvidersView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<SyncGamesWithMissingProvidersView>().forEach("hideSyncGamesWithMissingProvidersView") {
+                viewManager.hide(it)
+            }
+        }
     }
 
     override fun present(view: ViewCanSyncGamesWithMissingProviders) = object : ViewSession() {
         init {
-            view.canSyncGamesWithMissingProviders.bind(commonData.canSyncOrUpdateGames)
+            view.canSyncGamesWithMissingProviders *= commonData.canSyncOrUpdateGames withDebugName "canSyncGamesWithMissingProviders"
 
-            view.syncGamesWithMissingProvidersActions.forEach {
+            view.syncGamesWithMissingProvidersActions.forEach(debugName = "showSyncGamesWithMissingProvidersView") {
                 view.canSyncGamesWithMissingProviders.assert()
 
                 viewManager.showSyncGamesWithMissingProvidersView()

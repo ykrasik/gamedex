@@ -16,81 +16,79 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ConflatedMultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.Value
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import com.gitlab.ykrasik.gamedex.app.api.util.fromView
+import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.drop
 
 /**
  * User: ykrasik
  * Date: 02/12/2018
  * Time: 16:57
  */
+val log = logger("")
 
-fun <T> viewMutableStatefulChannel(initial: T) = objectPropertyState(::JavaFxViewMutableStatefulChannel, initial)
-fun viewMutableStatefulChannel(initial: Boolean) = booleanPropertyState(::JavaFxViewMutableStatefulChannel, initial)
-fun viewMutableStatefulChannel(initial: Double) = doublePropertyState(::JavaFxViewMutableStatefulChannel, initial)
-fun viewMutableStatefulChannel(initial: Int) = intPropertyState(::JavaFxViewMutableStatefulChannel, initial)
-fun viewMutableStatefulChannel(initial: String) = stringPropertyState(::JavaFxViewMutableStatefulChannel, initial)
-fun <T, P : Property<T>> viewMutableStatefulChannel(statefulChannel: JavaFxStatefulChannel<T, P>) = viewMutableStatefulChannel(statefulChannel.property)
-fun <T, P : Property<T>> viewMutableStatefulChannel(property: P) = JavaFxViewMutableStatefulChannel(conflatedChannel(property.value), property)
+class JavaFxViewMutableStateFlow<T, P : Property<T>>(
+    private val flow: MutableStateFlow<Value<T>>,
+    val property: P,
+    debugName: String
+) : MutableStateFlow<Value<T>> by flow, ViewMutableStateFlow<T>, CoroutineScope {
+    override val coroutineContext = Dispatchers.Main.immediate + CoroutineName(debugName)
 
-fun <T> statefulChannel(initial: T) = objectPropertyState(::JavaFxStatefulChannel, initial)
-fun statefulChannel(initial: Boolean) = booleanPropertyState(::JavaFxStatefulChannel, initial)
-fun statefulChannel(initial: Double) = doublePropertyState(::JavaFxStatefulChannel, initial)
-fun statefulChannel(initial: Int) = intPropertyState(::JavaFxStatefulChannel, initial)
-fun statefulChannel(initial: String) = stringPropertyState(::JavaFxStatefulChannel, initial)
-
-private inline fun <T, S> objectPropertyState(factory: (ConflatedMultiChannel<T>, SimpleObjectProperty<T>) -> S, initial: T): S =
-    factory(conflatedChannel(initial), SimpleObjectProperty(initial))
-
-private inline fun <S> booleanPropertyState(factory: (ConflatedMultiChannel<Boolean>, SimpleBooleanProperty) -> S, initial: Boolean): S =
-    factory(conflatedChannel(initial), SimpleBooleanProperty(initial))
-
-private inline fun <S> doublePropertyState(factory: (ConflatedMultiChannel<Double>, SimpleObjectProperty<Double>) -> S, initial: Double): S =
-    factory(conflatedChannel(initial), SimpleObjectProperty(initial))
-
-private inline fun <S> intPropertyState(factory: (ConflatedMultiChannel<Int>, SimpleObjectProperty<Int>) -> S, initial: Int): S =
-    factory(conflatedChannel(initial), SimpleObjectProperty(initial))
-
-private inline fun <S> stringPropertyState(factory: (ConflatedMultiChannel<String>, SimpleStringProperty) -> S, initial: String): S =
-    factory(conflatedChannel(initial), SimpleStringProperty(initial))
-
-typealias JavaFxObjectStatefulChannel<T> = JavaFxStatefulChannel<T, SimpleObjectProperty<T>>
-
-class JavaFxViewMutableStatefulChannel<T, P : Property<T>>(private val channel: ConflatedMultiChannel<T>, val property: P) : StatefulChannel<T> by channel, ViewMutableStatefulChannel<T> {
     init {
-        var reportNextChangeToChannel = true
+        var propertyChangedByPresenter = false
 
-        property.onInvalidated { value ->
-            if (reportNextChangeToChannel) {
-                channel.value = value
+        property.typeSafeOnChange { value ->
+            if (!propertyChangedByPresenter) {
+                flow.value = value.fromView
             }
         }
 
-        channel.subscribe(Dispatchers.Main.immediate) { value ->
-            reportNextChangeToChannel = false
-            property.value = value
-            reportNextChangeToChannel = true
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            flow.drop(1).collect { value ->
+                log.trace("$value")
+                propertyChangedByPresenter = value is Value.FromPresenter
+                property.value = value.value
+                propertyChangedByPresenter = false
+            }
         }
     }
 
     inline fun perform(crossinline f: (T) -> Unit) = property.perform(f)
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
-
-    override fun toString() = property.value.toString()
 }
 
-class JavaFxStatefulChannel<T, P : Property<T>>(private val channel: ConflatedMultiChannel<T>, val property: P) : StatefulChannel<T> by channel {
+fun <T> Any.viewMutableStateFlow(initial: T, debugName: String) = viewMutableStateFlow(SimpleObjectProperty(initial), debugName)
+fun Any.viewMutableStateFlow(initial: Boolean, debugName: String) = viewMutableStateFlow(SimpleBooleanProperty(initial), debugName)
+fun Any.viewMutableStateFlow(initial: Double, debugName: String) = viewMutableStateFlow(SimpleObjectProperty(initial), debugName)
+fun Any.viewMutableStateFlow(initial: Int, debugName: String) = viewMutableStateFlow(SimpleObjectProperty(initial), debugName)
+fun Any.viewMutableStateFlow(initial: String, debugName: String) = viewMutableStateFlow(SimpleStringProperty(initial), debugName)
+fun <T, P : Property<T>> Any.viewMutableStateFlow(flow: JavaFxViewMutableStateFlow<T, P>, debugName: String) = viewMutableStateFlow(flow.property, debugName)
+fun <T, P : Property<T>> Any.viewMutableStateFlow(property: P, debugName: String) =
+    JavaFxViewMutableStateFlow(MutableStateFlow<Value<T>>(property.value.fromView), property, debugName = "${this.javaClass.simpleName}.$debugName")
+
+class JavaFxMutableStateFlow<T, P : Property<T>>(
+    private val flow: MutableStateFlow<T>,
+    val property: P,
+    debugName: String
+) : MutableStateFlow<T> by flow, CoroutineScope {
+    override val coroutineContext = Dispatchers.Main.immediate + CoroutineName(debugName)
+
     init {
-        channel.subscribe(Dispatchers.Main.immediate) { value ->
-            property.value = value
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            flow.collect { value ->
+                log.trace("$value")
+                property.value = value
+            }
         }
     }
 
@@ -98,3 +96,14 @@ class JavaFxStatefulChannel<T, P : Property<T>>(private val channel: ConflatedMu
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
 }
+
+fun <T> Any.mutableStateFlow(initial: T, debugName: String) = mutableStateFlow(SimpleObjectProperty(initial), debugName)
+fun Any.mutableStateFlow(initial: Boolean, debugName: String) = mutableStateFlow(SimpleBooleanProperty(initial), debugName)
+fun Any.mutableStateFlow(initial: Double, debugName: String) = mutableStateFlow(SimpleObjectProperty(initial), debugName)
+fun Any.mutableStateFlow(initial: Int, debugName: String) = mutableStateFlow(SimpleObjectProperty(initial), debugName)
+fun Any.mutableStateFlow(initial: String, debugName: String) = mutableStateFlow(SimpleStringProperty(initial), debugName)
+fun <T, P : Property<T>> Any.mutableStateFlow(flow: JavaFxMutableStateFlow<T, P>, debugName: String) = mutableStateFlow(flow.property, debugName)
+fun <T, P : Property<T>> Any.mutableStateFlow(property: P, debugName: String) =
+    JavaFxMutableStateFlow(MutableStateFlow(property.value), property, debugName = "${this.javaClass.simpleName}.$debugName")
+
+typealias JavaFxObjectMutableStateFlow<T> = JavaFxMutableStateFlow<T, SimpleObjectProperty<T>>

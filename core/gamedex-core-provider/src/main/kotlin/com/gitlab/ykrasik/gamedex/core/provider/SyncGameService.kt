@@ -19,14 +19,16 @@ package com.gitlab.ykrasik.gamedex.core.provider
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,9 +44,11 @@ class SyncGameServiceImpl @Inject constructor(
     private val filterService: FilterService,
     private val eventBus: EventBus
 ) : SyncGameService {
-    override val isGameSyncRunning = conflatedChannel(false).apply {
-        eventBus.on<SyncGamesEvent.Started> { send(true) }
-        eventBus.on<SyncGamesEvent.Finished> { send(false) }
+    override val isGameSyncRunning = MutableStateFlow(false).apply {
+        flowScope(Dispatchers.Default) {
+            eventBus.flowOf<SyncGamesEvent.Started>().forEach(debugName = "onSyncGamesStarted") { value = true }
+            eventBus.flowOf<SyncGamesEvent.Finished>().forEach(debugName = "onSyncGamesFinished") { value = false }
+        }
     }
 
     override fun syncGame(game: Game) = syncGames(listOf(toRequest(game, emptyList())), isAllowSmartChooseResults = false)

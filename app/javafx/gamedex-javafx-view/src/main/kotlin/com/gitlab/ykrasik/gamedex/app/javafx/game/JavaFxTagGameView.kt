@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -35,20 +35,20 @@ import tornadofx.*
  * Time: 10:12
  */
 class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
-    override val game = viewMutableStatefulChannel(Game.Null)
+    override val game = viewMutableStateFlow(Game.Null, debugName = "game")
 
     override val tags = settableList<String>()
     override val checkedTags = mutableSetOf<String>().observable()
 
-    override val toggleAll = viewMutableStatefulChannel(false)
+    override val toggleAll = viewMutableStateFlow(false, debugName = "toggleAll")
 
-    override val checkTagChanges = channel<Pair<String, Boolean>>()
+    override val checkTagChanges = broadcastFlow<Pair<String, Boolean>>()
 
-    override val newTagName = viewMutableStatefulChannel("")
+    override val newTagName = viewMutableStateFlow("", debugName = "newTagName")
 
-    override val newTagNameIsValid = statefulChannel(IsValid.valid)
+    override val newTagNameIsValid = mutableStateFlow(IsValid.valid, debugName = "newTagNameIsValid")
 
-    override val addNewTagActions = channel<Unit>()
+    override val addNewTagActions = broadcastFlow<Unit>()
 
     init {
         titleProperty.bind(game.property.stringBinding { "Tag '${it!!.name}'" })

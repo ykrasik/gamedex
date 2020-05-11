@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.common
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 17:44
  */
 interface ViewCanShowAboutView {
-    val showAboutActions: MultiReadChannel<Unit>
+    val showAboutActions: Flow<Unit>
 }

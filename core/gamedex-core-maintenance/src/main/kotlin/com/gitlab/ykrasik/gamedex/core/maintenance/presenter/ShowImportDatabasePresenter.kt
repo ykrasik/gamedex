@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanImportDatabase
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowImportDatabasePresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanImportDatabase> {
     init {
-        eventBus.onHideViewRequested<ImportDatabaseView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<ImportDatabaseView>().forEach(debugName = "hideImportDatabaseView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanImportDatabase) = object : ViewSession() {
         init {
-            view.importDatabaseActions.forEach {
+            view.importDatabaseActions.forEach(debugName = "showImportDatabaseView") {
                 viewManager.showImportDatabaseView()
             }
         }

@@ -75,44 +75,32 @@ sealed class Filter {
 
     abstract fun evaluate(game: Game, context: Context): Boolean
 
-    abstract fun isEqual(other: Filter): Boolean
-    protected inline fun <reified T> ifIs(f: (T) -> Boolean) = (this as? T)?.let(f) ?: false
-
     protected open fun evaluateNot(game: Game, context: Context): Boolean = !evaluate(game, context)
 
     abstract class MetaFilter : Filter()
     abstract class Compound : MetaFilter() {
         abstract val targets: List<Filter>
-
-        protected inline fun <reified T : Compound> isEqual0(other: Filter) =
-            other.ifIs<T> {
-                this.targets.size == it.targets.size &&
-                    this.targets.asSequence().zip(it.targets.asSequence()).all { (first, second) -> first.isEqual(second) }
-            }
     }
 
     abstract class Modifier : MetaFilter() {
         abstract val target: Filter
     }
 
-    class And(override val targets: List<Filter>) : Compound() {
+    data class And(override val targets: List<Filter>) : Compound() {
         override fun evaluate(game: Game, context: Context) = targets.all { it.evaluate(game, context) }
         override fun evaluateNot(game: Game, context: Context) = targets.any { it.evaluateNot(game, context) }
-        override fun isEqual(other: Filter) = isEqual0<And>(other)
         override fun toString() = targets.joinToString(separator = ") and (", prefix = "(", postfix = ")")
     }
 
-    class Or(override val targets: List<Filter>) : Compound() {
+    data class Or(override val targets: List<Filter>) : Compound() {
         override fun evaluate(game: Game, context: Context) = targets.any { it.evaluate(game, context) }
         override fun evaluateNot(game: Game, context: Context) = targets.all { it.evaluateNot(game, context) }
-        override fun isEqual(other: Filter) = isEqual0<Or>(other)
         override fun toString() = targets.joinToString(separator = ") or (", prefix = "(", postfix = ")")
     }
 
-    class Not(override val target: Filter) : Modifier() {
+    data class Not(override val target: Filter) : Modifier() {
         override fun evaluate(game: Game, context: Context) = target.evaluateNot(game, context)
         override fun evaluateNot(game: Game, context: Context) = target.evaluate(game, context)
-        override fun isEqual(other: Filter) = other.ifIs<Not> { this.target.isEqual(it.target) }
         override fun toString() = "!($target)"
     }
 
@@ -120,7 +108,7 @@ sealed class Filter {
 
     class True : Rule() {
         override fun evaluate(game: Game, context: Context) = true
-        override fun isEqual(other: Filter) = other is True
+        override fun equals(other: Any?) = other is True
     }
 
     abstract class ScoreRule : Rule() {
@@ -141,38 +129,30 @@ sealed class Filter {
             val score = extractScore(game, context)
             return score != null && f(score)
         }
-
-        protected inline fun <reified T : TargetScore> isEqual0(other: Filter) =
-            other.ifIs<T> { this.score == it.score }
     }
 
-    class CriticScore(override val score: Double) : TargetScore() {
+    data class CriticScore(override val score: Double) : TargetScore() {
         override fun extractScore(game: Game, context: Context) = game.criticScore?.score
-        override fun isEqual(other: Filter) = isEqual0<CriticScore>(other)
         override fun toString() = "Critic Score >= $score"
     }
 
-    class UserScore(override val score: Double) : TargetScore() {
+    data class UserScore(override val score: Double) : TargetScore() {
         override fun extractScore(game: Game, context: Context) = game.userScore?.score
-        override fun isEqual(other: Filter) = isEqual0<UserScore>(other)
         override fun toString() = "User Score >= $score"
     }
 
-    class AvgScore(override val score: Double) : TargetScore() {
+    data class AvgScore(override val score: Double) : TargetScore() {
         override fun extractScore(game: Game, context: Context) = game.avgScore
-        override fun isEqual(other: Filter) = isEqual0<AvgScore>(other)
         override fun toString() = "Avg Score >= $score"
     }
 
-    class MinScore(override val score: Double) : TargetScore() {
+    data class MinScore(override val score: Double) : TargetScore() {
         override fun extractScore(game: Game, context: Context) = game.minScore
-        override fun isEqual(other: Filter) = isEqual0<MinScore>(other)
         override fun toString() = "Min Score >= $score"
     }
 
-    class MaxScore(override val score: Double) : TargetScore() {
+    data class MaxScore(override val score: Double) : TargetScore() {
         override fun extractScore(game: Game, context: Context) = game.maxScore
-        override fun isEqual(other: Filter) = isEqual0<MaxScore>(other)
         override fun toString() = "Max Score >= $score"
     }
 
@@ -189,26 +169,20 @@ sealed class Filter {
             val date = extractDate(game, context)
             return date != null && f(date.toLocalDate())
         }
-
-        protected inline fun <reified T : TargetDate> isEqual0(other: Filter) =
-            other.ifIs<T> { this.date == it.date }
     }
 
-    class TargetReleaseDate(override val date: LocalDate) : TargetDate() {
+    data class TargetReleaseDate(override val date: LocalDate) : TargetDate() {
         override fun extractDate(game: Game, context: Context) = game.releaseDate?.dateTimeOrNull
-        override fun isEqual(other: Filter) = isEqual0<TargetReleaseDate>(other)
         override fun toString() = "Release Date >= $date"
     }
 
-    class TargetCreateDate(override val date: LocalDate) : TargetDate() {
+    data class TargetCreateDate(override val date: LocalDate) : TargetDate() {
         override fun extractDate(game: Game, context: Context) = game.createDate
-        override fun isEqual(other: Filter) = isEqual0<TargetCreateDate>(other)
         override fun toString() = "Create Date >= $date"
     }
 
-    class TargetUpdateDate(override val date: LocalDate) : TargetDate() {
+    data class TargetUpdateDate(override val date: LocalDate) : TargetDate() {
         override fun extractDate(game: Game, context: Context) = game.updateDate
-        override fun isEqual(other: Filter) = isEqual0<TargetUpdateDate>(other)
         override fun toString() = "Update Date >= $date"
     }
 
@@ -221,26 +195,20 @@ sealed class Filter {
             val date = extractDate(game, context)
             return date != null && f(date)
         }
-
-        protected inline fun <reified T : PeriodDate> isEqual0(other: Filter) =
-            other.ifIs<T> { this.period == it.period }
     }
 
-    class PeriodReleaseDate(override val period: Period) : PeriodDate() {
+    data class PeriodReleaseDate(override val period: Period) : PeriodDate() {
         override fun extractDate(game: Game, context: Context) = game.releaseDate?.dateTimeOrNull
-        override fun isEqual(other: Filter) = isEqual0<PeriodReleaseDate>(other)
         override fun toString() = "Release Date >= (Now - ${period.humanReadable}"
     }
 
-    class PeriodCreateDate(override val period: Period) : PeriodDate() {
+    data class PeriodCreateDate(override val period: Period) : PeriodDate() {
         override fun extractDate(game: Game, context: Context) = game.createDate
-        override fun isEqual(other: Filter) = isEqual0<PeriodCreateDate>(other)
         override fun toString() = "Create Date >= (Now - ${period.humanReadable}"
     }
 
-    class PeriodUpdateDate(override val period: Period) : PeriodDate() {
+    data class PeriodUpdateDate(override val period: Period) : PeriodDate() {
         override fun extractDate(game: Game, context: Context) = game.updateDate
-        override fun isEqual(other: Filter) = isEqual0<PeriodUpdateDate>(other)
         override fun toString() = "Update Date >= (Now - ${period.humanReadable}"
     }
 
@@ -250,7 +218,7 @@ sealed class Filter {
             return date == null
         }
 
-        override fun isEqual(other: Filter) = this::class == other::class
+        override fun equals(other: Any?) = other != null && this::class == other::class
     }
 
     class NullReleaseDate : NullDate() {
@@ -258,37 +226,32 @@ sealed class Filter {
         override fun toString() = "Release Date == NULL"
     }
 
-    class Platform(val platform: com.gitlab.ykrasik.gamedex.Platform) : Rule() {
+    data class Platform(val platform: com.gitlab.ykrasik.gamedex.Platform) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.platform == platform
-        override fun isEqual(other: Filter) = other.ifIs<Platform> { this.platform == it.platform }
         override fun toString() = "Platform == '$platform'"
     }
 
-    class Library(val id: LibraryId) : Rule() {
+    data class Library(val id: LibraryId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.library.id == id
-        override fun isEqual(other: Filter) = other.ifIs<Library> { this.id == it.id }
         override fun toString() = "Library == Library($id)"
     }
 
-    class Genre(val genre: GenreId) : Rule() {
+    data class Genre(val genre: GenreId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.genres.any { it.id == genre }
-        override fun isEqual(other: Filter) = other.ifIs<Genre> { this.genre == it.genre }
         override fun toString() = "Genre == '$genre'"
     }
 
-    class Tag(val tag: TagId) : Rule() {
+    data class Tag(val tag: TagId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.tags.any { it == tag }
-        override fun isEqual(other: Filter) = other.ifIs<Tag> { this.tag == it.tag }
         override fun toString() = "Tag == '$tag'"
     }
 
-    class FilterTag(val tag: TagId) : Rule() {
+    data class FilterTag(val tag: TagId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.filterTags.any { it == tag }
-        override fun isEqual(other: Filter) = other.ifIs<FilterTag> { this.tag == it.tag }
         override fun toString() = "FilterTag == '$tag'"
     }
 
-    class Provider(val providerId: ProviderId) : Rule() {
+    data class Provider(val providerId: ProviderId) : Rule() {
         override fun evaluate(game: Game, context: Context) = eval(game, context) { it.any { it.providerId == providerId } }
         override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it.none { it.providerId == providerId } }
 
@@ -298,21 +261,19 @@ sealed class Filter {
                 f(game.providerData)
         }
 
-        override fun isEqual(other: Filter) = other.ifIs<Provider> { this.providerId == it.providerId }
         override fun toString() = "Provider == '$providerId'"
     }
 
-    class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
+    data class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
         override fun evaluate(game: Game, context: Context): Boolean {
             return game.fileTree.value?.let { it.size >= target } ?: false
         }
 
-        override fun isEqual(other: Filter) = other.ifIs<FileSize> { this.target == it.target }
         override fun toString() = "File Size >= ${target.humanReadable}"
     }
 
     @JsonIgnoreProperties("regex")
-    class FileName(val value: String) : Rule() {
+    data class FileName(val value: String) : Rule() {
         private val regex = value.toRegex()
 
         override fun evaluate(game: Game, context: Context): Boolean {
@@ -321,7 +282,6 @@ sealed class Filter {
 
         private fun FileTree.matches(): Boolean = name.matches(regex) || children.any { it.matches() }
 
-        override fun isEqual(other: Filter) = other.ifIs<FileName> { this.value == it.value }
         override fun toString() = "File matches /$value/"
     }
 
@@ -336,7 +296,6 @@ infix fun Filter.and(right: () -> Filter) = and(right())
 infix fun Filter.or(right: Filter) = Filter.Or(listOf(this, right))
 infix fun Filter.or(right: () -> Filter) = or(right())
 val Filter.not get() = Filter.Not(this)
-fun Filter.isEqual(other: Filter?): Boolean = other != null && isEqual(other)
 val Filter.isEmpty get() = this is Filter.True
 fun Filter.find(target: KClass<out Filter>): Filter? {
     fun doFind(current: Filter): Filter? = when {

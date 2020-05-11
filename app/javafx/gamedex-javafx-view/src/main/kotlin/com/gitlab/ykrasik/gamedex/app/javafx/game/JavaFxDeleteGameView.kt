@@ -22,8 +22,9 @@ import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.gap
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import tornadofx.label
 import tornadofx.stringBinding
 
@@ -33,12 +34,12 @@ import tornadofx.stringBinding
  * Time: 22:08
  */
 class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGameView {
-    override val game = viewMutableStatefulChannel(Game.Null)
+    override val game = viewMutableStateFlow(Game.Null, debugName = "game")
 
-    override val fromFileSystem = viewMutableStatefulChannel(false)
+    override val fromFileSystem = viewMutableStateFlow(false, debugName = "fromFileSystem")
 
     init {
-        titleProperty.bind(game.property.stringBinding { "Delete '${it!!.name}'?" })
+        titleProperty.bind(game.property.typesafeStringBinding { "Delete '${it.name}'?" })
         register()
     }
 

@@ -24,9 +24,11 @@ import com.gitlab.ykrasik.gamedex.core.maintenance.ImportExportParams
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.and
 import com.gitlab.ykrasik.gamedex.util.file
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,34 +46,36 @@ class ExportDatabasePresenter @Inject constructor(
 ) : Presenter<ExportDatabaseView> {
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
         init {
-            view.exportDatabaseDirectory.mapTo(view.exportDatabaseFolderIsValid) { exportDatabaseDirectory ->
-                Try {
+            isShowing.forEach(debugName = "onShow") {
+                if (it) {
+                    view.exportDatabaseDirectory *= ""
+                    view.shouldExportLibrary *= true
+                    view.shouldExportProviderAccounts *= true
+                    view.shouldExportFilters *= true
+                    onBrowse()
+                }
+            }
+            view.exportDatabaseFolderIsValid *= view.exportDatabaseDirectory.allValues().map { exportDatabaseDirectory ->
+                IsValid {
                     check(exportDatabaseDirectory.isNotBlank()) { "Select export directory!" }
                     check(exportDatabaseDirectory.file.isDirectory) { "Directory doesn't exist!" }
                 }
-            }
+            } withDebugName "exportDatabaseFolderIsValid"
 
-            view.exportDatabaseFolderIsValid.combineLatest(
-                view.shouldExportLibrary,
-                view.shouldExportProviderAccounts,
-                view.shouldExportFilters
+            view.canAccept *= combine(
+                view.exportDatabaseFolderIsValid,
+                view.shouldExportLibrary.allValues(),
+                view.shouldExportProviderAccounts.allValues(),
+                view.shouldExportFilters.allValues()
             ) { exportDatabaseDirectoryIsValid, shouldExportLibrary, shouldExportProviderAccounts, shouldExportFilters ->
-                view.canAccept *= exportDatabaseDirectoryIsValid and Try {
+                exportDatabaseDirectoryIsValid and IsValid {
                     check(shouldExportLibrary || shouldExportProviderAccounts || shouldExportFilters) { "Select something to export!" }
                 }
-            }
+            } withDebugName "canAccept"
 
-            view.browseActions.forEach { onBrowse() }
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            view.exportDatabaseDirectory *= ""
-            view.shouldExportLibrary *= true
-            view.shouldExportProviderAccounts *= true
-            view.shouldExportFilters *= true
-            onBrowse()
+            view.browseActions.forEach(debugName = "onBrowse") { onBrowse() }
+            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
+            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
         }
 
         private fun onBrowse() {
@@ -86,11 +90,11 @@ class ExportDatabasePresenter @Inject constructor(
             hideView()
 
             val params = ImportExportParams(
-                library = view.shouldExportLibrary.value,
-                providerAccounts = view.shouldExportProviderAccounts.value,
-                filters = view.shouldExportFilters.value
+                library = view.shouldExportLibrary.v,
+                providerAccounts = view.shouldExportProviderAccounts.v,
+                filters = view.shouldExportFilters.v
             )
-            val dir = view.exportDatabaseDirectory.value.file
+            val dir = view.exportDatabaseDirectory.v.file
             taskService.execute(maintenanceService.exportDatabase(dir, params))
             settingsRepo.exportDbDirectory *= dir
             view.openDirectory(dir)

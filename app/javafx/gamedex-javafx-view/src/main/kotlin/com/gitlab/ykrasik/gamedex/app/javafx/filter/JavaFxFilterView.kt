@@ -20,8 +20,9 @@ import com.gitlab.ykrasik.gamedex.Genre
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.filter.*
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastFlow
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -45,6 +46,9 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import org.controlsfx.control.PopOver
 import org.joda.time.DurationFieldType
 import org.joda.time.LocalDate
@@ -70,8 +74,8 @@ class JavaFxFilterView(
     ViewCanAddOrEditFilter,
     ViewCanDeleteFilter {
 
-    override val filter = viewMutableStatefulChannel(Filter.Null)
-    override val filterIsValid = viewMutableStatefulChannel(IsValid.valid)
+    override val filter = viewMutableStateFlow(Filter.Null, debugName = "filter")
+    override val filterValidatedValue = mutableStateFlow(ValidatedValue(Filter.Null, IsValid.valid), debugName = "filterValidatedValue")
 
     override val availableFilters = settableList<KClass<out Filter.Rule>>()
 
@@ -93,16 +97,16 @@ class JavaFxFilterView(
     override val savedFilters = settableList<NamedFilter>()
     private val savedFiltersFilteredSorted = savedFilters.sortedFiltered(caseInsensitiveStringComparator(NamedFilter::id))
 
-    override val wrapInAndActions = channel<Filter>()
-    override val wrapInOrActions = channel<Filter>()
-    override val wrapInNotActions = channel<Filter>()
-    override val unwrapNotActions = channel<Filter.Not>()
-    override val updateFilterActions = channel<Pair<Filter.Rule, Filter.Rule>>()
-    override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
-    override val deleteFilterActions = channel<Filter>()
+    override val wrapInAndActions = broadcastFlow<Filter>()
+    override val wrapInOrActions = broadcastFlow<Filter>()
+    override val wrapInNotActions = broadcastFlow<Filter>()
+    override val unwrapNotActions = broadcastFlow<Filter.Not>()
+    override val updateFilterActions = broadcastFlow<Pair<Filter.Rule, Filter.Rule>>()
+    override val replaceFilterActions = broadcastFlow<Pair<Filter, KClass<out Filter>>>()
+    override val deleteFilterActions = broadcastFlow<Filter>()
 
-    override val addOrEditFilterActions = channel<NamedFilter>()
-    override val deleteNamedFilterActions = channel<NamedFilter>()
+    override val addOrEditFilterActions = broadcastFlow<NamedFilter>()
+    override val deleteNamedFilterActions = broadcastFlow<NamedFilter>()
 
     private val savedFilterPreviewContent: JavaFxFilterView by lazy { JavaFxFilterView(allowSaveLoad = false, readOnly = true) }
     private val savedFilterPreview by lazy {
@@ -125,9 +129,7 @@ class JavaFxFilterView(
                 preProcessHeader()
                 spacer()
                 buttonWithPopover("Saved Filters", Icons.files.size(22), arrowLocation = PopOver.ArrowLocation.LEFT_TOP, closeOnAction = false) {
-                    filter.forEach { hide() }
-                    addOrEditFilterActions.forEach { hide() }
-                    deleteNamedFilterActions.forEach { hide() }
+                    merge(filter, addOrEditFilterActions, deleteNamedFilterActions).onEach { hide() }.launchIn(JavaFxScope)
 
                     val searchProperty = SimpleStringProperty("")
                     searchTextField(this@JavaFxFilterView, searchProperty)
@@ -141,7 +143,7 @@ class JavaFxFilterView(
                         alignment = Pos.CENTER
                         useMaxWidth = true
                         tooltip("Add a new filter")
-                        action(addOrEditFilterActions) { NamedFilter.anonymous(filter.value) }
+                        action(addOrEditFilterActions) { NamedFilter.anonymous(filter.v) }
                     }
                     defaultVbox {
                         savedFiltersFilteredSorted.perform { filters ->
@@ -157,7 +159,7 @@ class JavaFxFilterView(
                                                 gridpaneColumnConstraints { hgrow = Priority.ALWAYS }
                                                 alignment = Pos.CENTER_LEFT
                                                 previewFilterOnHover(namedFilter.filter)
-                                                action(filter) { namedFilter.filter }
+                                                action { filter *= namedFilter.filter }
                                             }
                                             editButton(isToolbarButton = false) {
                                                 action(addOrEditFilterActions) { namedFilter }
@@ -184,7 +186,7 @@ class JavaFxFilterView(
             availableFilters.onChange { reRender() }
 
             fun conditionalReRender(klass: KClass<out Filter>) {
-                if (filter.value.hasFilter(klass)) {
+                if (filter.v.hasFilter(klass)) {
                     reRender()
                 }
             }
@@ -208,7 +210,7 @@ class JavaFxFilterView(
         setOnMouseEntered {
             debounceJob?.cancel()
             debounceJob = debounce(millis = 200) {
-                savedFilterPreviewContent.filter.value = filter
+                savedFilterPreviewContent.filter *= filter
                 savedFilterPreview.show(this@previewFilterOnHover)
             }
         }
@@ -218,7 +220,7 @@ class JavaFxFilterView(
         }
     }
 
-    private fun Node.reRender(filter: Filter = this@JavaFxFilterView.filter.value, prevFilter: Filter? = null): Unit = replaceChildren {
+    private fun Node.reRender(filter: Filter = this@JavaFxFilterView.filter.v, prevFilter: Filter? = null): Unit = replaceChildren {
         prevCache.clear()
         prevCache.putAll(currentCache)
         currentCache.clear()
@@ -291,7 +293,8 @@ class JavaFxFilterView(
             fun EventTarget.filterButton(descriptor: FilterDisplayDescriptor) =
                 jfxButton(descriptor.name, descriptor.icon().size(26), alignment = Pos.CENTER_LEFT) {
                     useMaxWidth = true
-                    action { replaceFilterActions.event(filter to descriptor.filter) }
+                    isDisable = filter::class == descriptor.filter
+                    action(replaceFilterActions) { filter to descriptor.filter }
                 }
 
             val subMenus = mutableMapOf<FilterDisplaySubMenu, PopOverMenu>()
@@ -348,9 +351,9 @@ class JavaFxFilterView(
     private fun HBox.renderAdditionalButtons(filter: Filter) {
         // TODO: Use a NodeList?
         buttonWithPopover(graphic = Icons.plus.size(28)) {
-            fun operatorButton(name: String, graphic: Node, channel: MultiChannel<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
+            fun operatorButton(name: String, graphic: Node, actionsFlow: BroadcastFlow<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
                 useMaxWidth = true
-                action(channel) { filter }
+                action(actionsFlow) { filter }
             }
 
             operatorButton("And", Icons.and, wrapInAndActions)
@@ -466,7 +469,7 @@ class JavaFxFilterView(
         val textField = customTextField(filter.value)
         val value = textField.bindParser { it.toRegex() }
         value.typeSafeOnChange {
-            it.valueOrNull?.let {
+            it.getOrNull()?.let {
                 updateFilterActions.event(filter to Filter.FileName(it.pattern))
             }
         }

@@ -35,8 +35,7 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.api.util.onReceive
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxAboutView
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxBrowserView
@@ -54,12 +53,15 @@ import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxBulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxSyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxScope
 import com.gitlab.ykrasik.gamedex.javafx.control.OverlayPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import javafx.scene.Node
 import javafx.scene.layout.VBox
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import tornadofx.Controller
 import tornadofx.View
@@ -74,7 +76,7 @@ import javax.inject.Singleton
 class JavaFxViewManager : Controller(), ViewManager {
     private val mainView: MainView by inject()
 
-    override val externalCloseRequests = channel<Any>()
+    override val externalCloseRequests = broadcastFlow<Any>()
 
     private val taskView: JavaFxTaskView by inject()
     override fun showTaskView() = taskView.showOverlay(modal = true)
@@ -201,10 +203,10 @@ class JavaFxViewManager : Controller(), ViewManager {
         val view = object : ConfirmationWindow(text, icon) {
             override val root = buildAreYouSure(op = op)
 
-            val job: Job = GlobalScope.launch(Dispatchers.Main) {
+            val job: Job = JavaFxScope.launch {
                 accept.complete(select {
-                    acceptActions.onReceive { true }
-                    cancelActions.onReceive { false }
+                    acceptActions.openSubscription().onReceive { true }
+                    cancelActions.openSubscription().onReceive { false }
                 })
             }.apply {
                 invokeOnCompletion {

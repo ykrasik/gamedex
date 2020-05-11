@@ -26,10 +26,12 @@ import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.logger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import javax.inject.Inject
@@ -55,33 +57,35 @@ class GameProviderServiceImpl @Inject constructor(
     override val enabledProviders = ListObservableImpl<GameProvider.Metadata>()
 
     init {
-        log.info("Detected providers: ${allProviders.joinToString()}")
+        log.info("Detected providers: [${allProviders.joinToString()}]")
 
-        allProviders.forEach { provider ->
-            val repo = settingsRepo.register(provider)
-            repo.perform { data ->
-                val enabledProvider = enabledProviders.find { it.id == provider.id }
-                when {
-                    !data.enabled && enabledProvider != null -> {
-                        enabledProviders -= enabledProvider
-                        log.trace("Provider disabled: ${provider.id}")
-                    }
+        flowScope(Dispatchers.Default) {
+            allProviders.forEach { provider ->
+                val repo = settingsRepo.register(provider)
+                repo.data.forEach(debugName = "${provider.id}.onDataChanged") { data ->
+                    val enabledProvider = enabledProviders.find { it.id == provider.id }
+                    when {
+                        !data.enabled && enabledProvider != null -> {
+                            enabledProviders -= enabledProvider
+                            log.debug("Provider disabled: ${provider.id}")
+                        }
 
-                    data.enabled -> {
-                        val account = provider.accountFeature?.createAccount(data.account) ?: GameProvider.Account.Null
-                        providersById.compute(provider.id) { _, provider -> provider!!.copy(account = account) }
+                        data.enabled -> {
+                            val account = provider.accountFeature?.createAccount(data.account) ?: GameProvider.Account.Null
+                            providersById.compute(provider.id) { _, provider -> provider!!.copy(account = account) }
 
-                        if (enabledProvider == null) {
-                            log.trace("Provider enabled: ${provider.id}")
-                            enabledProviders += provider
+                            if (enabledProvider == null) {
+                                log.debug("Provider enabled: ${provider.id}")
+                                enabledProviders += provider
+                            }
                         }
                     }
                 }
             }
-        }
 
-        enabledProviders.itemsChannel.subscribe {
-            log.info("Enabled providers: ${it.sortedBy { it.id }.joinToString()}")
+            enabledProviders.items.forEach(debugName = "onEnabledProvidersChanged") {
+                log.info("Enabled providers: [${it.sortedBy { it.id }.joinToString()}]")
+            }
         }
     }
 

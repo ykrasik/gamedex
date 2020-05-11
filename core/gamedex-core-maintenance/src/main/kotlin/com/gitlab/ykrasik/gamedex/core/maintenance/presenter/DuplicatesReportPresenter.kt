@@ -18,13 +18,16 @@ package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,35 +43,31 @@ class DuplicatesReportPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<DuplicatesView> {
     override fun present(view: DuplicatesView) = object : ViewSession() {
-        private val isDirty = conflatedChannel(true)
+        private val isDirty = MutableStateFlow(true)
+        private val shouldRun = isDirty and isShowing withDebugName "shouldRun"
 
         init {
-            eventBus.forEach<GameEvent> { isDirty *= true }
+            eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") { isDirty *= true }
 
-            view.searchText.debounce().forEach { onSearchTextChanged(it) }
-            view.hideViewActions.forEach { hideView() }
+            view.matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
+                if (searchText.isNotBlank()) {
+                    view.duplicates.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+                } else {
+                    null
+                }
+            } withDebugName "matchingGame"
+            view.hideViewActions.forEach(debugName = "onHideView") { hideView() }
 
-            isDirty.forEach { isDirty ->
-                if (isDirty && isShowing) {
+            shouldRun.forEach(debugName = "onShouldRun") {
+                if (it) {
                     detectDuplicates()
-                    this.isDirty *= false
+                    isDirty *= false
                 }
             }
         }
 
         private suspend fun detectDuplicates() {
-            val duplicates = taskService.execute(maintenanceService.detectDuplicates())
-            view.duplicates.setAll(duplicates)
-        }
-
-        override suspend fun onShown() {
-            this.isDirty.resend()
-        }
-
-        private fun onSearchTextChanged(searchText: String) {
-            if (searchText.isNotBlank()) {
-                view.matchingGame *= view.duplicates.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
-            }
+            view.duplicates *= taskService.execute(maintenanceService.detectDuplicates())
         }
 
         // TODO: Do I need the better search capabilities of searchService?

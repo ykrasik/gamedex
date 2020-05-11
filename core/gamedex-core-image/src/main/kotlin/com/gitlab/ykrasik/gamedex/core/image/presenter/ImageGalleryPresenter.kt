@@ -17,10 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.image.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,32 +33,35 @@ import javax.inject.Singleton
 @Singleton
 class ImageGalleryPresenter @Inject constructor() : Presenter<ImageGalleryView> {
     override fun present(view: ImageGalleryView) = object : ViewSession() {
+        private var imageParams by view.imageParams
+
         init {
-            view.imageParams.forEach { params ->
-                view.currentImageIndex.value = params.imageUrls.indexOfFirst { it == params.imageUrl }
+            view.currentImageIndex *= view.imageParams.allValues().map { params ->
+                params.imageUrls.indexOfFirst { it == params.imageUrl }
+            } withDebugName "currentImageIndex"
+            view.canViewNextImage *= view.currentImageIndex.map { currentImageIndex ->
+                IsValid {
+                    check(currentImageIndex + 1 < imageParams.imageUrls.size) { "No more images!" }
+                }
+            } withDebugName "canViewNextImage"
+            view.canViewPrevImage *= view.currentImageIndex.map { currentImageIndex ->
+                IsValid {
+                    check(currentImageIndex - 1 >= 0) { "No more images!" }
+                }
+            } withDebugName "canViewPrevImage"
+
+            view.viewNextImageActions.debounce(100).forEach(debugName = "onViewNextImage") {
+                view.canViewNextImage.assert()
+                navigate(+1)
             }
-            view.currentImageIndex.forEach { currentImageIndex ->
-                view.canViewNextImage *= Try { check(currentImageIndex + 1 < view.imageParams.value.imageUrls.size) { "No more images!" } }
-                view.canViewPrevImage *= Try { check(currentImageIndex - 1 >= 0) { "No more images!" } }
+            view.viewPrevImageActions.debounce(100).forEach(debugName = "onViewPrevImage") {
+                view.canViewPrevImage.assert()
+                navigate(-1)
             }
-
-            view.viewNextImageActions.subscribe().debounce(100).forEach { onViewNextImage() }
-            view.viewPrevImageActions.subscribe().debounce(100).forEach { onViewPrevImage() }
-        }
-
-        private fun onViewNextImage() {
-            view.canViewNextImage.assert()
-            navigate(+1)
-        }
-
-        private fun onViewPrevImage() {
-            view.canViewPrevImage.assert()
-            navigate(-1)
         }
 
         private fun navigate(offset: Int) {
-            view.currentImageIndex.value += offset
-            view.imageParams.modify { copy(imageUrl = imageUrls[view.currentImageIndex.value]) }
+            imageParams = imageParams.copy(imageUrl = imageParams.imageUrls[view.currentImageIndex.value + offset])
         }
     }
 }

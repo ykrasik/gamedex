@@ -18,16 +18,16 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.*
 import java.io.File
@@ -41,16 +41,16 @@ import java.io.File
 // FIXME: Since we call browse onShow which in turn calls onAccept, any views that come after ExportDatabaseView
 // FIXME: Will not have their onShow called.
 class JavaFxExportDatabaseView : ConfirmationWindow("Export Database", Icons.export), ViewCanOpenFile, ExportDatabaseView {
-    override val exportDatabaseDirectory = viewMutableStatefulChannel("")
-    override val exportDatabaseFolderIsValid = statefulChannel(IsValid.valid)
+    override val exportDatabaseDirectory = viewMutableStateFlow("", debugName = "exportDatabaseDirectory")
+    override val exportDatabaseFolderIsValid = mutableStateFlow(IsValid.valid, debugName = "exportDatabaseFolderIsValid")
 
-    override val shouldExportLibrary = viewMutableStatefulChannel(false)
-    override val shouldExportProviderAccounts = viewMutableStatefulChannel(false)
-    override val shouldExportFilters = viewMutableStatefulChannel(false)
+    override val shouldExportLibrary = viewMutableStateFlow(false, debugName = "shouldExportLibrary")
+    override val shouldExportProviderAccounts = viewMutableStateFlow(false, debugName = "shouldExportProviderAccounts")
+    override val shouldExportFilters = viewMutableStateFlow(false, debugName = "shouldExportFilters")
 
-    override val browseActions = channel<Unit>()
+    override val browseActions = broadcastFlow<Unit>()
 
-    override val openFileActions = channel<File>()
+    override val openFileActions = broadcastFlow<File>()
 
     init {
         register()

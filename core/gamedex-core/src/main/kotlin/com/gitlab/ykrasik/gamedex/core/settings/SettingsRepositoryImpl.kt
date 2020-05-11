@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
-import com.gitlab.ykrasik.gamedex.core.storage.StorageObservableImpl
+import com.gitlab.ykrasik.gamedex.core.storage.StorageMutableStateFlow
+import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -42,9 +42,8 @@ class SettingsRepositoryImpl @Inject constructor(private val factory: JsonStorag
         default: () -> T
     ) = addStorage {
         SettingsStorage(
-            storage = StorageObservableImpl(
-                channel = conflatedChannel(),
-                storage = factory(basePath = "conf/$basePath", klass = klass),
+            storage = StorageMutableStateFlow(
+                storage = factory(basePath = "data/$basePath", klass = klass),
                 key = name,
                 default = default
             ),
@@ -62,31 +61,31 @@ class SettingsRepositoryImpl @Inject constructor(private val factory: JsonStorag
     }
 
     override fun commitSnapshot() = safeTry(revertFallback = true) {
-        log.info("Writing settings...")
-        onAll {
-            enableWrite()
-            flush()
-            clearSnapshot()
+        log.logResult("Writing settings...") {
+            onAll {
+                enableWrite()
+                flush()
+                clearSnapshot()
+            }
         }
-        log.info("Writing settings... Done.")
     }
 
     override fun revertSnapshot() = safeTry {
-        log.info("Reverting changes to settings...")
-        onAll {
-            restoreSnapshot()
-            enableWrite()
-            clearSnapshot()
+        log.logResult("Reverting changes to settings...") {
+            onAll {
+                restoreSnapshot()
+                enableWrite()
+                clearSnapshot()
+            }
         }
-        log.info("Reverting changes to settings... Done.")
     }
 
     override fun resetDefaults() = safeTry {
-        log.info("Resetting settings to default...")
-        onAll {
-            resetDefault()
+        log.logResult("Resetting settings to default...") {
+            onAll {
+                resetDefault()
+            }
         }
-        log.info("Resetting settings to default... Done.")
     }
 
     private inline fun onAll(f: SettingsStorage<*>.() -> Unit) = storages.forEach(f)
@@ -103,7 +102,7 @@ class SettingsRepositoryImpl @Inject constructor(private val factory: JsonStorag
     }
 
     private class SettingsStorage<T>(
-        val storage: StorageObservableImpl<T>,
+        val storage: StorageMutableStateFlow<T>,
         val resettable: Boolean
     ) {
         private var snapshot: T? = null

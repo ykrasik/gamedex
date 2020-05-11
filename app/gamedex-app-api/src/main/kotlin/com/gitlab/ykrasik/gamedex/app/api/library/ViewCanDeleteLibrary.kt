@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:42
  */
 interface ViewCanDeleteLibrary {
-    val canDeleteLibraries: StatefulChannel<IsValid>
+    val canDeleteLibraries: MutableStateFlow<IsValid>
 
-    val deleteLibraryActions: MultiReadChannel<Library>
+    val deleteLibraryActions: Flow<Library>
 }

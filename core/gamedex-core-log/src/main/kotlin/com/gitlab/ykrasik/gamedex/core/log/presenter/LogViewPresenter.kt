@@ -27,7 +27,7 @@ import javax.inject.Singleton
 class LogViewPresenter @Inject constructor(private val logService: LogService) : Presenter<LogView> {
     override fun present(view: LogView) = object : ViewSession() {
         init {
-            view.entries.bind(logService.entries)
+            view.entries *= logService.entries
         }
     }
 }

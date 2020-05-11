@@ -17,19 +17,21 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.toPredicate
 import com.gitlab.ykrasik.gamedex.util.toString
+import com.jfoenix.controls.JFXButton
 import com.jfoenix.controls.JFXListCell
 import javafx.beans.binding.Bindings
-import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -38,7 +40,9 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.*
 import javafx.scene.text.FontWeight
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -59,27 +63,25 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     override val games = settableSortedFilteredList<Game>()
 
-    override val sort = statefulChannel(Comparator.comparing(Game::name))
-    override val filter = statefulChannel { _: Game -> true }
+    override val sort = mutableStateFlow(Comparator.comparing(Game::name), debugName = "sort")
+    override val filter = mutableStateFlow<(Game) -> Boolean>({ true }, debugName = "filter")
 
     override val availablePlatforms = settableList<AvailablePlatform>()
-    override val currentPlatform = viewMutableStatefulChannel<AvailablePlatform>(AvailablePlatform.All)
+    override val currentPlatform = viewMutableStateFlow<AvailablePlatform>(AvailablePlatform.All, debugName = "currentPlatform")
 
-    override val gameDisplayType = viewMutableStatefulChannel(GameDisplayType.Wall)
+    override val gameDisplayType = viewMutableStateFlow(GameDisplayType.Wall, debugName = "gameDisplayType")
 
-    private val lastSearchProperty = SimpleStringProperty("")
-    override val searchText = viewMutableStatefulChannel("")
-    override val searchActions = channel<Unit>().apply {
-        subscribe(Dispatchers.Main.immediate) {
-            lastSearchProperty.value = searchText.value
-        }
-    }
+    override val searchText = viewMutableStateFlow("", debugName = "searchText")
+    override val canSearch = mutableStateFlow(IsValid.valid, debugName = "canSearch")
+    override val searchActions = broadcastFlow<Unit>()
 
     override val searchSuggestions = settableList<Game>()
     private val isShowSearchSuggestions = Bindings.isNotEmpty(searchSuggestions)
 
-    override val sortBy = viewMutableStatefulChannel(SortBy.Name)
-    override val sortOrder = viewMutableStatefulChannel(SortOrder.Asc)
+    override val sortBy = viewMutableStateFlow(SortBy.Name, debugName = "sortBy")
+    override val sortOrder = viewMutableStateFlow(SortOrder.Asc, debugName = "sortOrder")
+
+    override val viewGameDetailsActions = broadcastFlow<ViewGameParams>()
 
     private val gameWallView = GameWallView(games)
     private val gameListView = GameListView(games)
@@ -99,10 +101,12 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
         }
     }
-    override val currentPlatformFilter = filterView.filter
-    override val currentPlatformFilterIsValid = filterView.filterIsValid
 
-    override val viewGameDetailsActions = channel<ViewGameParams>()
+    override val currentPlatformFilter = mutableStateFlow(Filter.Null, debugName = "currentPlatformFilter")
+        .writeTo(filterView.filter) { it.fromView }
+
+    override val currentPlatformFilterValidatedValue = viewMutableStateFlow(ValidatedValue(Filter.Null, IsValid.valid), debugName = "currentPlatformFilterValidatedValue")
+        .writeFrom(filterView.filterValidatedValue) { it.fromView }
 
     init {
         register()
@@ -122,7 +126,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
         spacer()
 
-        header(games.sizeProperty.stringBinding { "Games: $it" }) { usePrefWidth = true }
+        header(games.sizeProperty.typesafeStringBinding { "Games: $it" }) { usePrefWidth = true }
         gap(5)
     }
 
@@ -132,6 +136,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                 when (type) {
                     GameDisplayType.Wall -> addComponent(gameWallView)
                     GameDisplayType.List -> addComponent(gameListView)
+                    else -> error("Invalid GameDisplayType: $type")
                 }
             }
         }
@@ -143,8 +148,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         closeOnAction = false
     ) {
         addComponent(filterView) {
-            addOrEditFilterActions.forEach { hide() }
-            deleteNamedFilterActions.forEach { hide() }
+            merge(addOrEditFilterActions, deleteNamedFilterActions).onEach { hide() }.launchIn(JavaFxScope)
         }
     }.apply {
         tooltip("Filter")
@@ -171,7 +175,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                     textProperty().bind(sortOrder.property.stringBinding { it!!.displayName })
                 }
                 action {
-                    sortOrder.value = sortOrder.value.toggle()
+                    sortOrder *= sortOrder.v.toggle()
                 }
             }
         }
@@ -191,16 +195,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     }
 
     private fun Pane.searchField() {
-        val searchButton = jfxButton(graphic = Icons.search) {
-            tooltip("Search")
-            action(searchActions)
-            searchText.onChange {
-                if (it.isEmpty()) {
-                    fire()
-                }
-            }
-            disableWhen(searchText.property.isEqualTo(lastSearchProperty))
-        }
+        lateinit var searchButton: JFXButton
         clearableTextField(searchText.property) {
             prefWidth = 400.0
             promptText = "Search"
@@ -303,8 +298,16 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
                 }
             }
         }
-        searchButton.removeFromParent()
-        add(searchButton)
+        searchButton = jfxButton(graphic = Icons.search) {
+            tooltip("Search")
+            action(searchActions)
+            searchText.onChange {
+                if (it.isEmpty()) {
+                    fire()
+                }
+            }
+            enableWhen(canSearch)
+        }
     }
 
     private val SortBy.icon

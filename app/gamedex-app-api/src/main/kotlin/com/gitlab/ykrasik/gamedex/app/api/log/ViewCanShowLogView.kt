@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 08:20
  */
 interface ViewCanShowLogView {
-    val showLogViewActions: MultiReadChannel<Unit>
+    val showLogViewActions: Flow<Unit>
 }

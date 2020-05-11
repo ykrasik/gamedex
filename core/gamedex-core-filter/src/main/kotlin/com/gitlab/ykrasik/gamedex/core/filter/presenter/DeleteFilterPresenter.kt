@@ -43,7 +43,7 @@ class DeleteFilterPresenter @Inject constructor(
         }
 
         private suspend fun onAccept() {
-            taskService.execute(filterService.delete(view.filter.value))
+            taskService.execute(filterService.delete(view.filter.v))
             hideView()
         }
 

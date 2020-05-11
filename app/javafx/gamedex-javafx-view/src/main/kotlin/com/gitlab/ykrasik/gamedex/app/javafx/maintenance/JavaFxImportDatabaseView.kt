@@ -17,13 +17,13 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.*
 import java.io.File
@@ -34,19 +34,19 @@ import java.io.File
  * Time: 08:38
  */
 class JavaFxImportDatabaseView : ConfirmationWindow("Import Database", Icons.import), ImportDatabaseView {
-    override val importDatabaseFile = viewMutableStatefulChannel("")
-    override val importDatabaseFileIsValid = statefulChannel(IsValid.valid)
+    override val importDatabaseFile = viewMutableStateFlow("", debugName = "importDatabaseFile")
+    override val importDatabaseFileIsValid = mutableStateFlow(IsValid.valid, debugName = "importDatabaseFileIsValid")
 
-    override val shouldImportLibrary = viewMutableStatefulChannel(false)
-    override val canImportLibrary = statefulChannel(IsValid.valid)
+    override val shouldImportLibrary = viewMutableStateFlow(false, debugName = "shouldImportLibrary")
+    override val canImportLibrary = mutableStateFlow(IsValid.valid, debugName = "canImportLibrary")
 
-    override val shouldImportProviderAccounts = viewMutableStatefulChannel(false)
-    override val canImportProviderAccounts = statefulChannel(IsValid.valid)
+    override val shouldImportProviderAccounts = viewMutableStateFlow(false, debugName = "shouldImportProviderAccounts")
+    override val canImportProviderAccounts = mutableStateFlow(IsValid.valid, debugName = "canImportProviderAccounts")
 
-    override val shouldImportFilters = viewMutableStatefulChannel(false)
-    override val canImportFilters = statefulChannel(IsValid.valid)
+    override val shouldImportFilters = viewMutableStateFlow(false, debugName = "shouldImportFilters")
+    override val canImportFilters = mutableStateFlow(IsValid.valid, debugName = "canImportFilters")
 
-    override val browseActions = channel<Unit>()
+    override val browseActions = broadcastFlow<Unit>()
 
     init {
         register()

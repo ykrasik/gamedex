@@ -17,12 +17,12 @@
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import difflib.Patch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.function.Predicate
 
 /**
@@ -33,15 +33,15 @@ import java.util.function.Predicate
 interface FolderNameDiffView {
     val diffs: SettableList<FolderNameDiffs>
 
-    val searchText: ViewMutableStatefulChannel<String>
-    val matchingGame: StatefulChannel<Game?>
+    val searchText: ViewMutableStateFlow<String>
+    val matchingGame: MutableStateFlow<Game?>
 
-    val filterMode: ViewMutableStatefulChannel<FolderNameDiffFilterMode>
-    val predicate: StatefulChannel<Predicate<FolderNameDiffs>>
+    val filterMode: ViewMutableStateFlow<FolderNameDiffFilterMode>
+    val predicate: MutableStateFlow<Predicate<FolderNameDiffs>>
 
 //    val excludeGameActions: MultiReceiveChannel<Game>
 
-    val hideViewActions: MultiReadChannel<Unit>
+    val hideViewActions: Flow<Unit>
 }
 
 data class FolderNameDiffs(

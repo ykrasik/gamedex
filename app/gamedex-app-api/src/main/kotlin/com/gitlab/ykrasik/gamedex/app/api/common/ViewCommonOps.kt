@@ -21,9 +21,10 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.util.AsyncValue
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.Ref
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * User: ykrasik
@@ -35,9 +36,9 @@ import com.gitlab.ykrasik.gamedex.util.Ref
 interface ViewCommonOps {
     val applicationVersion: Version
 
-    suspend fun fetchImage(url: String, persist: Boolean): Image?
+    suspend fun fetchImage(url: String, persist: Boolean): AsyncValue<Image>
 
-    fun fetchFileTree(game: Game): Ref<FileTree?>
+    fun fetchFileTree(game: Game): StateFlow<FileTree?>
 
     val providers: List<GameProvider.Metadata>
     val providerLogos: Map<ProviderId, Image>

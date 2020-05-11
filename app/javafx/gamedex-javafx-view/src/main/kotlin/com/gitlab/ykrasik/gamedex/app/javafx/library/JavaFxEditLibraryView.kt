@@ -20,14 +20,14 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.icon
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.*
 import java.io.File
@@ -38,22 +38,22 @@ import java.io.File
  * Time: 10:56
  */
 class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibraryView {
-    override val library = viewMutableStatefulChannel<Library?>(null)
+    override val library = viewMutableStateFlow<Library?>(null, debugName = "library")
 
-    override val name = viewMutableStatefulChannel("")
-    override val nameIsValid = statefulChannel(IsValid.valid)
+    override val name = viewMutableStateFlow("", debugName = "name")
+    override val nameIsValid = mutableStateFlow(IsValid.valid, debugName = "nameIsValid")
 
-    override val path = viewMutableStatefulChannel("")
-    override val pathIsValid = statefulChannel(IsValid.valid)
+    override val path = viewMutableStateFlow("", debugName = "path")
+    override val pathIsValid = mutableStateFlow(IsValid.valid, debugName = "pathIsValid")
 
-    override val type = viewMutableStatefulChannel(LibraryType.Digital)
-    override val canChangeType = statefulChannel(IsValid.valid)
+    override val type = viewMutableStateFlow(LibraryType.Digital, debugName = "type")
+    override val canChangeType = mutableStateFlow(IsValid.valid, debugName = "canChangeType")
 
-    override val platform = viewMutableStatefulChannel<Platform?>(null)
-    override val shouldShowPlatform = statefulChannel(IsValid.valid)
-    override val canChangePlatform = statefulChannel(IsValid.valid)
+    override val platform = viewMutableStateFlow<Platform?>(null, debugName = "platform")
+    override val shouldShowPlatform = mutableStateFlow(IsValid.valid, debugName = "shouldShowPlatform")
+    override val canChangePlatform = mutableStateFlow(IsValid.valid, debugName = "canChangePlatform")
 
-    override val browseActions = channel<Unit>()
+    override val browseActions = broadcastFlow<Unit>()
 
     init {
         titleProperty.bind(library.property.stringBinding { if (it == null) "Add New Library" else "Edit Library" })

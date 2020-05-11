@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanShowLogView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.library.LibraryMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
@@ -31,7 +31,7 @@ import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -73,12 +73,12 @@ class MainView : PresentableView("GameDex"),
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
-    override val canSyncLibraries = statefulChannel(IsValid.valid)
-    override val syncLibrariesActions = channel<Unit>()
+    override val canSyncLibraries = mutableStateFlow(IsValid.valid, debugName = "canSyncLibraries")
+    override val syncLibrariesActions = broadcastFlow<Unit>()
 
-    override val showLogViewActions = channel<Unit>()
-    override val showSettingsActions = channel<Unit>()
-    override val showAboutActions = channel<Unit>()
+    override val showLogViewActions = broadcastFlow<Unit>()
+    override val showSettingsActions = broadcastFlow<Unit>()
+    override val showAboutActions = broadcastFlow<Unit>()
 
     private val maxNavigationHistory = 5
     private val navigationHistory = ArrayDeque<Tab>(maxNavigationHistory)
@@ -118,7 +118,7 @@ class MainView : PresentableView("GameDex"),
 
     private val mainNavigationButton = stackpane {
         addClass(Style.navigationButton)
-        
+
         popOverMenu(graphic = Icons.menu) {
 //            navigationButton(gameScreen) {
 //                shortcut("ctrl+g")
@@ -171,7 +171,7 @@ class MainView : PresentableView("GameDex"),
         whenDockedOnce {
             (params[StartTimeParam] as? TimeMark)?.let { clockMark ->
                 val applicationStartTimeTaken = clockMark.elapsedNow()
-                log.info("Total application start time: ${applicationStartTimeTaken.humanReadable}")
+                log.info("Application load time: ${applicationStartTimeTaken.humanReadable}")
             }
         }
 

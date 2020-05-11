@@ -78,16 +78,16 @@ abstract class GameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
     override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
-                enabled.bind(settingsRepo.enabled)
-                showOnlyWhenActive.bind(settingsRepo.showOnlyWhenActive)
-                position.bind(settingsRepo.position)
-                fillWidth.bind(settingsRepo.fillWidth)
-                fontSize.bind(settingsRepo.fontSize)
-                boldFont.bind(settingsRepo.boldFont)
-                italicFont.bind(settingsRepo.italicFont)
-                textColor.bind(settingsRepo.textColor)
-                backgroundColor.bind(settingsRepo.backgroundColor)
-                opacity.bind(settingsRepo.opacity)
+                enabled *= settingsRepo.enabled withDebugName "enabled"
+                showOnlyWhenActive *= settingsRepo.showOnlyWhenActive withDebugName "showOnlyWhenActive"
+                position *= settingsRepo.position withDebugName "position"
+                fillWidth *= settingsRepo.fillWidth withDebugName "fillWidth"
+                fontSize *= settingsRepo.fontSize withDebugName "fontSize"
+                boldFont *= settingsRepo.boldFont withDebugName "boldFont"
+                italicFont *= settingsRepo.italicFont withDebugName "italicFont"
+                textColor *= settingsRepo.textColor withDebugName "textColor"
+                backgroundColor *= settingsRepo.backgroundColor withDebugName "backgroundColor"
+                opacity *= settingsRepo.opacity withDebugName "opacity"
             }
         }
     }

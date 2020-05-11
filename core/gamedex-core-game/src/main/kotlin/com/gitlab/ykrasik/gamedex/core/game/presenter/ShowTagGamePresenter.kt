@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowTagGamePresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanTagGame> {
     init {
-        eventBus.onHideViewRequested<TagGameView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<TagGameView>().forEach(debugName = "hideTagGameView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanTagGame) = object : ViewSession() {
         init {
-            view.tagGameActions.forEach { game ->
+            view.tagGameActions.forEach(debugName = "showTagGameView") { game ->
                 viewManager.showTagGameView(game)
             }
         }

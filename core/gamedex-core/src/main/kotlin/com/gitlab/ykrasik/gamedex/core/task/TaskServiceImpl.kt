@@ -41,11 +41,9 @@ class TaskServiceImpl @Inject constructor(
         try {
             eventBus.send(TaskEvent.RequestStart(task))
             val event = eventBus.awaitEvent<TaskEvent.Finished<T>> { it.task === task }
-            event.result.get()
+            event.result.getOrThrow()
         } finally {
             viewManager.hide(view)
         }
     }
 }
-
-class ExpectedException(cause: Exception) : RuntimeException(cause)

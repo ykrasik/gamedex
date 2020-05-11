@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanExportDatabase
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowExportDatabasePresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanExportDatabase> {
     init {
-        eventBus.onHideViewRequested<ExportDatabaseView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<ExportDatabaseView>().forEach(debugName = "hideExportDatabaseView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanExportDatabase) = object : ViewSession() {
         init {
-            view.exportDatabaseActions.forEach {
+            view.exportDatabaseActions.forEach(debugName = "showExportDatabaseView") {
                 viewManager.showExportDatabaseView()
             }
         }

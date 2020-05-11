@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.ViewCanAddOrEditFilter
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowAddOrEditFilterPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanAddOrEditFilter> {
     init {
-        eventBus.onHideViewRequested<EditFilterView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<EditFilterView>().forEach(debugName = "hideEditFilterView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanAddOrEditFilter) = object : ViewSession() {
         init {
-            view.addOrEditFilterActions.forEach {
+            view.addOrEditFilterActions.forEach(debugName = "showEditFilterView") {
                 viewManager.showEditFilterView(it)
             }
         }

@@ -19,26 +19,39 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.app.api.settings.MutableOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
+import kotlinx.coroutines.flow.combine
 
 /**
  * User: ykrasik
  * Date: 10/06/2018
  * Time: 14:29
  */
-class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings, OverlayDisplaySettings {
-    override val enabled = viewMutableStatefulChannel(false)
-    override val showOnlyWhenActive = viewMutableStatefulChannel(false)
-    override val position = viewMutableStatefulChannel(DisplayPosition.Center)
-    override val fillWidth = viewMutableStatefulChannel(false)
-    override val fontSize = viewMutableStatefulChannel(1)
-    override val boldFont = viewMutableStatefulChannel(false)
-    override val italicFont = viewMutableStatefulChannel(false)
-    override val textColor = viewMutableStatefulChannel("#000000")
-    override val backgroundColor = viewMutableStatefulChannel("#000000")
-    override val opacity = viewMutableStatefulChannel(0.0)
+class JavaFxOverlayDisplaySettings : OverlayDisplaySettings {
+    override val enabled = mutableStateFlow(false, debugName = "enabled")
+    override val showOnlyWhenActive = mutableStateFlow(false, debugName = "showOnlyWhenActive")
+    override val position = mutableStateFlow(DisplayPosition.Center, debugName = "position")
+    override val fillWidth = mutableStateFlow(false, debugName = "fillWidth")
+    override val fontSize = mutableStateFlow(1, debugName = "fontSize")
+    override val boldFont = mutableStateFlow(false, debugName = "boldFont")
+    override val italicFont = mutableStateFlow(false, debugName = "italicFont")
+    override val textColor = mutableStateFlow("#000000", debugName = "textColor")
+    override val backgroundColor = mutableStateFlow("#000000", debugName = "backgroundColor")
+    override val opacity = mutableStateFlow(0.0, debugName = "opacity")
 
-    inline fun onChange(crossinline f: () -> Unit) = listOf(
-        enabled, showOnlyWhenActive, position, fillWidth, fontSize, boldFont, italicFont, textColor, backgroundColor, opacity
-    ).forEach { it.onChange { f() } }
+    fun changes() = combine(enabled, showOnlyWhenActive, position, fillWidth, fontSize, boldFont, italicFont, textColor, backgroundColor, opacity) { }
+}
+
+class JavaFxMutableOverlayDisplaySettings(debugName: String) : MutableOverlayDisplaySettings {
+    override val enabled = viewMutableStateFlow(false, debugName = "$debugName.enabled")
+    override val showOnlyWhenActive = viewMutableStateFlow(false, debugName = "$debugName.showOnlyWhenActive")
+    override val position = viewMutableStateFlow(DisplayPosition.Center, debugName = "$debugName.position")
+    override val fillWidth = viewMutableStateFlow(false, debugName = "$debugName.fillWidth")
+    override val fontSize = viewMutableStateFlow(1, debugName = "$debugName.fontSize")
+    override val boldFont = viewMutableStateFlow(false, debugName = "$debugName.boldFont")
+    override val italicFont = viewMutableStateFlow(false, debugName = "$debugName.italicFont")
+    override val textColor = viewMutableStateFlow("#000000", debugName = "$debugName.textColor")
+    override val backgroundColor = viewMutableStateFlow("#000000", debugName = "$debugName.backgroundColor")
+    override val opacity = viewMutableStateFlow(0.0, debugName = "$debugName.opacity")
 }

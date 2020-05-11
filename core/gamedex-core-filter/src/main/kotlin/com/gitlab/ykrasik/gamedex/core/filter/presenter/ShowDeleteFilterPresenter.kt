@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.ViewCanDeleteFilter
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowDeleteFilterPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanDeleteFilter> {
     init {
-        eventBus.onHideViewRequested<DeleteFilterView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<DeleteFilterView>().forEach(debugName = "hideDeleteFilterView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanDeleteFilter) = object : ViewSession() {
         init {
-            view.deleteNamedFilterActions.forEach { filter ->
+            view.deleteNamedFilterActions.forEach(debugName = "showDeleteFilterView") { filter ->
                 viewManager.showDeleteFilterView(filter)
             }
         }

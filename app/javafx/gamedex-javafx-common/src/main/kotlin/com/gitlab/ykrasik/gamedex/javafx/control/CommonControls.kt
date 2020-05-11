@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.asPercent
 import com.jfoenix.controls.*
 import javafx.beans.property.BooleanProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
@@ -73,31 +72,31 @@ inline fun View.skipFirstTime(op: () -> Unit) {
 
 fun ObservableValue<out Number>.asPercent() = stringBinding { (it ?: 0).toDouble().asPercent() }
 
-fun Region.enableWhen(isValid: JavaFxObjectStatefulChannel<IsValid>, wrapInErrorTooltip: Boolean = true): Unit =
+fun Region.enableWhen(isValid: JavaFxObjectMutableStateFlow<IsValid>, wrapInErrorTooltip: Boolean = true): Unit =
     enableWhen(isValid.property, wrapInErrorTooltip)
 
 fun Region.enableWhen(isValid: ObservableValue<IsValid>, wrapInErrorTooltip: Boolean = true) {
-    enableWhen { isValid.binding { it.isSuccess } }
+    enableWhen { isValid.typesafeBooleanBinding { it.isSuccess } }
     if (wrapInErrorTooltip) {
         useMaxWidth = true
         hgrow = Priority.ALWAYS
         wrapInHbox {
             // Using a binding here was buggy!!!! The binding wasn't always getting called.
-            errorTooltip(isValid.map { it.errorText() })
+            errorTooltip(isValid.map { it.errorText() ?: "" })
         }
     }
 }
 
-fun Field.enableWhen(isValid: JavaFxObjectStatefulChannel<IsValid>): Unit = enableWhen(isValid.property)
+fun Field.enableWhen(isValid: JavaFxObjectMutableStateFlow<IsValid>): Unit = enableWhen(isValid.property)
 fun Field.enableWhen(isValid: ObservableValue<IsValid>) {
-    val enabled = isValid.booleanBinding { it?.isSuccess ?: false }
+    val enabled = isValid.typesafeBooleanBinding { it.isSuccess }
     label.enableWhen { enabled }
     inputContainer.enableWhen { enabled }
-    labelContainer.errorTooltip(isValid.stringBinding { it?.errorOrNull?.message })
+    labelContainer.errorTooltip(isValid.typesafeStringBinding { it.exceptionOrNull()?.message ?: "" })
 }
 
-fun Node.showWhen(isValid: JavaFxObjectStatefulChannel<IsValid>): Unit =
-    showWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
+fun Node.showWhen(isValid: JavaFxObjectMutableStateFlow<IsValid>): Unit =
+    showWhen { isValid.property.typesafeBooleanBinding { it.isSuccess } }
 
 fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
     val shouldShow = expr()
@@ -105,11 +104,11 @@ fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
     visibleWhen { shouldShow }
 }
 
-fun <T : Node> T.visibleWhen(isValid: JavaFxObjectStatefulChannel<IsValid>): T =
-    visibleWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
+fun <T : Node> T.visibleWhen(isValid: JavaFxObjectMutableStateFlow<IsValid>): T =
+    visibleWhen { isValid.property.typesafeBooleanBinding { it.isSuccess } }
 
-fun <T : Node> T.enableWhen(isValid: JavaFxObjectStatefulChannel<IsValid>): T =
-    enableWhen { isValid.property.booleanBinding { it?.isSuccess ?: false } }
+fun <T : Node> T.enableWhen(isValid: JavaFxObjectMutableStateFlow<IsValid>): T =
+    enableWhen { isValid.property.typesafeBooleanBinding { it.isSuccess } }
 
 inline fun Node.wrapInHbox(crossinline op: HBox.() -> Unit = {}) {
     val wrapper = HBox().apply {
@@ -126,10 +125,10 @@ inline fun Node.wrapInHbox(crossinline op: HBox.() -> Unit = {}) {
     }
 }
 
-fun JavaFxStatefulChannel<IsValid, SimpleObjectProperty<IsValid>>.errorText(): ObservableValue<String?> =
-    property.stringBinding { it?.errorText() }
+fun JavaFxObjectMutableStateFlow<IsValid>.errorText(): ObservableValue<String> =
+    property.typesafeStringBinding { it.errorText() ?: "" }
 
-fun IsValid.errorText(): String? = errorOrNull?.message
+fun IsValid.errorText(): String? = exceptionOrNull()?.message
 
 inline fun Parent.gap(size: Number = 20, crossinline f: Region.() -> Unit = {}) = region {
     minWidth = size.toDouble()

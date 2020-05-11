@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxObjectStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxObjectMutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -25,7 +25,6 @@ import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.control.Control
 import javafx.scene.control.Tooltip
-import tornadofx.stringBinding
 import tornadofx.tooltip
 
 /**
@@ -55,14 +54,14 @@ inline fun Node.tooltip(text: ObservableValue<String?>, graphic: Node? = null, c
     op()
 }
 
-inline fun Node.nullableTooltip(text: ObservableValue<String?>, graphic: Node? = null, crossinline op: Tooltip.() -> Unit = {}): Tooltip {
+inline fun Node.nullableTooltip(text: ObservableValue<String>, graphic: Node? = null, crossinline op: Tooltip.() -> Unit = {}): Tooltip {
     val tooltip = Tooltip().apply {
         textProperty().bind(text)
         this.graphic = graphic
         op()
     }
     text.perform {
-        if (it == null) {
+        if (it.isEmpty()) {
             uninstallTooltip(tooltip)
             tooltip.hide()
         } else {
@@ -72,8 +71,8 @@ inline fun Node.nullableTooltip(text: ObservableValue<String?>, graphic: Node? =
     return tooltip
 }
 
-inline fun Node.errorTooltip(text: ObservableValue<String?>, crossinline op: Tooltip.() -> Unit = {}) =
+inline fun Node.errorTooltip(text: ObservableValue<String>, crossinline op: Tooltip.() -> Unit = {}) =
     nullableTooltip(text, Icons.validationError.size(20), op)
 
-fun Node.errorTooltip(state: JavaFxObjectStatefulChannel<IsValid>) =
-    errorTooltip(state.property.stringBinding { it?.errorText() })
+fun Node.errorTooltip(state: JavaFxObjectMutableStateFlow<IsValid>) =
+    errorTooltip(state.errorText())

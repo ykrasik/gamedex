@@ -20,10 +20,10 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
 /**
@@ -32,21 +32,21 @@ import java.io.File
  * Time: 07:05
  */
 interface EditLibraryView : ConfirmationView {
-    val library: ViewMutableStatefulChannel<Library?>
+    val library: ViewMutableStateFlow<Library?>
 
-    val name: ViewMutableStatefulChannel<String>
-    val nameIsValid: StatefulChannel<IsValid>
+    val name: ViewMutableStateFlow<String>
+    val nameIsValid: MutableStateFlow<IsValid>
 
-    val path: ViewMutableStatefulChannel<String>
-    val pathIsValid: StatefulChannel<IsValid>
+    val path: ViewMutableStateFlow<String>
+    val pathIsValid: MutableStateFlow<IsValid>
 
-    val type: ViewMutableStatefulChannel<LibraryType>
-    val canChangeType: StatefulChannel<IsValid>
+    val type: ViewMutableStateFlow<LibraryType>
+    val canChangeType: MutableStateFlow<IsValid>
 
-    val platform: ViewMutableStatefulChannel<Platform?>
-    val shouldShowPlatform: StatefulChannel<IsValid>
-    val canChangePlatform: StatefulChannel<IsValid>
+    val platform: ViewMutableStateFlow<Platform?>
+    val shouldShowPlatform: MutableStateFlow<IsValid>
+    val canChangePlatform: MutableStateFlow<IsValid>
 
-    val browseActions: MultiReadChannel<Unit>
+    val browseActions: Flow<Unit>
     fun browse(initialDirectory: File?): File?
 }

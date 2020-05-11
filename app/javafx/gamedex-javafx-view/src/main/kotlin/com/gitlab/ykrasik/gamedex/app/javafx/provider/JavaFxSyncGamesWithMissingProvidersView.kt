@@ -16,7 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
+import com.gitlab.ykrasik.gamedex.app.api.util.fromView
+import com.gitlab.ykrasik.gamedex.app.api.util.writeFrom
+import com.gitlab.ykrasik.gamedex.app.api.util.writeTo
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultVbox
@@ -25,7 +30,8 @@ import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import tornadofx.borderpane
 import tornadofx.paddingAll
 import tornadofx.tooltip
@@ -38,10 +44,14 @@ import tornadofx.tooltip
 class JavaFxSyncGamesWithMissingProvidersView : ConfirmationWindow("Sync Games with Missing Providers", Icons.sync), SyncGamesWithMissingProvidersView {
     private val filterView = JavaFxFilterView()
 
-    override val bulkSyncGamesFilter = filterView.filter
-    override val bulkSyncGamesFilterIsValid = filterView.filterIsValid
+    override val bulkSyncGamesFilter = viewMutableStateFlow(Filter.Null, debugName = "bulkSyncGamesFilter")
+        .writeTo(filterView.filter) { it.asFromView() }
+        .writeFrom(filterView.filter) { it.asFromView() }
 
-    override val syncOnlyMissingProviders = viewMutableStatefulChannel(false)
+    override val bulkSyncGamesFilterValidatedValue = viewMutableStateFlow(ValidatedValue(Filter.Null, IsValid.valid), debugName = "bulkSyncGamesFilterValidatedValue")
+        .writeFrom(filterView.filterValidatedValue) { it.fromView }
+
+    override val syncOnlyMissingProviders = viewMutableStateFlow(false, debugName = "syncOnlyMissingProviders")
 
     init {
         register()

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -25,5 +25,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 10:13
  */
 interface ViewCanTagGame {
-    val tagGameActions: MultiReadChannel<Game>
+    val tagGameActions: Flow<Game>
 }

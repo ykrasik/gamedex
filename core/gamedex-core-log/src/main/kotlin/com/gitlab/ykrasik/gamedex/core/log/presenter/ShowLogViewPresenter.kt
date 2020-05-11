@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanShowLogView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowLogViewPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanShowLogView> {
     init {
-        eventBus.onHideViewRequested<LogView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<LogView>().forEach(debugName = "hideLogView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanShowLogView) = object : ViewSession() {
         init {
-            view.showLogViewActions.forEach {
+            view.showLogViewActions.forEach(debugName = "showLogView") {
                 viewManager.showLogView()
             }
         }

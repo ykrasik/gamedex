@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.FolderName
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.Ref
+import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
 /**
@@ -30,7 +30,7 @@ import java.io.File
  * Time: 14:04
  */
 interface FileSystemService {
-    fun fileTree(gameId: GameId, path: File): Ref<FileTree?>
+    fun fileTree(gameId: GameId, path: File): StateFlow<FileTree?>
     fun deleteCachedFileTree(gameId: GameId)
     fun getFileTreeSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
 

@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,18 +40,14 @@ class DeleteLibraryPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<DeleteLibraryView> {
     override fun present(view: DeleteLibraryView) = object : ViewSession() {
-        private val library by view.library
-
         init {
-            view.library.forEach { library ->
-                view.gamesToBeDeleted.setAll(gameService.games.filter { it.library.id == library.id })
-            }
+            view.gamesToBeDeleted *= view.library.onlyChangesFromView().map { library -> gameService.games.filter { it.library.id == library.id } }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {
-            taskService.execute(libraryService.delete(library))
+            taskService.execute(libraryService.delete(view.library.v))
 
             hideView()
         }

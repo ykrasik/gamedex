@@ -17,11 +17,11 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.util.Extractor
-import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.and
 import javafx.beans.InvalidationListener
 import javafx.beans.binding.Bindings
+import javafx.beans.binding.BooleanBinding
 import javafx.beans.binding.ObjectBinding
+import javafx.beans.binding.StringBinding
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
@@ -63,6 +63,12 @@ inline fun <T> ObservableValue<T>.onInvalidated(crossinline op: (T) -> Unit): In
 
 inline fun <T, R> ObservableValue<T>.binding(crossinline op: (T) -> R): ObjectBinding<R> =
     Bindings.createObjectBinding(Callable { op(value) }, this)
+
+inline fun <T> ObservableValue<T>.typesafeBooleanBinding(crossinline op: (T) -> Boolean): BooleanBinding =
+    Bindings.createBooleanBinding(Callable { op(value) }, this)
+
+inline fun <T> ObservableValue<T>.typesafeStringBinding(crossinline op: (T) -> String): StringBinding =
+    Bindings.createStringBinding(Callable { op(value) }, this)
 
 fun <T> Property<String>.bindBidirectional(property: Property<T>, toString: (T) -> String, fromString: (String) -> T) {
     property.value = fromString(value)
@@ -128,6 +134,3 @@ inline fun <T, R, U> ObservableValue<T>.mapWith(other: ObservableValue<R>, cross
     other.typeSafeOnChange { property.value = f(this.value, it) }
     return property
 }
-
-fun ObservableValue<out Try<Any>>.and(other: ObservableValue<out Try<Any>>): ObjectProperty<Try<Any>> =
-    mapWith(other) { first, second -> first and second }

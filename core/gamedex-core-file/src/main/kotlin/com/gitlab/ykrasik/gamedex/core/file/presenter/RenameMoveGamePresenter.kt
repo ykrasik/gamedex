@@ -27,9 +27,12 @@ import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Paths
@@ -52,74 +55,71 @@ class RenameMoveGamePresenter @Inject constructor(
     private val log = logger()
 
     override fun present(view: RenameMoveGameView) = object : ViewSession() {
-        private val game by view.game
-        private var newPath by view.newPath
-        private var newPathLibrary by view.newPathLibrary
+        val game by view.game
+        var targetPath by view.targetPath
+        var targetPathLibrary by view.targetPathLibrary
+        val loading = MutableStateFlow(false)
 
         init {
-            view.newPath.forEach { onPathChanged() }
+            view.targetPath *= combine(view.game.allValues(), view.initialName.allValues()) { game, initialName ->
+                (initialName?.let { game.path.parentFile.resolve(it) } ?: game.path).path
+            } withDebugName "initialTargetPath"
 
-            view.browseActions.forEach { onBrowse() }
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            view.canAccept *= combine(loading, view.targetPathIsValid) { loading, targetPathIsValid ->
+                if (loading) IsValid.invalid("Loading...") else targetPathIsValid
+            } withDebugName "canAccept"
+
+            view.targetPath.allValues().forEach(debugName = "onTargetPathChanged") { validateAndDetectLibrary(it) }
+
+            view.browseActions.forEach(debugName = "onBrowse") { onBrowse() }
+            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
+            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
         }
 
-        override suspend fun onShown() {
-            newPath = (view.initialName.value?.let { game.path.parentFile.resolve(it) } ?: game.path).path
-            onPathChanged()
-        }
-
-        private suspend fun onBrowse() {
+        private fun onBrowse() {
             val initialDirectory = when {
-                newPath.file.isDirectory -> newPath.file
-                newPathLibrary.id != Library.Null.id -> newPathLibrary.path
+                targetPath.file.isDirectory -> targetPath.file
+                targetPathLibrary.id != Library.Null.id -> targetPathLibrary.path
                 else -> game.library.path
             }.takeIf { it.isDirectory } ?: File(".")
             val selectedDirectory = view.browse(initialDirectory)
             if (selectedDirectory != null) {
-                newPath = selectedDirectory.path
-                onPathChanged()
+                targetPath = selectedDirectory.path
             }
         }
 
-        private suspend fun onPathChanged() {
-            validateAndDetectLibrary()
-        }
+        private suspend fun validateAndDetectLibrary(path: String) = withContext(Dispatchers.IO) {
+            loading *= true
+            view.targetPathIsValid *= Try {
+                check(!path.isBlank()) { "Path is required!" }
+                try {
+                    Paths.get(path)
+                } catch (e: Exception) {
+                    error("Invalid path: ${e.message}")
+                }
 
-        private suspend fun validateAndDetectLibrary() {
-            view.canAccept *= IsValid.invalid("Loading...")
-            view.newPathIsValid *= IsValid {
-                withContext(Dispatchers.IO) {
-                    check(!newPath.isBlank()) { "Path is required!" }
-                    try {
-                        Paths.get(newPath)
-                    } catch (e: Exception) {
-                        error("Invalid path: ${e.message}")
-                    }
+                // Detect library
+                view.targetPathLibrary.value = checkNotNull(libraryService.libraries
+                    .asSequence()
+                    .mapNotNull { library -> matchPath(library, path) }
+                    .maxBy { it.numElements }
+                    ?.library
+                ) { "Path doesn't belong to any library!" }
 
-                    // Detect library
-                    newPathLibrary = checkNotNull(libraryService.libraries
-                        .asSequence()
-                        .mapNotNull { library -> matchPath(library) }
-                        .maxBy { it.numElements }
-                        ?.library
-                    ) { "Path doesn't belong to any library!" }
+                check(game.path.exists()) { "Source path doesn't exist!" }
 
-                    check(game.path.exists()) { "Source path doesn't exist!" }
-
-                    check(newPath != game.path.path) { "Path already exists!" }
-                    if (newPath.file.exists()) {
-                        // Windows is case insensitive and will report that the file already exists, even if there is a case difference.
-                        check(newPath.file.canonicalFile.path.equals(game.path.canonicalFile.path, ignoreCase = true)) { "Path already exists!" }
-                    }
+                check(path != game.path.path) { "Path already exists!" }
+                if (path.file.exists()) {
+                    // Windows is case insensitive and will report that the file already exists, even if there is a case difference.
+                    check(path.file.canonicalFile.path.equals(game.path.canonicalFile.path, ignoreCase = true)) { "Path already exists!" }
                 }
             }
-            view.canAccept *= view.newPathIsValid.value
+            loading *= false
         }
 
-        private fun matchPath(library: Library): LibraryMatch? {
+        private fun matchPath(library: Library, path: String): LibraryMatch? {
             val libraryElements = library.path.canonicalPath.split(File.separatorChar)
-            val pathElements = newPath.file.canonicalPath.split(File.separatorChar)
+            val pathElements = path.file.canonicalPath.split(File.separatorChar)
             libraryElements.forEachIndexed { i, element ->
                 val pathElement = pathElements.getOrNull(i) ?: return null
                 if (pathElement != element) return null
@@ -130,19 +130,21 @@ class RenameMoveGamePresenter @Inject constructor(
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            log.info("Renaming/Moving: ${game.path} -> $newPath")
+            log.info("Renaming/Moving: ${game.path} -> $targetPath")
 
-            view.canAccept *= IsValid.invalid("Loading...")
+            loading *= true
             try {
                 taskService.execute(task("Moving ${game.path}...") {
-                    fileSystemService.move(from = game.path, to = newPath.file)
-                    executeSubTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = newPathLibrary.id, path = newPath) }))
+                    fileSystemService.move(from = game.path, to = targetPath.file)
+                    executeSubTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = targetPathLibrary.id, path = targetPath) }))
                 })
                 hideView()
             } catch (e: Exception) {
                 log.error("Error", e)
                 view.onError(e.message!!, "Error!", e)
-                validateAndDetectLibrary()
+                validateAndDetectLibrary(targetPath)
+            } finally {
+                loading *= false
             }
         }
 

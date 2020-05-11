@@ -20,10 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
@@ -31,11 +29,11 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 12:29
  */
 interface CleanupDatabaseView : ConfirmationView {
-    val staleData: ViewMutableStatefulChannel<StaleData>
+    val staleData: ViewMutableStateFlow<StaleData>
 
-    val librariesAndGames: StaleDataCategory
-    val images: StaleDataCategory
-    val fileCache: StaleDataCategory
+    val isDeleteLibrariesAndGames: ViewMutableStateFlow<Boolean>
+    val isDeleteImages: ViewMutableStateFlow<Boolean>
+    val isDeleteFileCache: ViewMutableStateFlow<Boolean>
 }
 
 data class StaleData(
@@ -44,13 +42,12 @@ data class StaleData(
     val images: Map<String, FileSize>,
     val fileTrees: Map<GameId, FileSize>
 ) {
-    val isEmpty = libraries.isEmpty() && games.isEmpty() && images.isEmpty() && fileTrees.isEmpty()
+    val isEmpty = this == Null
 
     val staleImagesSizeTaken get() = images.values.fold(FileSize(0)) { acc, next -> acc + next }
     val staleFileTreesSizeTaken get() = fileTrees.values.fold(FileSize(0)) { acc, next -> acc + next }
-}
 
-interface StaleDataCategory {
-    val canDelete: StatefulChannel<IsValid>
-    val shouldDelete: ViewMutableStatefulChannel<Boolean>
+    companion object {
+        val Null = StaleData(emptyList(), emptyList(), emptyMap(), emptyMap())
+    }
 }

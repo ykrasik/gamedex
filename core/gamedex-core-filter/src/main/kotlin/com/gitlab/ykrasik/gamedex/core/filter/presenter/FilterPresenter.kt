@@ -16,23 +16,19 @@
 
 package com.gitlab.ykrasik.gamedex.core.filter.presenter
 
-import com.gitlab.ykrasik.gamedex.Genre
-import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.TagId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
 import com.gitlab.ykrasik.gamedex.app.api.filter.find
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.util.mapping
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.core.util.mapObservable
 import com.gitlab.ykrasik.gamedex.util.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -50,11 +46,11 @@ class FilterPresenter @Inject constructor(
     override fun present(view: FilterView) = object : ViewSession() {
         private val excludedRules = listOf(Filter.Platform::class)
 
-        private val libraries = commonData.platformLibraries
-        private val genres = commonData.platformGenres
-        private val tags = commonData.platformTags
-        private val filterTags = commonData.platformFilterTags
-        private val providers = commonData.platformProviders
+        private val libraries = commonData.currentPlatformLibraries
+        private val genres = commonData.currentPlatformGenres
+        private val tags = commonData.currentPlatformTags
+        private val filterTags = commonData.currentPlatformFilterTags
+        private val providers = commonData.currentPlatformProviders
 
         private val metaFilters = listOf(
             FilterBuilder.param<Filter.Not, Filter>(Filter::Not) { Filter.True() },
@@ -88,73 +84,54 @@ class FilterPresenter @Inject constructor(
         private val filters = filterBuilders.keys.toList()
 
         init {
-            view.filter.mapTo(view.filterIsValid) { filter ->
-                Try {
+            view.filterValidatedValue *= view.filter.allValues().map { filter ->
+                ValidatedValue(filter, IsValid {
                     check(filter.isEmpty || filter.find(Filter.True::class) == null) { "Select a filter!" }
-                }
-            }
+                })
+            } withDebugName "filterValidatedValue"
 
-            libraries.itemsChannel.combineLatest(providers.itemsChannel, genres.itemsChannel, tags.itemsChannel, filterTags.itemsChannel) { libraries, providers, genres, tags, filterTags ->
-                setAvailableFilters(libraries, providers, genres, tags, filterTags)
-            }
-
-            view.availableProviderIds.bind(providers.mapping { it.id })
-            view.availableGenres.bind(genres)
-            view.availableTags.bind(tags)
-            view.availableFilterTags.bind(filterTags)
-
-            view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(listOf(it, Filter.True()))) }
-            view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(listOf(it, Filter.True()))) }
-            view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
-            view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
-            view.updateFilterActions.subscribe().debounce(200).forEach { (filter, with) -> replaceFilter(filter, with) }
-            view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
-            view.deleteFilterActions.forEach { deleteFilter(it) }
-        }
-
-        private suspend fun setAvailableFilters(
-            libraries: List<Library>,
-            providers: List<GameProvider.Metadata>,
-            genres: List<Genre>,
-            tags: List<TagId>,
-            filterTags: List<TagId>
-        ) {
-            val allFilters = this.filters
-            withContext(Dispatchers.Main) {
-                if (libraries != view.availableLibraries) {
-                    view.availableLibraries.setAll(libraries)
-                }
-
-                val filters: List<KClass<out Filter.Rule>> = when {
-                    commonData.games.size <= 1 -> emptyList()
+            view.availableLibraries *= libraries
+            view.availableProviderIds *= providers.mapObservable { it.id }
+            view.availableGenres *= genres
+            view.availableTags *= tags
+            view.availableFilterTags *= filterTags
+            view.availableFilters *= combine(libraries.items, providers.items, genres.items, tags.items, filterTags.items) { libraries, providers, genres, tags, filterTags ->
+                when {
+                    commonData.games.size <= 1 -> emptyList<KClass<out Filter.Rule>>()
                     else -> {
-                        val filters = allFilters.toMutableList()
-                        if (libraries.isEmpty()) {
+                        val filters = this.filters.toMutableList()
+                        if (libraries.size <= 1) {
                             filters -= Filter.Library::class
                         }
-                        if (genres.isEmpty()) {
+                        if (genres.size <= 1) {
                             filters -= Filter.Genre::class
                         }
-                        if (tags.isEmpty()) {
+                        if (tags.size <= 1) {
                             filters -= Filter.Tag::class
                         }
-                        if (filterTags.isEmpty()) {
+                        if (filterTags.size <= 1) {
                             filters -= Filter.FilterTag::class
                         }
-                        if (providers.isEmpty()) {
+                        if (providers.size <= 1) {
                             filters -= Filter.Provider::class
                         }
                         filters
                     }
                 }
-
-                if (filters != view.availableFilters) {
-                    view.availableFilters.setAll(filters)
-                }
             }
+
+            view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(listOf(it, Filter.True()))) }
+            view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(listOf(it, Filter.True()))) }
+            view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
+            view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
+            view.updateFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
+            view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
+            view.deleteFilterActions.forEach { deleteFilter(it) }
         }
 
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
+            if (filter::class == with) return
+
             val filterBuilder = when {
                 filter is Filter.Compound && with.superclasses.first() == Filter.Compound::class ->
                     @Suppress("UNCHECKED_CAST")
@@ -172,9 +149,13 @@ class FilterPresenter @Inject constructor(
             replaceFilter(filter, newFilter)
         }
 
-        private fun replaceFilter(filter: Filter, with: Filter) = view.filter.modify { replace(filter, with) }
+        private fun replaceFilter(filter: Filter, with: Filter) {
+            view.filter *= view.filter.v.replace(filter, with)
+        }
 
-        private fun deleteFilter(filter: Filter) = view.filter.modify { delete(filter) ?: Filter.Null }
+        private fun deleteFilter(filter: Filter) {
+            view.filter *= view.filter.v.delete(filter) ?: Filter.Null
+        }
 
         private fun Filter.replace(target: Filter, with: Filter): Filter {
             fun doReplace(current: Filter): Filter = when {
@@ -237,7 +218,7 @@ class FilterPresenter @Inject constructor(
             }
             else -> this
         }.let { newFilter ->
-            if (this.isEqual(newFilter)) {
+            if (this == newFilter) {
                 this
             } else {
                 newFilter

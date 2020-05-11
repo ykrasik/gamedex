@@ -23,8 +23,9 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.setAll
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,76 +45,58 @@ class TagGamePresenter @Inject constructor(
         private val game by view.game
 
         init {
-            view.toggleAll.forEach { onToggleAllChanged(it) }
-            view.checkTagChanges.forEach { (tag, checked) -> onCheckTagChanged(tag, checked) }
-            view.newTagName.forEach { onNewTagNameChanged(it) }
+            view.tags *= commonData.tags
 
-            view.addNewTagActions.forEach { onAddNewTag() }
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            view.tags.setAll(commonData.tags)
-            view.checkedTags.setAll(game.tags)
-            view.toggleAll *= view.tags.toSet() == game.tags.toSet()
-            view.newTagName *= ""
-            validateNewTag("")
-            setCanAccept()
-        }
-
-        private fun onToggleAllChanged(toggleAll: Boolean) {
-            if (toggleAll) {
-                view.checkedTags.addAll(view.tags)
-            } else {
-                view.checkedTags.clear()
-            }
-            setCanAccept()
-        }
-
-        private fun onCheckTagChanged(tag: String, checked: Boolean) {
-            if (checked) {
-                view.checkedTags += tag
-                if (view.checkedTags == view.tags.toSet()) {
-                    view.toggleAll *= true
+            isShowing.forEach {
+                if (it) {
+                    view.checkedTags.setAll(game.tags)
+                    view.toggleAll *= view.tags.toSet() == game.tags.toSet()
+                    view.newTagName *= ""
                 }
-            } else {
-                view.checkedTags -= tag
-                view.toggleAll *= false
             }
-            setCanAccept()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= Try {
-                check(view.checkedTags != game.tags.toSet()) { "Nothing changed!" }
+            view.newTagNameIsValid *= view.newTagName.allValues().map { name ->
+                IsValid {
+                    if (name.isEmpty()) error("Empty Name!")
+                    if (view.tags.contains(name)) error("Tag already exists!")
+                }
+            } withDebugName "newTagNameIsValid"
+            view.toggleAll.onlyChangesFromView().forEach {
+                if (it) {
+                    view.checkedTags.addAll(view.tags)
+                } else {
+                    view.checkedTags.clear()
+                }
             }
-        }
-
-        private fun onNewTagNameChanged(name: String) {
-            validateNewTag(name)
-        }
-
-        private fun validateNewTag(name: String) {
-            view.newTagNameIsValid *= Try {
-                if (name.isEmpty()) error("Empty Name!")
-                if (view.tags.contains(name)) error("Tag already exists!")
+            view.checkTagChanges.forEach(debugName = "onCheckTagChanged") { (tag, checked) ->
+                if (checked) {
+                    view.checkedTags += tag
+                    if (view.checkedTags == view.tags.toSet()) {
+                        view.toggleAll *= true
+                    }
+                } else {
+                    view.checkedTags -= tag
+                    view.toggleAll *= false
+                }
             }
-        }
+            view.addNewTagActions.forEach(debugName = "onAddNewTag") {
+                view.tags += view.newTagName.v
+                view.checkedTags += view.newTagName.v
+                view.newTagName *= ""
+            }
 
-        private fun onAddNewTag() {
-            view.tags += view.newTagName.value
-            view.checkedTags += view.newTagName.value
-            view.newTagName *= ""
-            validateNewTag("")
-            setCanAccept()
+            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
+            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
-            val newUserData = game.userData.copy(tags = view.checkedTags.toList().sorted())
-            val newRawGame = game.rawGame.copy(userData = newUserData)
-            taskService.execute(gameService.replace(game, newRawGame))
+
+            val checkedTags = view.checkedTags.toList().sorted()
+            if (checkedTags != game.tags.sorted()) {
+                val newUserData = game.userData.copy(tags = checkedTags)
+                val newRawGame = game.rawGame.copy(userData = newUserData)
+                taskService.execute(gameService.replace(game, newRawGame))
+            }
 
             hideView()
         }

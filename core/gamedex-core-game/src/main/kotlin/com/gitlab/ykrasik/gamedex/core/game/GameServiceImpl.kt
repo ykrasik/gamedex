@@ -18,20 +18,23 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterEvent
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.library.LibraryEvent
-import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.settings.ProviderOrderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
-import com.gitlab.ykrasik.gamedex.core.util.*
+import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import com.gitlab.ykrasik.gamedex.core.util.mapObservable
+import com.gitlab.ykrasik.gamedex.core.util.toMap
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.merge
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -50,21 +53,26 @@ class GameServiceImpl @Inject constructor(
     private val log = logger()
 
     override val games = log.time("Processing games...") {
-        repo.games.mapping { it.toGame() } as ListObservableImpl<Game>
+        repo.games.mapObservable { it.toGame() }
     }
 
     private val gamesById = games.toMap(Game::id)
-    private val gamesByPlatform = games.toMultiMap(Game::platform)
 
     init {
         games.broadcastTo(eventBus, Game::id, GameEvent::Added, GameEvent::Deleted, GameEvent::Updated)
 
-        eventBus.on<LibraryEvent.Deleted>(Dispatchers.IO) { repo.invalidate() }
-        eventBus.on<LibraryEvent.Updated> { rebuildGames() }
-
-        eventBus.on<FilterEvent> { rebuildGames() }
-
-        settingsRepo.onChange { rebuildGames() }
+        flowScope(Dispatchers.IO) {
+            eventBus.flowOf<LibraryEvent.Deleted>().forEach(debugName = "onLibraryDeleted") { repo.invalidate() }
+        }
+        flowScope(Dispatchers.Default) {
+            merge(
+                eventBus.flowOf<LibraryEvent.Updated>(),
+                eventBus.flowOf<FilterEvent>(),
+                settingsRepo.changes()
+            ).forEach(debugName = "onRebuildGames") {
+                rebuildGames()
+            }
+        }
     }
 
     override fun add(request: AddGameRequest): Task<Game> {
@@ -118,8 +126,6 @@ class GameServiceImpl @Inject constructor(
     override fun get(id: GameId): Game = gamesById.getOrElse(id) {
         throw NoSuchElementException("Game doesn't exist: id=$id")
     }
-
-    override fun get(platform: Platform): List<Game> = gamesByPlatform.getOrDefault(platform, emptyList())
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 }

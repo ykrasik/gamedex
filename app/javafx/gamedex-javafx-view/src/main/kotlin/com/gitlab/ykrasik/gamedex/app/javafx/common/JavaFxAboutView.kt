@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.common
 
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
@@ -39,9 +39,9 @@ import tornadofx.*
 class JavaFxAboutView : PresentableView("About"), AboutView, ViewCanBrowseUrl {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val acceptActions = channel<Unit>()
+    override val acceptActions = broadcastFlow<Unit>()
 
-    override val browseUrlActions = channel<String>()
+    override val browseUrlActions = broadcastFlow<String>()
 
     override val root = borderpane {
         top = prettyToolbar {

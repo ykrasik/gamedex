@@ -23,7 +23,8 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,21 +44,20 @@ class DeleteGamePresenter @Inject constructor(
         private val game by view.game
 
         init {
-            view.fromFileSystem.mapTo(view.canAccept) { fromFileSystem ->
-                Try { if (fromFileSystem) check(game.path.exists()) { "Path doesn't exist!" } }
-            }
+            view.fromFileSystem *= isShowing.map { false } withDebugName "fromFileSystem"
+            view.canAccept *= view.fromFileSystem.allValues().map { fromFileSystem ->
+                IsValid {
+                    if (fromFileSystem) check(game.path.exists()) { "Path doesn't exist!" }
+                }
+            } withDebugName "canAccept"
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            view.fromFileSystem *= false
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            if (view.fromFileSystem.value) {
+            if (view.fromFileSystem.v) {
                 if (game.path.exists()) {
                     fileSystemService.delete(game.path)
                 } else {

@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.jfoenix.controls.JFXListCell
 import javafx.scene.layout.Region
 import tornadofx.*
@@ -43,11 +43,11 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
     ViewCanChangeLogTail {
     override val entries = settableSortedFilteredList<LogEntry>()
 
-    override var level = viewMutableStatefulChannel(LogLevel.Info)
-    override var logTail = viewMutableStatefulChannel(false)
+    override val level = viewMutableStateFlow(LogLevel.Info, debugName = "level")
+    override val logTail = viewMutableStateFlow(false, debugName = "logTail")
 
     init {
-        entries.predicate = { entry -> entry.level.canLog(level.value) }
+        entries.predicate = { entry -> level.v.canLog(entry) }
         level.onChange { entries.refilter() }
 //        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
 //            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
@@ -103,7 +103,9 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
                         } else {
                             item.message
                         }
-                        text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] $message"
+                        val timestamp = item.timestamp.toString("HH:mm:ss.SSS")
+                        val loggerName = if (item.loggerName.isNotBlank()) "[${item.loggerName}]" else ""
+                        text = "$timestamp [${item.threadName}] $loggerName $message"
                         graphic = item.level.icon.size(20)
 
                         when (item.level) {
@@ -118,7 +120,7 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
             }
 
             entries.onChange {
-                if (logTail.value) {
+                if (logTail.v) {
                     scrollTo(items.size)
                 }
             }

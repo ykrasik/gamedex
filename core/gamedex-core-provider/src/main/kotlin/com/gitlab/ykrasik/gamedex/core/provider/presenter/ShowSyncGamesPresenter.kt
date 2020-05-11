@@ -18,9 +18,11 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.awaitEvent
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,9 +36,9 @@ class ShowSyncGamesPresenter @Inject constructor(
     private val eventBus: EventBus,
     private val viewManager: ViewManager
 ) {
-    private val session = object : ViewSession() {
-        init {
-            eventBus.forEach<SyncGamesEvent.Started> {
+    init {
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.flowOf<SyncGamesEvent.Started>().forEach(debugName = "showSyncGamesView") {
                 val view = viewManager.showSyncGamesView()
                 eventBus.awaitEvent<SyncGamesEvent.Finished>()
                 viewManager.hide(view)

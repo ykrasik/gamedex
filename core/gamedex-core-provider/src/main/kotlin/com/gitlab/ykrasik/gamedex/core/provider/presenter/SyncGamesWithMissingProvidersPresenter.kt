@@ -23,7 +23,8 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.BulkSyncGamesFilterRepository
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,32 +42,23 @@ class SyncGamesWithMissingProvidersPresenter @Inject constructor(
 ) : Presenter<SyncGamesWithMissingProvidersView> {
     override fun present(view: SyncGamesWithMissingProvidersView) = object : ViewSession() {
         init {
-//            view.bulkSyncGamesFilter.forEach { setCanAccept() }
-            view.bulkSyncGamesFilterIsValid.forEach { setCanAccept() }
-            view.canAccept *= IsValid.valid
+            // Set view filter from repo each time view is shown or hidden
+            view.bulkSyncGamesFilter *= repo.bulkSyncGamesFilter.combine(isShowing) { filter, _ -> filter } withDebugName "bulkSyncGamesFilter"
+            view.canAccept *= view.bulkSyncGamesFilterValidatedValue.map { it.value.isValid } withDebugName "canAccept"
             view.syncOnlyMissingProviders *= true
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
-        override suspend fun onShown() {
-            view.bulkSyncGamesFilter *= repo.bulkSyncGamesFilter.value
-            setCanAccept()
-        }
-
-        private fun setCanAccept() {
-            view.canAccept *= view.bulkSyncGamesFilterIsValid.value
-        }
-
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val filter = view.bulkSyncGamesFilter.value
+            val filter = view.bulkSyncGamesFilterValidatedValue.v.value
             repo.update(filter)
 
             hideView()
 
-            val requests = taskService.execute(syncGameService.detectGamesWithMissingProviders(filter, view.syncOnlyMissingProviders.value))
+            val requests = taskService.execute(syncGameService.detectGamesWithMissingProviders(filter, view.syncOnlyMissingProviders.v))
             syncGameService.syncGames(requests, isAllowSmartChooseResults = false)
         }
 

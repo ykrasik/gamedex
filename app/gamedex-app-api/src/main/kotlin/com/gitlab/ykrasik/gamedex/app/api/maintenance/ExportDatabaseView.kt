@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
 /**
@@ -29,14 +29,14 @@ import java.io.File
  * Time: 12:26
  */
 interface ExportDatabaseView : ConfirmationView {
-    val exportDatabaseDirectory: ViewMutableStatefulChannel<String>
-    val exportDatabaseFolderIsValid: StatefulChannel<IsValid>
+    val exportDatabaseDirectory: ViewMutableStateFlow<String>
+    val exportDatabaseFolderIsValid: MutableStateFlow<IsValid>
 
-    val shouldExportLibrary: ViewMutableStatefulChannel<Boolean>
-    val shouldExportProviderAccounts: ViewMutableStatefulChannel<Boolean>
-    val shouldExportFilters: ViewMutableStatefulChannel<Boolean>
+    val shouldExportLibrary: ViewMutableStateFlow<Boolean>
+    val shouldExportProviderAccounts: ViewMutableStateFlow<Boolean>
+    val shouldExportFilters: ViewMutableStateFlow<Boolean>
 
-    val browseActions: MultiReadChannel<Unit>
+    val browseActions: Flow<Unit>
 
     fun selectExportDatabaseDirectory(initialDirectory: File?): File?
 

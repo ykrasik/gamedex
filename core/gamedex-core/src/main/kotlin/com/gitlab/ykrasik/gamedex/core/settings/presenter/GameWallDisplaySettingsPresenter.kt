@@ -54,12 +54,12 @@ class GameWallDisplaySettingsPresenter @Inject constructor(
     override fun present(view: ViewWithGameWallDisplaySettings) = object : ViewSession() {
         init {
             with(view.gameWallDisplaySettings) {
-                imageDisplayType.bind(settingsRepo.imageDisplayType)
-                showBorder.bind(settingsRepo.showBorder)
-                width.bind(settingsRepo.width)
-                height.bind(settingsRepo.height)
-                horizontalSpacing.bind(settingsRepo.horizontalSpacing)
-                verticalSpacing.bind(settingsRepo.verticalSpacing)
+                imageDisplayType *= settingsRepo.imageDisplayType withDebugName "imageDisplayType"
+                showBorder *= settingsRepo.showBorder withDebugName "showBorder"
+                width *= settingsRepo.width withDebugName "width"
+                height *= settingsRepo.height withDebugName "height"
+                horizontalSpacing *= settingsRepo.horizontalSpacing withDebugName "horizontalSpacing"
+                verticalSpacing *= settingsRepo.verticalSpacing withDebugName "verticalSpacing"
             }
         }
     }

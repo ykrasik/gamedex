@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 
 /**
  * User: ykrasik
@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
  * Time: 23:49
  */
 interface ViewWithGameDisplayType {
-    val gameDisplayType: ViewMutableStatefulChannel<GameDisplayType>
+    val gameDisplayType: ViewMutableStateFlow<GameDisplayType>
 }
 
 enum class GameDisplayType(val displayName: String) {

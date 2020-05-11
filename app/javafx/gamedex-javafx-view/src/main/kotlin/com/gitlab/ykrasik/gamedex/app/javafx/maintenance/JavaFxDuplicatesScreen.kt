@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.GameDuplicates
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameDetailsSummaryBuilder
@@ -50,14 +50,14 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     private val commonOps: JavaFxCommonOps by di()
 
     override val duplicates = settableList<GameDuplicates>()
-//    override val excludeGameActions = channel<Game>()
+//    override val excludeGameActions = broadcastFlow<Game>()
 
-    override val viewGameDetailsActions = channel<ViewGameParams>()
+    override val viewGameDetailsActions = broadcastFlow<ViewGameParams>()
 
-    override val searchText = viewMutableStatefulChannel("")
-    override val matchingGame = statefulChannel<Game?>(null)
+    override val searchText = viewMutableStateFlow("", debugName = "searchText")
+    override val matchingGame = mutableStateFlow<Game?>(null, debugName = "matchingGame")
 
-    override val hideViewActions = channel<Unit>()
+    override val hideViewActions = broadcastFlow<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
     private val gamesView = prettyListView(duplicates) {
@@ -142,7 +142,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
 //            })
 //        }
         spacer()
-        header(duplicates.sizeProperty.stringBinding { "Duplicates: $it" })
+        header(duplicates.sizeProperty.typesafeStringBinding { "Duplicates: $it" })
         gap()
     }
 

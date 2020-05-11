@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 18:07
  */
 interface ViewCanAddOrEditFilter {
-    val addOrEditFilterActions: MultiReadChannel<NamedFilter>
+    val addOrEditFilterActions: Flow<NamedFilter>
 }

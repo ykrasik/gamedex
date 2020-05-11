@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -27,15 +27,15 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:25
  */
 interface ProviderOrderSettingsView {
-    val canChangeProviderOrder: StatefulChannel<IsValid>
+    val canChangeProviderOrder: MutableStateFlow<IsValid>
 
-    val search: ViewMutableStatefulChannel<Order>
-    val name: ViewMutableStatefulChannel<Order>
-    val description: ViewMutableStatefulChannel<Order>
-    val releaseDate: ViewMutableStatefulChannel<Order>
-    val thumbnail: ViewMutableStatefulChannel<Order>
-    val poster: ViewMutableStatefulChannel<Order>
-    val screenshot: ViewMutableStatefulChannel<Order>
+    val search: ViewMutableStateFlow<Order>
+    val name: ViewMutableStateFlow<Order>
+    val description: ViewMutableStateFlow<Order>
+    val releaseDate: ViewMutableStateFlow<Order>
+    val thumbnail: ViewMutableStateFlow<Order>
+    val poster: ViewMutableStateFlow<Order>
+    val screenshot: ViewMutableStateFlow<Order>
 }
 
 typealias Order = List<ProviderId>

@@ -19,12 +19,12 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 import com.gitlab.ykrasik.gamedex.Genre
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.reflect.KClass
 
 /**
@@ -33,8 +33,8 @@ import kotlin.reflect.KClass
  * Time: 10:20
  */
 interface FilterView {
-    val filter: ViewMutableStatefulChannel<Filter>
-    val filterIsValid: StatefulChannel<IsValid>
+    val filter: ViewMutableStateFlow<Filter>
+    val filterValidatedValue: MutableStateFlow<ValidatedValue<Filter>>
 
     val availableFilters: SettableList<KClass<out Filter.Rule>>
 
@@ -44,11 +44,11 @@ interface FilterView {
     val availableFilterTags: SettableList<TagId>
     val availableProviderIds: SettableList<ProviderId>
 
-    val wrapInAndActions: MultiReadChannel<Filter>
-    val wrapInOrActions: MultiReadChannel<Filter>
-    val wrapInNotActions: MultiReadChannel<Filter>
-    val unwrapNotActions: MultiReadChannel<Filter.Not>
-    val updateFilterActions: MultiReadChannel<Pair<Filter.Rule, Filter.Rule>>
-    val replaceFilterActions: MultiReadChannel<Pair<Filter, KClass<out Filter>>>
-    val deleteFilterActions: MultiReadChannel<Filter>
+    val wrapInAndActions: Flow<Filter>
+    val wrapInOrActions: Flow<Filter>
+    val wrapInNotActions: Flow<Filter>
+    val unwrapNotActions: Flow<Filter.Not>
+    val updateFilterActions: Flow<Pair<Filter.Rule, Filter.Rule>>
+    val replaceFilterActions: Flow<Pair<Filter, KClass<out Filter>>>
+    val deleteFilterActions: Flow<Filter>
 }

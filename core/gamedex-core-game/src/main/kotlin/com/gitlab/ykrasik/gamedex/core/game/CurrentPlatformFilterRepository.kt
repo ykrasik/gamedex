@@ -18,13 +18,16 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulMultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
-import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,15 +42,17 @@ class CurrentPlatformFilterRepository @Inject constructor(
     private val filterService: FilterService,
     eventBus: EventBus
 ) {
-    private val _currentPlatformFilter = conflatedChannel(Filter.Null)
-    val currentPlatformFilter: StatefulMultiReadChannel<Filter> = _currentPlatformFilter.distinctUntilChanged(Filter::isEqual)
+    private val _currentPlatformFilter = MutableStateFlow(Filter.Null)
+    val currentPlatformFilter: StateFlow<Filter> = _currentPlatformFilter
 
     init {
-        eventBus.on<DatabaseInvalidatedEvent> {
-            // Drop any filters we may currently have - they may be incorrect for the new database (point to non-existing libraries).
-            // FIXME: Don't do this, instead allow filters to be invalid instead of throwing exceptions.
-            AvailablePlatform.values.forEach { platform ->
-                filterService.putSystemFilter(filterName(platform), Filter.Null)
+        flowScope(Dispatchers.IO) {
+            eventBus.flowOf<DatabaseInvalidatedEvent>().forEach(debugName = "onDatabaseInvalidated") {
+                // Drop any filters we may currently have - they may be incorrect for the new database (point to non-existing libraries).
+                // FIXME: Don't do this, instead allow filters to be invalid instead of throwing exceptions.
+                AvailablePlatform.values.forEach { platform ->
+                    filterService.putSystemFilter(filterName(platform), Filter.Null)
+                }
             }
         }
 
@@ -56,14 +61,16 @@ class CurrentPlatformFilterRepository @Inject constructor(
             filterService.getOrPutSystemFilter(filterName(platform)) { Filter.Null }
         }
 
-        settingsRepo.platform.mapTo(_currentPlatformFilter) { platform ->
-            filterService.getSystemFilter(filterName(platform))!!
+        flowScope(Dispatchers.Default) {
+            _currentPlatformFilter *= settingsRepo.platform.map { platform ->
+                filterService.getSystemFilter(filterName(platform))!!
+            } withDebugName "onCurrentPlatformChanged"
         }
     }
 
     fun update(filter: Filter) {
         filterService.putSystemFilter(filterName(settingsRepo.platform.value), filter)
-        _currentPlatformFilter *= filter
+        _currentPlatformFilter.value = filter
     }
 
     private fun filterName(platform: AvailablePlatform) = "${CurrentPlatformFilterRepository::class.qualifiedName!!}_$platform"

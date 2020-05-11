@@ -20,6 +20,8 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.Extractor
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.drop
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,13 +60,13 @@ class ProviderOrderSettingsRepository @Inject constructor(
         )
     }
 
-    fun onChange(f: suspend () -> Unit) = storage.onChange { f() }
+    fun changes(): Flow<Data> = storage.drop(1)
 
-    val search = storage.biChannel(Data::search) { copy(search = it) }
-    val name = storage.biChannel(Data::name) { copy(name = it) }
-    val description = storage.biChannel(Data::description) { copy(description = it) }
-    val releaseDate = storage.biChannel(Data::releaseDate) { copy(releaseDate = it) }
-    val thumbnail = storage.biChannel(Data::thumbnail) { copy(thumbnail = it) }
-    val poster = storage.biChannel(Data::poster) { copy(poster = it) }
-    val screenshot = storage.biChannel(Data::screenshot) { copy(screenshot = it) }
+    val search = storage.biMap(Data::search) { copy(search = it) }
+    val name = storage.biMap(Data::name) { copy(name = it) }
+    val description = storage.biMap(Data::description) { copy(description = it) }
+    val releaseDate = storage.biMap(Data::releaseDate) { copy(releaseDate = it) }
+    val thumbnail = storage.biMap(Data::thumbnail) { copy(thumbnail = it) }
+    val poster = storage.biMap(Data::poster) { copy(poster = it) }
+    val screenshot = storage.biMap(Data::screenshot) { copy(screenshot = it) }
 }

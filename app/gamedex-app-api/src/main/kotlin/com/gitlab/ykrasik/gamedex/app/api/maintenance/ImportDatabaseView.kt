@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
 /**
@@ -29,19 +29,19 @@ import java.io.File
  * Time: 12:05
  */
 interface ImportDatabaseView : ConfirmationView {
-    val importDatabaseFile: ViewMutableStatefulChannel<String>
-    val importDatabaseFileIsValid: StatefulChannel<IsValid>
+    val importDatabaseFile: ViewMutableStateFlow<String>
+    val importDatabaseFileIsValid: MutableStateFlow<IsValid>
 
-    val shouldImportLibrary: ViewMutableStatefulChannel<Boolean>
-    val canImportLibrary: StatefulChannel<IsValid>
+    val shouldImportLibrary: ViewMutableStateFlow<Boolean>
+    val canImportLibrary: MutableStateFlow<IsValid>
 
-    val shouldImportProviderAccounts: ViewMutableStatefulChannel<Boolean>
-    val canImportProviderAccounts: StatefulChannel<IsValid>
+    val shouldImportProviderAccounts: ViewMutableStateFlow<Boolean>
+    val canImportProviderAccounts: MutableStateFlow<IsValid>
 
-    val shouldImportFilters: ViewMutableStatefulChannel<Boolean>
-    val canImportFilters: StatefulChannel<IsValid>
+    val shouldImportFilters: ViewMutableStateFlow<Boolean>
+    val canImportFilters: MutableStateFlow<IsValid>
 
-    val browseActions: MultiReadChannel<Unit>
+    val browseActions: Flow<Unit>
 
     fun selectImportDatabaseFile(initialDirectory: File?): File?
 }

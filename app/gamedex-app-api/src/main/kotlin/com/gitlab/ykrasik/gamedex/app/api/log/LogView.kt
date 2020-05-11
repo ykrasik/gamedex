@@ -28,7 +28,14 @@ interface LogView {
     val entries: SettableList<LogEntry>
 }
 
-data class LogEntry(val level: LogLevel, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
+data class LogEntry(
+    val level: LogLevel,
+    val timestamp: DateTime,
+    val loggerName: String,
+    val message: String,
+    val threadName: String,
+    val throwable: Throwable?
+)
 
 enum class LogLevel(val displayName: String) {
     Trace("Trace"),
@@ -38,4 +45,5 @@ enum class LogLevel(val displayName: String) {
     Error("Error");
 
     fun canLog(level: LogLevel) = this.ordinal >= level.ordinal
+    fun canLog(entry: LogEntry) = entry.level.canLog(this)
 }

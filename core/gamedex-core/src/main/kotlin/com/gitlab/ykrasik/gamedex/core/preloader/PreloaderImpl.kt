@@ -19,21 +19,20 @@ package com.gitlab.ykrasik.gamedex.core.preloader
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.log.LogService
 import com.gitlab.ykrasik.gamedex.core.log.LogServiceImpl
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.storage.StorageObservableImpl
+import com.gitlab.ykrasik.gamedex.core.storage.StorageMutableStateFlow
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.util.FlowScope
 import com.gitlab.ykrasik.gamedex.core.version.ApplicationVersion
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.time.measureTimedValue
 
 /**
@@ -41,39 +40,31 @@ import kotlin.time.measureTimedValue
  * Date: 13/04/2018
  * Time: 09:06
  */
-class PreloaderImpl : Preloader {
+class PreloaderImpl : FlowScope(Dispatchers.IO, baseDebugName = "PreloaderImpl"), Preloader {
     private val log = logger()
 
     override suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector = withContext(Dispatchers.IO) {
         val (injector, timeTaken) = measureTimedValue {
             val logService = LogServiceImpl()
 
-            view.version.value = ApplicationVersion
-            view.progress.value = 0.0
-            view.message.value = "Loading..."
+            view.version *= ApplicationVersion
+            view.progress *= 0.0
+            view.message *= "Loading..."
 
             // While loading, display all log messages in the task
-            val subscription = logService.entries.itemsChannel.subscribe {
+            val job = logService.entries.items.forEach(debugName = "log") {
                 it.lastOrNull()?.let {
-                    if (it.level.canLog(LogLevel.Info)) {
+                    if (LogLevel.Info.canLog(it)) {
                         view.message.value = it.message
                     }
                 }
             }
 
-            val preloaderData = StorageObservableImpl(
-                channel = conflatedChannel(),
-                storage = StringIdJsonStorageFactory(basePath = "data"),
+            val preloaderData = StorageMutableStateFlow(
+                storage = StringIdJsonStorageFactory(basePath = "cache"),
                 key = "preloader"
             ) {
-                PreloaderData(numClassesToInit = 133)
-            }
-
-            val progressChannel = Channel<Double>(Channel.CONFLATED).apply { offer(0.0) }
-            launch {
-                progressChannel.consumeEach {
-                    view.progress.value = it
-                }
+                PreloaderData(numClassesToInit = 147)
             }
 
             var numClassesToInit = 0
@@ -83,9 +74,7 @@ class PreloaderImpl : Preloader {
                         override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
                             numClassesToInit++
                             log.trace("[$numClassesToInit] Initializing ${provision!!.binding.key.typeLiteral}...")
-                            if (!progressChannel.isClosedForSend) {
-                                progressChannel.offer(numClassesToInit.toDouble() / preloaderData.value.numClassesToInit)
-                            }
+                            view.progress *= numClassesToInit.toDouble() / preloaderData.value.numClassesToInit
                         }
                     })
 
@@ -94,22 +83,16 @@ class PreloaderImpl : Preloader {
             }
             val injector = Guice.createInjector(Stage.PRODUCTION, CoreModule, loadProgressModule, *extraModules)
 
-            progressChannel.close()
-            subscription.cancel()
+            job.cancel()
 
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
             preloaderData *= PreloaderData(numClassesToInit)
-            GlobalScope.launch {
-                // Delay with enough time for the consumers of this channel to consume the message and write it to a file, then close.
-                delay(1000)
-                preloaderData.close()
-            }
 
             view.message.value = "Done loading."
 
             injector
         }
-        log.info("Application load time: ${timeTaken.humanReadable}")
+        log.info("Application bootstrap time: ${timeTaken.humanReadable}")
 
         injector
     }

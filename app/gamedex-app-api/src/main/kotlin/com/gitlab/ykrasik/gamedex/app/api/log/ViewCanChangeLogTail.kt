@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
  * Time: 12:57
  */
 interface ViewCanChangeLogTail {
-    val logTail: ViewMutableStatefulChannel<Boolean>
+    val logTail: ViewMutableStateFlow<Boolean>
 }

@@ -21,14 +21,18 @@ import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxScope
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyGridView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.collections.ObservableList
 import javafx.scene.input.MouseButton
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.controlsfx.control.GridCell
 import java.io.File
 
@@ -45,14 +49,14 @@ class GameWallView(private val games: ObservableList<Game>) : PresentableView("G
     ViewWithVersionOverlayDisplaySettings,
     ViewCanOpenFile {
 
-    override val viewGameDetailsActions = channel<ViewGameParams>()
+    override val viewGameDetailsActions = broadcastFlow<ViewGameParams>()
 
     override val gameWallDisplaySettings = JavaFxGameWallDisplaySettings()
     override val nameOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val metaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val versionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
-    override val openFileActions = channel<File>()
+    override val openFileActions = broadcastFlow<File>()
 
     private val commonOps: JavaFxCommonOps by di()
 
@@ -68,14 +72,9 @@ class GameWallView(private val games: ObservableList<Game>) : PresentableView("G
         // the grid constantly constructs new instances of it, so if they retain a listener to the settings - we leak.
         // A workaround is to re-set the cellFactory whenever any settings change - this causes all cells to be rebuilt
         // without them having any listeners.
-        fun resetCellFactory() = setCellFactory { GameWallCell() }
-
-        gameWallDisplaySettings.onChange { resetCellFactory() }
-        listOf(nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings).forEach {
-            it.onChange { resetCellFactory() }
-        }
-
-        resetCellFactory()
+        combine(gameWallDisplaySettings.changes(), nameOverlayDisplaySettings.changes(), metaTagOverlayDisplaySettings.changes(), versionOverlayDisplaySettings.changes()) { _ -> Unit }
+            .onEach { setCellFactory { GameWallCell() } }
+            .launchIn(JavaFxScope)
     }
 
     init {

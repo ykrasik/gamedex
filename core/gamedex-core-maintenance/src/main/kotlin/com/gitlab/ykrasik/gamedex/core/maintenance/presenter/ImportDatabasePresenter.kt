@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -25,10 +24,10 @@ import com.gitlab.ykrasik.gamedex.core.maintenance.ImportDbContent
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.and
-import com.gitlab.ykrasik.gamedex.util.existsOrNull
-import com.gitlab.ykrasik.gamedex.util.file
+import com.gitlab.ykrasik.gamedex.util.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,52 +44,53 @@ class ImportDatabasePresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<ImportDatabaseView> {
     override fun present(view: ImportDatabaseView) = object : ViewSession() {
-        private val importDbContent = conflatedChannel<ImportDbContent?>(null)
+        val importDbContent = MutableStateFlow(Try.error<ImportDbContent>(IllegalArgumentException("Empty")))
 
         init {
-            view.importDatabaseFile.mapTo(view.importDatabaseFileIsValid) { importDatabaseFile ->
-                Try {
+            isShowing.forEach(debugName = "onShow") {
+                if (it) {
+                    view.importDatabaseFile *= ""
+                    onBrowse()
+                }
+            }
+
+            // TODO: importDbContent *= view.importDatabaseFile.allValues().map {... throws compiler exceptions
+            view.importDatabaseFile.allValues().forEach(debugName = "onImportDatabaseFileChanged") { importDatabaseFile ->
+                importDbContent *= Try {
                     check(importDatabaseFile.isNotBlank()) { "Enter a path to a file!" }
                     check(importDatabaseFile.file.isFile) { "File doesn't exist or is a directory!" }
+                    taskService.execute(maintenanceService.readImportDbFile(importDatabaseFile.file))
                 }
             }
-            view.importDatabaseFileIsValid.forEach { importDatabaseFileIsValid ->
-                importDbContent *= if (importDatabaseFileIsValid.isSuccess) {
-                    taskService.execute(maintenanceService.readImportDbFile(view.importDatabaseFile.value.file))
-                } else {
-                    null
-                }
-                view.canImportLibrary *= importDatabaseFileIsValid and Try { check(importDbContent.value!!.db != null) { "No library to import!" } }
-                view.shouldImportLibrary *= view.canImportLibrary.value.isSuccess
 
-                view.canImportProviderAccounts *= importDatabaseFileIsValid and Try { check(importDbContent.value!!.accounts != null) { "No accounts to import!" } }
-                view.shouldImportProviderAccounts *= view.canImportProviderAccounts.value.isSuccess
+            view.importDatabaseFileIsValid *= importDbContent.map { it.map { Unit } } withDebugName "importDatabaseFileIsValid"
 
-                view.canImportFilters *= importDatabaseFileIsValid and Try { check(importDbContent.value!!.filters != null) { "No filters to import!" } }
-                view.shouldImportFilters *= view.canImportFilters.value.isSuccess
-            }
+            view.canImportLibrary *= importDbContent.map { it.map { check(it.db != null) { "No library to import!" } } } withDebugName "canImportLibrary"
+            view.shouldImportLibrary *= view.canImportLibrary.map { it.isSuccess } withDebugName "shouldImportLibrary"
+            view.shouldImportLibrary.onlyChangesFromView().forEach(debugName = "onShouldImportLibraryChanged") { view.canImportLibrary.assert() }
 
-            view.importDatabaseFileIsValid.combineLatest(
-                view.shouldImportLibrary,
-                view.shouldImportProviderAccounts,
-                view.shouldImportFilters
+            view.canImportProviderAccounts *= importDbContent.map { it.map { check(it.accounts != null) { "No accounts to import!" } } } withDebugName "canImportProviderAccounts"
+            view.shouldImportProviderAccounts *= view.canImportProviderAccounts.map { it.isSuccess } withDebugName "shouldImportProviderAccounts"
+            view.shouldImportProviderAccounts.onlyChangesFromView().forEach(debugName = "onShouldImportProviderAccounts") { view.canImportProviderAccounts.assert() }
+
+            view.canImportFilters *= importDbContent.map { it.map { check(it.filters != null) { "No filters to import!" } } } withDebugName "canImportFilters"
+            view.shouldImportFilters *= view.canImportFilters.map { it.isSuccess } withDebugName "shouldImportFilters"
+            view.shouldImportFilters.onlyChangesFromView().forEach(debugName = "onShouldImportFilters") { view.canImportFilters.assert() }
+
+            view.canAccept *= combine(
+                view.importDatabaseFileIsValid,
+                view.shouldImportLibrary.allValues(),
+                view.shouldImportProviderAccounts.allValues(),
+                view.shouldImportFilters.allValues()
             ) { importDatabaseFileIsValid, shouldImportLibrary, shouldImportProviderAccounts, shouldImportFilters ->
-                if (shouldImportLibrary) view.canImportLibrary.assert()
-                if (shouldImportProviderAccounts) view.canImportProviderAccounts.assert()
-                if (shouldImportFilters) view.canImportFilters.assert()
-                view.canAccept *= importDatabaseFileIsValid and Try {
+                importDatabaseFileIsValid and IsValid {
                     check(shouldImportLibrary || shouldImportProviderAccounts || shouldImportFilters) { "Must import something!" }
                 }
-            }
+            } withDebugName "canAccept"
 
-            view.browseActions.forEach { onBrowse() }
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            view.importDatabaseFile *= ""
-            onBrowse()
+            view.browseActions.forEach(debugName = "onBrowse") { onBrowse() }
+            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
+            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
         }
 
         private fun onBrowse() {
@@ -104,12 +104,12 @@ class ImportDatabasePresenter @Inject constructor(
             view.canAccept.assert()
             hideView()
 
-            val file = view.importDatabaseFile.value.file
-            val content = importDbContent.value!!.run {
+            val file = view.importDatabaseFile.v.file
+            val content = importDbContent.value.getOrThrow().run {
                 copy(
-                    db = db?.takeIf { view.shouldImportLibrary.value },
-                    accounts = accounts?.takeIf { view.shouldImportProviderAccounts.value },
-                    filters = filters?.takeIf { view.shouldImportFilters.value }
+                    db = db?.takeIf { view.shouldImportLibrary.v },
+                    accounts = accounts?.takeIf { view.shouldImportProviderAccounts.v },
+                    filters = filters?.takeIf { view.shouldImportFilters.v }
                 )
             }
             taskService.execute(maintenanceService.importDatabase(content))

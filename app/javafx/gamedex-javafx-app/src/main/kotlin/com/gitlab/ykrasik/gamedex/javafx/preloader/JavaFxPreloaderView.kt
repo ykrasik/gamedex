@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.Main
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import javafx.geometry.Pos
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.*
@@ -40,9 +40,9 @@ import java.util.*
 class JavaFxPreloaderView : View("GameDex"), PreloaderView {
     private var logo = resources.image("gamedex.jpg")
 
-    override val version = statefulChannel(Version.Null)
-    override val progress = statefulChannel(0.0)
-    override val message = statefulChannel("")
+    override val version = mutableStateFlow(Version.Null, debugName = "version")
+    override val progress = mutableStateFlow(0.0, debugName = "progress")
+    override val message = mutableStateFlow("", debugName = "message")
 
     override val root = stackpane {
         alignment = Pos.CENTER
@@ -97,7 +97,7 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
 
         Thread.setDefaultUncaughtExceptionHandler(EnhancedDefaultErrorHandler())
 
-        GlobalScope.launch(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.IO + CoroutineName("Preloader")) {
             val preloader = ServiceLoader.load(Preloader::class.java).iterator().next()
             val injector = preloader.load(this@JavaFxPreloaderView, JavaFxModule)
             FX.dicontainer = GuiceDiContainer(injector)

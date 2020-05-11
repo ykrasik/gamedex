@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:26
  */
 interface ViewCanAddOrEditLibrary {
-    val canAddOrEditLibraries: StatefulChannel<IsValid>
+    val canAddOrEditLibraries: MutableStateFlow<IsValid>
 
-    val addOrEditLibraryActions: MultiReadChannel<Library?>
+    val addOrEditLibraryActions: Flow<Library?>
 }

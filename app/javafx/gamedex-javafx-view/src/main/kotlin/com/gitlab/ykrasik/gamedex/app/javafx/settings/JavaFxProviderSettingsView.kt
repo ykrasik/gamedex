@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -47,18 +47,18 @@ class JavaFxProviderSettingsView(override val provider: GameProvider.Metadata, i
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val canChangeProviderSettings = statefulChannel(IsValid.valid)
+    override val canChangeProviderSettings = mutableStateFlow(IsValid.valid, debugName = "canChangeProviderSettings")
 
-    override val status = statefulChannel(ProviderAccountStatus.Empty)
-    override val enabled = viewMutableStatefulChannel(false)
+    override val status = mutableStateFlow(ProviderAccountStatus.Empty, debugName = "status")
+    override val enabled = viewMutableStateFlow(false, debugName = "enabled")
 
-    override val currentAccount = viewMutableStatefulChannel(emptyMap<String, String>())
+    override val currentAccount = viewMutableStateFlow(emptyMap<String, String>(), debugName = "currentAccount")
 
-    override val browseUrlActions = channel<String>()
+    override val browseUrlActions = broadcastFlow<String>()
 
-    override val canVerifyAccount = statefulChannel(IsValid.valid)
+    override val canVerifyAccount = mutableStateFlow(IsValid.valid, debugName = "canVerifyAccount")
 
-    override val verifyAccountActions = channel<Unit>()
+    override val verifyAccountActions = broadcastFlow<Unit>()
 
     private val accountLabelContainer = stackpane {
         addClass(Style.flashContainer)
@@ -158,7 +158,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider.Metadata, i
             val currentValue = currentAccount.property.map { it[field] ?: "" }
             jfxTextField(currentValue, promptText = "Enter $field...") {
                 textProperty().typeSafeOnChange {
-                    currentAccount.value += field to it
+                    currentAccount *= currentAccount.v + (field to it)
                 }
             }
         }

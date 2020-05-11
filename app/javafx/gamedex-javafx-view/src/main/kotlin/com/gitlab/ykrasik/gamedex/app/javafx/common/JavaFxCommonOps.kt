@@ -21,18 +21,19 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
+import com.gitlab.ykrasik.gamedex.app.api.util.AsyncValueState
 import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxScope
 import com.gitlab.ykrasik.gamedex.javafx.control.toImage
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.Ref
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import tornadofx.toProperty
 import javax.inject.Inject
@@ -54,9 +55,18 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     fun fetchPoster(game: Game?): ObservableValue<JavaFxImage> = fetchImage(game?.posterUrl, persist = true)
 
     fun fetchImage(url: String?, persist: Boolean): ObservableValue<JavaFxImage> = url.ifNotNull {
-        loadImage {
-            ops.fetchImage(it, persist)
+        val property = SimpleObjectProperty(loading)
+        JavaFxScope.launch {
+            val imageFlow = ops.fetchImage(it, persist)
+            imageFlow.collect { result ->
+                when (result) {
+                    is AsyncValueState.Result -> property.value = result.result.image
+                    is AsyncValueState.Error -> property.value = noImage
+//                    else -> property.value = loading
+                }
+            }
         }
+        property
     }
 
     private inline fun <T> T?.ifNotNull(f: (T) -> ObservableValue<JavaFxImage>): ObservableValue<JavaFxImage> =
@@ -68,14 +78,14 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     private inline fun loadImage(crossinline f: suspend () -> DomainImage?): ObservableValue<JavaFxImage> {
         val p = SimpleObjectProperty(loading)
-        GlobalScope.launch(Dispatchers.Main.immediate) {
+        JavaFxScope.launch {
             val image = f()
             p.value = image?.image ?: noImage
         }
         return p
     }
 
-    fun fetchFileTree(game: Game): Ref<FileTree?> = ops.fetchFileTree(game)
+    fun fetchFileTree(game: Game): StateFlow<FileTree?> = ops.fetchFileTree(game)
 
     val providers: List<GameProvider.Metadata> = ops.providers
     val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }.withDefault { noImage }

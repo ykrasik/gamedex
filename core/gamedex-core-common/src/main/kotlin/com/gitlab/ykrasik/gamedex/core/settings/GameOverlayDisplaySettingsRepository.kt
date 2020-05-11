@@ -40,16 +40,16 @@ class GameOverlayDisplaySettingsRepository(repo: SettingsRepository, name: Strin
 
     private val storage = repo.storage(basePath = "display", name = name, default = default)
 
-    val enabled = storage.biChannel(Data::enabled) { copy(enabled = it) }
-    val showOnlyWhenActive = storage.biChannel(Data::showOnlyWhenActive) { copy(showOnlyWhenActive = it) }
-    val position = storage.biChannel(Data::position) { copy(position = it) }
-    val fillWidth = storage.biChannel(Data::fillWidth) { copy(fillWidth = it) }
-    val fontSize = storage.biChannel(Data::fontSize) { copy(fontSize = it) }
-    val boldFont = storage.biChannel(Data::boldFont) { copy(boldFont = it) }
-    val italicFont = storage.biChannel(Data::italicFont) { copy(italicFont = it) }
-    val textColor = storage.biChannel(Data::textColor) { copy(textColor = it) }
-    val backgroundColor = storage.biChannel(Data::backgroundColor) { copy(backgroundColor = it) }
-    val opacity = storage.biChannel(Data::opacity) { copy(opacity = it) }
+    val enabled = storage.biMap(Data::enabled) { copy(enabled = it) }
+    val showOnlyWhenActive = storage.biMap(Data::showOnlyWhenActive) { copy(showOnlyWhenActive = it) }
+    val position = storage.biMap(Data::position) { copy(position = it) }
+    val fillWidth = storage.biMap(Data::fillWidth) { copy(fillWidth = it) }
+    val fontSize = storage.biMap(Data::fontSize) { copy(fontSize = it) }
+    val boldFont = storage.biMap(Data::boldFont) { copy(boldFont = it) }
+    val italicFont = storage.biMap(Data::italicFont) { copy(italicFont = it) }
+    val textColor = storage.biMap(Data::textColor) { copy(textColor = it) }
+    val backgroundColor = storage.biMap(Data::backgroundColor) { copy(backgroundColor = it) }
+    val opacity = storage.biMap(Data::opacity) { copy(opacity = it) }
 
     companion object {
         fun name(repo: SettingsRepository) = GameOverlayDisplaySettingsRepository(repo, name = "name") {

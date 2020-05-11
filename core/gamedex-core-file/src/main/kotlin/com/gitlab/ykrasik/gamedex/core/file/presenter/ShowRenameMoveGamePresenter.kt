@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowRenameMoveGamePresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanRenameMoveGame> {
     init {
-        eventBus.onHideViewRequested<RenameMoveGameView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<RenameMoveGameView>().forEach(debugName = "hideRenameMoveGameView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanRenameMoveGame) = object : ViewSession() {
         init {
-            view.renameMoveGameActions.forEach { params ->
+            view.renameMoveGameActions.forEach(debugName = "showRenameMoveGameView") { params ->
                 viewManager.showRenameMoveGameView(params)
             }
         }

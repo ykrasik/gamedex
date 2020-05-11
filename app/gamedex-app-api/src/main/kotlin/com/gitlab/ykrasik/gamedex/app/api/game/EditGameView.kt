@@ -20,11 +20,11 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
 /**
@@ -33,7 +33,7 @@ import java.io.File
  * Time: 08:08
  */
 interface EditGameView : ConfirmationView {
-    val game: ViewMutableStatefulChannel<Game>
+    val game: ViewMutableStateFlow<Game>
 
     val nameOverride: GameDataOverrideState<String>
     val descriptionOverride: GameDataOverrideState<String>
@@ -43,28 +43,28 @@ interface EditGameView : ConfirmationView {
     val thumbnailUrlOverride: GameDataOverrideState<String>
     val posterUrlOverride: GameDataOverrideState<String>
 
-    val absoluteMainExecutablePath: ViewMutableStatefulChannel<String>
-    val absoluteMainExecutablePathIsValid: StatefulChannel<IsValid>
+    val absoluteMainExecutablePath: ViewMutableStateFlow<String>
+    val absoluteMainExecutablePathIsValid: MutableStateFlow<IsValid>
 
-    val browseMainExecutableActions: MultiReadChannel<Unit>
+    val browseMainExecutableActions: Flow<Unit>
     fun browse(initialDirectory: File?): File?
 
-    val resetAllToDefaultActions: MultiReadChannel<Unit>
+    val resetAllToDefaultActions: Flow<Unit>
 }
 
 interface GameDataOverrideState<T> {
     val type: GameDataType
-    val customValue: StatefulChannel<T?>
-    val providerValues: StatefulChannel<Map<ProviderId, T>>
-    val selection: ViewMutableStatefulChannel<OverrideSelectionType?>
+    val customValue: MutableStateFlow<T?>
+    val providerValues: MutableStateFlow<Map<ProviderId, T>>
+    val selection: ViewMutableStateFlow<OverrideSelectionType?>
 
-    val canSelectCustomOverride: StatefulChannel<IsValid>
-    val rawCustomValue: ViewMutableStatefulChannel<String>
-    val isCustomValueValid: StatefulChannel<IsValid>
-    val customValueAcceptActions: MultiReadChannel<Unit>
-    val customValueRejectActions: MultiReadChannel<Unit>
+    val canSelectCustomOverride: MutableStateFlow<IsValid>
+    val rawCustomValue: ViewMutableStateFlow<String>
+    val isCustomValueValid: MutableStateFlow<IsValid>
+    val customValueAcceptActions: Flow<Unit>
+    val customValueRejectActions: Flow<Unit>
 
-    val resetToDefaultActions: MultiReadChannel<Unit>
+    val resetToDefaultActions: Flow<Unit>
 }
 
 sealed class OverrideSelectionType {

@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -49,29 +49,29 @@ interface ViewWithVersionOverlayDisplaySettings {
 }
 
 interface OverlayDisplaySettings {
-    val enabled: StatefulChannel<Boolean>
-    val showOnlyWhenActive: StatefulChannel<Boolean>
-    val position: StatefulChannel<DisplayPosition>
-    val fillWidth: StatefulChannel<Boolean>
-    val fontSize: StatefulChannel<Int>
-    val boldFont: StatefulChannel<Boolean>
-    val italicFont: StatefulChannel<Boolean>
-    val textColor: StatefulChannel<String>
-    val backgroundColor: StatefulChannel<String>
-    val opacity: StatefulChannel<Double>
+    val enabled: MutableStateFlow<Boolean>
+    val showOnlyWhenActive: MutableStateFlow<Boolean>
+    val position: MutableStateFlow<DisplayPosition>
+    val fillWidth: MutableStateFlow<Boolean>
+    val fontSize: MutableStateFlow<Int>
+    val boldFont: MutableStateFlow<Boolean>
+    val italicFont: MutableStateFlow<Boolean>
+    val textColor: MutableStateFlow<String>
+    val backgroundColor: MutableStateFlow<String>
+    val opacity: MutableStateFlow<Double>
 }
 
 interface MutableOverlayDisplaySettings {
-    val enabled: ViewMutableStatefulChannel<Boolean>
-    val showOnlyWhenActive: ViewMutableStatefulChannel<Boolean>
-    val position: ViewMutableStatefulChannel<DisplayPosition>
-    val fillWidth: ViewMutableStatefulChannel<Boolean>
-    val fontSize: ViewMutableStatefulChannel<Int>
-    val boldFont: ViewMutableStatefulChannel<Boolean>
-    val italicFont: ViewMutableStatefulChannel<Boolean>
-    val textColor: ViewMutableStatefulChannel<String>
-    val backgroundColor: ViewMutableStatefulChannel<String>
-    val opacity: ViewMutableStatefulChannel<Double>
+    val enabled: ViewMutableStateFlow<Boolean>
+    val showOnlyWhenActive: ViewMutableStateFlow<Boolean>
+    val position: ViewMutableStateFlow<DisplayPosition>
+    val fillWidth: ViewMutableStateFlow<Boolean>
+    val fontSize: ViewMutableStateFlow<Int>
+    val boldFont: ViewMutableStateFlow<Boolean>
+    val italicFont: ViewMutableStateFlow<Boolean>
+    val textColor: ViewMutableStateFlow<String>
+    val backgroundColor: ViewMutableStateFlow<String>
+    val opacity: ViewMutableStateFlow<Double>
 }
 
 enum class DisplayPosition(val displayName: String) {

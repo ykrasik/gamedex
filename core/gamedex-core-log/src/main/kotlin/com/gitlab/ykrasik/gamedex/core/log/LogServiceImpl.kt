@@ -47,6 +47,7 @@ class LogServiceImpl(maxLogEntries: Int = 1000) : LogService {
                 timestamp = DateTime(e.timeStamp),
                 loggerName = e.loggerName.substringAfterLast('.'),
                 message = e.formattedMessage,
+                threadName = e.threadName,
                 throwable = (e.throwableProxy as? ThrowableProxy)?.throwable
             )
         }

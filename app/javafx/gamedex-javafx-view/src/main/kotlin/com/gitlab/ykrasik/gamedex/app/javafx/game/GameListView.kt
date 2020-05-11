@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyListCell
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyListView
@@ -49,7 +49,7 @@ class GameListView(games: ObservableList<Game>) : PresentableView("Game List"), 
         maxDetailsWidth = screenBounds.width / 4
     )
 
-    override val openFileActions = channel<File>()
+    override val openFileActions = broadcastFlow<File>()
 
     private val gamesView = prettyListView(games) {
         prefWidth = 900.0

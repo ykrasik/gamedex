@@ -22,12 +22,12 @@ import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddOrEditLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.settableSortedFilteredList
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -49,13 +49,13 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
 
     override val libraries = settableSortedFilteredList(comparator = caseInsensitiveStringComparator(Library::name))
 
-    override val canAddOrEditLibraries = statefulChannel(IsValid.valid)
-    override val addOrEditLibraryActions = channel<Library?>()
+    override val canAddOrEditLibraries = mutableStateFlow(IsValid.valid, debugName = "canAddOrEditLibraries")
+    override val addOrEditLibraryActions = broadcastFlow<Library?>()
 
-    override val canDeleteLibraries = statefulChannel(IsValid.valid)
-    override val deleteLibraryActions = channel<Library>()
+    override val canDeleteLibraries = mutableStateFlow(IsValid.valid, debugName = "canDeleteLibraries")
+    override val deleteLibraryActions = broadcastFlow<Library>()
 
-    override val openFileActions = channel<File>()
+    override val openFileActions = broadcastFlow<File>()
 
     init {
         register()

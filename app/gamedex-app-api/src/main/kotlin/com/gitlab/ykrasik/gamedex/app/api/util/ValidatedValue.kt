@@ -14,29 +14,23 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.app.api.util
 
-import kotlinx.atomicfu.atomic
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
- * Date: 16/01/2019
- * Time: 20:05
+ * Date: 17/05/2020
+ * Time: 17:43
+ *
+ * This class exists to work around a feature (or limitation) of StateFlow - value equality.
+ * There are a lot of situations where views contain 2 fields - a field with a value, and a field whether that value is valid.
+ * However, some presenters need to act on pairs of (value, valueIsValid), so they would zip the 2 flows together.
+ * However, if the value was valid, the value was then changed but remained valid, the IsValid flow will not emit a new element,
+ * which means the presenters zip will not fire.
+ * So instead of an 'IsValid' field, we use a ValidationResult field, which is guaranteed to fire on each value change.
  */
-interface Ref<T> {
-    val value: T
-}
-
-class MutableAtomicRef<T>(initial: T) : Ref<T> {
-    private val ref = atomic(initial)
-
-    override var value
-        get() = ref.value
-        set(value) {
-            ref.value = value
-        }
-
-    override fun toString() = value.toString()
-}
-
-fun <T> ref(initial: T) = MutableAtomicRef(initial)
+data class ValidatedValue<T>(
+    val value: T,
+    val isValid: IsValid
+)

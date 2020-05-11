@@ -19,10 +19,11 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
-import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import kotlinx.coroutines.Dispatchers
 import java.io.File
 import javax.inject.Inject
@@ -42,7 +43,12 @@ class LibraryServiceImpl @Inject constructor(
 
     init {
         libraries.broadcastTo(eventBus, Library::id, LibraryEvent::Added, LibraryEvent::Deleted, LibraryEvent::Updated)
-        eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { repo.invalidate() }
+
+        flowScope(Dispatchers.IO) {
+            eventBus.flowOf<DatabaseInvalidatedEvent>().forEach(debugName = "onDatabaseInvalidated") {
+                repo.invalidate()
+            }
+        }
     }
 
     override fun get(id: Int) = libraries.find { it.id == id }

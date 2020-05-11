@@ -36,7 +36,7 @@ object FileNameHandler {
 
         return FolderName(
             rawName = rawName,
-            gameName = rawNameWithoutMetadata.collapseSpaces().replace(" - ", ": "),
+            processedName = rawNameWithoutMetadata.collapseSpaces().replace(" - ", ": "),
             order = order,
             metaTag = metaTag,
             version = version

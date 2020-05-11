@@ -23,6 +23,8 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.BulkUpdateGamesFilterRepository
 import com.gitlab.ykrasik.gamedex.core.provider.UpdateGameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,20 +42,17 @@ class BulkUpdateGamesPresenter @Inject constructor(
 ) : Presenter<BulkUpdateGamesView> {
     override fun present(view: BulkUpdateGamesView) = object : ViewSession() {
         init {
-            view.bulkUpdateGamesFilter.bind(repo.bulkUpdateGamesFilter)
-            view.canAccept.bind(view.bulkUpdateGamesFilterIsValid)
-            view.acceptActions.forEach { onAccept() }
+            // Set view filter from repo each time view is shown or hidden
+            view.bulkUpdateGamesFilter *= repo.bulkUpdateGamesFilter.combine(isShowing) { filter, _ -> filter } withDebugName "bulkUpdateGamesFilter"
+            view.canAccept *= view.bulkUpdateGamesFilterValidatedValue.allValues().map { it.isValid } withDebugName "canAccept"
+            view.acceptActions.forEach(debugName = "accept") { onAccept() }
             view.cancelActions.forEach { onCancel() }
-        }
-
-        override suspend fun onShown() {
-            repo.bulkUpdateGamesFilter.resend()
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val filter = view.bulkUpdateGamesFilter.value
+            val filter = view.bulkUpdateGamesFilterValidatedValue.v.value
             repo.update(filter)
 
             hideView()

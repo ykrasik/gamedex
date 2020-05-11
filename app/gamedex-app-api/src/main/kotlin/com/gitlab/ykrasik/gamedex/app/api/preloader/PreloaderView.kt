@@ -17,14 +17,14 @@
 package com.gitlab.ykrasik.gamedex.app.api.preloader
 
 import com.gitlab.ykrasik.gamedex.Version
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
+import kotlinx.coroutines.flow.MutableStateFlow
 /**
  * User: ykrasik
  * Date: 08/06/2018
  * Time: 21:21
  */
 interface PreloaderView {
-    val version: StatefulChannel<Version>
-    val progress: StatefulChannel<Double>
-    val message: StatefulChannel<String>
+    val version: MutableStateFlow<Version>
+    val progress: MutableStateFlow<Double>
+    val message: MutableStateFlow<String>
 }

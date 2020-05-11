@@ -19,10 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
-import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
@@ -50,9 +47,13 @@ class SyncGamesPresenter @Inject constructor(
     override fun present(view: SyncGamesView) = object : ViewSession() {
         init {
             // TODO: Consider launching a job here that can be cancelled.
-            eventBus.forEach<SyncGamesEvent.RequestSync> { onSyncGamesRequested(it.requests, it.isAllowSmartChooseResults) }
-            eventBus.forEach<GameSearchEvent.Updated> { onGameSearchStateUpdated(it.state) }
-            view.currentState.forEach { currentState ->
+            eventBus.flowOf<SyncGamesEvent.RequestSync>().forEach(debugName = "onSyncGamesRequested") {
+                onSyncGamesRequested(it.requests, it.isAllowSmartChooseResults)
+            }
+            eventBus.flowOf<GameSearchEvent.Updated>().forEach(debugName = "onGameSearchStateUpdated") {
+                onGameSearchStateUpdated(it.state)
+            }
+            view.currentState.allValues().forEach { currentState ->
                 if (currentState != null) {
                     eventBus.send(GameSearchEvent.Started(currentState, view.isAllowSmartChooseResults.value))
                 }
@@ -80,8 +81,8 @@ class SyncGamesPresenter @Inject constructor(
             start()
             view.isAllowSmartChooseResults *= isAllowSmartChooseResults
             view.numProcessed *= 0
-            view.state.setAll(state)
-            view.currentState *= null
+            view.state *= state
+            view.currentState.valueFromPresenter = null // TODO: What's this for?
             startGameSearch(view.state.first())
         }
 
@@ -152,7 +153,7 @@ class SyncGamesPresenter @Inject constructor(
             check(view.isGameSyncRunning.value) { "Game sync not running!" }
             view.isGameSyncRunning *= false
 
-            view.currentState.peek()?.let { currentState ->
+            view.currentState.v?.let { currentState ->
                 // This will update the current search that it's finished.
                 startGameSearch(currentState.copy(status = if (success) GameSearchState.Status.Success else GameSearchState.Status.Cancelled))
             }

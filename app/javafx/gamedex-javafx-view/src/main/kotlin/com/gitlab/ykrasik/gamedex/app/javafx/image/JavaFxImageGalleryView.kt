@@ -18,14 +18,17 @@ package com.gitlab.ykrasik.gamedex.app.javafx.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
 import javafx.scene.input.KeyCode
@@ -42,14 +45,14 @@ import tornadofx.*
 class JavaFxImageGalleryView : PresentableView(), ImageGalleryView {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val imageParams = viewMutableStatefulChannel(ViewImageParams(imageUrl = "", imageUrls = emptyList()))
-    override val currentImageIndex = statefulChannel(-1)
+    override val imageParams = viewMutableStateFlow(ViewImageParams(imageUrl = "", imageUrls = emptyList()), debugName = "imageParams")
+    override val currentImageIndex = mutableStateFlow(-1, debugName = "currentImageIndex")
 
-    override val canViewNextImage = statefulChannel(IsValid.valid)
-    override val viewNextImageActions = channel<Unit>()
+    override val canViewNextImage = mutableStateFlow(IsValid.valid, debugName = "canViewNextImage")
+    override val viewNextImageActions = broadcastFlow<Unit>()
 
-    override val canViewPrevImage = statefulChannel(IsValid.valid)
-    override val viewPrevImageActions = channel<Unit>()
+    override val canViewPrevImage = mutableStateFlow(IsValid.valid, debugName = "canViewPrevImage")
+    override val viewPrevImageActions = broadcastFlow<Unit>()
 
     private var slideDirection = ViewTransition.Direction.LEFT
 
@@ -104,9 +107,9 @@ class JavaFxImageGalleryView : PresentableView(), ImageGalleryView {
     }
 
     override val root = stackpane {
-        children += imageView(imageParams.value)
+        children += imageView(imageParams.v)
 
-        imageParams.property.typeSafeOnChange { params ->
+        imageParams.onChange { params ->
             val new = imageView(params)
             children[0].replaceWith(new, ViewTransition.Slide(0.1.seconds, slideDirection))
         }

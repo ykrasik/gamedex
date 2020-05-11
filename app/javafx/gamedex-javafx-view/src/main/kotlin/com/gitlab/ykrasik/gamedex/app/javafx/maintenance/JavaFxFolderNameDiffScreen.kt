@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiff
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffFilterMode
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffs
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameDetailsSummaryBuilder
@@ -65,25 +65,25 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     override val diffs = settableList<FolderNameDiffs>()
     private val diffsSortedFiltered = diffs.sortedFiltered(Comparator.comparing(FolderNameDiffs::name))
 
-//    override val excludeGameActions = channel<Game>()
+//    override val excludeGameActions = broadcastFlow<Game>()
 
-    override val viewGameDetailsActions = channel<ViewGameParams>()
+    override val viewGameDetailsActions = broadcastFlow<ViewGameParams>()
 
-    override val searchText = viewMutableStatefulChannel("")
-    override val matchingGame = statefulChannel<Game?>(null)
+    override val searchText = viewMutableStateFlow("", debugName = "searchText")
+    override val matchingGame = mutableStateFlow<Game?>(null, debugName = "matchingGame")
 
-    override val filterMode = viewMutableStatefulChannel(FolderNameDiffFilterMode.None)
-    override val predicate = statefulChannel(Predicate<FolderNameDiffs> { true })
+    override val filterMode = viewMutableStateFlow(FolderNameDiffFilterMode.None, debugName = "filterMode")
+    override val predicate = mutableStateFlow(Predicate<FolderNameDiffs> { true }, debugName = "predicate")
 
-    override val renameMoveGameActions = channel<RenameMoveGameParams>()
+    override val renameMoveGameActions = broadcastFlow<RenameMoveGameParams>()
 
-    override val hideViewActions = channel<Unit>()
+    override val hideViewActions = broadcastFlow<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
     private val diffContextMenu = object : InstallableContextMenu<Pair<Game, FolderNameDiff>>(Game.Null to FolderNameDiff("", "", "", null)) {
         override val root = vbox {
             jfxButton("Rename to Expected", Icons.folderEdit) {
-                action(renameMoveGameActions) { RenameMoveGameParams(data.first, initialSuggestion = data.second.expectedFolderName) }
+                action(renameMoveGameActions) { RenameMoveGameParams(data.value.first, initialSuggestion = data.value.second.expectedFolderName) }
             }
             // TODO: Add a 'search only this provider' option
         }
@@ -227,7 +227,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
 //            })
 //        }
         spacer()
-        header(diffsSortedFiltered.sizeProperty.stringBinding { "Diffs: $it" })
+        header(diffsSortedFiltered.sizeProperty.typesafeStringBinding { "Diffs: $it" })
         gap()
     }
 

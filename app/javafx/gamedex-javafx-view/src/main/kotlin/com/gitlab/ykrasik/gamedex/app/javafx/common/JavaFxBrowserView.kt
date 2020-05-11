@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.color
 import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
+import com.gitlab.ykrasik.gamedex.javafx.typesafeBooleanBinding
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.value.ObservableValue
 import javafx.scene.layout.Pane
@@ -107,7 +108,7 @@ class JavaFxBrowserView : PresentableView("Browser", Icons.web), BrowserView {
     private fun canNavigate(back: Boolean): ObservableValue<Boolean> {
         val history = webView.engine.history
         val entries = history.entries
-        return history.currentIndexProperty().booleanBinding { i ->
+        return history.currentIndexProperty().typesafeBooleanBinding { i ->
             val currentIndex = i!!.toInt()
             entries.size > 1 && (if (back) currentIndex > 0 else currentIndex < entries.size - 1)
         }

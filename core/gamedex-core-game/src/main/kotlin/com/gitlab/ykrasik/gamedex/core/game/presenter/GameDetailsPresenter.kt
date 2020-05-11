@@ -19,15 +19,17 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.findTransform
 import com.gitlab.ykrasik.gamedex.util.replaceWhere
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,65 +44,69 @@ class GameDetailsPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : ViewSession() {
+        private var gameParams by view.gameParams
+
         init {
-            view.gameParams.forEach { (game, allGames) ->
-                view.currentGameIndex *= allGames.indexOfFirst { it.id == game.id }
+            view.currentGameIndex *= view.gameParams.allValues().map { (game, allGames) ->
+                allGames.indexOfFirst { it.id == game.id }
+            } withDebugName "currentGameIndex"
+            view.canViewNextGame *= view.currentGameIndex.map { index ->
+                IsValid {
+                    check(index + 1 < gameParams.games.size) { "No more games!" }
+                }
+            } withDebugName "canViewNextGame"
+            view.canViewPrevGame *= view.currentGameIndex.map { index ->
+                IsValid {
+                    check(index - 1 >= 0) { "No more games!" }
+                }
+            } withDebugName "canViewPrevGame"
+
+            view.viewNextGameActions.debounce(100).forEach(debugName = "onViewNextGame") {
+                view.canViewNextGame.assert()
+                navigate(+1)
             }
-            view.currentGameIndex.forEach { currentGameIndex ->
-                view.canViewNextGame *= Try { check(currentGameIndex + 1 < view.gameParams.value.games.size) { "No more games!" } }
-                view.canViewPrevGame *= Try { check(currentGameIndex - 1 >= 0) { "No more games!" } }
+            view.viewPrevGameActions.debounce(100).forEach(debugName = "onViewPrevGame") {
+                view.canViewPrevGame.assert()
+                navigate(-1)
+            }
+            view.hideViewActions.forEach(debugName = "onHide") { hideView() }
+
+            isShowing.forEach(debugName = "onShow") {
+                if (it) {
+                    // This is a workaround to cover the case where the game is re-synced.
+                    // Re-syncing will hide this view (which will make it not update the game on GameEvent.Updated)
+                    // this view will then be re-opened again after syncing, but will show the old game, unless we run this code.
+                    val game = gameParams.game
+                    if (game.id != Game.Null.id) {
+                        val upToDateGame = gameService[game.id]
+                        if (game != upToDateGame) {
+                            gameParams = gameParams.copy(game = upToDateGame)
+                        }
+                    }
+                }
             }
 
-            view.viewNextGameActions.subscribe().debounce(100).forEach { onViewNextGame() }
-            view.viewPrevGameActions.subscribe().debounce(100).forEach { onViewPrevGame() }
-            view.hideViewActions.forEach { hideView() }
+            eventBus.flowOf<GameEvent.Updated>().forEach(debugName = "onGameUpdated") { e ->
+                if (!isShowing.value) return@forEach
 
-            eventBus.forEach<GameEvent.Updated> { e ->
-                if (!isShowing) return@forEach
-
-                val (game, allGames) = view.gameParams.value
-                val updatedGame = e.games.findTransform({ it.second }) { it.id == game.id } ?: return@forEach
-                view.gameParams *= ViewGameParams(updatedGame, allGames.replaceWhere(updatedGame) { it.id == game.id })
+                val updatedGame = e.games.findTransform({ it.second }) { it.id == gameParams.game.id } ?: return@forEach
+                view.gameParams *= ViewGameParams(updatedGame, gameParams.games.replaceWhere(updatedGame) { it.id == gameParams.game.id })
             }
-            eventBus.forEach<GameEvent.Deleted> { e ->
-                if (!isShowing) return@forEach
+            eventBus.flowOf<GameEvent.Deleted>().forEach(debugName = "onGameDeleted") { e ->
+                if (!isShowing.value) return@forEach
 
-                val game = view.gameParams.value.game
-                if (e.games.any { it.id == game.id }) {
+                if (e.games.any { it.id == gameParams.game.id }) {
                     hideView()
                 }
             }
         }
 
-        private fun onViewNextGame() {
-            view.canViewNextGame.assert()
-            navigate(+1)
-        }
-
-        private fun onViewPrevGame() {
-            view.canViewPrevGame.assert()
-            navigate(-1)
-        }
-
         private fun navigate(offset: Int) {
-            view.currentGameIndex.value += offset
-            view.gameParams.modify { copy(game = games[view.currentGameIndex.value]) }
-        }
-
-        override suspend fun onShown() {
-            // This is a workaround to cover the case where the game is re-synced.
-            // Re-syncing will hide this view (which will make it not update the game on GameEvent.Updated)
-            // this view will then be re-opened again after syncing, but will show the old game, unless we run this code.
-            val game = view.gameParams.value.game
-            if (game.id != Game.Null.id) {
-                val upToDateGame = gameService[game.id]
-                if (game != upToDateGame) {
-                    view.gameParams.modify { copy(game = upToDateGame) }
-                }
-            }
+            gameParams = gameParams.copy(game = gameParams.games[view.currentGameIndex.value + offset])
         }
 
         private fun hideView() {
+            gameParams = ViewGameParams.Null
             eventBus.requestHideView(view)
         }
     }

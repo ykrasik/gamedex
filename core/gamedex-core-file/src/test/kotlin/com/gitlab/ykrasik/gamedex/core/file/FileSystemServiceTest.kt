@@ -152,27 +152,27 @@ class FileSystemServiceTest : Spec<FileSystemServiceTest.Scope>() {
 
             "gameName" should {
                 "correctly extract game name with spaces trimmed & collapsed" test {
-                    analyze("One [asd] Two [1.2.3] Three").gameName shouldBe "One Two Three"
-                    analyze(" One  [asd]  Two  [1.2.3]  Three ").gameName shouldBe "One Two Three"
-                    analyze(" One  Two [1.2.3]   [Four]  Three  Five").gameName shouldBe "One Two Three Five"
-                    analyze("  [asd] One  Two Three  4 [1.2.3]  ").gameName shouldBe "One Two Three 4"
+                    analyze("One [asd] Two [1.2.3] Three").processedName shouldBe "One Two Three"
+                    analyze(" One  [asd]  Two  [1.2.3]  Three ").processedName shouldBe "One Two Three"
+                    analyze(" One  Two [1.2.3]   [Four]  Three  Five").processedName shouldBe "One Two Three Five"
+                    analyze("  [asd] One  Two Three  4 [1.2.3]  ").processedName shouldBe "One Two Three 4"
                 }
 
                 "replace all instances of ' - ' with ': ' and collapse spaces in game name" test {
-                    analyze("Test - Game").gameName shouldBe "Test: Game"
-                    analyze("Test - Game - More").gameName shouldBe "Test: Game: More"
-                    analyze("Test  -  Game").gameName shouldBe "Test: Game"
-                    analyze("Test  -  Game  -  More [asd]").gameName shouldBe "Test: Game: More"
-                    analyze("Test  -  Game  - [asd] More").gameName shouldBe "Test: Game: More"
-                    analyze("Test  - [1.2.3] Game  -  More ").gameName shouldBe "Test: Game: More"
-                    analyze("[1.2.3]  Test  -  Game  -  More  [asd]").gameName shouldBe "Test: Game: More"
+                    analyze("Test - Game").processedName shouldBe "Test: Game"
+                    analyze("Test - Game - More").processedName shouldBe "Test: Game: More"
+                    analyze("Test  -  Game").processedName shouldBe "Test: Game"
+                    analyze("Test  -  Game  -  More [asd]").processedName shouldBe "Test: Game: More"
+                    analyze("Test  -  Game  - [asd] More").processedName shouldBe "Test: Game: More"
+                    analyze("Test  - [1.2.3] Game  -  More ").processedName shouldBe "Test: Game: More"
+                    analyze("[1.2.3]  Test  -  Game  -  More  [asd]").processedName shouldBe "Test: Game: More"
                 }
 
                 "only replace exact matches of ' - ' with ': '" test {
-                    analyze("Test-Game").gameName shouldBe "Test-Game"
-                    analyze("Test- Game").gameName shouldBe "Test- Game"
-                    analyze("Test -Game").gameName shouldBe "Test -Game"
-                    analyze("Test -- Game").gameName shouldBe "Test -- Game"
+                    analyze("Test-Game").processedName shouldBe "Test-Game"
+                    analyze("Test- Game").processedName shouldBe "Test- Game"
+                    analyze("Test -Game").processedName shouldBe "Test -Game"
+                    analyze("Test -- Game").processedName shouldBe "Test -- Game"
                 }
             }
         }

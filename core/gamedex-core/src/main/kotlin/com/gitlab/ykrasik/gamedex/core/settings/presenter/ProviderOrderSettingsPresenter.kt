@@ -36,7 +36,7 @@ class ProviderOrderSettingsPresenter @Inject constructor(
 ) : Presenter<ProviderOrderSettingsView> {
     override fun present(view: ProviderOrderSettingsView) = object : ViewSession() {
         init {
-            view.canChangeProviderOrder.disableWhenTrue(commonData.isGameSyncRunning) { "Game sync in progress!" }
+            view.canChangeProviderOrder *= commonData.disableWhenGameSyncIsRunning withDebugName "canChangeProviderOrder"
 
             view.search.bindBidirectional(settingsRepo.search)
             view.name.bindBidirectional(settingsRepo.name)

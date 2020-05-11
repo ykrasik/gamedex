@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewImageParams
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanUpdateGame
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.common.isNoImage
@@ -80,37 +80,37 @@ class JavaFxGameDetailsView(
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val gameParams = viewMutableStatefulChannel(ViewGameParams(Game.Null, emptyList()))
-    override val game = viewMutableStatefulChannel(gameParams.property.map { it.game })
+    override val gameParams = viewMutableStateFlow(ViewGameParams.Null, debugName = "gameParams")
+    override val game = viewMutableStateFlow(gameParams.property.map { it.game }, debugName = "game")
 
-    override val currentGameIndex = statefulChannel(-1)
+    override val currentGameIndex = mutableStateFlow(-1, debugName = "currentGameIndex")
 
-    override val canViewNextGame = statefulChannel(IsValid.valid)
-    override val viewNextGameActions = channel<Unit>()
+    override val canViewNextGame = mutableStateFlow(IsValid.valid, debugName = "canViewNextGame")
+    override val viewNextGameActions = broadcastFlow<Unit>()
 
-    override val canViewPrevGame = statefulChannel(IsValid.valid)
-    override val viewPrevGameActions = channel<Unit>()
+    override val canViewPrevGame = mutableStateFlow(IsValid.valid, debugName = "canViewPrevGame")
+    override val viewPrevGameActions = broadcastFlow<Unit>()
 
-    override val hideViewActions = channel<Unit>()
+    override val hideViewActions = broadcastFlow<Unit>()
 
-    override val viewImageActions = channel<ViewImageParams>()
-    override val editGameActions = channel<EditGameParams>()
-    override val deleteGameActions = channel<Game>()
-    override val renameMoveGameActions = channel<RenameMoveGameParams>()
-    override val tagGameActions = channel<Game>()
+    override val viewImageActions = broadcastFlow<ViewImageParams>()
+    override val editGameActions = broadcastFlow<EditGameParams>()
+    override val deleteGameActions = broadcastFlow<Game>()
+    override val renameMoveGameActions = broadcastFlow<RenameMoveGameParams>()
+    override val tagGameActions = broadcastFlow<Game>()
 
-    override val canUpdateGame = statefulChannel(IsValid.valid)
-    override val updateGameActions = channel<Game>()
+    override val canUpdateGame = mutableStateFlow(IsValid.valid, debugName = "canUpdateGame")
+    override val updateGameActions = broadcastFlow<Game>()
 
-    override val canSyncGame = statefulChannel(IsValid.valid)
-    override val syncGameActions = channel<Game>()
+    override val canSyncGame = mutableStateFlow(IsValid.valid, debugName = "canSyncGame")
+    override val syncGameActions = broadcastFlow<Unit>()
 
-    override val openFileActions = channel<File>()
-    override val browseUrlActions = channel<String>()
+    override val openFileActions = broadcastFlow<File>()
+    override val browseUrlActions = broadcastFlow<String>()
 
-    override val setMainExecutableFileActions = channel<SetMainExecutableFileParams>()
-    override val launchGameActions = channel<Unit>()
-    override val canLaunchGame = statefulChannel(IsValid.valid)
+    override val setMainExecutableFileActions = broadcastFlow<SetMainExecutableFileParams>()
+    override val launchGameActions = broadcastFlow<Unit>()
+    override val canLaunchGame = mutableStateFlow(IsValid.valid, debugName = "canLaunchGame")
 
     private val noBackground = Background(BackgroundFill(Colors.cloudyKnoxville, CornerRadii.EMPTY, Insets.EMPTY))
     private val noBackgroundProperty = noBackground.toProperty()
@@ -166,17 +166,17 @@ class JavaFxGameDetailsView(
     private var selectedFileTreeItemProperty: ObjectProperty<FileTree?> = SimpleObjectProperty(null)
     private val fileTreeMenu = object : InstallableContextMenu<SetMainExecutableFileParams>(SetMainExecutableFileParams(Game.Null, null)) {
         private val setMainExecutableButton = jfxButton("Set Main Executable", Icons.play) {
-            action(setMainExecutableFileActions) { data }
+            action(setMainExecutableFileActions) { data.value }
         }
         private val unsetMainExecutableButton = jfxButton("Unset Main Executable", Icons.stop) {
-            action(setMainExecutableFileActions) { data.copy(file = null) }
+            action(setMainExecutableFileActions) { data.value.copy(file = null) }
         }
 
         override val root = vbox {
             selectedFileTreeItemProperty.onChange {
                 replaceChildren {
                     val isSelectedItemMainExecutable = selectedFileTreeItemProperty.value?.let {
-                        game.value.absoluteFileTree?.pathTo(it) == game.value.mainExecutableFile
+                        game.v.absoluteFileTree?.pathTo(it) == game.v.mainExecutableFile
                     } ?: false
                     children += if (isSelectedItemMainExecutable) unsetMainExecutableButton else setMainExecutableButton
                 }
@@ -191,7 +191,7 @@ class JavaFxGameDetailsView(
 
         addEventFilter(KEY_PRESSED) { e ->
             if (e.code == KeyCode.S && e.isControlDown) {
-                val screenshotUrls = game.value.screenshotUrls
+                val screenshotUrls = game.v.screenshotUrls
                 if (screenshotUrls.isNotEmpty()) {
                     viewImageActions.offer(
                         ViewImageParams(imageUrl = screenshotUrls.first(), imageUrls = screenshotUrls)
@@ -211,34 +211,34 @@ class JavaFxGameDetailsView(
             action(launchGameActions)
         }
         gap()
-        editButton("Edit") { action(editGameActions) { EditGameParams(game.value, initialView = GameDataType.Name) } }
+        editButton("Edit") { action(editGameActions) { EditGameParams(game.v, initialView = GameDataType.Name) } }
         gap()
-        toolbarButton("Tag", Icons.tag) { action(tagGameActions) { game.value } }
+        toolbarButton("Tag", Icons.tag) { action(tagGameActions) { game.v } }
         gap()
         extraMenu {
             infoButton("Update", graphic = Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 enableWhen(canUpdateGame)
-                action(updateGameActions) { game.value }
+                action(updateGameActions) { game.v }
             }
             infoButton("Sync", graphic = Icons.sync) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 enableWhen(canSyncGame)
-                action(syncGameActions) { game.value }
+                action(syncGameActions)
             }
 
             verticalGap()
 
             warningButton("Rename/Move Folder", Icons.folderEdit) {
-                action(renameMoveGameActions) { RenameMoveGameParams(game.value, initialSuggestion = null) }
+                action(renameMoveGameActions) { RenameMoveGameParams(game.v, initialSuggestion = null) }
                 localShortcut(this, "ctrl+r")
             }
             deleteButton("Delete") {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                action(deleteGameActions) { game.value }
+                action(deleteGameActions) { game.v }
             }
         }
     }

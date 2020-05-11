@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 09:47
  */
 interface ViewCanRenameMoveGame {
-    val renameMoveGameActions: MultiReadChannel<RenameMoveGameParams>
+    val renameMoveGameActions: Flow<RenameMoveGameParams>
 }
 
 data class RenameMoveGameParams(val game: Game, val initialSuggestion: String?)

@@ -18,10 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -29,8 +29,8 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 10:49
  */
 interface ViewCanLaunchGame : ViewCanDisplayError {
-    val game: ViewMutableStatefulChannel<Game>
+    val game: ViewMutableStateFlow<Game>
 
-    val canLaunchGame: StatefulChannel<IsValid>
-    val launchGameActions: MultiReadChannel<Unit>
+    val canLaunchGame: MutableStateFlow<IsValid>
+    val launchGameActions: Flow<Unit>
 }

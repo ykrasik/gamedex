@@ -16,63 +16,48 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
-import com.gitlab.ykrasik.gamedex.util.Modifier
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlin.reflect.KProperty
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
  * Date: 02/12/2018
  * Time: 16:44
- */
-
-/**
- * A conflated channel that always has a value.
- * By convention, this channel is read-only for any view that receives it,
- * i.e. the view should not update its' value or send messages to this channel, only read them.
- */
-interface StatefulChannel<T> : StatefulMultiReadChannel<T>, MultiWriteChannel<T> {
-    override var value: T
-
-    operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        offer(value)
-    }
-
-    operator fun timesAssign(element: T) {
-        offer(element)
-    }
-
-    fun modify(f: Modifier<T>) {
-        value = f(value)
-    }
-
-    override fun <R> map(transform: suspend (T) -> R): StatefulChannel<R>
-    override fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): StatefulChannel<R>
-    override fun <T2, R> combineLatest(channel: MultiReadChannel<T2>, f: suspend (T, T2) -> R): StatefulChannel<R>
-    override fun <T2, T3, R> combineLatest(channel2: MultiReadChannel<T2>, channel3: MultiReadChannel<T3>, f: suspend (T, T2, T3) -> R): StatefulChannel<R>
-    override fun <T2, T3, T4, R> combineLatest(
-        channel2: MultiReadChannel<T2>,
-        channel3: MultiReadChannel<T3>,
-        channel4: MultiReadChannel<T4>,
-        f: suspend (T, T2, T3, T4) -> R
-    ): StatefulChannel<R>
-
-    override fun <T2, T3, T4, T5, R> combineLatest(
-        channel2: MultiReadChannel<T2>,
-        channel3: MultiReadChannel<T3>,
-        channel4: MultiReadChannel<T4>,
-        channel5: MultiReadChannel<T5>,
-        f: suspend (T, T2, T3, T4, T5) -> R
-    ): StatefulChannel<R>
-
-    override fun filter(filter: suspend (T) -> Boolean): StatefulChannel<T>
-    override fun distinctUntilChanged(equals: (T, T) -> Boolean): StatefulChannel<T>
-    override fun drop(amount: Int): StatefulChannel<T>
-}
-
-/**
- * Same as [StatefulChannel], except by convention the view has permissions to write to this channel as well,
+ *
+ * When a view exposes a [MutableStateFlow], by convention the view should not write to that flow,
+ * that flow is for presenters to update the view's state.
+ * When a view exposes a [ViewMutableStateFlow],  by convention the view has permissions to write to this flow as well,
  * to notify about changes to its' data.
  * Presenters should react to these changes.
  */
-interface ViewMutableStatefulChannel<T> : StatefulChannel<T>
+interface ViewMutableStateFlow<T> : MutableStateFlow<Value<T>> {
+    val v: T get() = value.value
+
+    var valueFromView: T
+        get() = checkNotNull(value as? Value.FromView) { "Value is not from view!" }.value
+        set(value) {
+            this.value = value.fromView
+        }
+
+    var valueFromPresenter: T
+        get() = checkNotNull(value as? Value.FromPresenter) { "Value is not from presenter!" }.value
+        set(value) {
+            this.value = value.fromPresenter
+        }
+}
+
+sealed class Value<T> {
+    abstract val value: T
+
+    data class FromPresenter<T>(override val value: T) : Value<T>() {
+        override fun asFromView() = value.fromView
+    }
+
+    data class FromView<T>(override val value: T) : Value<T>() {
+        override fun asFromView() = this
+    }
+
+    abstract fun asFromView(): FromView<T>
+}
+
+val <T> T.fromView: Value.FromView<T> get() = Value.FromView(this)
+val <T> T.fromPresenter: Value.FromPresenter<T> get() = Value.FromPresenter(this)

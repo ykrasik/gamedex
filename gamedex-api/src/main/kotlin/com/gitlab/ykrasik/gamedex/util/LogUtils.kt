@@ -121,7 +121,7 @@ inline fun Logger.error(marker: Marker, t: Throwable, crossinline msg: (Marker) 
 
 inline fun <T> Logger.logResult(
     beforeMessage: String,
-    afterMessage: (T) -> String = { "Done: ${it.toString()}" },
+    afterMessage: (T) -> String = { if (it != Unit) "Done: ${it.toString()}" else "Done." },
     log: Logger.(String) -> Unit = Logger::info,
     f: () -> T
 ): T {

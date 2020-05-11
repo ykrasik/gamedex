@@ -16,17 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.storage
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ConflatedMultiChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.drop
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import kotlin.reflect.KProperty1
@@ -35,26 +31,16 @@ import kotlin.reflect.KProperty1
  * User: ykrasik
  * Date: 02/10/2019
  * Time: 21:47
+ *
+ * A [MutableStateFlow] which is backed by a [Storage].
  */
-interface StorageObservable<T> : StatefulChannel<T> {
-    fun <R> channel(extractor: KProperty1<T, R>): MultiReadChannel<R>
-    fun <R> biChannel(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): StatefulChannel<R>
-
-    fun onChange(f: suspend (T) -> Unit)
-}
-
-/**
- * A [StatefulChannel] which synchronizes its value with a [Storage].
- */
-class StorageObservableImpl<T>(
-    private val channel: ConflatedMultiChannel<T>,
+class StorageMutableStateFlow<T> private constructor(
     private val storage: Storage<String, T>,
     private val key: String,
-    private val default: () -> T
-) : StatefulChannel<T> by channel, StorageObservable<T>, CoroutineScope {
+    private val default: () -> T,
+    private val flow: MutableStateFlow<T>
+) : MutableStateFlow<T> by flow, CoroutineScope {
     override val coroutineContext = dispatcher
-
-    private val distinctValueChannel = channel.distinctUntilChanged()
 
     private val log = logger("Storage")
     private val displayName = "$storage/$key".file.toString()
@@ -62,21 +48,21 @@ class StorageObservableImpl<T>(
     private var enableWrite = true
 
     init {
-        val existingValue = runCatching { storage[key] }.getOrElse { e ->
+        val existingValue = try {
+            storage[key]
+        } catch (e: Exception) {
             log.error("[$displayName] Error!", e)
             null
         }
-        channel *= if (existingValue == null) {
+        flow.value = if (existingValue == null) {
             log.info("[$displayName] Creating default...")
-            val defaultValue = default()
-            storage[key] = defaultValue
-            defaultValue
+            default()
         } else {
             existingValue
         }
 
         launch {
-            distinctValueChannel.subscribe().drop(1).consumeEach { value ->
+            flow.collect { value ->
                 if (enableWrite) {
                     storage[key] = value
                 }
@@ -84,28 +70,20 @@ class StorageObservableImpl<T>(
         }
     }
 
-    override fun <R> channel(extractor: KProperty1<T, R>): MultiReadChannel<R> {
-        return distinctValueChannel.map { extractor(it) }.apply {
-            subscribe(dispatcher) {
-                log.debug("[$displayName] ${extractor.name} = $it")
+    fun <R> biMap(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): MutableStateFlow<R> {
+        val mappedFlow = MutableStateFlow(extractor(flow.value))
+        launch {
+            flow.collect {
+                mappedFlow.value = extractor(it)
             }
         }
-    }
-
-    override fun <R> biChannel(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): StatefulChannel<R> {
-        val channel = conflatedChannel<R>()
-        distinctValueChannel.subscribe(dispatcher, start = CoroutineStart.UNDISPATCHED) {
-            channel.send(extractor(it))
+        launch {
+            mappedFlow.drop(1).collect {
+                log.debug("[$displayName] ${extractor.name} = $it")
+                flow.value = reverseMapper(value, it)
+            }
         }
-        channel.distinctUntilChanged().subscribe(dispatcher) {
-            log.debug("[$displayName] ${extractor.name} = $it")
-            value = reverseMapper(value, it)
-        }
-        return channel
-    }
-
-    override fun onChange(f: suspend (T) -> Unit) {
-        distinctValueChannel.drop(1).subscribe(dispatcher, f = f)
+        return mappedFlow
     }
 
     fun enableWrite() {
@@ -124,14 +102,15 @@ class StorageObservableImpl<T>(
         value = default()
     }
 
-    override fun close() {
-        distinctValueChannel.close()
-        channel.close()
-    }
-
     companion object {
         private val dispatcher = Executors.newSingleThreadScheduledExecutor {
             Thread(it, "StorageHandler").apply { isDaemon = true }
         }.asCoroutineDispatcher()
+
+        operator fun <T> invoke(
+            storage: Storage<String, T>,
+            key: String,
+            default: () -> T
+        ) = StorageMutableStateFlow(storage, key, default, MutableStateFlow(default()))
     }
 }

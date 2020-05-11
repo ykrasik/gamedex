@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.file
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 /**
@@ -26,5 +26,5 @@ import java.io.File
  * Time: 09:27
  */
 interface ViewCanOpenFile : ViewCanDisplayError {
-    val openFileActions: MultiReadChannel<File>
+    val openFileActions: Flow<File>
 }

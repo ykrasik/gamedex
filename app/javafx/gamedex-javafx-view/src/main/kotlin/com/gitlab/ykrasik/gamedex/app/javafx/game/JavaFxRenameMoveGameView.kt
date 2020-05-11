@@ -20,18 +20,19 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.binding
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.theme.subHeader
+import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -43,19 +44,19 @@ import java.io.File
  * Time: 19:47
  */
 class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView, ViewCanOpenFile {
-    override val initialName = viewMutableStatefulChannel<String?>(null)
+    override val initialName = viewMutableStateFlow<String?>(null, debugName = "initialName")
 
-    override val game = viewMutableStatefulChannel(Game.Null)
+    override val game = viewMutableStateFlow(Game.Null, debugName = "game")
 
-    override val newPath = viewMutableStatefulChannel("")
-    override val newPathIsValid = statefulChannel(IsValid.valid)
-    override val newPathLibrary = statefulChannel(Library.Null)
+    override val targetPath = viewMutableStateFlow("", debugName = "targetPath")
+    override val targetPathIsValid = mutableStateFlow(IsValid.valid, debugName = "targetPathIsValid")
+    override val targetPathLibrary = mutableStateFlow(Library.Null, debugName = "targetPathLibrary")
 
-    override val browseActions = channel<Unit>()
-    override val openFileActions = channel<File>()
+    override val browseActions = broadcastFlow<Unit>()
+    override val openFileActions = broadcastFlow<File>()
 
     init {
-        titleProperty.bind(game.property.stringBinding { "Rename/Move '${it!!.name}'" })
+        titleProperty.bind(game.property.typesafeStringBinding { "Rename/Move '${it.name}'" })
         register()
     }
 
@@ -76,17 +77,17 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                     }
                     jfxButton {
                         textProperty().bind(game.property.stringBinding { it!!.path.path })
-                        action(openFileActions) { game.value.path }
+                        action(openFileActions) { game.v.path }
                     }
                 }
                 row {
                     subHeader("To")
                     label {
-                        textProperty().bind(newPathLibrary.property.stringBinding { it!!.name })
-                        graphicProperty().bind(newPathLibrary.property.binding { it!!.platformOrNull?.logo })
+                        textProperty().bind(targetPathLibrary.property.stringBinding { it!!.name })
+                        graphicProperty().bind(targetPathLibrary.property.binding { it!!.platformOrNull?.logo })
                     }
-                    jfxTextField(newPath.property, promptText = "Enter Path...") {
-                        validWhen(newPathIsValid)
+                    jfxTextField(targetPath.property, promptText = "Enter Path...") {
+                        validWhen(targetPathIsValid)
                         paddingLeft = 6.0
                         gridpaneColumnConstraints { hgrow = Priority.ALWAYS }
                         sceneProperty().onChange {

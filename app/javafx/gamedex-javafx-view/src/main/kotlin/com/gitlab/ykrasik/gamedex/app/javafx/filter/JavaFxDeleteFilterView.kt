@@ -18,11 +18,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.DeleteFilterView
 import com.gitlab.ykrasik.gamedex.app.api.filter.NamedFilter
+import com.gitlab.ykrasik.gamedex.app.api.util.fromView
+import com.gitlab.ykrasik.gamedex.app.api.util.writeTo
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import tornadofx.stringBinding
 
 /**
@@ -31,15 +33,14 @@ import tornadofx.stringBinding
  * Time: 13:13
  */
 class JavaFxDeleteFilterView : ConfirmationWindow(icon = Icons.delete), DeleteFilterView {
-    override val filter = viewMutableStatefulChannel(NamedFilter.Null)
-
     private val filterView = JavaFxFilterView(allowSaveLoad = false, readOnly = true)
+
+    override val filter = viewMutableStateFlow(NamedFilter.Null, debugName = "filter")
+        .writeTo(filterView.filter) { it.value.filter.fromView }
 
     init {
         titleProperty.bind(filter.property.stringBinding { "Delete filter '${it!!.id}'?" })
         register()
-
-        filter.mapTo(filterView.filter) { it.filter }
     }
 
     override val root = buildAreYouSure {

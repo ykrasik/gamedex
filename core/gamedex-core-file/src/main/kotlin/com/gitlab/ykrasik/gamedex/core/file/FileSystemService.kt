@@ -20,15 +20,18 @@ import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
-import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.core.storage.memoryCached
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.util.*
 import com.google.inject.BindingAnnotation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,13 +56,19 @@ class FileSystemServiceImpl @Inject constructor(
     }
 
     init {
-        eventBus.on<GameEvent.Deleted>(Dispatchers.IO) { it.games.forEach(::onGameDeleted) }
-        eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { onDbInvalidated() }
+        flowScope(Dispatchers.IO) {
+            eventBus.flowOf<GameEvent.Deleted>().forEach(debugName = "onGameDeleted") {
+                it.games.forEach(::onGameDeleted)
+            }
+            eventBus.flowOf<DatabaseInvalidatedEvent>().forEach(debugName = "onDatabaseInvalidated") {
+                onDbInvalidated()
+            }
+        }
     }
 
-    override fun fileTree(gameId: GameId, path: File): Ref<FileTree?> {
+    override fun fileTree(gameId: GameId, path: File): StateFlow<FileTree?> {
         val fileTree = storage[gameId]
-        val ref = ref(fileTree)
+        val flow = MutableStateFlow(fileTree)
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
         GlobalScope.launch(Dispatchers.IO) {
@@ -67,13 +76,13 @@ class FileSystemServiceImpl @Inject constructor(
                 val newFileTree = calcFileTree(path)
                 if (newFileTree != null && newFileTree != fileTree) {
                     storage[gameId] = newFileTree
-                    ref.value = newFileTree
+                    flow.value = newFileTree
                 }
             } catch (e: Exception) {
                 log.error("Error reading $path", e)
             }
         }
-        return ref
+        return flow
     }
 
     private fun calcFileTree(file: File): FileTree? {

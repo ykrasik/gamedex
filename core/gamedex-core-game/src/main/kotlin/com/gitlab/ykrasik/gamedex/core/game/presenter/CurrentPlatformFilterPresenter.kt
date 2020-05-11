@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithCurrentPlatformFilter
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
+import kotlinx.coroutines.flow.drop
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,12 +35,14 @@ class CurrentPlatformFilterPresenter @Inject constructor(
 ) : Presenter<ViewWithCurrentPlatformFilter> {
     override fun present(view: ViewWithCurrentPlatformFilter) = object : ViewSession() {
         init {
-            view.currentPlatformFilter.bind(repo.currentPlatformFilter)
-            view.currentPlatformFilter.onChange { filter ->
-                if (view.currentPlatformFilterIsValid.value.isSuccess) {
-                    repo.update(filter)
+            view.currentPlatformFilter *= repo.currentPlatformFilter withDebugName "currentPlatformFilter"
+            view.currentPlatformFilterValidatedValue.allValues()
+                .drop(1)
+                .forEach(debugName = "onCurrentPlatformFilterValidatedValueChanged") { (filter, isValid) ->
+                    if (isValid.isSuccess) {
+                        repo.update(filter)
+                    }
                 }
-            }
         }
     }
 }

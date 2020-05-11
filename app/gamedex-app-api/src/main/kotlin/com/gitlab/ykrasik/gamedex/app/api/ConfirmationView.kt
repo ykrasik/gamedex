@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulChannel
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:37
  */
 interface ConfirmationView {
-    val canAccept: StatefulChannel<IsValid>
-    val acceptActions: MultiReadChannel<Unit>
-    val cancelActions: MultiReadChannel<Unit>
+    val canAccept: MutableStateFlow<IsValid>
+    val acceptActions: Flow<Unit>
+    val cancelActions: Flow<Unit>
 }

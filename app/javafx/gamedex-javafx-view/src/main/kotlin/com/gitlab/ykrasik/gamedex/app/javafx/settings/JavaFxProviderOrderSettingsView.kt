@@ -24,12 +24,12 @@ import com.gitlab.ykrasik.gamedex.javafx.control.errorTooltip
 import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.color
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
@@ -49,15 +49,15 @@ import tornadofx.*
 class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAlphabetical), ProviderOrderSettingsView {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val canChangeProviderOrder = statefulChannel(IsValid.valid)
+    override val canChangeProviderOrder = mutableStateFlow(IsValid.valid, debugName = "canChangeProviderOrder")
 
-    override val search = viewMutableStatefulChannel<Order>(emptyList())
-    override val name = viewMutableStatefulChannel<Order>(emptyList())
-    override val description = viewMutableStatefulChannel<Order>(emptyList())
-    override val releaseDate = viewMutableStatefulChannel<Order>(emptyList())
-    override val thumbnail = viewMutableStatefulChannel<Order>(emptyList())
-    override val poster = viewMutableStatefulChannel<Order>(emptyList())
-    override val screenshot = viewMutableStatefulChannel<Order>(emptyList())
+    override val search = viewMutableStateFlow<Order>(emptyList(), debugName = "search")
+    override val name = viewMutableStateFlow<Order>(emptyList(), debugName = "name")
+    override val description = viewMutableStateFlow<Order>(emptyList(), debugName = "description")
+    override val releaseDate = viewMutableStateFlow<Order>(emptyList(), debugName = "releaseDate")
+    override val thumbnail = viewMutableStateFlow<Order>(emptyList(), debugName = "thumbnail")
+    override val poster = viewMutableStateFlow<Order>(emptyList(), debugName = "poster")
+    override val screenshot = viewMutableStateFlow<Order>(emptyList(), debugName = "screenshot")
 
     init {
         register()

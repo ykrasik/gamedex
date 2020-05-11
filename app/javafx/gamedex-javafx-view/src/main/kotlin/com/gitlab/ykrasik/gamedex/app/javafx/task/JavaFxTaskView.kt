@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.task
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskProgress
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -38,15 +38,15 @@ import tornadofx.*
  * Time: 10:02
  */
 class JavaFxTaskView : PresentableView(), TaskView {
-    override val job = statefulChannel<Job?>(null)
+    override val job = mutableStateFlow<Job?>(null, debugName = "job")
 
-    override val isCancellable = statefulChannel(false)
-    override val cancelTaskActions = channel<Unit>()
+    override val isCancellable = mutableStateFlow(false, debugName = "isCancellable")
+    override val cancelTaskActions = broadcastFlow<Unit>()
 
     override val taskProgress = JavaFxTaskProgress()
     override val subTaskProgress = JavaFxTaskProgress()
 
-    override val isRunningSubTask = statefulChannel(false)
+    override val isRunningSubTask = mutableStateFlow(false, debugName = "isRunningSubTask")
 
     init {
         register()
@@ -111,15 +111,15 @@ class JavaFxTaskView : PresentableView(), TaskView {
     }
 
     class JavaFxTaskProgress : TaskProgress {
-        override val title = statefulChannel("")
+        override val title = mutableStateFlow("", debugName = "title")
 
-        override val image = statefulChannel<Image?>(null)
+        override val image = mutableStateFlow<Image?>(null, debugName = "image")
         val javaFxImage = image.property.binding { it?.image }
 
-        override val message = statefulChannel("")
-        override val processedItems = statefulChannel(0)
-        override val totalItems = statefulChannel(0)
-        override val progress = statefulChannel(ProgressIndicator.INDETERMINATE_PROGRESS)
+        override val message = mutableStateFlow("", debugName = "message")
+        override val processedItems = mutableStateFlow(0, debugName = "processedItems")
+        override val totalItems = mutableStateFlow(0, debugName = "totalItems")
+        override val progress = mutableStateFlow(ProgressIndicator.INDETERMINATE_PROGRESS, debugName = "progress")
 
 //        val processedItemsCount = processedItemsProperty.combineLatest(totalItemsProperty).stringBinding {
 //            val (processedItems, totalItems) = it!!

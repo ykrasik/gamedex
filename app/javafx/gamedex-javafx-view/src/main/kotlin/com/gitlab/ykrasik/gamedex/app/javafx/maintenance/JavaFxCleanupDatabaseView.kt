@@ -18,16 +18,14 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleDataCategory
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.mapToList
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.color
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStatefulChannel
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.scene.control.ScrollPane
@@ -41,11 +39,11 @@ import tornadofx.*
  * Time: 09:57
  */
 class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.databaseCleanup), CleanupDatabaseView {
-    override val staleData = viewMutableStatefulChannel(StaleData(emptyList(), emptyList(), emptyMap(), emptyMap()))
+    override val staleData = viewMutableStateFlow(StaleData.Null, debugName = "staleData")
 
-    override val librariesAndGames = JavaFxStaleDataCategory()
-    override val images = JavaFxStaleDataCategory()
-    override val fileCache = JavaFxStaleDataCategory()
+    override val isDeleteLibrariesAndGames = viewMutableStateFlow(false, debugName = "isDeleteLibrariesAndGames")
+    override val isDeleteImages = viewMutableStateFlow(false, debugName = "isDeleteImages")
+    override val isDeleteFileCache = viewMutableStateFlow(false, debugName = "isDeleteFileCache")
 
     init {
         register()
@@ -60,8 +58,8 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
             fieldset("Select stale data to delete") {
                 horizontalField("Libraries & Games") {
                     label.graphic = Icons.hdd.color(Color.BLACK)
-                    showWhen(librariesAndGames.canDelete)
-                    jfxCheckBox(librariesAndGames.shouldDelete.property)
+                    showWhen { staleData.property.map { it.libraries.isNotEmpty() || it.games.isNotEmpty() } }
+                    jfxCheckBox(isDeleteLibrariesAndGames.property)
 
                     viewButton(staleData.property.stringBinding { "${it!!.libraries.size} Libraries" }) {
                         prettyListView(staleData.property.mapToList { it.libraries.map { it.path } })
@@ -77,14 +75,14 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
                 }
                 horizontalField("Images") {
                     label.graphic = Icons.thumbnail
-                    showWhen(images.canDelete)
-                    jfxCheckBox(images.shouldDelete.property)
+                    showWhen { staleData.property.map { it.images.isNotEmpty() } }
+                    jfxCheckBox(isDeleteImages.property)
                     label(staleData.property.stringBinding { "${it!!.images.size} Images: ${it.staleImagesSizeTaken.humanReadable}" })
                 }
                 horizontalField("File Cache") {
                     label.graphic = Icons.fileQuestion
-                    showWhen(fileCache.canDelete)
-                    jfxCheckBox(fileCache.shouldDelete.property)
+                    showWhen { staleData.property.map { it.fileTrees.isNotEmpty() } }
+                    jfxCheckBox(isDeleteFileCache.property)
                     label(staleData.property.stringBinding { "${it!!.fileTrees.size} File Cache Entries: ${it.staleFileTreesSizeTaken.humanReadable}" })
                 }
             }
@@ -99,9 +97,4 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
             addClass(GameDexStyle.infoButton)
             textProperty().bind(textProperty)
         }
-
-    class JavaFxStaleDataCategory : StaleDataCategory {
-        override val canDelete = statefulChannel(IsValid.valid)
-        override val shouldDelete = viewMutableStatefulChannel(false)
-    }
 }

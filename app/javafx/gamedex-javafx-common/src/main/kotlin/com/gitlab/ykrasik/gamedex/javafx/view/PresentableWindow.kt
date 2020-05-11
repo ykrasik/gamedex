@@ -17,12 +17,12 @@
 package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
-import com.gitlab.ykrasik.gamedex.javafx.statefulChannel
+import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.cancelButton
@@ -44,9 +44,9 @@ import tornadofx.*
  * Time: 20:50
  */
 abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : PresentableView(title, icon), ConfirmationView {
-    override val canAccept = statefulChannel(IsValid.valid)
-    override val acceptActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
+    override val canAccept = mutableStateFlow(IsValid.valid, debugName = "canAccept")
+    override val acceptActions = broadcastFlow<Unit>()
+    override val cancelActions = broadcastFlow<Unit>()
 
     protected val acceptButton = acceptButton {
         enableWhen(canAccept)

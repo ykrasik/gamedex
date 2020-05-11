@@ -17,8 +17,9 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -26,6 +27,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 08:50
  */
 interface ViewWithCurrentPlatformFilter {
-    val currentPlatformFilter: ViewMutableStatefulChannel<Filter>
-    val currentPlatformFilterIsValid: ViewMutableStatefulChannel<IsValid>
+    val currentPlatformFilter: MutableStateFlow<Filter>
+    val currentPlatformFilterValidatedValue: ViewMutableStateFlow<ValidatedValue<Filter>>
 }

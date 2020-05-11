@@ -19,13 +19,17 @@ package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffFilterMode
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffs
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import java.util.function.Predicate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -42,21 +46,23 @@ class FolderNameDiffReportPresenter @Inject constructor(
     private val eventBus: EventBus
 ) : Presenter<FolderNameDiffView> {
     override fun present(view: FolderNameDiffView) = object : ViewSession() {
-        private val isDirty = conflatedChannel(true)
+        private val isDirty = MutableStateFlow(true)
+        private val shouldRun = isDirty and isShowing withDebugName "shouldRun"
 
         init {
-            eventBus.forEach<GameEvent> { isDirty *= true }
-            view.hideViewActions.forEach { hideView() }
+            eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") { isDirty *= true }
 
-            view.searchText.debounce().forEach { searchText ->
+            view.matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
                 if (searchText.isNotBlank()) {
-                    view.matchingGame *= view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+                    view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+                } else {
+                    null
                 }
-            }
+            } withDebugName "matchingGame"
 
-            view.filterMode.mapTo(view.predicate) { filterMode ->
+            view.predicate *= view.filterMode.allValues().map { filterMode ->
                 when (filterMode) {
-                    FolderNameDiffFilterMode.None -> Predicate { true }
+                    FolderNameDiffFilterMode.None -> Predicate<FolderNameDiffs> { true }
                     FolderNameDiffFilterMode.IgnoreIfSingleMatch -> Predicate { diff ->
                         diff.diffs.none { it.patch == null }
                     }
@@ -65,24 +71,19 @@ class FolderNameDiffReportPresenter @Inject constructor(
                         matches.toDouble() / diff.diffs.size < 0.5
                     }
                 }
-            }
+            } withDebugName "predicate"
+            view.hideViewActions.forEach { hideView() }
 
-            isDirty.forEach { isDirty ->
-                if (isDirty && isShowing) {
+            shouldRun.forEach(debugName = "onShouldRun") {
+                if (it) {
                     detectFolderNameDiffs()
-                    this.isDirty *= false
+                    isDirty *= false
                 }
             }
         }
 
         private suspend fun detectFolderNameDiffs() {
-            val folderNameDiffs = taskService.execute(maintenanceService.detectFolderNameDiffs())
-            view.diffs.setAll(folderNameDiffs)
-        }
-
-        override suspend fun onShown() {
-            // Send the existing 'isDirty' value to the channel again, to cause the consumer to re-run
-            isDirty.resend()
+            view.diffs *= taskService.execute(maintenanceService.detectFolderNameDiffs())
         }
 
         // TODO: Do I need the better search capabilities of searchService?

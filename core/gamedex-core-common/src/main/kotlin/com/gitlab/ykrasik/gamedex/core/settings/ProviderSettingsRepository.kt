@@ -17,11 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.core.log.LogService
-import com.gitlab.ykrasik.gamedex.core.storage.StorageObservable
+import com.gitlab.ykrasik.gamedex.core.storage.StorageMutableStateFlow
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.Modifier
-import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,12 +41,11 @@ class ProviderSettingsRepository @Inject constructor(
         val account: Map<String, String>
     )
 
-    class Repo(private val storage: StorageObservable<Data>) {
-        val enabled = storage.biChannel(Data::enabled) { copy(enabled = it) }
-        val account = storage.biChannel(Data::account) { copy(account = it) }
+    class Repo(storage: StorageMutableStateFlow<Data>) {
+        val enabled = storage.biMap(Data::enabled) { copy(enabled = it) }
+        val account = storage.biMap(Data::account) { copy(account = it) }
 
-        fun modify(modifier: Modifier<Data>) = storage.modify(modifier)
-        fun perform(f: suspend (Data) -> Unit) = storage.subscribe(start = CoroutineStart.UNDISPATCHED, f = f)
+        val data: StateFlow<Data> = storage
     }
 
     private val _providers = mutableMapOf<ProviderId, Repo>()
@@ -58,14 +58,15 @@ class ProviderSettingsRepository @Inject constructor(
                 account = emptyMap()
             )
         })
-        _providers[provider.id] = repo
 
-        repo.account.subscribe { account ->
-            account.values.forEach {
-                logService.addBlacklistValue(it)
+        flowScope(Dispatchers.Default) {
+            repo.account.forEach(debugName = "${provider.id}.onAccountChanged") { account ->
+                account.values.forEach {
+                    logService.addBlacklistValue(it)
+                }
             }
         }
-
+        _providers[provider.id] = repo
         return repo
     }
 }

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 12:28
  */
 interface ClearUserDataView {
-    val clearUserDataActions: MultiReadChannel<Unit>
+    val clearUserDataActions: Flow<Unit>
 
     suspend fun confirmClearUserData(): Boolean
 }

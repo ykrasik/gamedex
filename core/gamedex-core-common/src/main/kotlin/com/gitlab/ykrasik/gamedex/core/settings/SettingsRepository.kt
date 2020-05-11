@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.core.storage.StorageObservable
+import com.gitlab.ykrasik.gamedex.core.storage.StorageMutableStateFlow
 import kotlin.reflect.KClass
 
 interface SettingsRepository {
@@ -26,7 +26,7 @@ interface SettingsRepository {
         klass: KClass<T>,
         resettable: Boolean,
         default: () -> T
-    ): StorageObservable<T>
+    ): StorageMutableStateFlow<T>
 
     fun saveSnapshot()
     fun commitSnapshot()
@@ -39,4 +39,4 @@ inline fun <reified T : Any> SettingsRepository.storage(
     name: String,
     resettable: Boolean = true,
     noinline default: () -> T
-): StorageObservable<T> = storage(basePath, name, T::class, resettable, default)
+): StorageMutableStateFlow<T> = storage(basePath, name, T::class, resettable, default)

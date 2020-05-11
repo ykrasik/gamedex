@@ -18,19 +18,22 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
-import com.gitlab.ykrasik.gamedex.app.api.util.StatefulMultiReadChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGameService
 import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
-import com.gitlab.ykrasik.gamedex.core.util.*
+import com.gitlab.ykrasik.gamedex.core.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.core.util.filterObservable
+import com.gitlab.ykrasik.gamedex.core.util.transform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.and
 import com.google.inject.ImplementedBy
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.map
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,30 +45,31 @@ import javax.inject.Singleton
 @ImplementedBy(CommonDataImpl::class)
 interface CommonData {
     val games: ListObservable<Game>
-    val platformGames: ListObservable<Game>
+    val currentPlatformGames: ListObservable<Game>
 
     val genres: ListObservable<Genre>
-    val platformGenres: ListObservable<Genre>
+    val currentPlatformGenres: ListObservable<Genre>
 
     val tags: ListObservable<TagId>
-    val platformTags: ListObservable<TagId>
+    val currentPlatformTags: ListObservable<TagId>
 
     val filterTags: ListObservable<TagId>
-    val platformFilterTags: ListObservable<TagId>
+    val currentPlatformFilterTags: ListObservable<TagId>
 
     val libraries: ListObservable<Library>
     val contentLibraries: ListObservable<Library>
-    val platformLibraries: ListObservable<Library>
+    val currentPlatformLibraries: ListObservable<Library>
 
     val allProviders: ListObservable<GameProvider.Metadata>
-    val platformProviders: ListObservable<GameProvider.Metadata>
+    val currentPlatformProviders: ListObservable<GameProvider.Metadata>
     val enabledProviders: ListObservable<GameProvider.Metadata>
 
     val platformsWithLibraries: ListObservable<Platform>
     val platformsWithEnabledProviders: ListObservable<Platform>
 
-    val isGameSyncRunning: StatefulMultiReadChannel<Boolean>
-    val canSyncOrUpdateGames: StatefulMultiReadChannel<IsValid>
+    val isGameSyncRunning: Flow<Boolean>
+    val disableWhenGameSyncIsRunning: Flow<IsValid>
+    val canSyncOrUpdateGames: Flow<IsValid>
 }
 
 @Singleton
@@ -78,51 +82,50 @@ class CommonDataImpl @Inject constructor(
 ) : CommonData {
 
     override val games = gameService.games
-    // The platform doesn't change often, so an unoptimized filter is acceptable here.
-    override val platformGames =
-        games.filtering(settingsRepo.platform.subscribe().map(Dispatchers.Default) { platform ->
-            { game: Game -> platform.matches(game.platform) }
-        })
+
+    override val currentPlatformGames = games.filterObservable(settingsRepo.platform.map { platform ->
+        { game: Game -> platform.matches(game.platform) }
+    })
 
     override val genres = games.genres()
-    override val platformGenres = platformGames.genres()
-    private fun ListObservable<Game>.genres() = flatMapping { it.genres }.distincting().sortingBy { it.id }
+    override val currentPlatformGenres = currentPlatformGames.genres()
+    private fun ListObservable<Game>.genres() = transform { it.flatMap { it.genres }.distinct().sortedBy { it.id } }
 
     override val tags = games.tags()
-    override val platformTags = platformGames.tags()
-    private fun ListObservable<Game>.tags() = flatMapping { it.tags }.distincting().sortingBy { it }
+    override val currentPlatformTags = currentPlatformGames.tags()
+    private fun ListObservable<Game>.tags() = transform { it.flatMap { it.tags }.distinct().sortedBy { it } }
 
     override val filterTags = games.filterTags()
-    override val platformFilterTags = games.filterTags()
-    private fun ListObservable<Game>.filterTags() = flatMapping { it.filterTags }.distincting().sortingBy { it }
+    override val currentPlatformFilterTags = games.filterTags()
+    private fun ListObservable<Game>.filterTags() = transform { it.flatMap { it.filterTags }.distinct().sortedBy { it } }
 
     override val libraries = libraryService.libraries
-    override val contentLibraries = libraries.filtering { it.type != LibraryType.Excluded }
-    override val platformLibraries =
-        contentLibraries.filtering(settingsRepo.platform.subscribe().map(Dispatchers.Default) { platform ->
-            { library: Library -> platform.matches(library.platform) }
-        })
+    override val contentLibraries = libraries.filterObservable { it.type != LibraryType.Excluded }
+    override val currentPlatformLibraries = contentLibraries.filterObservable(settingsRepo.platform.map { platform ->
+        { library: Library -> platform.matches(library.platform) }
+    })
 
     override val allProviders = ListObservableImpl(gameProviderService.allProviders)
-    override val platformProviders =
-        allProviders.filtering(settingsRepo.platform.subscribe().map(Dispatchers.Default) { platform ->
-            { provider: GameProvider.Metadata ->
-                when (platform) {
-                    is AvailablePlatform.All -> true
-                    is AvailablePlatform.SinglePlatform -> provider.supports(platform.platform)
-                }
+    override val currentPlatformProviders = allProviders.filterObservable(settingsRepo.platform.map { platform ->
+        { provider: GameProvider.Metadata ->
+            when (platform) {
+                is AvailablePlatform.All -> true
+                is AvailablePlatform.SinglePlatform -> provider.supports(platform.platform)
             }
-        })
+        }
+    })
     override val enabledProviders = gameProviderService.enabledProviders
 
-    override val platformsWithLibraries = contentLibraries.mapping { it.platform }.distincting()
-    override val platformsWithEnabledProviders = enabledProviders.flatMapping { provider -> provider.supportedPlatforms }.distincting()
+    override val platformsWithLibraries = contentLibraries.transform { libraries -> libraries.map { it.platform }.distinct() }
+    override val platformsWithEnabledProviders = enabledProviders.transform { providers -> providers.flatMap { it.supportedPlatforms }.distinct() }
 
     override val isGameSyncRunning = syncGameService.isGameSyncRunning
-    override val canSyncOrUpdateGames: StatefulMultiReadChannel<IsValid> =
-        contentLibraries.itemsChannel.combineLatest(platformsWithEnabledProviders.itemsChannel, isGameSyncRunning) { libraries, platformsWithEnabledProviders, isGameSyncRunning ->
-            Try {
-                check(!isGameSyncRunning) { "Game sync in progress!" }
+    override val disableWhenGameSyncIsRunning = isGameSyncRunning.map {
+        IsValid { check(!it) { "Game sync in progress!" } }
+    }
+    override val canSyncOrUpdateGames: Flow<IsValid> =
+        combine(disableWhenGameSyncIsRunning, contentLibraries.items, platformsWithEnabledProviders.items) { disableWhenGameSyncIsRunning, libraries, platformsWithEnabledProviders ->
+            disableWhenGameSyncIsRunning and IsValid {
                 check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
                 check(platformsWithEnabledProviders.isNotEmpty()) { "Enable at least 1 provider!" }
                 check(libraries.any { it.platform in platformsWithEnabledProviders }) { "Enable a provider that supports your platform!" }

@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.api.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStatefulChannel
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
+import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 
 /**
  * User: ykrasik
@@ -27,6 +27,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:38
  */
 interface BulkUpdateGamesView : ConfirmationView {
-    val bulkUpdateGamesFilter: ViewMutableStatefulChannel<Filter>
-    val bulkUpdateGamesFilterIsValid: ViewMutableStatefulChannel<IsValid>
+    val bulkUpdateGamesFilter: ViewMutableStateFlow<Filter>
+    val bulkUpdateGamesFilterValidatedValue: ViewMutableStateFlow<ValidatedValue<Filter>>
 }

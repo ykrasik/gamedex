@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameDetailsSummaryBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -45,31 +45,31 @@ import tornadofx.*
 class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     private val commonOps: JavaFxCommonOps by di()
 
-    override val state = statefulChannel(GameSearchState.Null)
+    override val state = mutableStateFlow(GameSearchState.Null, debugName = "state")
     private val currentProviderId = state.property.stringBinding { it!!.currentProvider ?: "" }
 
-    override val query = viewMutableStatefulChannel("")
+    override val query = viewMutableStateFlow("", debugName = "query")
     override val searchResults = settableList<GameProvider.SearchResult>()
 
-    override val selectedSearchResult = viewMutableStatefulChannel<GameProvider.SearchResult?>(null)
-    override val fetchSearchResultActions = channel<GameProvider.SearchResult>()
+    override val selectedSearchResult = viewMutableStateFlow<GameProvider.SearchResult?>(null, debugName = "selectedSearchResult")
+    override val fetchSearchResultActions = broadcastFlow<GameProvider.SearchResult>()
 
-    override val canChangeState = statefulChannel(IsValid.valid)
-    override val canSearchCurrentQuery = statefulChannel(IsValid.valid)
-    override val canAcceptSearchResult = statefulChannel(IsValid.valid)
-    override val canExcludeSearchResult = statefulChannel(IsValid.valid)
+    override val canChangeState = mutableStateFlow(IsValid.valid, debugName = "canChangeState")
+    override val canSearchCurrentQuery = mutableStateFlow(IsValid.valid, debugName = "canSearchCurrentQuery")
+    override val canAcceptSearchResult = mutableStateFlow(IsValid.valid, debugName = "canAcceptSearchResult")
+    override val canExcludeSearchResult = mutableStateFlow(IsValid.valid, debugName = "canExcludeSearchResult")
 
-//    override val canToggleFilterPreviouslyDiscardedResults = statefulChannel(IsValid.valid)
-//    override val isFilterPreviouslyDiscardedResults = viewMutableStatefulChannel(false)
+    override val canToggleFilterPreviouslyDiscardedResults = mutableStateFlow(IsValid.valid, debugName = "canToggleFilterPreviouslyDiscardedResults")
+    override val isFilterPreviouslyDiscardedResults = viewMutableStateFlow(false, debugName = "isFilterPreviouslyDiscardedResults")
 
-    override val isAllowSmartChooseResults = statefulChannel(false)
-    override val canSmartChooseResult = statefulChannel(false)
+    override val isAllowSmartChooseResults = mutableStateFlow(false, debugName = "isAllowSmartChooseResults")
+    override val canSmartChooseResult = mutableStateFlow(false, debugName = "canSmartChooseResult")
 
-    override val choiceActions = channel<GameSearchState.ProviderSearch.Choice>()
-    override val changeProviderActions = channel<ProviderId>()
+    override val choiceActions = broadcastFlow<GameSearchState.ProviderSearch.Choice>()
+    override val changeProviderActions = broadcastFlow<ProviderId>()
 
-    override val canShowMoreResults = statefulChannel(IsValid.valid)
-    override val showMoreResultsActions = channel<Unit>()
+    override val canShowMoreResults = mutableStateFlow(IsValid.valid, debugName = "canShowMoreResults")
+    override val showMoreResultsActions = broadcastFlow<Unit>()
 
     private val resultsView = prettyListView(searchResults) {
         vgrow = Priority.ALWAYS
@@ -104,7 +104,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
 
         onUserSelect(clickCount = 2) {
             if (canAcceptSearchResult.value.isSuccess) {
-                choiceActions.event(GameSearchState.ProviderSearch.Choice.Accept(selectedSearchResult.value!!))
+                choiceActions.event(GameSearchState.ProviderSearch.Choice.Accept(selectedSearchResult.v!!))
             }
         }
         searchResults.onChange {
@@ -114,7 +114,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
         }
 
         selectionModel.selectedItemProperty().typeSafeOnChange {
-            selectedSearchResult.value = it
+            selectedSearchResult *= it
         }
     }
 
@@ -152,7 +152,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
             spacer()
             acceptButton("Accept") {
                 enableWhen(canAcceptSearchResult)
-                action(choiceActions) { GameSearchState.ProviderSearch.Choice.Accept(selectedSearchResult.value!!) }
+                action(choiceActions) { GameSearchState.ProviderSearch.Choice.Accept(selectedSearchResult.v!!) }
             }
         }
 
@@ -268,24 +268,24 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                     prefHeightProperty().bind(newSearch.heightProperty())
                     action {
                         when (searchButtonMode.value!!) {
-                            SearchButtonMode.Search -> choiceActions.event(GameSearchState.ProviderSearch.Choice.NewSearch(query.value))
+                            SearchButtonMode.Search -> choiceActions.event(GameSearchState.ProviderSearch.Choice.NewSearch(query.v))
                             SearchButtonMode.ShowMore -> showMoreResultsActions.event(Unit)
                             SearchButtonMode.Disabled -> kotlin.error("Cannot search or show more results!")
                         }
                     }
                 }
 
-//                jfxButton {
-//                    showWhen { canToggleFilterPreviouslyDiscardedResults.property.booleanBinding { it!!.isSuccess } }
-//                    graphicProperty().bind(isFilterPreviouslyDiscardedResults.property.binding { if (it) Icons.expand else Icons.collapse })
-//                    tooltip {
-//                        textProperty().bind(isFilterPreviouslyDiscardedResults.property.stringBinding { "${if (it!!) "Show" else "Hide"} previously discarded search results" })
-//                    }
-//                    action {
-//                        isFilterPreviouslyDiscardedResults.value = !isFilterPreviouslyDiscardedResults.value
-//                    }
-//                }
-                header(searchResults.sizeProperty.stringBinding { "Results: $it" })
+                jfxButton {
+                    showWhen { canToggleFilterPreviouslyDiscardedResults.property.booleanBinding { it!!.isSuccess } }
+                    graphicProperty().bind(isFilterPreviouslyDiscardedResults.property.binding { if (it) Icons.expand else Icons.collapse })
+                    tooltip {
+                        textProperty().bind(isFilterPreviouslyDiscardedResults.property.stringBinding { "${if (it!!) "Show" else "Hide"} previously discarded search results" })
+                    }
+                    action {
+                        isFilterPreviouslyDiscardedResults.valueFromView = !isFilterPreviouslyDiscardedResults.v
+                    }
+                }
+                header(searchResults.sizeProperty.typesafeStringBinding { "Results: $it" })
             }
         }
         children += resultsView

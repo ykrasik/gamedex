@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 08:36
  */
 interface ViewCanImportDatabase {
-    val importDatabaseActions: MultiReadChannel<Unit>
+    val importDatabaseActions: Flow<Unit>
 }

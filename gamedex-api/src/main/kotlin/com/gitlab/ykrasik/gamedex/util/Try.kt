@@ -23,22 +23,35 @@ package com.gitlab.ykrasik.gamedex.util
  */
 sealed class Try<out T> {
     data class Success<out T>(val value: T) : Try<T>()
-    data class Error<out T>(val error: Exception) : Try<T>()
+    data class Failure<out T>(val error: Exception) : Try<T>() {
+        override fun hashCode() = error.hashCode()
+        override fun equals(other: Any?): Boolean {
+            if (other !is Failure<*>) return false
+            val otherError = other.error
 
-    val isSuccess: Boolean get() = this is Success
-    val isError: Boolean get() = this is Error
-
-    fun get(): T = when (this) {
-        is Success -> value
-        is Error -> throw error
+            // This is not a full-fledged exception checking mechanism but it is quick & good enough for our requirements.
+            // It exists so that Failure acts as a data class - this avoids redundant value changes in StateFlow.
+            return this.error::class == otherError::class &&
+                this.error.message == otherError.message &&
+                this.error.cause?.message == otherError.cause?.message /* &&
+                this.error.stackTrace!!.contentEquals(otherError.stackTrace)*/
+        }
     }
 
-    val valueOrNull get() = if (this is Success) value else null
-    val errorOrNull get() = if (this is Error) error else null
+    val isSuccess: Boolean get() = this is Success
+    val isFailure: Boolean get() = this is Failure
+
+    fun getOrThrow(): T = when (this) {
+        is Success -> value
+        is Failure -> throw error
+    }
+
+    fun getOrNull() = if (this is Success) value else null
+    fun exceptionOrNull() = if (this is Failure) error else null
 
     companion object {
         fun <T> success(value: T): Try<T> = Success(value)
-        fun <T> error(error: Exception): Try<T> = Error(error)
+        fun <T> error(error: Exception): Try<T> = Failure(error)
 
         val valid: IsValid = success(Unit)
         fun invalid(error: String): IsValid = error(IllegalStateException(error))
@@ -52,11 +65,19 @@ sealed class Try<out T> {
     }
 }
 
-typealias IsValid = Try<Any>
-inline fun isValid(condition: Boolean, message: () -> String): IsValid = Try {
-    check(condition, message)
+// TODO: Make this inline when kotlin compiler stops throwing errors
+@Suppress("UNCHECKED_CAST")
+fun <T, R> Try<T>.map(f: (T) -> R): Try<R> = when (this) {
+    is Try.Success -> Try { f(value) }
+    is Try.Failure -> this as Try<R>
 }
 
-infix fun IsValid.or(other: IsValid): IsValid = if (isError) other else this
+typealias IsValid = Try<Any>
+
+@Suppress("FunctionName")
+// FIXME: Once kotlin stops throwing internal compiler errors, make this inline
+fun <T> IsValid(f: () -> T): IsValid = Try { f() as Any }
+
+infix fun IsValid.or(other: IsValid): IsValid = if (isFailure) other else this
 infix fun IsValid.and(other: IsValid): IsValid = if (isSuccess) other else this
 val IsValid.not get(): IsValid = if (isSuccess) IsValid.invalid("Negation") else IsValid.valid

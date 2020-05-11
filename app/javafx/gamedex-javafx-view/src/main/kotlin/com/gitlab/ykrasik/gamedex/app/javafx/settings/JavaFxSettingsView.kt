@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
@@ -55,12 +55,12 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val resetDefaultsActions = channel<Unit>()
+    override val resetDefaultsActions = broadcastFlow<Unit>()
 
-    override val mutableGameWallDisplaySettings = JavaFxGameWallDisplaySettings()
-    override val mutableNameOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
-    override val mutableMetaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
-    override val mutableVersionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
+    override val mutableGameWallDisplaySettings = JavaFxMutableGameWallDisplaySettings()
+    override val mutableNameOverlayDisplaySettings = JavaFxMutableOverlayDisplaySettings("name")
+    override val mutableMetaTagOverlayDisplaySettings = JavaFxMutableOverlayDisplaySettings("metaTag")
+    override val mutableVersionOverlayDisplaySettings = JavaFxMutableOverlayDisplaySettings("version")
 
     private val tabPane = jfxTabPane {
         addClass(GameDexStyle.hiddenTabPaneHeader)

@@ -20,6 +20,8 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddOrEditLibrary
 import com.gitlab.ykrasik.gamedex.core.*
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,14 +37,16 @@ class ShowAddOrEditLibraryPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanAddOrEditLibrary> {
     init {
-        eventBus.onHideViewRequested<EditLibraryView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<EditLibraryView>().forEach(debugName = "hideEditLibraryView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanAddOrEditLibrary) = object : ViewSession() {
         init {
-            view.canAddOrEditLibraries.disableWhenTrue(commonData.isGameSyncRunning) { "Game sync in progress!" }
+            view.canAddOrEditLibraries *= commonData.disableWhenGameSyncIsRunning withDebugName "canAddOrEditLibraries"
 
-            view.addOrEditLibraryActions.forEach {
+            view.addOrEditLibraryActions.forEach(debugName = "showEditLibraryView") {
                 view.canAddOrEditLibraries.assert()
 
                 viewManager.showEditLibraryView(library = it)

@@ -37,14 +37,13 @@ class PlatformPresenter @Inject constructor(
 ) : Presenter<ViewWithPlatform> {
     override fun present(view: ViewWithPlatform) = object : ViewSession() {
         init {
-            commonData.platformsWithLibraries.itemsChannel.forEach { platforms ->
+            commonData.platformsWithLibraries.items.forEach(debugName = "onPlatformsWithLibrariesChanged") { platforms ->
                 val availablePlatforms = (if (platforms.size > 1) listOf(AvailablePlatform.All) else emptyList()) +
                     platforms.map(AvailablePlatform::SinglePlatform)
-                view.availablePlatforms.setAll(availablePlatforms)
+                view.availablePlatforms *= availablePlatforms
 
                 if (availablePlatforms.size == 1) {
-                    val platform = availablePlatforms.first()
-                    settingsRepo.platform *= platform
+                    settingsRepo.platform *= availablePlatforms.first()
                 }
             }
             view.currentPlatform.bindBidirectional(settingsRepo.platform)

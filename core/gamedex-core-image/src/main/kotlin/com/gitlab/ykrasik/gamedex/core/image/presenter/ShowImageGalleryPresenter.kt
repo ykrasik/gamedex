@@ -22,7 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +39,14 @@ class ShowImageGalleryPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanShowImageGallery> {
     init {
-        eventBus.onHideViewRequested<ImageGalleryView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<ImageGalleryView>().forEach(debugName = "hideImageGalleryView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanShowImageGallery) = object : ViewSession() {
         init {
-            view.viewImageActions.forEach { params ->
+            view.viewImageActions.forEach(debugName = "showImageGalleryView") { params ->
                 viewManager.showImageGalleryView(params)
             }
         }

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
+import kotlinx.coroutines.flow.Flow
 
 /**
  * User: ykrasik
@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.MultiReadChannel
  * Time: 09:38
  */
 interface SettingsView : ConfirmationView {
-    val resetDefaultsActions: MultiReadChannel<Unit>
+    val resetDefaultsActions: Flow<Unit>
 
     suspend fun confirmResetDefaults(): Boolean
 }

@@ -22,8 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.onHideViewRequested
+import com.gitlab.ykrasik.gamedex.core.hideViewRequests
 import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
+import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.util.toUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,15 +44,18 @@ class BrowseUrlPresenter @Inject constructor(
     eventBus: EventBus
 ) : Presenter<ViewCanBrowseUrl> {
     init {
-        eventBus.onHideViewRequested<BrowserView> { viewManager.hide(it) }
+        flowScope(Dispatchers.Main.immediate) {
+            eventBus.hideViewRequests<BrowserView>().forEach(debugName = "hideBrowserView") { viewManager.hide(it) }
+        }
     }
 
     override fun present(view: ViewCanBrowseUrl) = object : ViewSession() {
         init {
-            view.browseUrlActions.forEach {
+            view.browseUrlActions.forEach(debugName = "onBrowseUrl") {
                 if (settingsRepo.useInternalBrowser.value) {
                     viewManager.showBrowserView(it)
                 } else {
+                    // FIXME: This logic belongs to the view
                     launch(Dispatchers.IO) {
                         Desktop.getDesktop().browse(it.toUrl().toURI())
                     }
