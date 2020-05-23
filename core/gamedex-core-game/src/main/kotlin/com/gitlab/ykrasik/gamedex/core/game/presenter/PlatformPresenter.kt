@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,16 +38,16 @@ class PlatformPresenter @Inject constructor(
 ) : Presenter<ViewWithPlatform> {
     override fun present(view: ViewWithPlatform) = object : ViewSession() {
         init {
-            commonData.platformsWithLibraries.items.forEach(debugName = "onPlatformsWithLibrariesChanged") { platforms ->
-                val availablePlatforms = (if (platforms.size > 1) listOf(AvailablePlatform.All) else emptyList()) +
-                    platforms.map(AvailablePlatform::SinglePlatform)
-                view.availablePlatforms *= availablePlatforms
+            view::availablePlatforms *= commonData.platformsWithLibraries.items.map { platforms ->
+                listOfNotNull(AvailablePlatform.All.takeIf { platforms.size > 1 }) + platforms.map(AvailablePlatform::SinglePlatform)
+            }
 
-                if (availablePlatforms.size == 1) {
-                    settingsRepo.platform *= availablePlatforms.first()
+            view.availablePlatforms.forEach(debugName = "onAvailablePlatformsChanged") {
+                if (it.size == 1) {
+                    settingsRepo.platform /= it.first()
                 }
             }
-            view.currentPlatform.bindBidirectional(settingsRepo.platform)
+            view::currentPlatform.bindBidirectional(settingsRepo.platform)
         }
     }
 }

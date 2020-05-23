@@ -37,5 +37,5 @@ interface ViewWithGames {
     val canSearch: MutableStateFlow<IsValid>
     val searchActions: Flow<Unit>
 
-    val searchSuggestions: SettableList<Game>
+    val searchSuggestions: MutableStateFlow<List<Game>>
 }

@@ -36,20 +36,20 @@ class SettingsPresenter @Inject constructor(
 ) : Presenter<SettingsView> {
     override fun present(view: SettingsView) = object : ViewSession() {
         init {
-            isShowing.forEach(debugName = "onShow") {
+            this::isShowing.forEach {
                 if (it) {
                     repo.saveSnapshot()
                 }
             }
-            view.acceptActions.forEach(debugName = "onAccept") {
+            view::acceptActions.forEach {
                 repo.commitSnapshot()
                 hideView()
             }
-            view.cancelActions.forEach(debugName = "onCancel") {
+            view::cancelActions.forEach {
                 repo.revertSnapshot()
                 hideView()
             }
-            view.resetDefaultsActions.forEach(debugName = "onResetDefaults") {
+            view::resetDefaultsActions.forEach {
                 if (view.confirmResetDefaults()) {
                     repo.resetDefaults()
                 }

@@ -51,7 +51,7 @@ class JavaFxSyncGamesWithMissingProvidersView : ConfirmationWindow("Sync Games w
     override val bulkSyncGamesFilterValidatedValue = viewMutableStateFlow(ValidatedValue(Filter.Null, IsValid.valid), debugName = "bulkSyncGamesFilterValidatedValue")
         .writeFrom(filterView.filterValidatedValue) { it.fromView }
 
-    override val syncOnlyMissingProviders = viewMutableStateFlow(false, debugName = "syncOnlyMissingProviders")
+    override val syncOnlyMissingProviders = viewMutableStateFlow(true, debugName = "syncOnlyMissingProviders")
 
     init {
         register()

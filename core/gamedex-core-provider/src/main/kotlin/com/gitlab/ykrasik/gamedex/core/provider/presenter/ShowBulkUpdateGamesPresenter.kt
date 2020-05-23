@@ -46,7 +46,7 @@ class ShowBulkUpdateGamesPresenter @Inject constructor(
 
     override fun present(view: ViewCanBulkUpdateGames) = object : ViewSession() {
         init {
-            view.canBulkUpdateGames *= commonData.canSyncOrUpdateGames withDebugName "canBulkUpdateGames"
+            view::canBulkUpdateGames *= commonData.canSyncOrUpdateGames
 
             view.bulkUpdateGamesActions.forEach(debugName = "showBulkUpdateGamesView") {
                 view.canBulkUpdateGames.assert()

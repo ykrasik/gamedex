@@ -34,7 +34,7 @@ import javax.inject.Singleton
 class OpenFilePresenter @Inject constructor() : Presenter<ViewCanOpenFile> {
     override fun present(view: ViewCanOpenFile) = object : ViewSession() {
         init {
-            view.openFileActions.forEach { file ->
+            view::openFileActions.forEach { file ->
                 try {
                     withContext(Dispatchers.IO) {
                         // TODO: This is actually more like view-specific logic.

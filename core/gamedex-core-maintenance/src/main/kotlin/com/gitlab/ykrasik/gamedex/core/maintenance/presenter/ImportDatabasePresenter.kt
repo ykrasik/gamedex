@@ -47,37 +47,38 @@ class ImportDatabasePresenter @Inject constructor(
         val importDbContent = MutableStateFlow(Try.error<ImportDbContent>(IllegalArgumentException("Empty")))
 
         init {
-            isShowing.forEach(debugName = "onShow") {
+            this::isShowing.forEach {
                 if (it) {
-                    view.importDatabaseFile *= ""
+                    view.importDatabaseFile /= ""
                     onBrowse()
                 }
             }
 
             // TODO: importDbContent *= view.importDatabaseFile.allValues().map {... throws compiler exceptions
             view.importDatabaseFile.allValues().forEach(debugName = "onImportDatabaseFileChanged") { importDatabaseFile ->
-                importDbContent *= Try {
+                importDbContent /= Try {
                     check(importDatabaseFile.isNotBlank()) { "Enter a path to a file!" }
                     check(importDatabaseFile.file.isFile) { "File doesn't exist or is a directory!" }
                     taskService.execute(maintenanceService.readImportDbFile(importDatabaseFile.file))
                 }
             }
 
-            view.importDatabaseFileIsValid *= importDbContent.map { it.map { Unit } } withDebugName "importDatabaseFileIsValid"
+            // Turn this into a Try<Unit>, so it doesn't print the import db content to the log which could be a ton of logging.
+            view::importDatabaseFileIsValid *= importDbContent.map { it and IsValid.valid }
 
-            view.canImportLibrary *= importDbContent.map { it.map { check(it.db != null) { "No library to import!" } } } withDebugName "canImportLibrary"
+            view::canImportLibrary *= importDbContent.map { it.map { check(it.db != null) { "No library to import!" } } }
             view.shouldImportLibrary *= view.canImportLibrary.map { it.isSuccess } withDebugName "shouldImportLibrary"
             view.shouldImportLibrary.onlyChangesFromView().forEach(debugName = "onShouldImportLibraryChanged") { view.canImportLibrary.assert() }
 
-            view.canImportProviderAccounts *= importDbContent.map { it.map { check(it.accounts != null) { "No accounts to import!" } } } withDebugName "canImportProviderAccounts"
+            view::canImportProviderAccounts *= importDbContent.map { it.map { check(it.accounts != null) { "No accounts to import!" } } }
             view.shouldImportProviderAccounts *= view.canImportProviderAccounts.map { it.isSuccess } withDebugName "shouldImportProviderAccounts"
             view.shouldImportProviderAccounts.onlyChangesFromView().forEach(debugName = "onShouldImportProviderAccounts") { view.canImportProviderAccounts.assert() }
 
-            view.canImportFilters *= importDbContent.map { it.map { check(it.filters != null) { "No filters to import!" } } } withDebugName "canImportFilters"
+            view::canImportFilters *= importDbContent.map { it.map { check(it.filters != null) { "No filters to import!" } } }
             view.shouldImportFilters *= view.canImportFilters.map { it.isSuccess } withDebugName "shouldImportFilters"
             view.shouldImportFilters.onlyChangesFromView().forEach(debugName = "onShouldImportFilters") { view.canImportFilters.assert() }
 
-            view.canAccept *= combine(
+            view::canAccept *= combine(
                 view.importDatabaseFileIsValid,
                 view.shouldImportLibrary.allValues(),
                 view.shouldImportProviderAccounts.allValues(),
@@ -86,17 +87,17 @@ class ImportDatabasePresenter @Inject constructor(
                 importDatabaseFileIsValid and IsValid {
                     check(shouldImportLibrary || shouldImportProviderAccounts || shouldImportFilters) { "Must import something!" }
                 }
-            } withDebugName "canAccept"
+            }
 
-            view.browseActions.forEach(debugName = "onBrowse") { onBrowse() }
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+            view::browseActions.forEach { onBrowse() }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private fun onBrowse() {
             val file = view.selectImportDatabaseFile(settingsRepo.exportDbDirectory.value.existsOrNull())
             if (file != null) {
-                view.importDatabaseFile *= file.absolutePath
+                view.importDatabaseFile /= file.absolutePath
             }
         }
 
@@ -113,7 +114,7 @@ class ImportDatabasePresenter @Inject constructor(
                 )
             }
             taskService.execute(maintenanceService.importDatabase(content))
-            settingsRepo.exportDbDirectory *= file.parentFile
+            settingsRepo.exportDbDirectory /= file.parentFile
         }
 
         private fun onCancel() {

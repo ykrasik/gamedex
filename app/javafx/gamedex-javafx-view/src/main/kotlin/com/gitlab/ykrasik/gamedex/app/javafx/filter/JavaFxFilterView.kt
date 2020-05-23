@@ -77,7 +77,7 @@ class JavaFxFilterView(
     override val filter = viewMutableStateFlow(Filter.Null, debugName = "filter")
     override val filterValidatedValue = mutableStateFlow(ValidatedValue(Filter.Null, IsValid.valid), debugName = "filterValidatedValue")
 
-    override val availableFilters = settableList<KClass<out Filter.Rule>>()
+    override val availableFilters = mutableStateFlow(emptyList<KClass<out Filter.Rule>>(), debugName = "availableFilters")
 
     override val availableLibraries = settableList<Library>()
     private val availableLibrariesSortedFiltered = availableLibraries.sortedFiltered(caseInsensitiveStringComparator(Library::name))
@@ -238,7 +238,7 @@ class JavaFxFilterView(
                 }
             }
             filter is Filter.Modifier -> render(filter.target, parentFilter = filter, prevFilter = (prevFilter as? Filter.Modifier)?.target)
-            filter is Filter.Rule -> renderBasicRule(filter, parentFilter, availableFilters) {
+            filter is Filter.Rule -> renderBasicRule(filter, parentFilter, availableFilters.list) {
                 when (filter) {
                     is Filter.Platform -> renderPlatformFilter(filter)
                     is Filter.Library -> renderLibraryFilter(filter)

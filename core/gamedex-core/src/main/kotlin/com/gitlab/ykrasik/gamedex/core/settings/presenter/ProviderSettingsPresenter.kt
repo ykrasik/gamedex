@@ -49,16 +49,16 @@ class ProviderSettingsPresenter @Inject constructor(
         val lastInvalidAccount = MutableStateFlow(emptyMap<String, String>())
 
         init {
-            isShowing.forEach(debugName = "onShow") {
+            this::isShowing.forEach {
                 if (it) {
-                    view.enabled *= settings.enabled.value
-                    view.currentAccount *= settings.account.value
+                    view.enabled /= settings.enabled.value
+                    view.currentAccount /= settings.account.value
                 }
             }
 
-            view.canChangeProviderSettings *= commonData.disableWhenGameSyncIsRunning withDebugName "canChangeProviderSettings"
+            view::canChangeProviderSettings *= commonData.disableWhenGameSyncIsRunning
 
-            view.status *= combine(view.currentAccount.allValues(), lastInvalidAccount, settings.account) { currentAccount, lastInvalidAccount, lastValidAccount ->
+            view::status *= combine(view.currentAccount.allValues(), lastInvalidAccount, settings.account) { currentAccount, lastInvalidAccount, lastValidAccount ->
                 when {
                     view.provider.accountFeature == null -> ProviderAccountStatus.NotRequired
                     accountHasEmptyFields(currentAccount) -> ProviderAccountStatus.Empty
@@ -66,28 +66,28 @@ class ProviderSettingsPresenter @Inject constructor(
                     currentAccount == lastInvalidAccount -> ProviderAccountStatus.Invalid
                     else -> ProviderAccountStatus.Unverified
                 }
-            } withDebugName "status"
-            view.canVerifyAccount *= view.status.map { status ->
+            }
+            view::canVerifyAccount *= view.status.map { status ->
                 IsValid {
                     check(status != ProviderAccountStatus.NotRequired) { "Provider does not require an account!" }
                     check(status != ProviderAccountStatus.Empty) { "Empty account!" }
                     check(status != ProviderAccountStatus.Valid) { "Account already verified!" }
                 }
-            } withDebugName "canVerifyAccount"
+            }
 
             view.enabled.onlyChangesFromView().forEach(debugName = "onEnabledChanged") { enabled ->
                 verifyCanChange()
                 if (enabled) {
                     when (view.status.value) {
                         ProviderAccountStatus.Unverified -> verifyAccount()
-                        ProviderAccountStatus.Valid, ProviderAccountStatus.NotRequired -> settings.enabled *= true
-                        else -> view.enabled *= false
+                        ProviderAccountStatus.Valid, ProviderAccountStatus.NotRequired -> settings.enabled /= true
+                        else -> view.enabled /= false
                     }
                 } else {
-                    settings.enabled *= false
+                    settings.enabled /= false
                 }
             }
-            view.verifyAccountActions.forEach(debugName = "onVerifyAccount") { verifyAccount() }
+            view::verifyAccountActions.forEach { verifyAccount() }
         }
 
         private fun accountHasEmptyFields(account: Map<String, String>) =
@@ -102,10 +102,10 @@ class ProviderSettingsPresenter @Inject constructor(
                 taskService.execute(gameProviderService.verifyAccount(view.provider.id, account))
             }
             if (valid.isSuccess) {
-                settings.account *= account
-                settings.enabled *= true
+                settings.account /= account
+                settings.enabled /= true
             } else {
-                lastInvalidAccount *= account
+                lastInvalidAccount /= account
             }
         }
 

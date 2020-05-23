@@ -31,6 +31,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
@@ -53,7 +54,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
             eventBus.flowOf<TaskEvent.RequestStart<*>>().forEach(debugName = "onTask") {
                 execute(it.task)
             }
-            view.cancelTaskActions.forEach(debugName = "onCancelTask") { cancelTask() }
+            view::cancelTaskActions.forEach { cancelTask() }
         }
 
         private suspend fun <T> execute(task: Task<T>) {
@@ -64,16 +65,14 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
             }
             check(job == null) { "Already running a job: ${view.taskProgress.title}" }
 
-            view.isCancellable *= task.isCancellable
-            view.isRunningSubTask *= false
+            view.isCancellable /= task.isCancellable
             bindTaskProgress(task, view.taskProgress)
-            // TODO: It's possible that before this coroutine is launched the subtask will send some messages to its message channel that will be lost.
-            task.subTask.forEach { subTask ->
+            task::subTask.forEach { subTask ->
                 if (subTask != null) {
                     bindTaskProgress(subTask, view.subTaskProgress)
                 }
-                view.isRunningSubTask *= subTask != null
             }
+            view::isRunningSubTask *= task.subTask.map { it != null }
 
             val (result, timeTaken) = measureTimedValue {
                 val deferred = GlobalScope.async(Dispatchers.IO + CoroutineName(task.title)) {
@@ -83,17 +82,17 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                 Try { deferred.await() }
             }
 
-            view.job.value = null
-            view.isCancellable *= false
-            view.isRunningSubTask *= false
-            view.taskProgress.image.value = null
-            view.subTaskProgress.image.value = null
+            view.job /= null
+            view.isCancellable /= false
+            view.isRunningSubTask /= false
+            view.taskProgress.image /= null
+            view.subTaskProgress.image /= null
 
             var resultToReturn = result
             when (result) {
                 is Try.Success -> {
-                    view.taskProgress.progress *= 1.0
-                    view.subTaskProgress.progress *= 1.0
+                    view.taskProgress.progress /= 1.0
+                    view.subTaskProgress.progress /= 1.0
 
                     val successMessage = task.successMessage?.invoke(result.value)
                     successMessage?.let { view.taskSuccess(title = task.title, message = it) }
@@ -128,22 +127,22 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
         private fun bindTaskProgress(task: Task<*>, taskProgress: TaskProgress) {
             taskProgress.title.value = task.title
 
-            taskProgress.message.value = task.title
-            taskProgress.message *= task.message.drop(1).onEach { msg -> log.info(msg) } withDebugName "message"
+            taskProgress.message /= task.title
+            taskProgress::message *= task.message.drop(1).onEach { msg -> log.info(msg) }
 
-            taskProgress.totalItems *= task.totalItems withDebugName "totalItems"
+            taskProgress::totalItems *= task.totalItems
 
-            taskProgress.processedItems *= task.processedItemsFlow withDebugName "processedItems"
+            taskProgress::processedItems *= task.processedItemsFlow
 
-            taskProgress.progress *= task.processedItemsFlow.combine(task.totalItems) { processedItems, totalItems ->
+            taskProgress::progress *= task.processedItemsFlow.combine(task.totalItems) { processedItems, totalItems ->
                 if (totalItems > 1) {
                     processedItems.toDouble() / totalItems
                 } else {
                     -1.0
                 }
-            } withDebugName "progress"
+            }
 
-            taskProgress.image *= task.image withDebugNameWithoutTrace "image"
+            taskProgress::image *= task.image
         }
 
         private fun cancelTask() {

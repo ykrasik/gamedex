@@ -72,25 +72,25 @@ class EditGamePresenter @Inject constructor(
                         allOverrides.forEach {
                             it.initProviderAndCustomValues(game)
                         }
-                        gameWithoutOverrides *= gameService.buildGame(game.rawGame.copy(userData = UserData.Null))
+                        gameWithoutOverrides /= gameService.buildGame(game.rawGame.copy(userData = UserData.Null))
                     }
                 }
 
             allOverrides.forEach { it.init() }
 
             view.absoluteMainExecutablePath *= view.game.onlyChangesFromView().combine(isShowing) { game, _ -> game.mainExecutableFile?.toString() ?: "" } withDebugName "absoluteMainExecutablePath"
-            view.absoluteMainExecutablePathIsValid *= view.absoluteMainExecutablePath.allValues().map { validateMainExecutablePath(it) } withDebugName "absoluteMainExecutablePathIsValid"
-            view.canAccept *= view.absoluteMainExecutablePathIsValid withDebugName "canAccept"
+            view::absoluteMainExecutablePathIsValid *= view.absoluteMainExecutablePath.allValues().map { validateMainExecutablePath(it) }
+            view::canAccept *= view.absoluteMainExecutablePathIsValid
 
-            view.browseMainExecutableActions.forEach(debugName = "onBrowseMainExecutable") { onBrowseMainExecutable() }
+            view::browseMainExecutableActions.forEach { onBrowseMainExecutable() }
 
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.resetAllToDefaultActions.forEach(debugName = "onResetAllToDefault") { onResetAllToDefault() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+            view::acceptActions.forEach { onAccept() }
+            view::resetAllToDefaultActions.forEach { onResetAllToDefault() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private fun <T> GameDataOverrideState<T>.init() {
-            selection.onlyChangesFromView().forEach { selection ->
+            selection.onlyChangesFromView().forEach(debugName = "$type.onSelectionChanged") { selection ->
                 if (selection is OverrideSelectionType.Custom) {
                     canSelectCustomOverride.assert()
                 }
@@ -107,31 +107,31 @@ class EditGamePresenter @Inject constructor(
                 }
             } withDebugName "$type.isCustomValueValid"
 
-            customValueAcceptActions.forEach {
+            customValueAcceptActions.forEach(debugName = "$type.onCustomValueAccepted") {
                 isCustomValueValid.assert()
-                customValue *= type.deserializeCustomValue<T>(rawCustomValue.v)
-                canSelectCustomOverride *= IsValid.valid
-                selection *= OverrideSelectionType.Custom
+                customValue /= type.deserializeCustomValue<T>(rawCustomValue.v)
+                canSelectCustomOverride /= IsValid.valid
+                selection /= OverrideSelectionType.Custom
             }
 
-            resetToDefaultActions.forEach { onResetStateToDefault() }
+            resetToDefaultActions.forEach(debugName = "$type.onResetToDefault") { onResetStateToDefault() }
         }
 
         private fun <T> GameDataOverrideState<T>.initProviderAndCustomValues(game: Game) {
-            providerValues *= game.providerData
+            providerValues /= game.providerData
                 .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.providerId to value } }
                 .toMap()
 
             when (val currentOverride = game.userData.overrides[type]) {
                 is GameDataOverride.Custom -> {
-                    selection *= OverrideSelectionType.Custom
-                    canSelectCustomOverride *= IsValid.valid
-                    rawCustomValue *= currentOverride.value.toString()
-                    customValue *= type.deserializeCustomValue<T>(rawCustomValue.v)
-                    isCustomValueValid *= IsValid.valid
+                    selection /= OverrideSelectionType.Custom
+                    canSelectCustomOverride /= IsValid.valid
+                    rawCustomValue /= currentOverride.value.toString()
+                    customValue /= type.deserializeCustomValue<T>(rawCustomValue.v)
+                    isCustomValueValid /= IsValid.valid
                 }
                 else -> {
-                    selection *= if (currentOverride is GameDataOverride.Provider) {
+                    selection /= if (currentOverride is GameDataOverride.Provider) {
                         OverrideSelectionType.Provider(currentOverride.provider)
                     } else {
                         val value = type.extractValue<T>(game.gameData)
@@ -141,10 +141,10 @@ class EditGamePresenter @Inject constructor(
                             null
                         }
                     }
-                    canSelectCustomOverride *= IsValid.invalid("No custom $type!")
-                    rawCustomValue *= ""
-                    customValue.value = null
-                    isCustomValueValid *= IsValid.invalid("No custom $type!")
+                    canSelectCustomOverride /= IsValid.invalid("No custom $type!")
+                    rawCustomValue /= ""
+                    customValue /= null
+                    isCustomValueValid /= IsValid.invalid("No custom $type!")
                 }
             }
         }
@@ -169,7 +169,7 @@ class EditGamePresenter @Inject constructor(
 
         private fun <T> GameDataOverrideState<T>.onResetStateToDefault() {
             val defaultValue = type.extractValue<T>(gameWithoutOverrides.value.gameData)
-            selection *= if (defaultValue != null) findProviderWithValue(defaultValue) else null
+            selection /= if (defaultValue != null) findProviderWithValue(defaultValue) else null
         }
 
         private fun <T> GameDataOverrideState<T>.findProviderWithValue(value: T): OverrideSelectionType? {
@@ -181,7 +181,7 @@ class EditGamePresenter @Inject constructor(
 
         private fun onResetAllToDefault() {
             allOverrides.forEach { it.onResetStateToDefault() }
-            view.absoluteMainExecutablePath *= game.mainExecutableFile?.toString() ?: ""
+            view.absoluteMainExecutablePath /= game.mainExecutableFile?.toString() ?: ""
         }
 
         private suspend fun onAccept() {
@@ -232,7 +232,7 @@ class EditGamePresenter @Inject constructor(
         private fun onBrowseMainExecutable() {
             val selectedDirectory = view.browse(initialDirectory = game.path.existsOrNull())
             if (selectedDirectory != null) {
-                view.absoluteMainExecutablePath *= selectedDirectory.toString()
+                view.absoluteMainExecutablePath /= selectedDirectory.toString()
             }
         }
 

@@ -62,9 +62,9 @@ class CurrentPlatformFilterRepository @Inject constructor(
         }
 
         flowScope(Dispatchers.Default) {
-            _currentPlatformFilter *= settingsRepo.platform.map { platform ->
+            this@CurrentPlatformFilterRepository::_currentPlatformFilter *= settingsRepo.platform.map { platform ->
                 filterService.getSystemFilter(filterName(platform))!!
-            } withDebugName "onCurrentPlatformChanged"
+            }
         }
     }
 

@@ -36,12 +36,12 @@ class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
     override fun present(view: ViewCanChangeGameWallDisplaySettings) = object : ViewSession() {
         init {
             with(view.mutableGameWallDisplaySettings) {
-                imageDisplayType.bindBidirectional(settingsRepo.imageDisplayType)
-                showBorder.bindBidirectional(settingsRepo.showBorder)
-                width.bindBidirectional(settingsRepo.width)
-                height.bindBidirectional(settingsRepo.height)
-                horizontalSpacing.bindBidirectional(settingsRepo.horizontalSpacing)
-                verticalSpacing.bindBidirectional(settingsRepo.verticalSpacing)
+                this::imageDisplayType.bindBidirectional(settingsRepo.imageDisplayType)
+                this::showBorder.bindBidirectional(settingsRepo.showBorder)
+                this::width.bindBidirectional(settingsRepo.width)
+                this::height.bindBidirectional(settingsRepo.height)
+                this::horizontalSpacing.bindBidirectional(settingsRepo.horizontalSpacing)
+                this::verticalSpacing.bindBidirectional(settingsRepo.verticalSpacing)
             }
         }
     }
@@ -54,12 +54,12 @@ class GameWallDisplaySettingsPresenter @Inject constructor(
     override fun present(view: ViewWithGameWallDisplaySettings) = object : ViewSession() {
         init {
             with(view.gameWallDisplaySettings) {
-                imageDisplayType *= settingsRepo.imageDisplayType withDebugName "imageDisplayType"
-                showBorder *= settingsRepo.showBorder withDebugName "showBorder"
-                width *= settingsRepo.width withDebugName "width"
-                height *= settingsRepo.height withDebugName "height"
-                horizontalSpacing *= settingsRepo.horizontalSpacing withDebugName "horizontalSpacing"
-                verticalSpacing *= settingsRepo.verticalSpacing withDebugName "verticalSpacing"
+                this::imageDisplayType *= settingsRepo.imageDisplayType
+                this::showBorder *= settingsRepo.showBorder
+                this::width *= settingsRepo.width
+                this::height *= settingsRepo.height
+                this::horizontalSpacing *= settingsRepo.horizontalSpacing
+                this::verticalSpacing *= settingsRepo.verticalSpacing
             }
         }
     }

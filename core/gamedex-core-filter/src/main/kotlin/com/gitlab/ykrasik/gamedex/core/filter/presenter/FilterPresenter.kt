@@ -84,18 +84,18 @@ class FilterPresenter @Inject constructor(
         private val filters = filterBuilders.keys.toList()
 
         init {
-            view.filterValidatedValue *= view.filter.allValues().map { filter ->
+            view::filterValidatedValue *= view.filter.allValues().map { filter ->
                 ValidatedValue(filter, IsValid {
                     check(filter.isEmpty || filter.find(Filter.True::class) == null) { "Select a filter!" }
                 })
-            } withDebugName "filterValidatedValue"
+            }
 
-            view.availableLibraries *= libraries
-            view.availableProviderIds *= providers.mapObservable { it.id }
-            view.availableGenres *= genres
-            view.availableTags *= tags
-            view.availableFilterTags *= filterTags
-            view.availableFilters *= combine(libraries.items, providers.items, genres.items, tags.items, filterTags.items) { libraries, providers, genres, tags, filterTags ->
+            view::availableLibraries *= libraries
+            view::availableProviderIds *= providers.mapObservable { it.id }
+            view::availableGenres *= genres
+            view::availableTags *= tags
+            view::availableFilterTags *= filterTags
+            view::availableFilters *= combine(libraries.items, providers.items, genres.items, tags.items, filterTags.items) { libraries, providers, genres, tags, filterTags ->
                 when {
                     commonData.games.size <= 1 -> emptyList<KClass<out Filter.Rule>>()
                     else -> {
@@ -120,13 +120,13 @@ class FilterPresenter @Inject constructor(
                 }
             }
 
-            view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(listOf(it, Filter.True()))) }
-            view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(listOf(it, Filter.True()))) }
-            view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
-            view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
-            view.updateFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
-            view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
-            view.deleteFilterActions.forEach { deleteFilter(it) }
+            view::wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(listOf(it, Filter.True()))) }
+            view::wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(listOf(it, Filter.True()))) }
+            view::wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
+            view::unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
+            view::updateFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
+            view::replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
+            view::deleteFilterActions.forEach { deleteFilter(it) }
         }
 
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
@@ -150,11 +150,11 @@ class FilterPresenter @Inject constructor(
         }
 
         private fun replaceFilter(filter: Filter, with: Filter) {
-            view.filter *= view.filter.v.replace(filter, with)
+            view.filter /= view.filter.v.replace(filter, with)
         }
 
         private fun deleteFilter(filter: Filter) {
-            view.filter *= view.filter.v.delete(filter) ?: Filter.Null
+            view.filter /= view.filter.v.delete(filter) ?: Filter.Null
         }
 
         private fun Filter.replace(target: Filter, with: Filter): Filter {

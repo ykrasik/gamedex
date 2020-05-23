@@ -65,15 +65,15 @@ class RenameMoveGamePresenter @Inject constructor(
                 (initialName?.let { game.path.parentFile.resolve(it) } ?: game.path).path
             } withDebugName "initialTargetPath"
 
-            view.canAccept *= combine(loading, view.targetPathIsValid) { loading, targetPathIsValid ->
+            view::canAccept *= combine(loading, view.targetPathIsValid) { loading, targetPathIsValid ->
                 if (loading) IsValid.invalid("Loading...") else targetPathIsValid
-            } withDebugName "canAccept"
+            }
 
             view.targetPath.allValues().forEach(debugName = "onTargetPathChanged") { validateAndDetectLibrary(it) }
 
-            view.browseActions.forEach(debugName = "onBrowse") { onBrowse() }
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+            view::browseActions.forEach { onBrowse() }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private fun onBrowse() {
@@ -89,8 +89,8 @@ class RenameMoveGamePresenter @Inject constructor(
         }
 
         private suspend fun validateAndDetectLibrary(path: String) = withContext(Dispatchers.IO) {
-            loading *= true
-            view.targetPathIsValid *= Try {
+            loading /= true
+            view.targetPathIsValid /= Try {
                 check(!path.isBlank()) { "Path is required!" }
                 try {
                     Paths.get(path)
@@ -114,7 +114,7 @@ class RenameMoveGamePresenter @Inject constructor(
                     check(path.file.canonicalFile.path.equals(game.path.canonicalFile.path, ignoreCase = true)) { "Path already exists!" }
                 }
             }
-            loading *= false
+            loading /= false
         }
 
         private fun matchPath(library: Library, path: String): LibraryMatch? {
@@ -132,7 +132,7 @@ class RenameMoveGamePresenter @Inject constructor(
 
             log.info("Renaming/Moving: ${game.path} -> $targetPath")
 
-            loading *= true
+            loading /= true
             try {
                 taskService.execute(task("Moving ${game.path}...") {
                     fileSystemService.move(from = game.path, to = targetPath.file)
@@ -144,7 +144,7 @@ class RenameMoveGamePresenter @Inject constructor(
                 view.onError(e.message!!, "Error!", e)
                 validateAndDetectLibrary(targetPath)
             } finally {
-                loading *= false
+                loading /= false
             }
         }
 

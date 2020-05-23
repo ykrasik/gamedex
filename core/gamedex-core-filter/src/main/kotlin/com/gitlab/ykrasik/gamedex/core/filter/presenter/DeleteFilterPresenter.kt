@@ -38,8 +38,8 @@ class DeleteFilterPresenter @Inject constructor(
 ) : Presenter<DeleteFilterView> {
     override fun present(view: DeleteFilterView) = object : ViewSession() {
         init {
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {

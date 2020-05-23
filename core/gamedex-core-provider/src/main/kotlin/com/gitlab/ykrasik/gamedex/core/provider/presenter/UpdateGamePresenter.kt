@@ -35,13 +35,13 @@ class UpdateGamePresenter @Inject constructor(
 ) : Presenter<ViewCanUpdateGame> {
     override fun present(view: ViewCanUpdateGame) = object : ViewSession() {
         init {
-            view.canUpdateGame *= view.game.onlyChangesFromView().combine(gameProviderService.enabledProviders.items) { game, enabledProviders ->
+            view::canUpdateGame *= view.game.onlyChangesFromView().combine(gameProviderService.enabledProviders.items) { game, enabledProviders ->
                 IsValid {
                     check(enabledProviders.any { it.supports(game.platform) }) { "Enable at least 1 provider which supports the platform '${game.platform}'!" }
                 }
-            } withDebugName "canUpdateGame"
+            }
 
-            view.updateGameActions.forEach(debugName = "onUpdateGame") {
+            view::updateGameActions.forEach {
                 view.canUpdateGame.assert()
                 taskService.execute(updateGameService.updateGame(it))
             }

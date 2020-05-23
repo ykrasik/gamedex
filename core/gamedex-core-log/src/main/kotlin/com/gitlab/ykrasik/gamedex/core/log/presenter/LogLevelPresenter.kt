@@ -29,7 +29,7 @@ class LogLevelPresenter @Inject constructor(
 ) : Presenter<ViewCanChangeLogLevel> {
     override fun present(view: ViewCanChangeLogLevel) = object : ViewSession() {
         init {
-            view.level.bindBidirectional(settingsRepo.logFilterLevel)
+            view::level.bindBidirectional(settingsRepo.logFilterLevel)
         }
     }
 }

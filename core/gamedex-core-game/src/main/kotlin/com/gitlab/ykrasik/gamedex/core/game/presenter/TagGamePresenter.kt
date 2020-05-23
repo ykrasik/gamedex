@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.setAll
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,47 +44,47 @@ class TagGamePresenter @Inject constructor(
         private val game by view.game
 
         init {
-            view.tags *= commonData.tags
+            view::tags *= commonData.tags
 
-            isShowing.forEach {
+            this::isShowing.forEach {
                 if (it) {
-                    view.checkedTags.setAll(game.tags)
-                    view.toggleAll *= view.tags.toSet() == game.tags.toSet()
-                    view.newTagName *= ""
+                    view.checkedTags /= game.tags
+                    view.toggleAll /= view.tags.toSet() == game.tags.toSet()
+                    view.newTagName /= ""
                 }
             }
-            view.newTagNameIsValid *= view.newTagName.allValues().map { name ->
+            view::newTagNameIsValid *= view.newTagName.allValues().map { name ->
                 IsValid {
                     if (name.isEmpty()) error("Empty Name!")
                     if (view.tags.contains(name)) error("Tag already exists!")
                 }
-            } withDebugName "newTagNameIsValid"
-            view.toggleAll.onlyChangesFromView().forEach {
+            }
+            view.toggleAll.onlyChangesFromView().forEach(debugName = "onToggleAllChanged") {
                 if (it) {
                     view.checkedTags.addAll(view.tags)
                 } else {
                     view.checkedTags.clear()
                 }
             }
-            view.checkTagChanges.forEach(debugName = "onCheckTagChanged") { (tag, checked) ->
+            view::checkTagChanges.forEach { (tag, checked) ->
                 if (checked) {
                     view.checkedTags += tag
                     if (view.checkedTags == view.tags.toSet()) {
-                        view.toggleAll *= true
+                        view.toggleAll /= true
                     }
                 } else {
                     view.checkedTags -= tag
-                    view.toggleAll *= false
+                    view.toggleAll /= false
                 }
             }
-            view.addNewTagActions.forEach(debugName = "onAddNewTag") {
+            view::addNewTagActions.forEach {
                 view.tags += view.newTagName.v
                 view.checkedTags += view.newTagName.v
-                view.newTagName *= ""
+                view.newTagName /= ""
             }
 
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {

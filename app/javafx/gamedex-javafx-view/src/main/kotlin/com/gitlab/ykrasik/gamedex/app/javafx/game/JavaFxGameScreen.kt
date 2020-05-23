@@ -66,7 +66,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val sort = mutableStateFlow(Comparator.comparing(Game::name), debugName = "sort")
     override val filter = mutableStateFlow<(Game) -> Boolean>({ true }, debugName = "filter")
 
-    override val availablePlatforms = settableList<AvailablePlatform>()
+    override val availablePlatforms = mutableStateFlow(emptyList<AvailablePlatform>(), debugName = "availablePlatforms")
     override val currentPlatform = viewMutableStateFlow<AvailablePlatform>(AvailablePlatform.All, debugName = "currentPlatform")
 
     override val gameDisplayType = viewMutableStateFlow(GameDisplayType.Wall, debugName = "gameDisplayType")
@@ -75,8 +75,8 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val canSearch = mutableStateFlow(IsValid.valid, debugName = "canSearch")
     override val searchActions = broadcastFlow<Unit>()
 
-    override val searchSuggestions = settableList<Game>()
-    private val isShowSearchSuggestions = Bindings.isNotEmpty(searchSuggestions)
+    override val searchSuggestions = mutableStateFlow(emptyList<Game>(), debugName = "searchSuggestions")
+    private val isShowSearchSuggestions = Bindings.isNotEmpty(searchSuggestions.list)
 
     override val sortBy = viewMutableStateFlow(SortBy.Name, debugName = "sortBy")
     override val sortOrder = viewMutableStateFlow(SortOrder.Asc, debugName = "sortOrder")
@@ -90,7 +90,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         // Add a platform selection button
         children += Icons.computer.apply { paddingLeft = 12.0 }
         popoverDynamicComboMenu(
-            possibleItems = availablePlatforms,
+            possibleItems = availablePlatforms.list,
             selectedItemProperty = currentPlatform.property,
             text = { it.displayName },
             graphic = { it.logo },
@@ -98,7 +98,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         ).apply {
             addClass(GameDexStyle.toolbarButton, Style.platformButton)
             contentDisplay = ContentDisplay.RIGHT   // Putting this in the stylesheet causes JavaFx to behave buggily.
-            mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
+            mouseTransparentWhen { availablePlatforms.list.sizeProperty.lessThanOrEqualTo(1) }
         }
     }
 
@@ -204,7 +204,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             val textField = this
 
             popOver(PopOver.ArrowLocation.TOP_LEFT) {
-                prettyListView(searchSuggestions) {
+                prettyListView(searchSuggestions.list) {
                     maxHeight = 12 * 23.0
                     prefWidth = textField.prefWidth - 10
 

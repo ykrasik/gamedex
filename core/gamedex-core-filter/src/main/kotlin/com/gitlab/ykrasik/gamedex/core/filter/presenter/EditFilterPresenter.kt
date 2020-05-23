@@ -46,11 +46,11 @@ class EditFilterPresenter @Inject constructor(
             view.filter *= view.initialNamedFilter.onlyChangesFromView().map { it.filter } withDebugName "filter"
             view.isTag *= view.initialNamedFilter.onlyChangesFromView().map { if (!it.isAnonymous) it.isTag else true } withDebugName "isTag"
 
-            view.nameIsValid *= view.name.allValues().map { name ->
+            view::nameIsValid *= view.name.allValues().map { name ->
                 IsValid { check(name.isNotBlank()) { "Name is required!" } }
-            } withDebugName "nameIsValid"
+            }
 
-            view.canAccept *= combine(
+            view::canAccept *= combine(
                 view.nameIsValid,
                 view.filterValidatedValue.onlyChangesFromView(),
                 view.isTag.allValues()
@@ -62,11 +62,11 @@ class EditFilterPresenter @Inject constructor(
                         error("Filters that tag games may not depend on FilterTag filters!")
                     }
                 }
-            } withDebugName "canAccept"
+            }
 
-//            view.unexcludeGameActions.forEach { onUnexcludeGame(it) }
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+//            view::unexcludeGameActions.forEach { onUnexcludeGame(it) }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
 //        private fun onUnexcludeGame(game: Game) {

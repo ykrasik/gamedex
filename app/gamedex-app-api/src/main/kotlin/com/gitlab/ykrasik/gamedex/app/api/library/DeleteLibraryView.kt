@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -30,5 +30,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 interface DeleteLibraryView : ConfirmationView {
     val library: ViewMutableStateFlow<Library>
 
-    val gamesToBeDeleted: SettableList<Game>
+    val gamesToBeDeleted: MutableStateFlow<List<Game>>
 }

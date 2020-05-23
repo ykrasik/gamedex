@@ -39,7 +39,7 @@ class SyncGamePresenter @Inject constructor(
 ) : Presenter<ViewCanSyncGame> {
     override fun present(view: ViewCanSyncGame) = object : ViewSession() {
         init {
-            view.canSyncGame *= combine(
+            view::canSyncGame *= combine(
                 commonData.disableWhenGameSyncIsRunning,
                 commonData.enabledProviders.items,
                 view.game.onlyChangesFromView()
@@ -47,9 +47,9 @@ class SyncGamePresenter @Inject constructor(
                 disableWhenGameSyncIsRunning and IsValid {
                     check(enabledProviders.any { it.supports(game.platform) }) { "Enable at least 1 provider which supports the platform '${game.platform}'!" }
                 }
-            } withDebugName "canSyncGame"
+            }
 
-            view.syncGameActions.forEach(debugName = "onSyncGame") { syncGame() }
+            view::syncGameActions.forEach { syncGame() }
         }
 
         private fun syncGame() {

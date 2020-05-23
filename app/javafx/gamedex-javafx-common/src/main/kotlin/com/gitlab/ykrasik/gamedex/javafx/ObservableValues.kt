@@ -31,6 +31,8 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.util.StringConverter
 import tornadofx.cleanBind
+import tornadofx.observable
+import tornadofx.onChange
 import java.util.concurrent.Callable
 
 /**
@@ -69,6 +71,14 @@ inline fun <T> ObservableValue<T>.typesafeBooleanBinding(crossinline op: (T) -> 
 
 inline fun <T> ObservableValue<T>.typesafeStringBinding(crossinline op: (T) -> String): StringBinding =
     Bindings.createStringBinding(Callable { op(value) }, this)
+
+fun <T> ObservableValue<out Collection<T>>.asObservableList(): ObservableList<T> {
+    val list = value.toMutableList().observable()
+    onChange {
+        list.setAll(it)
+    }
+    return list
+}
 
 fun <T> Property<String>.bindBidirectional(property: Property<T>, toString: (T) -> String, fromString: (String) -> T) {
     property.value = fromString(value)

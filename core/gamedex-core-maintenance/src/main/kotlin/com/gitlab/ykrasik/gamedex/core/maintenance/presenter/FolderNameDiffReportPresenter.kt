@@ -47,20 +47,20 @@ class FolderNameDiffReportPresenter @Inject constructor(
 ) : Presenter<FolderNameDiffView> {
     override fun present(view: FolderNameDiffView) = object : ViewSession() {
         private val isDirty = MutableStateFlow(true)
-        private val shouldRun = isDirty and isShowing withDebugName "shouldRun"
+        private val shouldRun = isDirty and isShowing
 
         init {
-            eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") { isDirty *= true }
+            eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") { isDirty /= true }
 
-            view.matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
+            view::matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
                 if (searchText.isNotBlank()) {
                     view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
                 } else {
                     null
                 }
-            } withDebugName "matchingGame"
+            }
 
-            view.predicate *= view.filterMode.allValues().map { filterMode ->
+            view::predicate *= view.filterMode.allValues().map { filterMode ->
                 when (filterMode) {
                     FolderNameDiffFilterMode.None -> Predicate<FolderNameDiffs> { true }
                     FolderNameDiffFilterMode.IgnoreIfSingleMatch -> Predicate { diff ->
@@ -71,19 +71,19 @@ class FolderNameDiffReportPresenter @Inject constructor(
                         matches.toDouble() / diff.diffs.size < 0.5
                     }
                 }
-            } withDebugName "predicate"
-            view.hideViewActions.forEach { hideView() }
+            }
+            view::hideViewActions.forEach { hideView() }
 
-            shouldRun.forEach(debugName = "onShouldRun") {
+            this::shouldRun.forEach {
                 if (it) {
                     detectFolderNameDiffs()
-                    isDirty *= false
+                    isDirty /= false
                 }
             }
         }
 
         private suspend fun detectFolderNameDiffs() {
-            view.diffs *= taskService.execute(maintenanceService.detectFolderNameDiffs())
+            view.diffs /= taskService.execute(maintenanceService.detectFolderNameDiffs())
         }
 
         // TODO: Do I need the better search capabilities of searchService?

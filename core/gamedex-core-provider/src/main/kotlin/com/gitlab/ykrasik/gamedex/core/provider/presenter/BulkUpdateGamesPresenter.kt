@@ -44,9 +44,9 @@ class BulkUpdateGamesPresenter @Inject constructor(
         init {
             // Set view filter from repo each time view is shown or hidden
             view.bulkUpdateGamesFilter *= repo.bulkUpdateGamesFilter.combine(isShowing) { filter, _ -> filter } withDebugName "bulkUpdateGamesFilter"
-            view.canAccept *= view.bulkUpdateGamesFilterValidatedValue.allValues().map { it.isValid } withDebugName "canAccept"
-            view.acceptActions.forEach(debugName = "accept") { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            view::canAccept *= view.bulkUpdateGamesFilterValidatedValue.allValues().map { it.isValid }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {

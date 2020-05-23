@@ -58,33 +58,33 @@ class GamesPresenter @Inject constructor(
 
     override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
-            view.games *= commonData.currentPlatformGames
+            view::games *= commonData.currentPlatformGames
 
-            view.sort *= settingsRepo.sortBy.combine(settingsRepo.sortOrder) { sortBy, sortOrder -> sort(sortBy, sortOrder) } withDebugName "sort"
+            view::sort *= settingsRepo.sortBy.combine(settingsRepo.sortOrder) { sortBy, sortOrder -> sort(sortBy, sortOrder) }
 
-            view.searchSuggestions *= view.searchText.onlyChangesFromView().debounce(100).map { query ->
+            view::searchSuggestions *= view.searchText.onlyChangesFromView().debounce(100).map { query ->
                 if (query.isNotBlank()) {
                     search(query).take(20).toList()
                 } else {
                     emptyList()
                 }
-            } withDebugName "searchSuggestions"
+            }
 
             val lastSearchText = MutableStateFlow("")
 //            lastSearchText *= view.searchActions.map { view.searchText.v }
-            view.searchActions.forEach(debugName = "onSearch") { lastSearchText *= view.searchText.v }
-            view.canSearch *= view.searchText.onlyChangesFromView().combine(lastSearchText) { currentSearchText, lastSearchText ->
+            view::searchActions.forEach { lastSearchText /= view.searchText.v }
+            view::canSearch *= view.searchText.onlyChangesFromView().combine(lastSearchText) { currentSearchText, lastSearchText ->
                 IsValid {
                     check(currentSearchText != lastSearchText) { "Already searched!" }
                 }
-            } withDebugName "canSearch"
+            }
 
-            view.filter *= lastSearchText.combine(repo.currentPlatformFilter) { search, filter ->
+            view::filter *= lastSearchText.combine(repo.currentPlatformFilter) { search, filter ->
                 searchAndFilter(search, filter)
-            } withDebugName "filter"
+            }
 
             eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") {
-                view.filter *= searchAndFilter(lastSearchText.value, repo.currentPlatformFilter.value)
+                view.filter /= searchAndFilter(lastSearchText.value, repo.currentPlatformFilter.value)
             }
         }
 

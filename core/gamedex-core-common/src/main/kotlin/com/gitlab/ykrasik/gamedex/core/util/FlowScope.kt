@@ -18,12 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.util
 
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
-import com.gitlab.ykrasik.gamedex.util.Modifier
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KProperty
@@ -38,13 +34,12 @@ import kotlin.reflect.KProperty0
 val log = logger("")
 
 open class FlowScope(override val coroutineContext: CoroutineContext, open val baseDebugName: String) : CoroutineScope {
-    // TODO: Make debugName mandatory
     inline fun <T> Flow<T>.forEach(
-        debugName: String? = null,
+        debugName: String,
         traceValues: Boolean = true,
         crossinline f: suspend (T) -> Unit
     ) = launch(
-        CoroutineName("$baseDebugName${if (debugName != null) ".$debugName" else ""}"),
+        CoroutineName("$baseDebugName.$debugName"),
         start = CoroutineStart.UNDISPATCHED
     ) {
         try {
@@ -70,52 +65,41 @@ open class FlowScope(override val coroutineContext: CoroutineContext, open val b
         }
     }
 
-    inline fun <T> FlowWithDebugInfo<T>.forEach(crossinline f: suspend (T) -> Unit) = forEach(debugName, traceValues, f)
+    inline fun <T> KProperty0<Flow<T>>.forEach(traceValues: Boolean = true, crossinline f: suspend (T) -> Unit) =
+        get().forEach(name, traceValues, f)
 
-    inline fun <T> MutableStateFlow<T>.modify(f: Modifier<T>) {
-        value = f(value)
-    }
-
-    operator fun <T> StateFlow<T>.getValue(thisRef: Any, property: KProperty<*>): T = value
-    operator fun <T> MutableStateFlow<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        this.value = value
-    }
-
-    // TODO: Make this a different operator... modAssign? divAssign?
-    operator fun <T> MutableStateFlow<T>.timesAssign(value: T) {
-        this.value = value
-    }
-
-    operator fun <T> MutableStateFlow<T>.timesAssign(flow: Flow<T>) {
-        this.bind(flow)
-    }
+    fun <T> MutableStateFlow<T>.bind(flow: Flow<T>, debugName: String, traceValues: Boolean = true) =
+        flow.forEach(debugName, traceValues) { value = it }
 
     operator fun <T> MutableStateFlow<T>.timesAssign(flow: FlowWithDebugInfo<T>) {
-        this.bind(flow, flow.debugName, flow.traceValues)
+        bind(flow, flow.debugName, flow.traceValues)
     }
 
     operator fun <T> KProperty0<MutableStateFlow<T>>.timesAssign(flow: Flow<T>) {
         this.get().bind(flow, this.name)
     }
 
-    fun <T> MutableStateFlow<T>.bind(flow: Flow<T>, debugName: String? = null, traceValues: Boolean = true) = flow.forEach(debugName, traceValues) { value = it }
-
-    fun <T> MutableStateFlow<T>.bindBidirectional(flow: MutableStateFlow<T>) {
-        flow.forEach { value = it }
-        this.drop(1).forEach { flow.value = it }
+    fun <T> MutableStateFlow<T>.bindBidirectional(flow: MutableStateFlow<T>, debugName: String, traceValues: Boolean = true) {
+        flow.forEach(debugName, traceValues) { value = it }
+        this.drop(1).forEach(debugName, traceValues) { flow.value = it }
     }
 
+    // TODO: See if there's a way to get rid of this. There is an erasure clash between KProperty<MutableStateFlow> & KProperty<ViewMutableStateFlow>
     infix fun <T> Flow<T>.withDebugName(debugName: String): FlowWithDebugInfo<T> = withDebugInfo(debugName, traceValues = true)
     infix fun <T> Flow<T>.withDebugNameWithoutTrace(debugName: String): FlowWithDebugInfo<T> = withDebugInfo(debugName, traceValues = false)
-    fun <T> Flow<T>.withDebugInfo(flow: FlowWithDebugInfo<T>): FlowWithDebugInfo<T> = withDebugInfo(flow.debugName, flow.traceValues)
+    fun <T> Flow<T>.withDebugInfoFrom(flow: FlowWithDebugInfo<*>): FlowWithDebugInfo<T> = withDebugInfo(flow.debugName, flow.traceValues)
     fun <T> Flow<T>.withDebugInfo(debugName: String, traceValues: Boolean): FlowWithDebugInfo<T> =
         FlowWithDebugInfoImpl(this, debugName, traceValues)
 
+    operator fun <T> MutableStateFlow<T>.divAssign(value: T) {
+        this.value = value
+    }
 
     infix fun Flow<Boolean>.and(flow: Flow<Boolean>) = this.combine(flow) { thisValue, otherValue -> thisValue && otherValue }
 
-    private fun <T> Flow<T>.asChannel(): ReceiveChannel<T> = produce(capacity = Channel.CONFLATED) {
-        collect { send(it) }
+    operator fun <T> StateFlow<T>.getValue(thisRef: Any, property: KProperty<*>): T = value
+    operator fun <T> MutableStateFlow<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        this.value = value
     }
 }
 
@@ -127,12 +111,13 @@ inline fun Any.flowScope(context: CoroutineContext, crossinline f: FlowScope.() 
     }
 
 interface FlowWithDebugInfo<T> : Flow<T> {
+    val flow: Flow<T>
     val debugName: String
     val traceValues: Boolean
 }
 
 private class FlowWithDebugInfoImpl<T>(
-    flow: Flow<T>,
+    override val flow: Flow<T>,
     override val debugName: String,
     override val traceValues: Boolean
 ) : Flow<T> by flow, FlowWithDebugInfo<T>

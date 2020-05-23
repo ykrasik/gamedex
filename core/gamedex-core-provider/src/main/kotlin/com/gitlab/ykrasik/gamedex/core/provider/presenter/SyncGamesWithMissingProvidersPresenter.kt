@@ -44,10 +44,9 @@ class SyncGamesWithMissingProvidersPresenter @Inject constructor(
         init {
             // Set view filter from repo each time view is shown or hidden
             view.bulkSyncGamesFilter *= repo.bulkSyncGamesFilter.combine(isShowing) { filter, _ -> filter } withDebugName "bulkSyncGamesFilter"
-            view.canAccept *= view.bulkSyncGamesFilterValidatedValue.map { it.value.isValid } withDebugName "canAccept"
-            view.syncOnlyMissingProviders *= true
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            view::canAccept *= view.bulkSyncGamesFilterValidatedValue.map { it.value.isValid }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {

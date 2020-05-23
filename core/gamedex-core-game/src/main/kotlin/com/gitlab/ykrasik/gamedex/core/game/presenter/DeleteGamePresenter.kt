@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,14 +44,17 @@ class DeleteGamePresenter @Inject constructor(
         private val game by view.game
 
         init {
-            view.fromFileSystem *= isShowing.map { false } withDebugName "fromFileSystem"
-            view.canAccept *= view.fromFileSystem.allValues().map { fromFileSystem ->
+            this::isShowing.forEach {
+                view.fromFileSystem /= false
+            }
+            // TODO: At the time of writing, view.game.onlyValuesFromView() incorrectly skipped the first changed value
+            view::canAccept *= view.game.allValues().combine(view.fromFileSystem.allValues()) { game, fromFileSystem ->
                 IsValid {
                     if (fromFileSystem) check(game.path.exists()) { "Path doesn't exist!" }
                 }
-            } withDebugName "canAccept"
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {

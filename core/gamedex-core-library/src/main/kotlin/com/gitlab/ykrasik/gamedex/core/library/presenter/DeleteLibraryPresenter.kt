@@ -41,9 +41,11 @@ class DeleteLibraryPresenter @Inject constructor(
 ) : Presenter<DeleteLibraryView> {
     override fun present(view: DeleteLibraryView) = object : ViewSession() {
         init {
-            view.gamesToBeDeleted *= view.library.onlyChangesFromView().map { library -> gameService.games.filter { it.library.id == library.id } }
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            view::gamesToBeDeleted *= view.library.onlyChangesFromView().map { library ->
+                gameService.games.filter { it.library.id == library.id }
+            }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {

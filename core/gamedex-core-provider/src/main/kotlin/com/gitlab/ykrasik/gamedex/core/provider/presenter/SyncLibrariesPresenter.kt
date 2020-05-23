@@ -41,9 +41,9 @@ class SyncLibrariesPresenter @Inject constructor(
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
-            view.canSyncLibraries *= commonData.canSyncOrUpdateGames withDebugName "canSyncLibraries"
+            view::canSyncLibraries *= commonData.canSyncOrUpdateGames
 
-            view.syncLibrariesActions.forEach(debugName = "onSyncLibraries") {
+            view::syncLibrariesActions.forEach {
                 view.canSyncLibraries.assert()
 
                 val paths = taskService.execute(syncLibraryService.detectNewPaths())

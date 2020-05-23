@@ -44,7 +44,7 @@ class ShowAddOrEditLibraryPresenter @Inject constructor(
 
     override fun present(view: ViewCanAddOrEditLibrary) = object : ViewSession() {
         init {
-            view.canAddOrEditLibraries *= commonData.disableWhenGameSyncIsRunning withDebugName "canAddOrEditLibraries"
+            view::canAddOrEditLibraries *= commonData.disableWhenGameSyncIsRunning
 
             view.addOrEditLibraryActions.forEach(debugName = "showEditLibraryView") {
                 view.canAddOrEditLibraries.assert()

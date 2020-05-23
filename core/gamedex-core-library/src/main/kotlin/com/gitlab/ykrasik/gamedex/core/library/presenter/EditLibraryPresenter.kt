@@ -59,30 +59,30 @@ class EditLibraryPresenter @Inject constructor(
                 .forEach(debugName = "onLibraryChanged") { (library, isShowing) ->
                     if (!isShowing) return@forEach
 
-                    view.platform *= library?.platformOrNull ?: Platform.Windows
-                    view.name *= library?.name ?: ""
-                    view.path *= library?.path?.toString() ?: ""
-                    view.type *= library?.type ?: LibraryType.Digital
-                    view.canChangeType *= checkEmptyLibrary(library, "type")
-                    view.canChangePlatform *= checkEmptyLibrary(library, "platform")
+                    view.platform /= library?.platformOrNull ?: Platform.Windows
+                    view.name /= library?.name ?: ""
+                    view.path /= library?.path?.toString() ?: ""
+                    view.type /= library?.type ?: LibraryType.Digital
+                    view.canChangeType /= checkEmptyLibrary(library, "type")
+                    view.canChangePlatform /= checkEmptyLibrary(library, "platform")
 
                     if (library == null) {
                         onBrowse()
                     }
                 }
-            view.shouldShowPlatform *= view.type.allValues().map { type ->
+            view::shouldShowPlatform *= view.type.allValues().map { type ->
                 IsValid {
                     check(type != LibraryType.Excluded) { "Excluded libraries don't have a platform!" }
                 }
-            } withDebugName "shouldShowPlatform"
-            view.canChangePlatform *= view.shouldShowPlatform.map { it and checkEmptyLibrary(library, "platform") } withDebugName "canChangePlatform"
-            view.nameIsValid *= view.name.allValues().map { name ->
+            }
+            view::canChangePlatform *= view.shouldShowPlatform.map { it and checkEmptyLibrary(library, "platform") }
+            view::nameIsValid *= view.name.allValues().map { name ->
                 IsValid {
                     check(name.isNotBlank()) { "Name is required!" }
                     check(isAvailableLibrary(libraryService[name])) { "Name already in use!" }
                 }
-            } withDebugName "nameIsValid"
-            view.pathIsValid *= view.path.allValues().map { path ->
+            }
+            view::pathIsValid *= view.path.allValues().map { path ->
                 IsValid {
                     if (path == library?.path?.toString()) return@IsValid
 
@@ -91,16 +91,16 @@ class EditLibraryPresenter @Inject constructor(
                     check(file.isDirectory) { "Path doesn't exist!" }
                     check(isAvailableLibrary(libraryService[file])) { "Path already in use!" }
                 }
-            } withDebugName "pathIsValid"
-            view.canAccept *= view.nameIsValid.combine(view.pathIsValid) { nameIsValid, pathIsValid -> pathIsValid and nameIsValid } withDebugName "canAccept"
+            }
+            view::canAccept *= view.nameIsValid.combine(view.pathIsValid) { nameIsValid, pathIsValid -> pathIsValid and nameIsValid }
 
             view.platform.onlyChangesFromView().forEach(debugName = "onPlatformChanged") {
                 view.canChangePlatform.assert()
             }
 
-            view.browseActions.forEach(debugName = "onBrowse") { onBrowse() }
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+            view::browseActions.forEach { onBrowse() }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private fun isAvailableLibrary(target: Library?) = target == null || target == library
@@ -109,10 +109,10 @@ class EditLibraryPresenter @Inject constructor(
             val initialDirectory = settingsRepo.prevDirectory.value.existsOrNull()
             val selectedDirectory = view.browse(initialDirectory)
             if (selectedDirectory != null) {
-                settingsRepo.prevDirectory *= selectedDirectory
-                view.path *= selectedDirectory.toString()
+                settingsRepo.prevDirectory /= selectedDirectory
+                view.path /= selectedDirectory.toString()
                 if (view.name.v.isEmpty()) {
-                    view.name *= selectedDirectory.name
+                    view.name /= selectedDirectory.name
                 }
             }
         }

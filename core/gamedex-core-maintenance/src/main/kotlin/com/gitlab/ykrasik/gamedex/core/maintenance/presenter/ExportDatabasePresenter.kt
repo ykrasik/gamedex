@@ -46,23 +46,23 @@ class ExportDatabasePresenter @Inject constructor(
 ) : Presenter<ExportDatabaseView> {
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
         init {
-            isShowing.forEach(debugName = "onShow") {
+            this::isShowing.forEach {
                 if (it) {
-                    view.exportDatabaseDirectory *= ""
-                    view.shouldExportLibrary *= true
-                    view.shouldExportProviderAccounts *= true
-                    view.shouldExportFilters *= true
+                    view.exportDatabaseDirectory /= ""
+                    view.shouldExportLibrary /= true
+                    view.shouldExportProviderAccounts /= true
+                    view.shouldExportFilters /= true
                     onBrowse()
                 }
             }
-            view.exportDatabaseFolderIsValid *= view.exportDatabaseDirectory.allValues().map { exportDatabaseDirectory ->
+            view::exportDatabaseFolderIsValid *= view.exportDatabaseDirectory.allValues().map { exportDatabaseDirectory ->
                 IsValid {
                     check(exportDatabaseDirectory.isNotBlank()) { "Select export directory!" }
                     check(exportDatabaseDirectory.file.isDirectory) { "Directory doesn't exist!" }
                 }
-            } withDebugName "exportDatabaseFolderIsValid"
+            }
 
-            view.canAccept *= combine(
+            view::canAccept *= combine(
                 view.exportDatabaseFolderIsValid,
                 view.shouldExportLibrary.allValues(),
                 view.shouldExportProviderAccounts.allValues(),
@@ -71,17 +71,17 @@ class ExportDatabasePresenter @Inject constructor(
                 exportDatabaseDirectoryIsValid and IsValid {
                     check(shouldExportLibrary || shouldExportProviderAccounts || shouldExportFilters) { "Select something to export!" }
                 }
-            } withDebugName "canAccept"
+            }
 
-            view.browseActions.forEach(debugName = "onBrowse") { onBrowse() }
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+            view::browseActions.forEach { onBrowse() }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private fun onBrowse() {
             val dir = view.selectExportDatabaseDirectory(settingsRepo.exportDbDirectory.value)
             if (dir != null) {
-                view.exportDatabaseDirectory *= dir.absolutePath
+                view.exportDatabaseDirectory /= dir.absolutePath
             }
         }
 
@@ -96,7 +96,7 @@ class ExportDatabasePresenter @Inject constructor(
             )
             val dir = view.exportDatabaseDirectory.v.file
             taskService.execute(maintenanceService.exportDatabase(dir, params))
-            settingsRepo.exportDbDirectory *= dir
+            settingsRepo.exportDbDirectory /= dir
             view.openDirectory(dir)
         }
 

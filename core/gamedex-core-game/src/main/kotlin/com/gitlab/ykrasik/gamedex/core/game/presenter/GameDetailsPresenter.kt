@@ -47,19 +47,19 @@ class GameDetailsPresenter @Inject constructor(
         private var gameParams by view.gameParams
 
         init {
-            view.currentGameIndex *= view.gameParams.allValues().map { (game, allGames) ->
+            view::currentGameIndex *= view.gameParams.allValues().map { (game, allGames) ->
                 allGames.indexOfFirst { it.id == game.id }
-            } withDebugName "currentGameIndex"
-            view.canViewNextGame *= view.currentGameIndex.map { index ->
+            }
+            view::canViewNextGame *= view.currentGameIndex.map { index ->
                 IsValid {
                     check(index + 1 < gameParams.games.size) { "No more games!" }
                 }
-            } withDebugName "canViewNextGame"
-            view.canViewPrevGame *= view.currentGameIndex.map { index ->
+            }
+            view::canViewPrevGame *= view.currentGameIndex.map { index ->
                 IsValid {
                     check(index - 1 >= 0) { "No more games!" }
                 }
-            } withDebugName "canViewPrevGame"
+            }
 
             view.viewNextGameActions.debounce(100).forEach(debugName = "onViewNextGame") {
                 view.canViewNextGame.assert()
@@ -69,9 +69,9 @@ class GameDetailsPresenter @Inject constructor(
                 view.canViewPrevGame.assert()
                 navigate(-1)
             }
-            view.hideViewActions.forEach(debugName = "onHide") { hideView() }
+            view::hideViewActions.forEach { hideView() }
 
-            isShowing.forEach(debugName = "onShow") {
+            this::isShowing.forEach {
                 if (it) {
                     // This is a workaround to cover the case where the game is re-synced.
                     // Re-syncing will hide this view (which will make it not update the game on GameEvent.Updated)
@@ -90,7 +90,7 @@ class GameDetailsPresenter @Inject constructor(
                 if (!isShowing.value) return@forEach
 
                 val updatedGame = e.games.findTransform({ it.second }) { it.id == gameParams.game.id } ?: return@forEach
-                view.gameParams *= ViewGameParams(updatedGame, gameParams.games.replaceWhere(updatedGame) { it.id == gameParams.game.id })
+                view.gameParams /= ViewGameParams(updatedGame, gameParams.games.replaceWhere(updatedGame) { it.id == gameParams.game.id })
             }
             eventBus.flowOf<GameEvent.Deleted>().forEach(debugName = "onGameDeleted") { e ->
                 if (!isShowing.value) return@forEach

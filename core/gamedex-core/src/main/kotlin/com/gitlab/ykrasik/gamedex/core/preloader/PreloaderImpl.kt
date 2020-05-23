@@ -47,9 +47,9 @@ class PreloaderImpl : FlowScope(Dispatchers.IO, baseDebugName = "PreloaderImpl")
         val (injector, timeTaken) = measureTimedValue {
             val logService = LogServiceImpl()
 
-            view.version *= ApplicationVersion
-            view.progress *= 0.0
-            view.message *= "Loading..."
+            view.version /= ApplicationVersion
+            view.progress /= 0.0
+            view.message /= "Loading..."
 
             // While loading, display all log messages in the task
             val job = logService.entries.items.forEach(debugName = "log") {
@@ -74,7 +74,7 @@ class PreloaderImpl : FlowScope(Dispatchers.IO, baseDebugName = "PreloaderImpl")
                         override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
                             numClassesToInit++
                             log.trace("[$numClassesToInit] Initializing ${provision!!.binding.key.typeLiteral}...")
-                            view.progress *= numClassesToInit.toDouble() / preloaderData.value.numClassesToInit
+                            view.progress /= numClassesToInit.toDouble() / preloaderData.value.numClassesToInit
                         }
                     })
 
@@ -86,7 +86,7 @@ class PreloaderImpl : FlowScope(Dispatchers.IO, baseDebugName = "PreloaderImpl")
             job.cancel()
 
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-            preloaderData *= PreloaderData(numClassesToInit)
+            preloaderData /= PreloaderData(numClassesToInit)
 
             view.message.value = "Done loading."
 

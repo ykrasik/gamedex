@@ -34,7 +34,7 @@ class GameDisplayTypePresenter @Inject constructor(
 ) : Presenter<ViewWithGameDisplayType> {
     override fun present(view: ViewWithGameDisplayType) = object : ViewSession() {
         init {
-            view.gameDisplayType.bindBidirectional(settingsRepo.displayType)
+            view::gameDisplayType.bindBidirectional(settingsRepo.displayType)
         }
     }
 }

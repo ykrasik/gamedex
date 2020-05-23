@@ -36,19 +36,19 @@ class ImageGalleryPresenter @Inject constructor() : Presenter<ImageGalleryView> 
         private var imageParams by view.imageParams
 
         init {
-            view.currentImageIndex *= view.imageParams.allValues().map { params ->
+            view::currentImageIndex *= view.imageParams.allValues().map { params ->
                 params.imageUrls.indexOfFirst { it == params.imageUrl }
-            } withDebugName "currentImageIndex"
-            view.canViewNextImage *= view.currentImageIndex.map { currentImageIndex ->
+            }
+            view::canViewNextImage *= view.currentImageIndex.map { currentImageIndex ->
                 IsValid {
                     check(currentImageIndex + 1 < imageParams.imageUrls.size) { "No more images!" }
                 }
-            } withDebugName "canViewNextImage"
-            view.canViewPrevImage *= view.currentImageIndex.map { currentImageIndex ->
+            }
+            view::canViewPrevImage *= view.currentImageIndex.map { currentImageIndex ->
                 IsValid {
                     check(currentImageIndex - 1 >= 0) { "No more images!" }
                 }
-            } withDebugName "canViewPrevImage"
+            }
 
             view.viewNextImageActions.debounce(100).forEach(debugName = "onViewNextImage") {
                 view.canViewNextImage.assert()

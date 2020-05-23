@@ -44,30 +44,30 @@ class DuplicatesReportPresenter @Inject constructor(
 ) : Presenter<DuplicatesView> {
     override fun present(view: DuplicatesView) = object : ViewSession() {
         private val isDirty = MutableStateFlow(true)
-        private val shouldRun = isDirty and isShowing withDebugName "shouldRun"
+        private val shouldRun = isDirty and isShowing
 
         init {
-            eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") { isDirty *= true }
+            eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") { isDirty /= true }
 
-            view.matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
+            view::matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
                 if (searchText.isNotBlank()) {
                     view.duplicates.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
                 } else {
                     null
                 }
-            } withDebugName "matchingGame"
-            view.hideViewActions.forEach(debugName = "onHideView") { hideView() }
+            }
+            view::hideViewActions.forEach { hideView() }
 
-            shouldRun.forEach(debugName = "onShouldRun") {
+            this::shouldRun.forEach {
                 if (it) {
                     detectDuplicates()
-                    isDirty *= false
+                    isDirty /= false
                 }
             }
         }
 
         private suspend fun detectDuplicates() {
-            view.duplicates *= taskService.execute(maintenanceService.detectDuplicates())
+            view.duplicates /= taskService.execute(maintenanceService.detectDuplicates())
         }
 
         // TODO: Do I need the better search capabilities of searchService?

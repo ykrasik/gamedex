@@ -35,7 +35,7 @@ class CurrentPlatformFilterPresenter @Inject constructor(
 ) : Presenter<ViewWithCurrentPlatformFilter> {
     override fun present(view: ViewWithCurrentPlatformFilter) = object : ViewSession() {
         init {
-            view.currentPlatformFilter *= repo.currentPlatformFilter withDebugName "currentPlatformFilter"
+            view::currentPlatformFilter *= repo.currentPlatformFilter
             view.currentPlatformFilterValidatedValue.allValues()
                 .drop(1)
                 .forEach(debugName = "onCurrentPlatformFilterValidatedValueChanged") { (filter, isValid) ->

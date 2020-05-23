@@ -36,7 +36,7 @@ class SetMainExecutableFilePresenter @Inject constructor(
 ) : Presenter<ViewCanSetMainExecutableFile> {
     override fun present(view: ViewCanSetMainExecutableFile) = object : ViewSession() {
         init {
-            view.setMainExecutableFileActions.forEach { (game, absoluteExecutablePath) ->
+            view::setMainExecutableFileActions.forEach { (game, absoluteExecutablePath) ->
                 val relativeExecutablePath = if (absoluteExecutablePath != null) {
                     check(!absoluteExecutablePath.isDirectory) { "Main Executable must not be a directory!" }
                     checkNotNull(absoluteExecutablePath.relativeToOrNull(game.path)?.toString()) { "Main Executable must be under the game's path!" }

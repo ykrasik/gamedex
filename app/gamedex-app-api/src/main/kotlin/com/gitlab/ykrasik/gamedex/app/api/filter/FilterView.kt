@@ -36,7 +36,7 @@ interface FilterView {
     val filter: ViewMutableStateFlow<Filter>
     val filterValidatedValue: MutableStateFlow<ValidatedValue<Filter>>
 
-    val availableFilters: SettableList<KClass<out Filter.Rule>>
+    val availableFilters: MutableStateFlow<List<KClass<out Filter.Rule>>>
 
     val availableLibraries: SettableList<Library>
     val availableGenres: SettableList<Genre>

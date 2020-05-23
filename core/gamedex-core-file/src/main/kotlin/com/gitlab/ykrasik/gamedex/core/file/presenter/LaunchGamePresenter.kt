@@ -36,15 +36,15 @@ import javax.inject.Singleton
 class LaunchGamePresenter @Inject constructor() : Presenter<ViewCanLaunchGame> {
     override fun present(view: ViewCanLaunchGame) = object : ViewSession() {
         init {
-            view.canLaunchGame *= view.game.onlyChangesFromView().map { game ->
+            view::canLaunchGame *= view.game.onlyChangesFromView().map { game ->
                 withContext(Dispatchers.IO) {
                     IsValid {
                         val mainExecutableFile = checkNotNull(game.mainExecutableFile) { "No file marked as main executable!" }
                         check(mainExecutableFile.exists()) { "Main Executable File doesn't exit!" }
                     }
                 }
-            } withDebugName "onGameChanged"
-            view.launchGameActions.forEach(debugName = "onLaunchGame") {
+            }
+            view::launchGameActions.forEach {
                 val game = view.game.v
                 try {
                     view.canLaunchGame.assert()

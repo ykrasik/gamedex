@@ -35,16 +35,16 @@ abstract class ChangeGameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
     override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
-                enabled.bindBidirectional(settingsRepo.enabled)
-                showOnlyWhenActive.bindBidirectional(settingsRepo.showOnlyWhenActive)
-                position.bindBidirectional(settingsRepo.position)
-                fillWidth.bindBidirectional(settingsRepo.fillWidth)
-                fontSize.bindBidirectional(settingsRepo.fontSize)
-                boldFont.bindBidirectional(settingsRepo.boldFont)
-                italicFont.bindBidirectional(settingsRepo.italicFont)
-                textColor.bindBidirectional(settingsRepo.textColor)
-                backgroundColor.bindBidirectional(settingsRepo.backgroundColor)
-                opacity.bindBidirectional(settingsRepo.opacity)
+                this::enabled.bindBidirectional(settingsRepo.enabled)
+                this::showOnlyWhenActive.bindBidirectional(settingsRepo.showOnlyWhenActive)
+                this::position.bindBidirectional(settingsRepo.position)
+                this::fillWidth.bindBidirectional(settingsRepo.fillWidth)
+                this::fontSize.bindBidirectional(settingsRepo.fontSize)
+                this::boldFont.bindBidirectional(settingsRepo.boldFont)
+                this::italicFont.bindBidirectional(settingsRepo.italicFont)
+                this::textColor.bindBidirectional(settingsRepo.textColor)
+                this::backgroundColor.bindBidirectional(settingsRepo.backgroundColor)
+                this::opacity.bindBidirectional(settingsRepo.opacity)
             }
         }
     }
@@ -78,16 +78,16 @@ abstract class GameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
     override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
-                enabled *= settingsRepo.enabled withDebugName "enabled"
-                showOnlyWhenActive *= settingsRepo.showOnlyWhenActive withDebugName "showOnlyWhenActive"
-                position *= settingsRepo.position withDebugName "position"
-                fillWidth *= settingsRepo.fillWidth withDebugName "fillWidth"
-                fontSize *= settingsRepo.fontSize withDebugName "fontSize"
-                boldFont *= settingsRepo.boldFont withDebugName "boldFont"
-                italicFont *= settingsRepo.italicFont withDebugName "italicFont"
-                textColor *= settingsRepo.textColor withDebugName "textColor"
-                backgroundColor *= settingsRepo.backgroundColor withDebugName "backgroundColor"
-                opacity *= settingsRepo.opacity withDebugName "opacity"
+                this::enabled *= settingsRepo.enabled
+                this::showOnlyWhenActive *= settingsRepo.showOnlyWhenActive
+                this::position *= settingsRepo.position
+                this::fillWidth *= settingsRepo.fillWidth
+                this::fontSize *= settingsRepo.fontSize
+                this::boldFont *= settingsRepo.boldFont
+                this::italicFont *= settingsRepo.italicFont
+                this::textColor *= settingsRepo.textColor
+                this::backgroundColor *= settingsRepo.backgroundColor
+                this::opacity *= settingsRepo.opacity
             }
         }
     }

@@ -226,7 +226,7 @@ fun <T, K> ListObservable<T>.broadcastTo(
     itemsDeletedEvent: (List<T>) -> CoreEvent,
     itemsUpdatedEvent: (List<Pair<T, T>>) -> CoreEvent
 ) = flowScope(Dispatchers.Default) {
-    changes.forEach(debugName = "broadcastTo.onChange") { e ->
+    changes.forEach(debugName = "broadcastTo") { e ->
         val broadcastEvents = when (e) {
             is ListEvent.ItemAdded -> listOf(itemsAddedEvent(listOf(e.item)))
             is ListEvent.ItemsAdded -> listOf(itemsAddedEvent(e.items))
@@ -270,7 +270,7 @@ fun <T, K> ListObservable<T>.broadcastTo(
 fun <K, V> ListObservable<V>.toMap(keyExtractor: Extractor<V, K>): MutableMap<K, V> {
     val map = associateByTo(LinkedHashMap(), keyExtractor)
     flowScope(Dispatchers.Default) {
-        changes.forEach(debugName = "toMap.onChange") { e ->
+        changes.forEach(debugName = "toMap") { e ->
             when (e) {
                 is ListEvent.ItemAdded -> map += keyExtractor(e.item) to e.item
                 is ListEvent.ItemsAdded -> map += e.items.map { keyExtractor(it) to it }

@@ -59,42 +59,44 @@ class ProviderSearchPresenter @Inject constructor(
                 onGameSearchStarted(it.state, it.isAllowSmartChooseResults)
             }
 
-            view.changeProviderActions.forEach { onChangeProvider(it) }
-            view.choiceActions.forEach { onChoice(it, isUserAction = true) }
-            view.canSearchCurrentQuery *= view.canChangeState.combine(view.query.allValues()) { canChangeState, query ->
+            view::changeProviderActions.forEach { onChangeProvider(it) }
+            view::choiceActions.forEach { onChoice(it, isUserAction = true) }
+            view::canSearchCurrentQuery *= view.canChangeState.combine(view.query.allValues()) { canChangeState, query ->
                 canChangeState and IsValid {
                     check(query != state.currentProviderSearch?.query) { "Same query!" }
                 }
-            } withDebugName "canSearchCurrentQuery"
-            view.canAcceptSearchResult *= view.canChangeState.combine(view.selectedSearchResult.allValues()) { canChangeState, selectedResult ->
+            }
+            view::canAcceptSearchResult *= view.canChangeState.combine(view.selectedSearchResult.allValues()) { canChangeState, selectedResult ->
                 canChangeState and IsValid {
                     check(selectedResult != null) { "No result selected!" }
                 }
-            } withDebugName "canAcceptSearchResult"
-            view.fetchSearchResultActions.forEach { onFetchSearchResult(it) }
-            view.isFilterPreviouslyDiscardedResults.onlyChangesFromView().forEach { onIsFilterPreviouslyDiscardedResultsChanged(it) }
-            view.showMoreResultsActions.forEach { onShowMoreResults() }
+            }
+            view::fetchSearchResultActions.forEach { onFetchSearchResult(it) }
+            view.isFilterPreviouslyDiscardedResults.onlyChangesFromView().forEach(debugName = "onFilterPreviouslyDiscardedResultsChanged") {
+                onIsFilterPreviouslyDiscardedResultsChanged(it)
+            }
+            view::showMoreResultsActions.forEach { onShowMoreResults() }
         }
 
         private suspend fun onGameSearchStarted(state: GameSearchState, isAllowSmartChooseResults: Boolean) {
             this.state = state
-            view.isAllowSmartChooseResults *= isAllowSmartChooseResults
+            view.isAllowSmartChooseResults /= isAllowSmartChooseResults
 
             if (!state.isFinished) {
-                view.canSmartChooseResult *= isAllowSmartChooseResults
-                view.canChangeState *= IsValid.valid
+                view.canSmartChooseResult /= isAllowSmartChooseResults
+                view.canChangeState /= IsValid.valid
                 val initialProvider = state.currentProvider ?: state.nextPossibleProviderWithoutChoice ?: state.providerOrder.first()
                 val query = state.lastSearchFor(initialProvider)?.query ?: fileSystemService.analyzeFolderName(state.libraryPath.path.name).processedName
                 changeProviderAndQuery(initialProvider, query)
             } else {
                 // We can also re-visit an already completed state.
                 val disabled = IsValid.invalid("Already finished!")
-                view.canSmartChooseResult *= false
-                view.canChangeState *= disabled
-                view.canSearchCurrentQuery *= disabled
-                view.canAcceptSearchResult *= disabled
-                view.canToggleFilterPreviouslyDiscardedResults *= disabled
-                view.isFilterPreviouslyDiscardedResults *= false
+                view.canSmartChooseResult /= false
+                view.canChangeState /= disabled
+                view.canSearchCurrentQuery /= disabled
+                view.canAcceptSearchResult /= disabled
+                view.canToggleFilterPreviouslyDiscardedResults /= disabled
+                view.isFilterPreviouslyDiscardedResults /= false
 
                 state.currentProvider?.let { currentProvider ->
                     onChangeProvider(currentProvider)
@@ -111,7 +113,7 @@ class ProviderSearchPresenter @Inject constructor(
                 !state.isFinished -> search(providerId, query = lastGoodQuery, offset = 0)
                 else -> {
                     view.searchResults.clear()
-                    view.query *= ""
+                    view.query /= ""
                     view.selectedSearchResult.valueFromPresenter = null
                 }
             }
@@ -179,12 +181,12 @@ class ProviderSearchPresenter @Inject constructor(
             when (choice) {
                 is GameSearchState.ProviderSearch.Choice.Accept -> {
                     if (isUserAction) view.canAcceptSearchResult.assert()
-                    view.canSmartChooseResult *= view.isAllowSmartChooseResults.value
+                    view.canSmartChooseResult /= view.isAllowSmartChooseResults.value
                     nextQuery = choice.result.name
                 }
                 is GameSearchState.ProviderSearch.Choice.NewSearch -> {
                     if (isUserAction) view.canSearchCurrentQuery.assert()
-                    view.canSmartChooseResult *= false
+                    view.canSmartChooseResult /= false
                     nextQuery = choice.newQuery
                     shouldAdvanceToNextProvider = false
                 }
@@ -230,17 +232,17 @@ class ProviderSearchPresenter @Inject constructor(
         }
 
         private suspend fun displaySearch(search: GameSearchState.ProviderSearch) {
-            view.query *= search.query
+            view.query /= search.query
 
             setSearchResults(search, isFilterPreviouslyDiscardedResults = false)
-            view.canToggleFilterPreviouslyDiscardedResults *= IsValid {
+            view.canToggleFilterPreviouslyDiscardedResults /= IsValid {
                 check(view.searchResults != search.results) { "No previous results to filter!" }
             }
-            view.isFilterPreviouslyDiscardedResults *= view.canToggleFilterPreviouslyDiscardedResults.value.isSuccess
+            view.isFilterPreviouslyDiscardedResults /= view.canToggleFilterPreviouslyDiscardedResults.value.isSuccess
 
-            view.selectedSearchResult *= (search.choice as? GameSearchState.ProviderSearch.Choice.Accept)?.result
+            view.selectedSearchResult /= (search.choice as? GameSearchState.ProviderSearch.Choice.Accept)?.result
 
-            view.canShowMoreResults *= IsValid {
+            view.canShowMoreResults /= IsValid {
                 check(search.canShowMoreResults) { "More results not available!" }
             }
 
@@ -272,7 +274,7 @@ class ProviderSearchPresenter @Inject constructor(
             view.canToggleFilterPreviouslyDiscardedResults.assert()
             val currentSearch = checkNotNull(state.currentProviderSearch) { "Cannot toggle isFilterPreviouslyDiscardedResults without results!" }
             setSearchResults(currentSearch, isFilterPreviouslyDiscardedResults)
-            view.selectedSearchResult *= (currentSearch.choice as? GameSearchState.ProviderSearch.Choice.Accept)?.result
+            view.selectedSearchResult /= (currentSearch.choice as? GameSearchState.ProviderSearch.Choice.Accept)?.result
         }
 
         private fun setSearchResults(result: GameSearchState.ProviderSearch, isFilterPreviouslyDiscardedResults: Boolean) {
@@ -290,7 +292,7 @@ class ProviderSearchPresenter @Inject constructor(
                 result.results
             }
             if (view.searchResults != resultsToShow) {
-                view.searchResults *= resultsToShow
+                view.searchResults /= resultsToShow
             }
         }
 

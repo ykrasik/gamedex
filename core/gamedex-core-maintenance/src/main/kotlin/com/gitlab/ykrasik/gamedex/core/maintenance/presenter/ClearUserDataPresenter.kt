@@ -36,12 +36,10 @@ class ClearUserDataPresenter @Inject constructor(
 ) : Presenter<ClearUserDataView> {
     override fun present(view: ClearUserDataView) = object : ViewSession() {
         init {
-            view.clearUserDataActions.forEach { clearUserData() }
-        }
-
-        private suspend fun clearUserData() {
-            if (view.confirmClearUserData()) {
-                taskService.execute(gameService.deleteAllUserData())
+            view::clearUserDataActions.forEach {
+                if (view.confirmClearUserData()) {
+                    taskService.execute(gameService.deleteAllUserData())
+                }
             }
         }
     }

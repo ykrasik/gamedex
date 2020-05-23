@@ -31,10 +31,14 @@ sealed class Try<out T> {
 
             // This is not a full-fledged exception checking mechanism but it is quick & good enough for our requirements.
             // It exists so that Failure acts as a data class - this avoids redundant value changes in StateFlow.
-            return this.error::class == otherError::class &&
-                this.error.message == otherError.message &&
-                this.error.cause?.message == otherError.cause?.message /* &&
-                this.error.stackTrace!!.contentEquals(otherError.stackTrace)*/
+            return this.error.isEqual(otherError) && this.error.cause.isEqual(other.error.cause)
+            //this.error.stackTrace!!.contentEquals(otherError.stackTrace)
+        }
+
+        private fun Throwable?.isEqual(other: Throwable?) = when {
+            this == null && other == null -> true
+            this != null && other != null -> this::class == other::class && this.message == other.message
+            else -> false
         }
     }
 

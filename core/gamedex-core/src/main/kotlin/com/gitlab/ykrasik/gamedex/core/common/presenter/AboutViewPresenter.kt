@@ -34,7 +34,7 @@ class AboutViewPresenter @Inject constructor(
 ) : Presenter<AboutView> {
     override fun present(view: AboutView) = object : ViewSession() {
         init {
-            view.acceptActions.forEach { hideView() }
+            view::acceptActions.forEach { hideView() }
         }
 
         private fun hideView() = eventBus.requestHideView(view)

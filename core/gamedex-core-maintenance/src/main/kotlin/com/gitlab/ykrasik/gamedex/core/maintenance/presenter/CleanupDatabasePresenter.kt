@@ -42,8 +42,8 @@ class CleanupDatabasePresenter @Inject constructor(
             view.isDeleteImages *= isShowing withDebugName "isDeleteImages"
             view.isDeleteFileCache *= isShowing withDebugName "isDeleteFileCache"
 
-            view.acceptActions.forEach(debugName = "onAccept") { onAccept() }
-            view.cancelActions.forEach(debugName = "onCancel") { onCancel() }
+            view::acceptActions.forEach { onAccept() }
+            view::cancelActions.forEach { onCancel() }
         }
 
         private suspend fun onAccept() {

@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -28,7 +28,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
  * Time: 09:43
  */
 interface ViewWithPlatform {
-    val availablePlatforms: SettableList<AvailablePlatform>
+    val availablePlatforms: MutableStateFlow<List<AvailablePlatform>>
 
     val currentPlatform: ViewMutableStateFlow<AvailablePlatform>
 }

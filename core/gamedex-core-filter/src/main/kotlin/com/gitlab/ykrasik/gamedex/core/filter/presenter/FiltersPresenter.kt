@@ -34,7 +34,7 @@ class FiltersPresenter @Inject constructor(
 ) : Presenter<ViewWithFilters> {
     override fun present(view: ViewWithFilters) = object : ViewSession() {
         init {
-            view.savedFilters *= filterService.userFilters
+            view::savedFilters *= filterService.userFilters
         }
     }
 }
