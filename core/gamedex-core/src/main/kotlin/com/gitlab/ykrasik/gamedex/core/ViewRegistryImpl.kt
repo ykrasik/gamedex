@@ -17,6 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -18,10 +18,10 @@ package com.gitlab.ykrasik.gamedex.core.filter.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.DeleteFilterView
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 

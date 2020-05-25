@@ -17,12 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.GameOverlayDisplaySettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.MetaTagDisplaySettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.NameDisplaySettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.VersionDisplaySettingsRepository
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 

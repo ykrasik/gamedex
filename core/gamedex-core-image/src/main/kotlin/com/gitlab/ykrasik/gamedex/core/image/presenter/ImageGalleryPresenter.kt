@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.image.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map

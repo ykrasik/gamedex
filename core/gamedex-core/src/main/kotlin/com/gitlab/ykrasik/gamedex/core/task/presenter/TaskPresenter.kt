@@ -18,10 +18,14 @@ package com.gitlab.ykrasik.gamedex.core.task.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskProgress
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
-import com.gitlab.ykrasik.gamedex.core.*
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.awaitEvent
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.TaskEvent
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.gitlab.ykrasik.gamedex.util.logger

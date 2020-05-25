@@ -14,17 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core
+package com.gitlab.ykrasik.gamedex.core.view
 
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.Value
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.app.api.util.fromPresenter
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.util.FlowScope
 import com.gitlab.ykrasik.gamedex.core.util.FlowWithDebugInfo
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.view.ViewExceptionHandler
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.setAll
 import kotlinx.coroutines.Dispatchers
@@ -80,7 +81,7 @@ abstract class ViewSession : FlowScope(
     }
 
     operator fun <T> ViewMutableStateFlow<T>.timesAssign(flow: FlowWithDebugInfo<T>) {
-        bind<Value<T>>(flow.map { it.fromPresenter }, flow.debugName, flow.traceValues)
+        bind(flow.map { it.fromPresenter }, flow.debugName, flow.traceValues)
     }
 
     operator fun <T> ViewMutableStateFlow<T>.getValue(thisRef: Any, property: KProperty<*>): T = v

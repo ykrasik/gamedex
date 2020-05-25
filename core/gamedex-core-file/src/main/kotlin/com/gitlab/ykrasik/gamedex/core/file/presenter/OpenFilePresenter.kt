@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.file.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.Desktop

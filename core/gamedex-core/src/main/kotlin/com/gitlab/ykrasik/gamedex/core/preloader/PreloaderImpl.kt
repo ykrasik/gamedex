@@ -52,7 +52,7 @@ class PreloaderImpl : FlowScope(Dispatchers.IO, baseDebugName = "PreloaderImpl")
             view.message /= "Loading..."
 
             // While loading, display all log messages in the task
-            val job = logService.entries.items.forEach(debugName = "log") {
+            val job = logService.entries.items.forEach(debugName = "log", traceValues = false) {
                 it.lastOrNull()?.let {
                     if (LogLevel.Info.canLog(it)) {
                         view.message.value = it.message

@@ -43,10 +43,17 @@ open class FlowScope(override val coroutineContext: CoroutineContext, open val b
         start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            collect {
+            collect { value ->
                 try {
-                    if (traceValues && it !is Collection<*> && it !is ListEvent<*> && it !is CoreEvent) log.trace(it.toString())
-                    f(it)
+                    if (traceValues) {
+                        val message = when (value) {
+                            is Collection<*> -> "${value.take(3)} and ${value.size - 3} more"
+                            is ListEvent<*>, is CoreEvent -> null
+                            else -> value.toString()
+                        }
+                        if (message != null) log.trace(message)
+                    }
+                    f(value)
                 } catch (e: Exception) {
                     when (e) {
                         is ExpectedException -> log.trace("Expected exception", e)

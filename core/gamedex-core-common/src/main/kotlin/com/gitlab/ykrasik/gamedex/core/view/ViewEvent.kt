@@ -14,7 +14,9 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core
+package com.gitlab.ykrasik.gamedex.core.view
+
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 
 /**
  * User: ykrasik

@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.file.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanLaunchGame
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map

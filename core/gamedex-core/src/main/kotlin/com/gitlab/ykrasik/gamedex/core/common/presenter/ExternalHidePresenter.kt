@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.common.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.ViewEvent
-import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.view.ViewEvent
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 

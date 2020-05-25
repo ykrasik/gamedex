@@ -20,11 +20,11 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.hideViewRequests
 import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
+import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
 import com.gitlab.ykrasik.gamedex.util.toUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

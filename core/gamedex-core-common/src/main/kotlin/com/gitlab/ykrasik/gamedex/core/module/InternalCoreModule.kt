@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral

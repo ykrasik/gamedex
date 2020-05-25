@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSetMainExecutableFile
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 

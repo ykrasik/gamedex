@@ -19,8 +19,12 @@ package com.gitlab.ykrasik.gamedex.core.provider.presenter
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.provider.BulkUpdateGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanBulkUpdateGames
-import com.gitlab.ykrasik.gamedex.core.*
+import com.gitlab.ykrasik.gamedex.core.CommonData
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.util.flowScope
+import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewSession
+import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
