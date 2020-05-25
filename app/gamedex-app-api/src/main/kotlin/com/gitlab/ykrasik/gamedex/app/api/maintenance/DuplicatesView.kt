@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * Time: 08:09
  */
 interface DuplicatesView {
-    val duplicates: SettableList<GameDuplicates>
+    val duplicates: MutableStateFlow<List<GameDuplicates>>
 
     val searchText: ViewMutableStateFlow<String>
     val matchingGame: MutableStateFlow<Game?>

@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import difflib.Patch
@@ -31,7 +30,7 @@ import java.util.function.Predicate
  * Time: 13:08
  */
 interface FolderNameDiffView {
-    val diffs: SettableList<FolderNameDiffs>
+    val diffs: MutableStateFlow<List<FolderNameDiffs>>
 
     val searchText: ViewMutableStateFlow<String>
     val matchingGame: MutableStateFlow<Game?>

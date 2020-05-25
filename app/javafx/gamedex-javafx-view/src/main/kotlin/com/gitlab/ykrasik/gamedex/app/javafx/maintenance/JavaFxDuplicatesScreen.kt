@@ -49,7 +49,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     private val gameContextMenu = GameContextMenu()
     private val commonOps: JavaFxCommonOps by di()
 
-    override val duplicates = settableList<GameDuplicates>()
+    override val duplicates = mutableStateFlow(emptyList<GameDuplicates>(), debugName = "duplicates")
 //    override val excludeGameActions = broadcastFlow<Game>()
 
     override val viewGameDetailsActions = broadcastFlow<ViewGameParams>()
@@ -60,14 +60,14 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
     override val hideViewActions = broadcastFlow<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
-    private val gamesView = prettyListView(duplicates) {
+    private val gamesView = prettyListView(duplicates.list) {
         prettyListCell { duplicate ->
             text = null
             graphic = GameDetailsSummaryBuilder(duplicate.game).build()
         }
 
-        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game, duplicates.map { it.game }) }
-        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game, duplicates.map { it.game })) }
+        gameContextMenu.install(this) { ViewGameParams(selectionModel.selectedItem.game, duplicates.list.map { it.game }) }
+        onUserSelect { viewGameDetailsActions.event(ViewGameParams(selectionModel.selectedItem.game, duplicates.list.map { it.game })) }
     }
 
     private val selectedDuplicate = gamesView.selectionModel.selectedItemProperty()
@@ -128,8 +128,9 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
         }
     }
 
+    // Must use runLater here, otherwise we get an internal JavaFx error
     private fun selectGame(game: Game) = runLater {
-        gamesView.selectionModel.select(duplicates.indexOfFirst { it.game.id == game.id })
+        gamesView.selectionModel.select(duplicates.list.indexOfFirst { it.game.id == game.id })
     }
 
     override fun HBox.buildToolbar() {
@@ -142,7 +143,7 @@ class JavaFxDuplicatesScreen : PresentableScreen("Duplicates", Icons.copy),
 //            })
 //        }
         spacer()
-        header(duplicates.sizeProperty.typesafeStringBinding { "Duplicates: $it" })
+        header(duplicates.list.sizeProperty.typesafeStringBinding { "Duplicates: $it" })
         gap()
     }
 

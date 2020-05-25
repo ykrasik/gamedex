@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.app.api.provider
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.ProviderData
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -40,7 +39,7 @@ interface ProviderSearchView {
 
     val query: ViewMutableStateFlow<String>
 
-    val searchResults: SettableList<GameProvider.SearchResult>
+    val searchResults: MutableStateFlow<List<GameProvider.SearchResult>>
     val selectedSearchResult: ViewMutableStateFlow<GameProvider.SearchResult?>
     val fetchSearchResultActions: Flow<GameProvider.SearchResult>
 

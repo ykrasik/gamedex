@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
  * Time: 09:19
  */
 interface ViewWithFilters {
-    val savedFilters: SettableList<NamedFilter>
+    val savedFilters: MutableStateFlow<List<NamedFilter>>
 }

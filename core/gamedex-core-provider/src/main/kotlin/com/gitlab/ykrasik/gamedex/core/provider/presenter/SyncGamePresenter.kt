@@ -41,7 +41,7 @@ class SyncGamePresenter @Inject constructor(
         init {
             view::canSyncGame *= combine(
                 commonData.disableWhenGameSyncIsRunning,
-                commonData.enabledProviders.items,
+                commonData.enabledProviders,
                 view.game.onlyChangesFromView()
             ) { disableWhenGameSyncIsRunning, enabledProviders, game ->
                 disableWhenGameSyncIsRunning and IsValid {

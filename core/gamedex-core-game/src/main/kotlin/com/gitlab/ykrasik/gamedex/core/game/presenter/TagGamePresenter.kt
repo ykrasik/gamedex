@@ -42,6 +42,7 @@ class TagGamePresenter @Inject constructor(
 ) : Presenter<TagGameView> {
     override fun present(view: TagGameView) = object : ViewSession() {
         private val game by view.game
+        private var tags by view.tags
 
         init {
             view::tags *= commonData.tags
@@ -49,19 +50,19 @@ class TagGamePresenter @Inject constructor(
             this::isShowing.forEach {
                 if (it) {
                     view.checkedTags /= game.tags
-                    view.toggleAll /= view.tags.toSet() == game.tags.toSet()
+                    view.toggleAll /= tags.toSet() == game.tags.toSet()
                     view.newTagName /= ""
                 }
             }
             view::newTagNameIsValid *= view.newTagName.allValues().map { name ->
                 IsValid {
                     if (name.isEmpty()) error("Empty Name!")
-                    if (view.tags.contains(name)) error("Tag already exists!")
+                    if (tags.contains(name)) error("Tag already exists!")
                 }
             }
             view.toggleAll.onlyChangesFromView().forEach(debugName = "onToggleAllChanged") {
                 if (it) {
-                    view.checkedTags.addAll(view.tags)
+                    view.checkedTags.addAll(tags)
                 } else {
                     view.checkedTags.clear()
                 }
@@ -69,7 +70,7 @@ class TagGamePresenter @Inject constructor(
             view::checkTagChanges.forEach { (tag, checked) ->
                 if (checked) {
                     view.checkedTags += tag
-                    if (view.checkedTags == view.tags.toSet()) {
+                    if (view.checkedTags == tags.toSet()) {
                         view.toggleAll /= true
                     }
                 } else {
@@ -78,7 +79,7 @@ class TagGamePresenter @Inject constructor(
                 }
             }
             view::addNewTagActions.forEach {
-                view.tags += view.newTagName.v
+                tags = tags + view.newTagName.v
                 view.checkedTags += view.newTagName.v
                 view.newTagName /= ""
             }

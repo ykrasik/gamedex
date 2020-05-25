@@ -54,7 +54,7 @@ class FolderNameDiffReportPresenter @Inject constructor(
 
             view::matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
                 if (searchText.isNotBlank()) {
-                    view.diffs.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+                    view.diffs.value.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
                 } else {
                     null
                 }

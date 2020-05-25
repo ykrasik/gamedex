@@ -23,7 +23,9 @@ import com.gitlab.ykrasik.gamedex.util.Extractor
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -191,34 +193,6 @@ fun <T, R> ListObservable<T>.mapObservable(f: (T) -> R): ListObservable<R> {
 }
 
 // TODO: Make this inline when the compiler stops throwing errors
-fun <T> ListObservable<T>.filterObservable(f: (T) -> Boolean): ListObservable<T> =
-    transform { it.filter(f) }
-
-fun <T> ListObservable<T>.filterObservable(flow: Flow<(T) -> Boolean>): ListObservable<T> =
-    transform(flow.map { f -> { list: List<T> -> list.filter(f) } })
-
-// TODO: Make this inline when the compiler stops throwing errors
-fun <T, R> ListObservable<T>.transform(f: (List<T>) -> List<R>): ListObservable<R> {
-    val list = ListObservableImpl(f(this))
-    flowScope(Dispatchers.Default) {
-        items.forEach(debugName = "transform") {
-            list.setAll(f(it))
-        }
-    }
-    return list
-}
-
-fun <T, R> ListObservable<T>.transform(flow: Flow<(List<T>) -> List<R>>): ListObservable<R> {
-    val list = ListObservableImpl<R>()
-    flowScope(Dispatchers.Default) {
-        items.combine(flow) { items, transform -> transform(items) }.forEach(debugName = "transformFlow") {
-            list.setAll(it)
-        }
-    }
-    return list
-}
-
-// TODO: Make this inline when the compiler stops throwing errors
 fun <T, K> ListObservable<T>.broadcastTo(
     eventBus: EventBus,
     idExtractor: Extractor<T, K>,
@@ -284,30 +258,3 @@ fun <K, V> ListObservable<V>.toMap(keyExtractor: Extractor<V, K>): MutableMap<K,
     }
     return map
 }
-
-//// TODO: Make this inline when the compiler stops throwing errors
-//// This assumes that related values are always associated to the same key.
-//// If a value is replaced by another value, there is an implicit assumption that both values map to the same key.
-//fun <K, V> ListObservable<V>.toMultiMap(keyExtractor: Extractor<V, K>): MutableMap<K, MutableList<V>> {
-//    val map = groupByTo(LinkedHashMap(), keyExtractor)
-//    val listFor = { item: V -> map.getOrPut(keyExtractor(item)) { mutableListOf() } }
-//
-//    flowScope(Dispatchers.Default) {
-//        changes.forEach(debugName = "toMultiMap.onChange") { e ->
-//            when (e) {
-//                is ListEvent.ItemAdded -> listFor(e.item) += e.item
-//                is ListEvent.ItemsAdded -> e.items.forEach { listFor(it) += it }
-//                is ListEvent.ItemRemoved -> listFor(e.item) -= e.item
-//                is ListEvent.ItemsRemoved -> e.items.forEach { listFor(it) -= it }
-//                is ListEvent.ItemSet -> listFor(e.item).replace(e.prevItem, e.item)
-//                is ListEvent.ItemsSet -> {
-//                    // Screw it. This event is only called as a replace-all-content event.
-//                    map.clear()
-//                    e.items.groupByTo(map, keyExtractor)
-//                }
-//                else -> error("Unexpected event: $e")
-//            }
-//        }
-//    }
-//    return map
-//}

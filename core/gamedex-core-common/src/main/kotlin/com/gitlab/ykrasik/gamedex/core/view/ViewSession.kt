@@ -118,10 +118,6 @@ abstract class ViewSession : FlowScope(
         get().bind(list, name)
     }
 
-    operator fun <T> SettableList<T>.divAssign(list: List<T>) {
-        setAll(list)
-    }
-
     fun <V : Any> EventBus.requestHideView(view: V) = send(ViewEvent.RequestHide(view))
 
     operator fun <T> MutableCollection<T>.divAssign(iterable: Iterable<T>) {

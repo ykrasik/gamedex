@@ -49,7 +49,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     private val currentProviderId = state.property.stringBinding { it!!.currentProvider ?: "" }
 
     override val query = viewMutableStateFlow("", debugName = "query")
-    override val searchResults = settableList<GameProvider.SearchResult>()
+    override val searchResults = mutableStateFlow(emptyList<GameProvider.SearchResult>(), debugName = "searchResults")
 
     override val selectedSearchResult = viewMutableStateFlow<GameProvider.SearchResult?>(null, debugName = "selectedSearchResult")
     override val fetchSearchResultActions = broadcastFlow<GameProvider.SearchResult>()
@@ -71,7 +71,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val canShowMoreResults = mutableStateFlow(IsValid.valid, debugName = "canShowMoreResults")
     override val showMoreResultsActions = broadcastFlow<Unit>()
 
-    private val resultsView = prettyListView(searchResults) {
+    private val resultsView = prettyListView(searchResults.list) {
         vgrow = Priority.ALWAYS
         minWidth = 1000.0
         enableWhen(canChangeState, wrapInErrorTooltip = false)
@@ -285,7 +285,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                         isFilterPreviouslyDiscardedResults.valueFromView = !isFilterPreviouslyDiscardedResults.v
                     }
                 }
-                header(searchResults.sizeProperty.typesafeStringBinding { "Results: $it" })
+                header(searchResults.list.sizeProperty.typesafeStringBinding { "Results: $it" })
             }
         }
         children += resultsView

@@ -51,7 +51,7 @@ class DuplicatesReportPresenter @Inject constructor(
 
             view::matchingGame *= view.searchText.onlyChangesFromView().debounce(100).map { searchText ->
                 if (searchText.isNotBlank()) {
-                    view.duplicates.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
+                    view.duplicates.value.asSequence().map { it.game }.firstOrNull { it.matchesSearchQuery(searchText) }
                 } else {
                     null
                 }

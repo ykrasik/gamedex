@@ -20,16 +20,17 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
+import com.gitlab.ykrasik.gamedex.app.api.game.AvailablePlatform
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
-import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.game.CurrentPlatformFilterRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
+import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
@@ -51,7 +52,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GamesPresenter @Inject constructor(
-    private val commonData: CommonData,
+    private val gameService: GameService,
     private val filterService: FilterService,
     private val gameSearchService: GameSearchService,
     private val settingsRepo: GameSettingsRepository,
@@ -62,7 +63,7 @@ class GamesPresenter @Inject constructor(
 
     override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
-            view::games *= commonData.currentPlatformGames
+            view::games *= gameService.games
 
             view::sort *= settingsRepo.sortBy.combine(settingsRepo.sortOrder) { sortBy, sortOrder -> sort(sortBy, sortOrder) }
 
@@ -83,12 +84,12 @@ class GamesPresenter @Inject constructor(
                 }
             }
 
-            view::filter *= lastSearchText.combine(repo.currentPlatformFilter) { search, filter ->
-                searchAndFilter(search, filter)
+            view::filter *= combine(settingsRepo.platform, repo.currentPlatformFilter, lastSearchText) { platform, filter, search ->
+                searchAndFilter(platform, filter, search)
             }
 
             eventBus.flowOf<GameEvent>().forEach(debugName = "onGameEvent") {
-                view.filter /= searchAndFilter(lastSearchText.value, repo.currentPlatformFilter.value)
+                view.filter /= searchAndFilter(settingsRepo.platform.value, repo.currentPlatformFilter.value, lastSearchText.value)
             }
         }
 
@@ -109,9 +110,10 @@ class GamesPresenter @Inject constructor(
             return if (sortOrder == SortOrder.Asc) comparator else comparator.reversed()
         }
 
-        private fun searchAndFilter(query: String, filter: Filter): (Game) -> Boolean {
+        private fun searchAndFilter(platform: AvailablePlatform, filter: Filter, query: String): (Game) -> Boolean {
+            val platformFilter = platformFilters.getValue(platform)
             if (filter.isEmpty && query.isBlank()) {
-                return AlwaysTrue
+                return platformFilter
             }
 
             val matchingGameIds: Set<GameId> =
@@ -120,7 +122,7 @@ class GamesPresenter @Inject constructor(
                     val matchingGames = filterService.filter(searchedGames, filter)
                     matchingGames.mapTo(mutableSetOf()) { it.id }
                 }
-            return { game -> matchingGameIds.contains(game.id) }
+            return { game -> platformFilter(game) && matchingGameIds.contains(game.id) }
         }
 
         private fun search(query: String): Sequence<Game> =
@@ -133,6 +135,11 @@ class GamesPresenter @Inject constructor(
         val criticScoreComparator = compareBy(Game::criticScore)
         val userScoreComparator = compareBy(Game::userScore)
 
-        val AlwaysTrue = { _: Game -> true }
+        val platformFilters = AvailablePlatform.values.map { platform ->
+            platform to when (platform) {
+                is AvailablePlatform.All -> { _: Game -> true }
+                is AvailablePlatform.SinglePlatform -> { game -> game.platform == platform.platform }
+            }
+        }.toMap()
     }
 }

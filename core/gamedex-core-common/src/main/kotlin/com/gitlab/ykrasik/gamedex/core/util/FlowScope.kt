@@ -102,6 +102,12 @@ open class FlowScope(override val coroutineContext: CoroutineContext, open val b
         this.value = value
     }
 
+    fun <T> Flow<T>.toMutableStateFlow(initial: T, debugName: String, traceValues: Boolean = true): MutableStateFlow<T> {
+        val mutableStateFlow = MutableStateFlow(initial)
+        mutableStateFlow.bind(this, debugName, traceValues)
+        return mutableStateFlow
+    }
+
     infix fun Flow<Boolean>.and(flow: Flow<Boolean>) = this.combine(flow) { thisValue, otherValue -> thisValue && otherValue }
 
     operator fun <T> StateFlow<T>.getValue(thisRef: Any, property: KProperty<*>): T = value

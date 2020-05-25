@@ -79,23 +79,23 @@ class JavaFxFilterView(
 
     override val availableFilters = mutableStateFlow(emptyList<KClass<out Filter.Rule>>(), debugName = "availableFilters")
 
-    override val availableLibraries = settableList<Library>()
-    private val availableLibrariesSortedFiltered = availableLibraries.sortedFiltered(caseInsensitiveStringComparator(Library::name))
+    override val availableLibraries = mutableStateFlow(emptyList<Library>(), debugName = "availableLibraries")
+    private val availableLibrariesSortedFiltered = availableLibraries.list.sortedFiltered(caseInsensitiveStringComparator(Library::name))
 
-    override val availableGenres = settableList<Genre>()
-    private val availableGenresSortedFiltered = availableGenres.sortedFiltered(caseInsensitiveStringComparator(Genre::id))
+    override val availableGenres = mutableStateFlow(emptyList<Genre>(), debugName = "availableGenres")
+    private val availableGenresSortedFiltered = availableGenres.list.sortedFiltered(caseInsensitiveStringComparator(Genre::id))
 
-    override val availableTags = settableList<TagId>()
-    private val availableTagsSortedFiltered = availableTags.sortedFiltered(caseInsensitiveStringComparator)
+    override val availableTags = mutableStateFlow(emptyList<TagId>(), debugName = "availableTags")
+    private val availableTagsSortedFiltered = availableTags.list.sortedFiltered(caseInsensitiveStringComparator)
 
-    override val availableFilterTags = settableList<TagId>()
-    private val availableFilterTagsSortedFiltered = availableFilterTags.sortedFiltered(caseInsensitiveStringComparator)
+    override val availableFilterTags = mutableStateFlow(emptyList<TagId>(), debugName = "availableFilterTags")
+    private val availableFilterTagsSortedFiltered = availableFilterTags.list.sortedFiltered(caseInsensitiveStringComparator)
 
-    override val availableProviderIds = settableList<ProviderId>()
-    private val availableProviderIdsSortedFiltered = availableProviderIds.sortedFiltered(caseInsensitiveStringComparator)
+    override val availableProviderIds = mutableStateFlow(emptyList<ProviderId>(), debugName = "availableProviderIds")
+    private val availableProviderIdsSortedFiltered = availableProviderIds.list.sortedFiltered(caseInsensitiveStringComparator)
 
-    override val savedFilters = settableList<NamedFilter>()
-    private val savedFiltersFilteredSorted = savedFilters.sortedFiltered(caseInsensitiveStringComparator(NamedFilter::id))
+    override val savedFilters = mutableStateFlow(emptyList<NamedFilter>(), debugName = "savedFilters")
+    private val savedFiltersFilteredSorted = savedFilters.list.sortedFiltered(caseInsensitiveStringComparator(NamedFilter::id))
 
     override val wrapInAndActions = broadcastFlow<Filter>()
     override val wrapInOrActions = broadcastFlow<Filter>()

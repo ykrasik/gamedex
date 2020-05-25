@@ -62,8 +62,8 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
     private val gameContextMenu = GameContextMenu()
     private val commonOps: JavaFxCommonOps by di()
 
-    override val diffs = settableList<FolderNameDiffs>()
-    private val diffsSortedFiltered = diffs.sortedFiltered(Comparator.comparing(FolderNameDiffs::name))
+    override val diffs = mutableStateFlow(emptyList<FolderNameDiffs>(), debugName = "diffs")
+    private val diffsSortedFiltered = diffs.list.sortedFiltered(Comparator.comparing(FolderNameDiffs::name))
 
 //    override val excludeGameActions = broadcastFlow<Game>()
 
@@ -173,7 +173,7 @@ class JavaFxFolderNameDiffScreen : PresentableScreen("Folder Name Diffs", Icons.
         diffsSortedFiltered.filteredItems.predicateProperty().bind(predicate.property)
     }
 
-    private fun selectGame(game: Game) = runLater {
+    private fun selectGame(game: Game) {
         gamesView.selectionModel.select(diffsSortedFiltered.indexOfFirst { it.game.id == game.id })
     }
 

@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +31,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 interface TagGameView : ConfirmationView {
     val game: ViewMutableStateFlow<Game>
 
-    val tags: SettableList<String>
+    val tags: MutableStateFlow<List<String>>
     val checkedTags: MutableSet<String>
 
     val toggleAll: ViewMutableStateFlow<Boolean>

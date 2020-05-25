@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.find
 import com.gitlab.ykrasik.gamedex.app.api.filter.isEmpty
 import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.util.mapObservable
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.*
@@ -60,11 +59,11 @@ class FilterPresenter @Inject constructor(
 
         private val filterBuilders = listOf(
             FilterBuilder.param(Filter::Platform) { Platform.Windows },
-            FilterBuilder.param(Filter::Library) { libraries.first().id },
-            FilterBuilder.param(Filter::Genre) { genres.firstOrNull()?.id ?: "" },
-            FilterBuilder.param(Filter::Tag) { tags.firstOrNull() ?: "" },
-            FilterBuilder.param(Filter::FilterTag) { filterTags.firstOrNull() ?: "" },
-            FilterBuilder.param(Filter::Provider) { providers.firstOrNull()?.id ?: "" },
+            FilterBuilder.param(Filter::Library) { libraries.value.first().id },
+            FilterBuilder.param(Filter::Genre) { genres.value.firstOrNull()?.id ?: "" },
+            FilterBuilder.param(Filter::Tag) { tags.value.firstOrNull() ?: "" },
+            FilterBuilder.param(Filter::FilterTag) { filterTags.value.firstOrNull() ?: "" },
+            FilterBuilder.param(Filter::Provider) { providers.value.firstOrNull()?.id ?: "" },
             FilterBuilder.param(Filter::CriticScore) { 60.0 },
             FilterBuilder.param(Filter::UserScore) { 60.0 },
             FilterBuilder.param(Filter::AvgScore) { 60.0 },
@@ -91,13 +90,13 @@ class FilterPresenter @Inject constructor(
             }
 
             view::availableLibraries *= libraries
-            view::availableProviderIds *= providers.mapObservable { it.id }
+            view::availableProviderIds *= providers.map { it.map { it.id } }
             view::availableGenres *= genres
             view::availableTags *= tags
             view::availableFilterTags *= filterTags
-            view::availableFilters *= combine(libraries.items, providers.items, genres.items, tags.items, filterTags.items) { libraries, providers, genres, tags, filterTags ->
+            view::availableFilters *= combine(libraries, providers, genres, tags, filterTags) { libraries, providers, genres, tags, filterTags ->
                 when {
-                    commonData.games.size <= 1 -> emptyList<KClass<out Filter.Rule>>()
+                    commonData.games.value.size <= 1 -> emptyList<KClass<out Filter.Rule>>()
                     else -> {
                         val filters = this.filters.toMutableList()
                         if (libraries.size <= 1) {
@@ -106,10 +105,10 @@ class FilterPresenter @Inject constructor(
                         if (genres.size <= 1) {
                             filters -= Filter.Genre::class
                         }
-                        if (tags.size <= 1) {
+                        if (tags.isEmpty()) {
                             filters -= Filter.Tag::class
                         }
-                        if (filterTags.size <= 1) {
+                        if (filterTags.isEmpty()) {
                             filters -= Filter.FilterTag::class
                         }
                         if (providers.size <= 1) {

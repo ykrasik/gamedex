@@ -112,7 +112,7 @@ class ProviderSearchPresenter @Inject constructor(
                 lastSearch != null -> displaySearch(lastSearch)
                 !state.isFinished -> search(providerId, query = lastGoodQuery, offset = 0)
                 else -> {
-                    view.searchResults.clear()
+                    view.searchResults /= emptyList()
                     view.query /= ""
                     view.selectedSearchResult.valueFromPresenter = null
                 }
@@ -234,9 +234,9 @@ class ProviderSearchPresenter @Inject constructor(
         private suspend fun displaySearch(search: GameSearchState.ProviderSearch) {
             view.query /= search.query
 
-            setSearchResults(search, isFilterPreviouslyDiscardedResults = false)
+            setSearchResults(search, isFilterPreviouslyDiscardedResults = true)
             view.canToggleFilterPreviouslyDiscardedResults /= IsValid {
-                check(view.searchResults != search.results) { "No previous results to filter!" }
+                check(view.searchResults.value != search.results) { "No previous results to filter!" }
             }
             view.isFilterPreviouslyDiscardedResults /= view.canToggleFilterPreviouslyDiscardedResults.value.isSuccess
 
@@ -287,7 +287,7 @@ class ProviderSearchPresenter @Inject constructor(
                 val acceptedResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>().map { (_, choice) -> choice.result }
                 val presetResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Preset>().map { (_, choice) -> choice.result }
                 val previouslyDiscardedResults = (resultsWithoutQuery - acceptedResults - presetResults).map { it.name to it.releaseDate }.toSet()
-                result.results.filter { !previouslyDiscardedResults.contains(it.name to it.releaseDate) }
+                result.results.filter { (it.name to it.releaseDate) !in previouslyDiscardedResults }
             } else {
                 result.results
             }
@@ -377,10 +377,10 @@ class ProviderSearchPresenter @Inject constructor(
                 userScore = fetchResult.gameData.userScore,
                 thumbnailUrl = fetchResult.gameData.thumbnailUrl ?: fetchResult.gameData.posterUrl ?: fetchResult.gameData.screenshotUrls.firstOrNull()
             )
-            view.searchResults.replace(searchResult, updatedSearchResult)
+            view.searchResults /= view.searchResults.value.replace(searchResult, updatedSearchResult)
             modifyState {
                 modifyCurrentProviderSearch {
-                    copy(results = view.searchResults.toList())
+                    copy(results = view.searchResults.value)
                 }
             }
         }

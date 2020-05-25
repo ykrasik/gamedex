@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 import com.gitlab.ykrasik.gamedex.Genre
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.TagId
-import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
 import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -38,11 +37,11 @@ interface FilterView {
 
     val availableFilters: MutableStateFlow<List<KClass<out Filter.Rule>>>
 
-    val availableLibraries: SettableList<Library>
-    val availableGenres: SettableList<Genre>
-    val availableTags: SettableList<TagId>
-    val availableFilterTags: SettableList<TagId>
-    val availableProviderIds: SettableList<ProviderId>
+    val availableLibraries: MutableStateFlow<List<Library>>
+    val availableGenres: MutableStateFlow<List<Genre>>
+    val availableTags: MutableStateFlow<List<TagId>>
+    val availableFilterTags: MutableStateFlow<List<TagId>>
+    val availableProviderIds: MutableStateFlow<List<ProviderId>>
 
     val wrapInAndActions: Flow<Filter>
     val wrapInOrActions: Flow<Filter>

@@ -41,7 +41,7 @@ class SyncLibraryServiceImpl @Inject constructor(
         errorMessage = { it.message!! }
 
         val newPaths = mutableListOf<LibraryPath>()
-        val excludedDirectories = commonData.libraries.map(Library::path).toSet() + commonData.games.map(Game::path)
+        val excludedDirectories = commonData.libraries.value.map(Library::path).toSet() + commonData.games.value.map(Game::path)
 
         fun detectNewPaths(library: Library, dir: File) {
             // The first iteration of this method is called with parent == null
@@ -72,7 +72,7 @@ class SyncLibraryServiceImpl @Inject constructor(
             }
         }
 
-        commonData.contentLibraries.forEach { library ->
+        commonData.contentLibraries.value.forEach { library ->
             detectNewPaths(library, library.path)
         }
 

@@ -38,7 +38,7 @@ class PlatformPresenter @Inject constructor(
 ) : Presenter<ViewWithPlatform> {
     override fun present(view: ViewWithPlatform) = object : ViewSession() {
         init {
-            view::availablePlatforms *= commonData.platformsWithLibraries.items.map { platforms ->
+            view::availablePlatforms *= commonData.platformsWithLibraries.map { platforms ->
                 listOfNotNull(AvailablePlatform.All.takeIf { platforms.size > 1 }) + platforms.map(AvailablePlatform::SinglePlatform)
             }
 

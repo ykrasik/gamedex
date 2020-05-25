@@ -37,7 +37,7 @@ import tornadofx.*
 class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
     override val game = viewMutableStateFlow(Game.Null, debugName = "game")
 
-    override val tags = settableList<String>()
+    override val tags = mutableStateFlow(emptyList<String>(), debugName = "tags")
     override val checkedTags = mutableSetOf<String>().observable()
 
     override val toggleAll = viewMutableStateFlow(false, debugName = "toggleAll")
@@ -52,7 +52,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
 
     init {
         titleProperty.bind(game.property.stringBinding { "Tag '${it!!.name}'" })
-        checkedTags.onChange { tags.invalidate() }
+        checkedTags.onChange { tags.list.invalidate() }
         register()
     }
 
@@ -91,7 +91,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
 
     private fun EventTarget.existingTags() = flowpane {
         addClass(Style.tagDisplay)
-        tags.perform { tags ->
+        tags.list.perform { tags ->
             replaceChildren {
                 tags.forEach { tag ->
                     jfxToggleButton {

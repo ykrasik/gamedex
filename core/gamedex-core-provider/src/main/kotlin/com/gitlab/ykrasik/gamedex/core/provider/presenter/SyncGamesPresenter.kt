@@ -85,7 +85,7 @@ class SyncGamesPresenter @Inject constructor(
             start()
             view.isAllowSmartChooseResults /= isAllowSmartChooseResults
             view.numProcessed /= 0
-            view.state /= state
+            view.state.setAll(state)
             view.currentState /= null // TODO: What's this for?
             startGameSearch(view.state.first())
         }
@@ -169,7 +169,7 @@ class SyncGamesPresenter @Inject constructor(
         }
 
         private fun initState(request: SyncPathRequest): GameSearchState? {
-            val providersToSync = commonData.enabledProviders.asSequence()
+            val providersToSync = commonData.enabledProviders.value.asSequence()
                 .filter { it.supports(request.platform) }
                 .map { it.id }
                 .toList()

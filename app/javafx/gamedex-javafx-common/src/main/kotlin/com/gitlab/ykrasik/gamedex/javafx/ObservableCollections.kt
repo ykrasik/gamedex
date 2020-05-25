@@ -70,6 +70,18 @@ class JavaFxSettableSortedFilteredList<E>(private val list: SortedFilteredList<E
 
     fun <Q> filterWhen(observable: ObservableValue<Q>, filterExpr: (Q, E) -> Boolean) = list.filterWhen(observable, filterExpr)
 
+    override fun removeAt(index: Int): E {
+        // SortedFilteredList removes from the sortedItems list instead of from the base items list,
+        // which in our use cases for this list results in it removing the wrong item.
+        return list.items.removeAt(index)
+    }
+
+    override fun set(index: Int, element: E): E {
+        // SortedFilteredList sets items in the sortedItems list instead of in the base items list,
+        // which in our use cases for this list results in it setting the wrong item.
+        return list.items.set(index, element)
+    }
+
     override fun equals(other: Any?) = list == other
     override fun hashCode() = list.hashCode()
     override fun toString() = list.toString()
