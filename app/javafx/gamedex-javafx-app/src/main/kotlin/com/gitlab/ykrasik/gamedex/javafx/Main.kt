@@ -32,6 +32,10 @@ class Main : App(JavaFxPreloaderView::class, GameDexStyle::class) {
         val timeMark = TimeSource.Monotonic.markNow()
 
         @JvmStatic
-        fun main(args: Array<String>) = launch<Main>(args)
+        fun main(args: Array<String>) {
+            System.setProperty("kotlinx.coroutines.debug", "on")
+
+            launch<Main>(args)
+        }
     }
 }
