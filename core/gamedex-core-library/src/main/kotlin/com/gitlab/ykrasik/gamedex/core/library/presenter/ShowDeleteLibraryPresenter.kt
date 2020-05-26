@@ -17,15 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,24 +32,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowDeleteLibraryPresenter @Inject constructor(
-    private val commonData: CommonData,
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService,
+    private val commonData: CommonData
 ) : Presenter<ViewCanDeleteLibrary> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<DeleteLibraryView>().forEach(debugName = "hideDeleteLibraryView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanDeleteLibrary) = object : ViewSession() {
         init {
             view::canDeleteLibraries *= commonData.disableWhenGameSyncIsRunning
 
-            view.deleteLibraryActions.forEach(debugName = "showDeleteLibraryView") { library ->
+            view::deleteLibraryActions.forEach { library ->
                 view.canDeleteLibraries.assert()
 
-                viewManager.showDeleteLibraryView(library)
+                viewService.showAndHide(ViewManager::showDeleteLibraryView, ViewManager::hide, library)
             }
         }
     }

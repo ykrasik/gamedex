@@ -17,15 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddOrEditLibrary
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,24 +32,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowAddOrEditLibraryPresenter @Inject constructor(
-    private val commonData: CommonData,
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService,
+    private val commonData: CommonData
 ) : Presenter<ViewCanAddOrEditLibrary> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<EditLibraryView>().forEach(debugName = "hideEditLibraryView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanAddOrEditLibrary) = object : ViewSession() {
         init {
             view::canAddOrEditLibraries *= commonData.disableWhenGameSyncIsRunning
 
-            view.addOrEditLibraryActions.forEach(debugName = "showEditLibraryView") {
+            view::addOrEditLibraryActions.forEach { library ->
                 view.canAddOrEditLibraries.assert()
 
-                viewManager.showEditLibraryView(library = it)
+                viewService.showAndHide(ViewManager::showEditLibraryView, ViewManager::hide, library)
             }
         }
     }

@@ -17,14 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.web.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.web.BrowserView
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
-import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.settings.GeneralSettingsRepository
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
 import com.gitlab.ykrasik.gamedex.util.toUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,25 +36,18 @@ import javax.inject.Singleton
  */
 @Singleton
 class BrowseUrlPresenter @Inject constructor(
-    private val settingsRepo: GeneralSettingsRepository,
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService,
+    private val settingsRepo: GeneralSettingsRepository
 ) : Presenter<ViewCanBrowseUrl> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<BrowserView>().forEach(debugName = "hideBrowserView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanBrowseUrl) = object : ViewSession() {
         init {
-            view::browseUrlActions.forEach {
+            view::browseUrlActions.forEach { url ->
                 if (settingsRepo.useInternalBrowser.value) {
-                    viewManager.showBrowserView(it)
+                    viewService.showAndHide(ViewManager::showBrowserView, ViewManager::hide, url)
                 } else {
                     // FIXME: This logic belongs to the view
                     launch(Dispatchers.IO) {
-                        Desktop.getDesktop().browse(it.toUrl().toURI())
+                        Desktop.getDesktop().browse(url.toUrl().toURI())
                     }
                 }
             }

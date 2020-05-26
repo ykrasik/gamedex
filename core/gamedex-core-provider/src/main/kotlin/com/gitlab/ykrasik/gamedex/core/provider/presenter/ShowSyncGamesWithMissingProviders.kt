@@ -17,15 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesWithMissingProvidersView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncGamesWithMissingProviders
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,26 +32,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowSyncGamesWithMissingProviders @Inject constructor(
-    private val commonData: CommonData,
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService,
+    private val commonData: CommonData
 ) : Presenter<ViewCanSyncGamesWithMissingProviders> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<SyncGamesWithMissingProvidersView>().forEach("hideSyncGamesWithMissingProvidersView") {
-                viewManager.hide(it)
-            }
-        }
-    }
-
     override fun present(view: ViewCanSyncGamesWithMissingProviders) = object : ViewSession() {
         init {
             view::canSyncGamesWithMissingProviders *= commonData.canSyncOrUpdateGames
 
-            view.syncGamesWithMissingProvidersActions.forEach(debugName = "showSyncGamesWithMissingProvidersView") {
+            view::syncGamesWithMissingProvidersActions.forEach {
                 view.canSyncGamesWithMissingProviders.assert()
 
-                viewManager.showSyncGamesWithMissingProvidersView()
+                viewService.showAndHide(ViewManager::showSyncGamesWithMissingProvidersView, ViewManager::hide)
             }
         }
     }

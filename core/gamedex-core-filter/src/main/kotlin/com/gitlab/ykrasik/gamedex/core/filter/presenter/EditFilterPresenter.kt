@@ -52,7 +52,7 @@ class EditFilterPresenter @Inject constructor(
 
             view::canAccept *= combine(
                 view.nameIsValid,
-                view.filterValidatedValue.onlyChangesFromView(),
+                view.filterValidatedValue.allValues(),
                 view.isTag.allValues()
             ) { nameIsValid, filterValidatedValue, isTag ->
                 nameIsValid and filterValidatedValue.isValid and IsValid {

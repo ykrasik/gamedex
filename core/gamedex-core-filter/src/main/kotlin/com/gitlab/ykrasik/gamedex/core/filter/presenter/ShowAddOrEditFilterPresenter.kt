@@ -17,14 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.filter.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.filter.EditFilterView
 import com.gitlab.ykrasik.gamedex.app.api.filter.ViewCanAddOrEditFilter
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,19 +31,12 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowAddOrEditFilterPresenter @Inject constructor(
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService
 ) : Presenter<ViewCanAddOrEditFilter> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<EditFilterView>().forEach(debugName = "hideEditFilterView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanAddOrEditFilter) = object : ViewSession() {
         init {
-            view.addOrEditFilterActions.forEach(debugName = "showEditFilterView") {
-                viewManager.showEditFilterView(it)
+            view::addOrEditFilterActions.forEach { filter ->
+                viewService.showAndHide(ViewManager::showEditFilterView, ViewManager::hide, filter)
             }
         }
     }

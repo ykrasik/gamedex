@@ -17,14 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,19 +31,12 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowGameDetailsViewPresenter @Inject constructor(
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService
 ) : Presenter<ViewCanShowGameDetails> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<GameDetailsView>().forEach(debugName = "hideGameDetailsView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanShowGameDetails) = object : ViewSession() {
         init {
-            view.viewGameDetailsActions.forEach(debugName = "showGameDetailsView") { params ->
-                viewManager.showGameDetailsView(params)
+            view::viewGameDetailsActions.forEach { params ->
+                viewService.showAndHide(ViewManager::showGameDetailsView, ViewManager::hide, params)
             }
         }
     }

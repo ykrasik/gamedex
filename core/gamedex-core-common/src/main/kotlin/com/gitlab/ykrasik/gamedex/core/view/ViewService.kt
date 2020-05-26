@@ -14,30 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter
+package com.gitlab.ykrasik.gamedex.core.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
-import com.gitlab.ykrasik.gamedex.core.view.Presenter
-import com.gitlab.ykrasik.gamedex.core.view.ViewService
-import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 31/05/2018
- * Time: 10:22
+ * Date: 26/05/2020
+ * Time: 21:31
  */
-@Singleton
-class ShowEditGamePresenter @Inject constructor(
-    private val viewService: ViewService
-) : Presenter<ViewCanEditGame> {
-    override fun present(view: ViewCanEditGame) = object : ViewSession() {
-        init {
-            view::editGameActions.forEach { params ->
-                viewService.showAndHide(ViewManager::showEditGameView, ViewManager::hide, params)
-            }
-        }
-    }
+interface ViewService {
+    suspend fun <V : Any> showAndHide(show: ViewManager.() -> V, hide: ViewManager.(V) -> Unit)
+    suspend fun <V : Any, Params> showAndHide(show: ViewManager.(Params) -> V, hide: ViewManager.(V) -> Unit, params: Params)
 }

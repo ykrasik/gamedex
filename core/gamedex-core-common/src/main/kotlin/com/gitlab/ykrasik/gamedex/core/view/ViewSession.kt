@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.app.api.util.Value
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.app.api.util.fromPresenter
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.flowOf
 import com.gitlab.ykrasik.gamedex.core.util.FlowScope
 import com.gitlab.ykrasik.gamedex.core.util.FlowWithDebugInfo
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
@@ -117,19 +116,9 @@ abstract class ViewSession : FlowScope(
         get().bind(list, name)
     }
 
-    fun <V : Any> EventBus.requestHideView(view: V) = send(ViewEvent.RequestHide(view))
-
     operator fun <T> MutableCollection<T>.divAssign(iterable: Iterable<T>) {
         setAll(iterable)
     }
+
+    fun <V : Any> EventBus.requestHideView(view: V) = send(ViewEvent.RequestHide(view))
 }
-
-//inline fun <reified V> EventBus.onShowViewRequested(crossinline handler: suspend () -> Unit) =
-//    on<ViewEvent.RequestShow>(Dispatchers.Main) {
-//        if (it.viewClass == V::class) {
-//            handler()
-//        }
-//    }
-
-inline fun <reified V> EventBus.hideViewRequests() =
-    flowOf<ViewEvent.RequestHide>().transform { (it.view as? V)?.let { emit(it) } }

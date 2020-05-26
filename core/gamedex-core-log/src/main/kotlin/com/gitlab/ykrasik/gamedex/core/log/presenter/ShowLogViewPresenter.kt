@@ -17,14 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.log.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanShowLogView
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,19 +31,12 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowLogViewPresenter @Inject constructor(
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService
 ) : Presenter<ViewCanShowLogView> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<LogView>().forEach(debugName = "hideLogView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanShowLogView) = object : ViewSession() {
         init {
-            view.showLogViewActions.forEach(debugName = "showLogView") {
-                viewManager.showLogView()
+            view::showLogViewActions.forEach {
+                viewService.showAndHide(ViewManager::showLogView, ViewManager::hide)
             }
         }
     }

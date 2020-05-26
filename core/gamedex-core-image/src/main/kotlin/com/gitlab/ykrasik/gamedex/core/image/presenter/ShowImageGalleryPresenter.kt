@@ -17,14 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.image.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageGalleryView
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewCanShowImageGallery
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,19 +31,12 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowImageGalleryPresenter @Inject constructor(
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService
 ) : Presenter<ViewCanShowImageGallery> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<ImageGalleryView>().forEach(debugName = "hideImageGalleryView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanShowImageGallery) = object : ViewSession() {
         init {
-            view.viewImageActions.forEach(debugName = "showImageGalleryView") { params ->
-                viewManager.showImageGalleryView(params)
+            view::viewImageActions.forEach { params ->
+                viewService.showAndHide(ViewManager::showImageGalleryView, ViewManager::hide, params)
             }
         }
     }

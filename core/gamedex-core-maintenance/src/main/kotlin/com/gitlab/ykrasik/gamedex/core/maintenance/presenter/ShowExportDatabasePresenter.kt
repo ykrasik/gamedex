@@ -17,14 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanExportDatabase
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.util.flowScope
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.core.view.hideViewRequests
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,19 +31,12 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowExportDatabasePresenter @Inject constructor(
-    private val viewManager: ViewManager,
-    eventBus: EventBus
+    private val viewService: ViewService
 ) : Presenter<ViewCanExportDatabase> {
-    init {
-        flowScope(Dispatchers.Main.immediate) {
-            eventBus.hideViewRequests<ExportDatabaseView>().forEach(debugName = "hideExportDatabaseView") { viewManager.hide(it) }
-        }
-    }
-
     override fun present(view: ViewCanExportDatabase) = object : ViewSession() {
         init {
-            view.exportDatabaseActions.forEach(debugName = "showExportDatabaseView") {
-                viewManager.showExportDatabaseView()
+            view::exportDatabaseActions.forEach {
+                viewService.showAndHide(ViewManager::showExportDatabaseView, ViewManager::hide)
             }
         }
     }

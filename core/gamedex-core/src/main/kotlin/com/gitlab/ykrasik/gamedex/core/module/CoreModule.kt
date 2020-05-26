@@ -50,6 +50,8 @@ import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.TaskServiceImpl
 import com.gitlab.ykrasik.gamedex.core.task.presenter.TaskPresenter
+import com.gitlab.ykrasik.gamedex.core.view.ViewService
+import com.gitlab.ykrasik.gamedex.core.view.ViewServiceImpl
 import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowseUrlPresenter
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Injector
@@ -77,6 +79,7 @@ object CoreModule : InternalCoreModule() {
 
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
         bind(ViewCommonOps::class.java).to(ViewCommonOpsImpl::class.java)
+        bind(ViewService::class.java).to(ViewServiceImpl::class.java)
 
         bind(SettingsRepository::class.java).to(SettingsRepositoryImpl::class.java)
         bind(GenreService::class.java).to(GenreServiceImpl::class.java)
