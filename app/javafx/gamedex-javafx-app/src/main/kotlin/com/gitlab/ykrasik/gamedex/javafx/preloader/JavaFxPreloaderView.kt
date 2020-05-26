@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.app.javafx.MainView
-import com.gitlab.ykrasik.gamedex.javafx.EnhancedDefaultErrorHandler
 import com.gitlab.ykrasik.gamedex.javafx.Main
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
@@ -94,8 +93,6 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
 
     override fun onDock() {
         primaryStage.isMaximized = true
-
-        Thread.setDefaultUncaughtExceptionHandler(EnhancedDefaultErrorHandler())
 
         GlobalScope.launch(Dispatchers.IO + CoroutineName("Preloader")) {
             val preloader = ServiceLoader.load(Preloader::class.java).iterator().next()

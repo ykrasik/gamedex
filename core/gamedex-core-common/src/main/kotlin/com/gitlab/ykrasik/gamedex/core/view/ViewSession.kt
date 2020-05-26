@@ -44,7 +44,6 @@ interface Presenter<in V> {
     fun present(view: V): ViewSession
 }
 
-// TODO: A lot of these actions can actually happen on the Default context.
 abstract class ViewSession : FlowScope(
     coroutineContext = SupervisorJob() + ViewExceptionHandler + Dispatchers.Main.immediate,
     baseDebugName = ""
