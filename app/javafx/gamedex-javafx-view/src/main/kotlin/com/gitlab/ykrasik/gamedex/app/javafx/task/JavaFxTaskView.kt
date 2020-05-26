@@ -43,8 +43,8 @@ class JavaFxTaskView : PresentableView(), TaskView {
     override val isCancellable = mutableStateFlow(false, debugName = "isCancellable")
     override val cancelTaskActions = broadcastFlow<Unit>()
 
-    override val taskProgress = JavaFxTaskProgress()
-    override val subTaskProgress = JavaFxTaskProgress()
+    override val taskProgress = JavaFxTaskProgress("mainTask")
+    override val subTaskProgress = JavaFxTaskProgress("subTask")
 
     override val isRunningSubTask = mutableStateFlow(false, debugName = "isRunningSubTask")
 
@@ -88,13 +88,13 @@ class JavaFxTaskView : PresentableView(), TaskView {
                 addClass(Style.progressText, textStyle)
             }
             spacer()
-            label(taskProgress.processedItems.property.combineLatest(taskProgress.totalItems.property).binding { (processed, total) -> "$processed/$total" }) {
-                visibleWhen { taskProgress.totalItems.property.booleanBinding { it!! > 1 } }
+            label(taskProgress.processedItemsString) {
+                visibleWhen { taskProgress.processedItemsString.isNotEmpty }
                 addClass(Style.progressText, textStyle)
             }
             gap(3)
             label(taskProgress.progress.property.asPercent()) {
-                visibleWhen { taskProgress.totalItems.property.booleanBinding { it!! > 1 } }
+                visibleWhen { taskProgress.totalItems.property.typesafeBooleanBinding { it > 1 } }
                 addClass(Style.progressText, textStyle)
             }
         }
@@ -110,25 +110,24 @@ class JavaFxTaskView : PresentableView(), TaskView {
         }
     }
 
-    class JavaFxTaskProgress : TaskProgress {
-        override val title = mutableStateFlow("", debugName = "title")
+    class JavaFxTaskProgress(debugName: String) : TaskProgress {
+        override val title = mutableStateFlow("", debugName = "$debugName.title")
 
-        override val image = mutableStateFlow<Image?>(null, debugName = "image")
+        override val image = mutableStateFlow<Image?>(null, debugName = "$debugName.image")
         val javaFxImage = image.property.binding { it?.image }
 
-        override val message = mutableStateFlow("", debugName = "message")
-        override val processedItems = mutableStateFlow(0, debugName = "processedItems")
-        override val totalItems = mutableStateFlow(0, debugName = "totalItems")
-        override val progress = mutableStateFlow(ProgressIndicator.INDETERMINATE_PROGRESS, debugName = "progress")
+        override val message = mutableStateFlow("", debugName = "$debugName.message")
+        override val processedItems = mutableStateFlow(0, debugName = "$debugName.processedItems")
+        override val totalItems = mutableStateFlow(0, debugName = "$debugName.totalItems")
+        override val progress = mutableStateFlow(ProgressIndicator.INDETERMINATE_PROGRESS, debugName = "$debugName.progress")
 
-//        val processedItemsCount = processedItemsProperty.combineLatest(totalItemsProperty).stringBinding {
-//            val (processedItems, totalItems) = it!!
-//            if (totalItems.toInt() > 1) {
-//                "$processedItems / $totalItems"
-//            } else {
-//                ""
-//            }
-//        }
+        val processedItemsString = processedItems.property.combineLatest(totalItems.property).typesafeStringBinding { (processedItems, totalItems) ->
+            if (totalItems > 1) {
+                "$processedItems / $totalItems"
+            } else {
+                ""
+            }
+        }
     }
 
     class Style : Stylesheet() {
