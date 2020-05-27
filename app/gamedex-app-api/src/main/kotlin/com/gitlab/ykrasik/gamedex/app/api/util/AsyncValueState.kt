@@ -32,6 +32,6 @@ sealed class AsyncValueState<T> {
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        fun <T> loading(): AsyncValueState<T> = Loading as AsyncValueState<T>
+        inline fun <T> loading(): AsyncValueState<T> = Loading as AsyncValueState<T>
     }
 }

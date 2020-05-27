@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.AsyncValueState
 import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
@@ -32,8 +33,10 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import tornadofx.toProperty
 import javax.inject.Inject
@@ -56,14 +59,11 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     fun fetchImage(url: String?, persist: Boolean): ObservableValue<JavaFxImage> = url.ifNotNull {
         val property = SimpleObjectProperty(loading)
-        JavaFxScope.launch {
-            val imageFlow = ops.fetchImage(it, persist)
-            imageFlow.collect { result ->
-                when (result) {
-                    is AsyncValueState.Result -> property.value = result.result.image
-                    is AsyncValueState.Error -> property.value = noImage
-//                    else -> property.value = loading
-                }
+        JavaFxScope.launch(coroutineName, start = CoroutineStart.UNDISPATCHED) {
+            val result = ops.fetchImage(it, persist).first { it != AsyncValueState.loading<Image>() }
+            when (result) {
+                is AsyncValueState.Result -> property.value = result.result.image
+                is AsyncValueState.Error -> property.value = noImage
             }
         }
         property
@@ -93,6 +93,8 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     fun youTubeGameplayUrl(name: String, platform: Platform): String = ops.youTubeGameplayUrl(name, platform)
     fun youTubeGameplayUrl(game: Game): String = youTubeGameplayUrl(game.name, game.platform)
+
+    private val coroutineName = CoroutineName("fetchImage")
 }
 
 private val noImage = JavaFxCommonOps::class.java.getResource("no-image-available.png").readBytes().toImage()
