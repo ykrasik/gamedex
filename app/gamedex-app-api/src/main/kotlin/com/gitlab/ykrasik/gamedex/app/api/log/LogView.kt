@@ -28,12 +28,15 @@ interface LogView {
     val entries: SettableList<LogEntry>
 }
 
+typealias LogEntryId = Int
+
 data class LogEntry(
-    val level: LogLevel,
+    val id: LogEntryId,
     val timestamp: DateTime,
+    val level: LogLevel,
+    val threadName: String,
     val loggerName: String,
     val message: String,
-    val threadName: String,
     val throwable: Throwable?
 )
 

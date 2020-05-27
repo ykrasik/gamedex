@@ -17,17 +17,19 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import com.gitlab.ykrasik.gamedex.app.api.log.*
-import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.control.codeArea
+import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
+import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
+import com.gitlab.ykrasik.gamedex.javafx.control.virtualizedScrollPane
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.settableSortedFilteredList
+import com.gitlab.ykrasik.gamedex.javafx.settableList
+import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
-import com.jfoenix.controls.JFXListCell
-import javafx.scene.layout.Region
+import javafx.scene.text.FontWeight
 import tornadofx.*
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -39,19 +41,47 @@ import java.io.StringWriter
  */
 class JavaFxLogView : PresentableView("Log", Icons.book),
     LogView,
-    ViewCanChangeLogLevel,
-    ViewCanChangeLogTail {
-    override val entries = settableSortedFilteredList<LogEntry>()
+    ViewCanChangeLogLevel {
+    override val entries = settableList<LogEntry>()
 
     override val level = viewMutableStateFlow(LogLevel.Info, debugName = "level")
-    override val logTail = viewMutableStateFlow(false, debugName = "logTail")
+
+    private val baseStyles = LogLevel.values().map { level ->
+        level to when (level) {
+            LogLevel.Trace -> Style.trace
+            LogLevel.Debug -> Style.debug
+            LogLevel.Info -> Style.info
+            LogLevel.Warn -> Style.warn
+            LogLevel.Error -> Style.error
+        }.render().drop(1)
+    }.toMap()
+
+    private val entriesToPositions = mutableMapOf<LogEntryId, LogEntryPosition>()
+    private var totalRemoved = 0
+
+    private val textArea = codeArea {
+        addClass(Style.logView)
+        isWrapText = true
+
+//        val numberFactory = LineNumberFactory.get(this)
+//        paragraphGraphicFactory = IntFunction<Node> { line ->
+//            val hbox = HBox(numberFactory.apply(line))
+//            hbox.alignment = Pos.CENTER_LEFT
+//            hbox
+//        }
+    }
 
     init {
-        entries.predicate = { entry -> level.v.canLog(entry) }
-        level.onChange { entries.refilter() }
-//        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
-//            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
-//        })
+        level.onChange {
+            initLogLevel()
+        }
+
+        entries.onChange { change ->
+            while (change.next()) {
+                change.addedSubList.forEach(::addEntry)
+                change.removed.forEach(::removeEntry)
+            }
+        }
 
         register()
     }
@@ -61,71 +91,77 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
             enumComboMenu(level.property, text = LogLevel::displayName, graphic = { it.icon }).apply {
                 addClass(GameDexStyle.toolbarButton)
             }
-            jfxCheckBox(logTail.property, "Tail")
         }
-        center = prettyListView(entries) {
-            addClass(Style.logView)
+        center = virtualizedScrollPane(textArea) {
             minWidth = screenBounds.width * 5 / 6
             minHeight = screenBounds.height * 5 / 6
-
-            setCellFactory {
-                object : JFXListCell<LogEntry>() {
-                    init {
-                        popoverContextMenu {
-                            jfxButton("Copy to Clipboard", Icons.clipboard) {
-                                action {
-                                    clipboard.putString(item.message)
-                                }
-                            }
-                        }
-                    }
-
-                    override fun updateItem(item: LogEntry?, empty: Boolean) {
-                        super.updateItem(item, empty)
-
-                        toggleClass(Style.trace, false)
-                        toggleClass(Style.debug, false)
-                        toggleClass(Style.info, false)
-                        toggleClass(Style.warn, false)
-                        toggleClass(Style.error, false)
-
-                        if (item == null || empty) {
-                            text = null
-                            graphic = null
-                            return
-                        }
-
-                        val message = if (item.throwable != null) {
-                            val sw = StringWriter()
-                            sw.appendln(item.message)
-                            item.throwable!!.printStackTrace(PrintWriter(sw))
-                            sw.toString()
-                        } else {
-                            item.message
-                        }
-                        val timestamp = item.timestamp.toString("HH:mm:ss.SSS")
-                        val loggerName = if (item.loggerName.isNotBlank()) "[${item.loggerName}]" else ""
-                        text = "$timestamp [${item.threadName}] $loggerName $message"
-                        graphic = item.level.icon.size(20)
-
-                        when (item.level) {
-                            LogLevel.Trace -> toggleClass(Style.trace, true)
-                            LogLevel.Debug -> toggleClass(Style.debug, true)
-                            LogLevel.Info -> toggleClass(Style.info, true)
-                            LogLevel.Warn -> toggleClass(Style.warn, true)
-                            LogLevel.Error -> toggleClass(Style.error, true)
-                        }
-                    }
-                }
-            }
-
-            entries.onChange {
-                if (logTail.v) {
-                    scrollTo(items.size)
-                }
-            }
         }
     }
+
+    private fun initLogLevel() {
+        entriesToPositions.clear()
+        totalRemoved = 0
+        textArea.clear()
+        entries.forEach(::addEntry)
+    }
+
+    private fun addEntry(entry: LogEntry) {
+        if (!level.v.canLog(entry)) return
+
+        val baseStyle = baseStyles.getValue(entry.level)
+
+        val startIndex = textArea.length + totalRemoved
+        var textLength = 0
+
+        fun append(text: String, extraStyle: String? = null, withBraces: Boolean = true, withSpace: Boolean = true, withNewLine: Boolean = false) {
+            if (text.isEmpty()) return
+
+            val sw = StringWriter(text.length + (if (withBraces) 2 else 0) + (if (withSpace) 1 else 0) + (if (withNewLine) 1 else 0))
+            if (withBraces) sw.append('[')
+            sw.append(text)
+            if (withBraces) sw.append(']')
+            if (withSpace) sw.append(' ')
+            if (withNewLine) sw.append('\n')
+            val message = sw.toString()
+
+            textArea.append(message, listOf(baseStyle, extraStyle))
+            textLength += message.length
+        }
+
+        append(entry.formattedTimestamp, withBraces = false)
+        append(entry.formattedLevel, Style.level.render().drop(1), withBraces = false)
+        append(entry.formattedLoggerName, Style.loggerName.render().drop(1))
+        append(entry.formattedThreadName, Style.threadName.render().drop(1))
+        append(entry.formattedMessage, Style.message.render().drop(1), withBraces = false, withSpace = false, withNewLine = true)
+
+        val endIndex = startIndex + textLength
+        entriesToPositions[entry.id] = LogEntryPosition(startIndex, endIndex)
+    }
+
+    private fun removeEntry(entry: LogEntry) {
+        if (!level.v.canLog(entry)) return
+
+        val (startIndex, endIndex) = entriesToPositions.remove(entry.id)!!
+        textArea.deleteText(startIndex - totalRemoved, endIndex - totalRemoved)
+        totalRemoved += endIndex - startIndex
+    }
+
+    private val LogEntry.formattedMessage
+        get() = throwable?.let { throwable ->
+            val sw = StringWriter()
+            sw.appendln(message)
+            throwable.printStackTrace(PrintWriter(sw))
+            sw.toString()
+        } ?: message
+
+    private val LogEntry.formattedTimestamp get() = timestamp.toString("HH:mm:ss")
+    private val LogEntry.formattedLevel
+        get() = when (level) {
+            LogLevel.Info, LogLevel.Warn -> "$level "
+            else -> level.toString()
+        }
+    private val LogEntry.formattedThreadName get() = threadName.split('@').let { if (it.size > 1) it[1] else it[0] }
+    private val LogEntry.formattedLoggerName get() = loggerName
 
     private val LogLevel.icon
         get() = when (this) {
@@ -136,15 +172,22 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
             LogLevel.Error -> Icons.logError
         }
 
+    private data class LogEntryPosition(val startIndex: Int, val endIndex: Int)
+
     class Style : Stylesheet() {
         companion object {
             val logView by cssclass()
 
-            val trace by csspseudoclass()
-            val debug by csspseudoclass()
-            val info by csspseudoclass()
-            val warn by csspseudoclass()
-            val error by csspseudoclass()
+            val level by cssclass()
+            val threadName by cssclass()
+            val loggerName by cssclass()
+            val message by cssclass()
+
+            val trace by cssclass()
+            val debug by cssclass()
+            val info by cssclass()
+            val warn by cssclass()
+            val error by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -153,30 +196,37 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
 
         init {
             logView {
-                listCell {
-                    and(trace) {
-                        textFill = Icons.logTrace.iconColor
-                    }
-                    and(debug) {
-                        textFill = Icons.logDebug.iconColor
-                    }
-                    and(info) {
-                        textFill = Icons.logInfo.iconColor
-                    }
-                    and(warn) {
-                        textFill = Icons.logWarn.iconColor
-                    }
-                    and(error) {
-                        textFill = Icons.logError.iconColor
-                    }
+                padding = box(vertical = 0.px, horizontal = 10.px)
+            }
 
-                    maxHeight = 36.px
-                    prefHeight = 36.px
-                    and(selected) {
-                        prefHeight = Region.USE_COMPUTED_SIZE.px
-                        maxHeight = Double.MAX_VALUE.px
-                    }
-                }
+            level {
+            }
+            threadName {
+                fill = Colors.green
+                fontWeight = FontWeight.BOLD
+            }
+            loggerName {
+                fill = Colors.niceBlueDarker
+                fontWeight = FontWeight.BOLD
+            }
+            message {
+                fontWeight = FontWeight.BLACK
+            }
+
+            trace {
+                opacity = 0.5
+            }
+            debug {
+                opacity = 0.75
+            }
+            info {
+            }
+            warn {
+                fill = Colors.orange
+            }
+            error {
+                fill = Colors.red
+                fontWeight = FontWeight.BOLD
             }
         }
     }

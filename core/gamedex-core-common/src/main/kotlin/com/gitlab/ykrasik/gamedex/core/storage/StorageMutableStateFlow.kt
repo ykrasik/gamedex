@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.storage
 
-import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +43,7 @@ class StorageMutableStateFlow<T> private constructor(
     override val coroutineContext = dispatcher
 
     private val log = logger("Storage")
-    private val displayName = "$storage/$key".file.toString()
+    private val displayName = "$storage/$key".replace('\\', '/')
 
     private var enableWrite = true
 
@@ -61,7 +61,7 @@ class StorageMutableStateFlow<T> private constructor(
             existingValue
         }
 
-        launch {
+        launch(CoroutineName("writer-$displayName")) {
             flow.collect { value ->
                 if (enableWrite) {
                     storage[key] = value
@@ -71,15 +71,16 @@ class StorageMutableStateFlow<T> private constructor(
     }
 
     fun <R> biMap(extractor: KProperty1<T, R>, reverseMapper: T.(R) -> T): MutableStateFlow<R> {
+        val coroutineName = CoroutineName("$displayName/${extractor.name}")
         val mappedFlow = MutableStateFlow(extractor(flow.value))
-        launch {
+        launch(coroutineName) {
             flow.collect {
                 mappedFlow.value = extractor(it)
             }
         }
-        launch {
+        launch(coroutineName) {
             mappedFlow.drop(1).collect {
-                log.debug("[$displayName] ${extractor.name} = $it")
+                log.debug(it.toString())
                 flow.value = reverseMapper(value, it)
             }
         }
@@ -101,6 +102,8 @@ class StorageMutableStateFlow<T> private constructor(
     fun resetDefault() {
         value = default()
     }
+
+    override fun toString() = displayName
 
     companion object {
         private val dispatcher = Executors.newSingleThreadScheduledExecutor {

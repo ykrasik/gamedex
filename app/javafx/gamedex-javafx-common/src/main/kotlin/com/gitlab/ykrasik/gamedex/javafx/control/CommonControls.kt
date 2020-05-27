@@ -31,6 +31,9 @@ import javafx.scene.control.ListView
 import javafx.scene.layout.*
 import javafx.scene.shape.Rectangle
 import org.controlsfx.control.MaskerPane
+import org.fxmisc.flowless.Virtualized
+import org.fxmisc.flowless.VirtualizedScrollPane
+import org.fxmisc.richtext.CodeArea
 import tornadofx.*
 
 /**
@@ -185,4 +188,8 @@ inline fun EventTarget.jfxSpinner(op: JFXSpinner.() -> Unit = {}): JFXSpinner =
 inline fun <T> EventTarget.jfxTreeView(op: JFXTreeView<T>.() -> Unit): JFXTreeView<T> =
     opcr(this, JFXTreeView(), op)
 
-fun <T : Node> EventTarget.add(child: T, op: T.() -> Unit) = add(child.apply { op() })
+inline fun EventTarget.codeArea(op: CodeArea.() -> Unit = {}): CodeArea =
+    opcr(this, CodeArea(), op)
+
+inline fun <T> EventTarget.virtualizedScrollPane(content: T, op: VirtualizedScrollPane<T>.() -> Unit): VirtualizedScrollPane<T> where T : Node, T : Virtualized =
+    opcr(this, VirtualizedScrollPane<T>(content), op)

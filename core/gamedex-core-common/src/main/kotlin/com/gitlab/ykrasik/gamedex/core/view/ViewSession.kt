@@ -88,8 +88,8 @@ abstract class ViewSession : FlowScope(
     }
 
     fun <T> ViewMutableStateFlow<T>.bindBidirectional(flow: MutableStateFlow<T>, debugName: String, traceValues: Boolean = true) {
-        flow.forEach(debugName, traceValues) { valueFromPresenter = it }
-        this.onlyChangesFromView().forEach(debugName, traceValues) { flow.value = it }
+        flow.forEach("$debugName.fromPresenter", traceValues) { valueFromPresenter = it }
+        this.onlyChangesFromView().forEach("$debugName.fromView", traceValues) { flow.value = it }
     }
 
     fun <T> KProperty0<ViewMutableStateFlow<T>>.bindBidirectional(flow: MutableStateFlow<T>, traceValues: Boolean = true) =

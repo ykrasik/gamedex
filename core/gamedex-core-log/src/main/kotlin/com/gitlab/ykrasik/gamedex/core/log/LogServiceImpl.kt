@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * User: ykrasik
@@ -36,6 +37,8 @@ class LogServiceImpl(maxLogEntries: Int = 1000) : LogService {
     private val repo = LogRepository(maxLogEntries)
     override val entries = repo.entries
 
+    private val id = AtomicInteger(0)
+
     private val gameDexLogAppender = object : UnsynchronizedAppenderBase<ILoggingEvent>() {
         init {
             start()
@@ -43,11 +46,12 @@ class LogServiceImpl(maxLogEntries: Int = 1000) : LogService {
 
         override fun append(e: ILoggingEvent) {
             repo += LogEntry(
-                level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
+                id = id.incrementAndGet(),
                 timestamp = DateTime(e.timeStamp),
+                level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
+                threadName = e.threadName,
                 loggerName = e.loggerName.substringAfterLast('.'),
                 message = e.formattedMessage,
-                threadName = e.threadName,
                 throwable = (e.throwableProxy as? ThrowableProxy)?.throwable
             )
         }

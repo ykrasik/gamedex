@@ -32,7 +32,6 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
         val prevDirectory: File,
         val exportDbDirectory: File,
         val logFilterLevel: LogLevel,
-        val logTail: Boolean,
         val useInternalBrowser: Boolean,
         val searchResultLimit: Int
     )
@@ -42,7 +41,6 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
             prevDirectory = File("."),
             exportDbDirectory = File("."),
             logFilterLevel = LogLevel.Info,
-            logTail = true,
             useInternalBrowser = true,
             searchResultLimit = 10
         )
@@ -51,7 +49,6 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
     val prevDirectory = storage.biMap(Data::prevDirectory) { copy(prevDirectory = it) }
     val exportDbDirectory = storage.biMap(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
     val logFilterLevel = storage.biMap(Data::logFilterLevel) { copy(logFilterLevel = it) }
-    val logTail = storage.biMap(Data::logTail) { copy(logTail = it) }
     val useInternalBrowser = storage.biMap(Data::useInternalBrowser) { copy(useInternalBrowser = it) }
     val searchResultLimit = storage.biMap(Data::searchResultLimit) { copy(searchResultLimit = it) }
 }

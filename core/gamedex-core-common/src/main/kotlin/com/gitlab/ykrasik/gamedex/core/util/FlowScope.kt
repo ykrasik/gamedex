@@ -47,7 +47,7 @@ open class FlowScope(override val coroutineContext: CoroutineContext, open val b
                 try {
                     if (traceValues) {
                         val message = when (value) {
-                            is Collection<*> -> "${value.take(3)} and ${value.size - 3} more"
+                            is Collection<*> -> "${value.take(1)} and ${value.size - 1} more"
                             is ListEvent<*>, is CoreEvent -> null
                             else -> value.toString()
                         }

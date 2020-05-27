@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.log.module
 
 import com.gitlab.ykrasik.gamedex.core.log.presenter.LogLevelPresenter
-import com.gitlab.ykrasik.gamedex.core.log.presenter.LogTailPresenter
 import com.gitlab.ykrasik.gamedex.core.log.presenter.LogViewPresenter
 import com.gitlab.ykrasik.gamedex.core.log.presenter.ShowLogViewPresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
@@ -31,7 +30,6 @@ object LogModule : InternalCoreModule() {
     override fun configure() {
         bindPresenter(LogViewPresenter::class)
         bindPresenter(LogLevelPresenter::class)
-        bindPresenter(LogTailPresenter::class)
         bindPresenter(ShowLogViewPresenter::class)
     }
 }
