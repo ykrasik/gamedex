@@ -50,7 +50,7 @@ object FileNameHandler {
         return rawNameWithoutMetadata to metadata
     }
 
-    fun toFileName(name: String) = name.replace(": ", " - ")
+    fun sanitizeFileName(name: String) = name.replace(": ", " - ")
         .replace("/", " ")
         .replace("\\", " ")
         .replace("?", " ")

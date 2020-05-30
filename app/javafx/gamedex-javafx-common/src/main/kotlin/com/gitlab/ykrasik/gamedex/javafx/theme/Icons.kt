@@ -133,6 +133,7 @@ object Icons {
     val fileVideo get() = fontIcon(MaterialDesign.MDI_FILE_VIDEO)   // FIXME: Use outline version
     val archive get() = fontIcon(MaterialDesign.MDI_ARCHIVE)
     val clipboard get() = fontIcon(MaterialDesign.MDI_CLIPBOARD_OUTLINE)
+    val cleanup get() = fontIcon(MaterialDesign.MDI_BROOM)
 
     val download get() = fontIcon(MaterialDesign.MDI_CLOUD_DOWNLOAD)
     val upload get() = fontIcon(MaterialDesign.MDI_CLOUD_UPLOAD)

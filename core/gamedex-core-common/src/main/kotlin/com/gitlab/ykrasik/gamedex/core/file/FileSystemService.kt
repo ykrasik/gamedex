@@ -38,5 +38,5 @@ interface FileSystemService {
     suspend fun delete(file: File)
 
     fun analyzeFolderName(rawName: String): FolderName
-    fun toFileName(name: String): String
+    fun sanitizeFileName(name: String): String
 }

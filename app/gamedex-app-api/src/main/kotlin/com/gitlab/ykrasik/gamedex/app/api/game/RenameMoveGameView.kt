@@ -39,6 +39,8 @@ interface RenameMoveGameView : ConfirmationView, ViewCanDisplayError {
     val targetPathIsValid: MutableStateFlow<IsValid>
     val targetPathLibrary: MutableStateFlow<Library>
 
+    val sanitizeTargetPathActions: Flow<Unit>
+
     val browseActions: Flow<Unit>
     fun browse(initialDirectory: File): File?
 }

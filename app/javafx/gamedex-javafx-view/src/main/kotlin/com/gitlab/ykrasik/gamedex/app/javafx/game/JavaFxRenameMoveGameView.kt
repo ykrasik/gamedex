@@ -26,10 +26,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.control.validWhen
 import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.logo
-import com.gitlab.ykrasik.gamedex.javafx.theme.subHeader
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
@@ -51,6 +48,8 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     override val targetPath = viewMutableStateFlow("", debugName = "targetPath")
     override val targetPathIsValid = mutableStateFlow(IsValid.valid, debugName = "targetPathIsValid")
     override val targetPathLibrary = mutableStateFlow(Library.Null, debugName = "targetPathLibrary")
+
+    override val sanitizeTargetPathActions = broadcastFlow<Unit>()
 
     override val browseActions = broadcastFlow<Unit>()
     override val openFileActions = broadcastFlow<File>()
@@ -94,6 +93,11 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                             requestFocus()
                             end() // Move caret to end of text.
                         }
+                    }
+                    jfxButton(graphic = Icons.cleanup.size(24)) {
+                        tooltip("Sanitize")
+                        action(sanitizeTargetPathActions)
+                        shortcut("ctrl+s")
                     }
                     browseButton { action(browseActions) }
                 }

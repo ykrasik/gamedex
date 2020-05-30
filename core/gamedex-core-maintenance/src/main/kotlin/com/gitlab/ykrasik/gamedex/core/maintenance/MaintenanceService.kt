@@ -354,7 +354,7 @@ class MaintenanceServiceImpl @Inject constructor(
     private fun ProviderData.toExpectedName(folderName: FolderName): String {
         val expected = StringBuilder()
         folderName.order?.let { order -> expected.append("[$order] ") }
-        expected.append(fileSystemService.toFileName(gameData.name))
+        expected.append(fileSystemService.sanitizeFileName(gameData.name))
         folderName.metaTag?.let { metaTag -> expected.append(" [$metaTag]") }
         folderName.version?.let { version -> expected.append(" [$version]") }
         return expected.toString()

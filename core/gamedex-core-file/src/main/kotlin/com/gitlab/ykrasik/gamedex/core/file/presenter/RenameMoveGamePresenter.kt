@@ -74,21 +74,26 @@ class RenameMoveGamePresenter @Inject constructor(
 
             view.targetPath.allValues().forEach(debugName = "onTargetPathChanged") { validateAndDetectLibrary(it) }
 
-            view::browseActions.forEach { onBrowse() }
+            view::sanitizeTargetPathActions.forEach {
+                val file = targetPath.file
+                val sanitized = fileSystemService.sanitizeFileName(file.name).replace('.', ' ').trim()
+                targetPath = file.parentFile.resolve(sanitized).toString()
+            }
+
+            view::browseActions.forEach {
+                val initialDirectory = when {
+                    targetPath.file.isDirectory -> targetPath.file
+                    targetPathLibrary.id != Library.Null.id -> targetPathLibrary.path
+                    else -> game.library.path
+                }.takeIf { it.isDirectory } ?: File(".")
+                val selectedDirectory = view.browse(initialDirectory)
+                if (selectedDirectory != null) {
+                    targetPath = selectedDirectory.path
+                }
+            }
+
             view::acceptActions.forEach { onAccept() }
             view::cancelActions.forEach { onCancel() }
-        }
-
-        private fun onBrowse() {
-            val initialDirectory = when {
-                targetPath.file.isDirectory -> targetPath.file
-                targetPathLibrary.id != Library.Null.id -> targetPathLibrary.path
-                else -> game.library.path
-            }.takeIf { it.isDirectory } ?: File(".")
-            val selectedDirectory = view.browse(initialDirectory)
-            if (selectedDirectory != null) {
-                targetPath = selectedDirectory.path
-            }
         }
 
         private suspend fun validateAndDetectLibrary(path: String) = withContext(Dispatchers.IO) {

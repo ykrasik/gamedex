@@ -158,7 +158,7 @@ class FileSystemServiceImpl @Inject constructor(
 
     override fun analyzeFolderName(rawName: String) = FileNameHandler.analyze(rawName)
 
-    override fun toFileName(name: String) = FileNameHandler.toFileName(name)
+    override fun sanitizeFileName(name: String) = FileNameHandler.sanitizeFileName(name)
 
     private fun onGameDeleted(game: Game) = deleteCachedFileTree(game.id)
 
