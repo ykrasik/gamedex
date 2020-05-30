@@ -71,7 +71,8 @@ class FileSystemServiceImpl @Inject constructor(
         val flow = MutableStateFlow(fileTree)
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
-        GlobalScope.launch(Dispatchers.IO) {
+        // For some reason, this behaves much faster on the Default dispatcher instead of the IO dispatcher.
+        GlobalScope.launch(Dispatchers.Default) {
             try {
                 val newFileTree = calcFileTree(path)
                 if (newFileTree != null && newFileTree != fileTree) {
