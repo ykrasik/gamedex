@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.util.ktor.Logging
 import com.google.common.net.UrlEscapers
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
+import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.UserAgent
 import io.ktor.client.features.json.Json
 import io.ktor.client.request.get
@@ -41,6 +42,10 @@ import java.util.*
  */
 val httpClient = HttpClient(Apache) {
     install(UserAgent)
+    install(HttpTimeout) {
+        requestTimeoutMillis = 5000
+        connectTimeoutMillis = 1000
+    }
     Logging {
         logger = logger("HttpClient")
     }
