@@ -43,6 +43,7 @@ class GenreMappingRepository @Inject constructor() {
             "Quiz/Trivia" to listOf("Board / Card Game"),
             "Parlor" to listOf("Board / Card Game"),
             "Trivia/Board Game" to listOf("Board / Card Game"),
+            "Card & Board Game" to listOf("Board / Card Game"),
 
             "Minigame Collection" to listOf("Compilation"),
 
@@ -73,6 +74,7 @@ class GenreMappingRepository @Inject constructor() {
 
             "Music/Rhythm" to listOf("Music / Rhythm"),
             "Music" to listOf("Music / Rhythm"),
+            "Rhythm" to listOf("Music / Rhythm"),
 
             "Logic" to listOf("Puzzle"),
             "Matching" to listOf("Puzzle"),
@@ -92,6 +94,8 @@ class GenreMappingRepository @Inject constructor() {
             "Shoot 'Em Up" to listOf("Shooter"),
             "Shoot-'Em-Up" to listOf("Shooter"),
             "Artillery" to listOf("Shooter"),
+            "Light-Gun Shooter" to listOf("Shooter"),
+            "Light Gun" to listOf("Shooter"),
 
             "Third-Person" to listOf("Third-Person Shooter"),
 
@@ -107,6 +111,7 @@ class GenreMappingRepository @Inject constructor() {
             "Sports" to listOf("Sport"),
             "Football" to listOf("Sport"),
             "Boxing" to listOf("Sport"),
+            "Boxing / Martial Arts" to listOf("Sport"),
             "Bowling" to listOf("Sport"),
             "Basketball" to listOf("Sport"),
             "Golf" to listOf("Sport"),
@@ -114,6 +119,8 @@ class GenreMappingRepository @Inject constructor() {
             "Baseball" to listOf("Sport"),
             "Skateboarding" to listOf("Sport"),
             "Track & Field" to listOf("Sport"),
+            "Billiards" to listOf("Sport"),
+            "Soccer" to listOf("Sport"),
 
             "Defense" to listOf("Strategy"),
             "Military" to listOf("Strategy"),
@@ -125,8 +132,11 @@ class GenreMappingRepository @Inject constructor() {
             "Turn-Based" to listOf("Turn-Based Strategy (TBS)"),
             "Turn-Based Strategy" to listOf("Turn-Based Strategy (TBS)"),
 
+            "Visual Novel" to listOf("Interactive Story"),
+
             "Art" to emptyList(),
             "Creation" to emptyList(),
+            "Edutainment" to emptyList(),
             "Indie" to emptyList(),
             "General" to emptyList(),
             "Miscellaneous" to emptyList(),
@@ -148,7 +158,6 @@ class GenreMappingRepository @Inject constructor() {
             "Dual-Joystick Shooter" to emptyList(),
             "Educational" to emptyList(),
             "Real-Time" to emptyList(),
-            "Light Gun" to emptyList(),
             "Pet" to emptyList(),
             "Pinball" to emptyList(),
             "Block-Breaking" to emptyList(),
@@ -156,7 +165,8 @@ class GenreMappingRepository @Inject constructor() {
             "Futuristic" to emptyList(),
             "Fantasy" to emptyList(),
             "Sci-Fi" to emptyList(),
-            "Space" to emptyList()
+            "Space" to emptyList(),
+            "MOBA" to emptyList()
         )
     }
 }
