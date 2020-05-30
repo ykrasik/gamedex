@@ -44,9 +44,9 @@ class JavaFxViewMutableStateFlow<T, P : Property<T>>(
 ) : MutableStateFlow<Value<T>> by flow, ViewMutableStateFlow<T>, CoroutineScope {
     override val coroutineContext = Dispatchers.Main.immediate + CoroutineName(debugName)
 
-    init {
-        var propertyChangedByPresenter = false
+    private var propertyChangedByPresenter = false
 
+    init {
         property.typeSafeOnChange { value ->
             if (!propertyChangedByPresenter) {
                 flow.value = value.fromView
@@ -65,7 +65,11 @@ class JavaFxViewMutableStateFlow<T, P : Property<T>>(
 
     inline fun perform(crossinline f: (T) -> Unit) = property.perform(f)
     inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
-    inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
+    fun onChangeFromPresenter(f: (T) -> Unit) = property.typeSafeOnChange {
+        if (propertyChangedByPresenter) {
+            f(it)
+        }
+    }
 }
 
 fun <T> Any.viewMutableStateFlow(initial: T, debugName: String) = viewMutableStateFlow(SimpleObjectProperty(initial), debugName)

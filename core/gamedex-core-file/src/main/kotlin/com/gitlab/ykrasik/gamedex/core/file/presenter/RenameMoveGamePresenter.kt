@@ -61,9 +61,12 @@ class RenameMoveGamePresenter @Inject constructor(
         val loading = MutableStateFlow(false)
 
         init {
-            view.targetPath *= combine(view.game.allValues(), view.initialName.allValues()) { game, initialName ->
-                (initialName?.let { game.path.parentFile.resolve(it) } ?: game.path).path
-            } withDebugName "initialTargetPath"
+            this::isShowing.forEach {
+                if (it) {
+                    val initialName = view.initialName.v
+                    view.targetPath /= (initialName?.let { game.path.parentFile.resolve(it) } ?: game.path).path
+                }
+            }
 
             view::canAccept *= combine(loading, view.targetPathIsValid) { loading, targetPathIsValid ->
                 if (loading) IsValid.invalid("Loading...") else targetPathIsValid

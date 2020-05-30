@@ -90,11 +90,9 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                         validWhen(targetPathIsValid)
                         paddingLeft = 6.0
                         gridpaneColumnConstraints { hgrow = Priority.ALWAYS }
-                        sceneProperty().onChange {
-                            if (it != null) {
-                                requestFocus()
-                                end() // Move caret to end of text.
-                            }
+                        targetPath.onChangeFromPresenter {
+                            requestFocus()
+                            end() // Move caret to end of text.
                         }
                     }
                     browseButton { action(browseActions) }
