@@ -41,8 +41,8 @@ data class Library(
             data = LibraryData(
                 name = "",
                 path = File(""),
-                type = LibraryType.Excluded,
-                platform = null
+                type = LibraryType.Digital,
+                platform = Platform.Windows
             )
         )
     }
