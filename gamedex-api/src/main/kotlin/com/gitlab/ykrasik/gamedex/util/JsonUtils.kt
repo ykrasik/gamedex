@@ -41,7 +41,13 @@ val objectMapper: ObjectMapper = jacksonObjectMapper()
     .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
     .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
 
-fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
+private val prettyWriter = objectMapper.writerWithDefaultPrettyPrinter()
+
+fun Any.toJsonStr(pretty: Boolean = false): String = if (pretty) {
+    prettyWriter.writeValueAsString(this)
+} else {
+    objectMapper.writeValueAsString(this)
+}
 
 inline fun <reified T : Any> String.fromJson(): T = fromJson(T::class)
 fun <T : Any> String.fromJson(klass: KClass<T>): T = objectMapper.readValue(this, klass.java)
@@ -52,7 +58,7 @@ fun <T : Any> ByteArray.fromJson(klass: KClass<T>): T = objectMapper.readValue(t
 inline fun <reified T : Any> File.readJson(): T = readJson(T::class)
 fun <T : Any> File.readJson(klass: KClass<T>): T = objectMapper.readValue(this, klass.java)
 
-fun File.writeJson(data: Any) = objectMapper.writerWithDefaultPrettyPrinter().writeValue(this, data)
+fun File.writeJson(data: Any) = prettyWriter.writeValue(this, data)
 
 inline fun <reified T : Any> String.listFromJson(): List<T> {
     val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)

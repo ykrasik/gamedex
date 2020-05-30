@@ -25,9 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.findTransform
-import com.gitlab.ykrasik.gamedex.util.replaceWhere
+import com.gitlab.ykrasik.gamedex.util.*
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -43,10 +41,16 @@ class GameDetailsPresenter @Inject constructor(
     private val gameService: GameService,
     private val eventBus: EventBus
 ) : Presenter<GameDetailsView> {
+    private val log = logger()
+
     override fun present(view: GameDetailsView) = object : ViewSession() {
         private var gameParams by view.gameParams
 
         init {
+            view.gameParams.onlyChangesFromView().forEach(debugName = "onGameChanged") {
+                log.trace(it.game.rawGame.toJsonStr(pretty = true))
+            }
+
             view::currentGameIndex *= view.gameParams.allValues().map { (game, allGames) ->
                 allGames.indexOfFirst { it.id == game.id }
             }

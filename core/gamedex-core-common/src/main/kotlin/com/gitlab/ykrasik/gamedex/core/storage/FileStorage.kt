@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.storage
 
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.objectMapper
+import com.gitlab.ykrasik.gamedex.util.readJson
+import com.gitlab.ykrasik.gamedex.util.writeJson
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
@@ -157,8 +158,8 @@ interface FileStorageFormat<V> {
 }
 
 class JsonFileStorageFormat<V : Any>(private val klass: KClass<V>) : FileStorageFormat<V> {
-    override fun write(file: File, value: V) = objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, value)
-    override fun read(file: File): V = objectMapper.readValue(file, klass.java)
+    override fun write(file: File, value: V) = file.writeJson(value)
+    override fun read(file: File): V = file.readJson(klass)
 }
 
 object BinaryFileStorageFormat : FileStorageFormat<ByteArray> {
