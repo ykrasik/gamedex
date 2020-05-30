@@ -28,4 +28,6 @@ interface LogService {
     val entries: ListObservable<LogEntry>
 
     fun addBlacklistValue(value: String)
+
+    fun clear()
 }

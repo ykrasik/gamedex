@@ -28,6 +28,8 @@ class LogViewPresenter @Inject constructor(private val logService: LogService) :
     override fun present(view: LogView) = object : ViewSession() {
         init {
             view::entries *= logService.entries
+
+            view::clearLogActions.forEach { logService.clear() }
         }
     }
 }

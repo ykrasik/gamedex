@@ -69,6 +69,8 @@ class LogRepository(private val maxLogEntries: Int) : CoroutineScope {
         return entry.copy(message = censored)
     }
 
+    fun clear() = _entries.clear()
+
     companion object {
         private val dispatcher = Executors.newSingleThreadScheduledExecutor {
             Thread(it, "LogDispatcher").apply { isDaemon = true }

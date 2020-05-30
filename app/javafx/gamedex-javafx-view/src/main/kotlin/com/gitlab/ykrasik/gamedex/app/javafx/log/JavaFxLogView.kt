@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import com.gitlab.ykrasik.gamedex.app.api.log.*
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.control.codeArea
 import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyToolbar
@@ -27,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.javafx.settableList
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.deleteButton
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import javafx.scene.text.FontWeight
@@ -43,6 +45,8 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
     LogView,
     ViewCanChangeLogLevel {
     override val entries = settableList<LogEntry>()
+
+    override val clearLogActions = broadcastFlow<Unit>()
 
     override val level = viewMutableStateFlow(LogLevel.Info, debugName = "level")
 
@@ -90,6 +94,12 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
         top = prettyToolbar {
             enumComboMenu(level.property, text = LogLevel::displayName, graphic = { it.icon }).apply {
                 addClass(GameDexStyle.toolbarButton)
+            }
+
+            spacer()
+
+            deleteButton("Clear") {
+                action(clearLogActions)
             }
         }
         center = virtualizedScrollPane(textArea) {

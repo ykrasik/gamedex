@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.log
 
 import com.gitlab.ykrasik.gamedex.app.api.util.SettableList
+import kotlinx.coroutines.flow.Flow
 import org.joda.time.DateTime
 
 /**
@@ -26,6 +27,8 @@ import org.joda.time.DateTime
  */
 interface LogView {
     val entries: SettableList<LogEntry>
+
+    val clearLogActions: Flow<Unit>
 }
 
 typealias LogEntryId = Int

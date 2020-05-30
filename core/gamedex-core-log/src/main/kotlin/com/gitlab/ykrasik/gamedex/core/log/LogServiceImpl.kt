@@ -67,4 +67,6 @@ class LogServiceImpl(maxLogEntries: Int = 1000) : LogService {
     }
 
     override fun addBlacklistValue(value: String) = repo.addBlacklistValue(value)
+
+    override fun clear() = repo.clear()
 }
