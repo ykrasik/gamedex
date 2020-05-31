@@ -86,8 +86,8 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 val result2 = searchResult()
                 server.anySearchRequest().willReturn(listOf(result1, result2))
 
-                val fetchResult = fetchResult(releaseDate = releaseDate)
-                givenFetchReturns(fetchResult, result1.id)
+                val fetchResult = fetchResult(releaseDate = releaseDate).copy(id = result1.id)
+                givenFetchReturns(fetchResult)
 
                 search() shouldBe listOf(
                     GameProvider.SearchResult(
@@ -129,15 +129,15 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
 
         "fetch" should {
             "fetch details" test {
-                val result = fetchResult(releaseDate = releaseDate).copy(name = randomWord())
-                givenFetchReturns(result, result.id)
+                val result = fetchResult(releaseDate = releaseDate).copy(name = randomWord(), averageScore = 87.6, numReviews = 2)
+                givenFetchReturns(result)
 
                 fetch(result.id) shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = result.name,
                         description = result.description,
                         releaseDate = releaseDate.toLocalDate().toString(),
-                        criticScore = Score(result.averageScore, result.numReviews),
+                        criticScore = Score(87.6, 2),
                         userScore = null,
                         genres = result.Genres.map { it.name },
                         thumbnailUrl = "http:${result.logoScreenshot!!.thumbnail}",
@@ -196,6 +196,20 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                     fetchResult().copy(
                         Platforms = listOf(
                             platform(),
+                            platform()
+                        ),
+                        firstReleaseDate = DateTime.parse("2019-12-12T23:58:59")
+                    )
+                )
+
+                fetch().gameData.releaseDate shouldBe "2019-12-12"
+            }
+
+            "return releaseDate from 'firstReleaseDate' when platform is found in 'Platforms', but releaseDate is null" test {
+                givenFetchReturns(
+                    fetchResult().copy(
+                        Platforms = listOf(
+                            platform(id = platformId, releaseDate = null),
                             platform()
                         ),
                         firstReleaseDate = DateTime.parse("2019-12-12T23:58:59")
@@ -316,7 +330,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
 
         fun genre(genre: String = randomGenre()) = OpenCriticClient.Genre(id = randomInt(), name = genre)
 
-        fun platform(id: Int = randomInt(), releaseDate: DateTime = randomDateTime()) =
+        fun platform(id: Int = randomInt(), releaseDate: DateTime? = randomDateTime()) =
             OpenCriticClient.Platform(id = id, shortName = randomWord(), releaseDate = releaseDate)
 
         fun image(fullResPath: String = randomPath(), thumbnailPath: String = randomPath()) =
@@ -324,11 +338,11 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
 
         fun screenshotUrl(image: OpenCriticClient.Image) = "http:${image.fullRes}"
 
-        fun givenFetchReturns(result: OpenCriticClient.FetchResult, providerGameId: Int = this.providerGameId) =
-            server.aFetchRequest(providerGameId).willReturn(result)
+        fun givenFetchReturns(result: OpenCriticClient.FetchResult) =
+            server.aFetchRequest(result.id).willReturn(result)
 
         fun givenEmptyFetchResultFor(result: OpenCriticClient.SearchResult) =
-            givenFetchReturns(emptyFetchResultFor(result), result.id)
+            givenFetchReturns(emptyFetchResultFor(result))
 
         fun emptyFetchResultFor(result: OpenCriticClient.SearchResult) = OpenCriticClient.FetchResult(
             id = result.id,

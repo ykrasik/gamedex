@@ -81,6 +81,6 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
     data class Platform(
         val id: Int,
         val shortName: String,
-        val releaseDate: DateTime
+        val releaseDate: DateTime?
     )
 }

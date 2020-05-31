@@ -102,11 +102,9 @@ class OpenCriticProvider @Inject constructor(
         siteUrl = "${config.baseUrl}/game/${id}/${name.replace("[\\W]+".toRegex(), "-").toLowerCase()}"
     )
 
-    private fun List<OpenCriticClient.Platform>.findReleaseDate(platform: Platform): String? {
+    private fun List<OpenCriticClient.Platform>.findReleaseDate(platform: Platform): String? =
         // OpenCritic returns all release dates for all platforms.
-        val openCriticPlatform = this.find { it.id == platform.platformId } ?: return null
-        return openCriticPlatform.releaseDate.toLocalDate().toString()
-    }
+        find { it.id == platform.platformId }?.releaseDate?.toLocalDate()?.toString()
 
     private fun String.toImageUrl() = "http:$this"
 
