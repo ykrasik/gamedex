@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
+import com.gitlab.ykrasik.gamedex.javafx.typesafeBooleanBinding
 import com.jfoenix.controls.JFXCheckBox
 import com.jfoenix.controls.JFXToggleButton
 import com.jfoenix.controls.JFXToggleNode
@@ -58,7 +59,7 @@ inline fun EventTarget.jfx2SideToggleButton(
 ) = defaultHbox {
     label(uncheckedText) {
         addClass(GameDexStyle.toggleButtonUncheckedText)
-        toggleClass(Stylesheet.checked, property.booleanBinding { !it!! })
+        toggleClass(Stylesheet.checked, property.typesafeBooleanBinding { !it })
         widthProperty().onChange {
             minWidth = prefWidth(-1.0) + 10
         }

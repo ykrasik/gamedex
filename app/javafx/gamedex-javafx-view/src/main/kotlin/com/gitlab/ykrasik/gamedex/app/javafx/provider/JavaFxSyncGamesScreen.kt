@@ -118,8 +118,7 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
 
     override fun HBox.buildToolbar() {
         val resultsAndNumProcessed = pathsToProcessSize.combineLatest(numProcessed.property)
-        val numProcessedLabelProperty = resultsAndNumProcessed.stringBinding {
-            val (numResults, numProcessed) = it!!
+        val numProcessedLabelProperty = resultsAndNumProcessed.typesafeStringBinding { (numResults, numProcessed) ->
             "$numProcessed/$numResults"
         }
         val progressProperty = resultsAndNumProcessed.doubleBinding {

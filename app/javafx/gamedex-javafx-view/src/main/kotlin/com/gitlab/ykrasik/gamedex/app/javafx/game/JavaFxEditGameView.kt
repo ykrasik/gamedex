@@ -90,7 +90,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     }
 
     init {
-        titleProperty.bind(game.property.stringBinding { "Edit '${it!!.name}'" })
+        titleProperty.bind(game.property.typesafeStringBinding { "Edit '${it.name}'" })
         register()
     }
 

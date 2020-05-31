@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
+import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
 import javafx.geometry.Pos
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.*
@@ -85,7 +86,7 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
                             fontWeight = FontWeight.BOLD
                         }
                     }
-                    label(version.property.stringBinding { it!!.version })
+                    label(version.property.typesafeStringBinding { it.version })
                 }
             }
         }

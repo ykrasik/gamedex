@@ -48,7 +48,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
     override val addNewTagActions = broadcastFlow<Unit>()
 
     init {
-        titleProperty.bind(game.property.stringBinding { "Tag '${it!!.name}'" })
+        titleProperty.bind(game.property.typesafeStringBinding { "Tag '${it.name}'" })
         checkedTags.onChange { tags.list.invalidate() }
         register()
     }

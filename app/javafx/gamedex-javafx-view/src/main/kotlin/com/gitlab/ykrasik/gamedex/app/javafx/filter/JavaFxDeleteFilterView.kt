@@ -23,9 +23,9 @@ import com.gitlab.ykrasik.gamedex.app.api.util.writeTo
 import com.gitlab.ykrasik.gamedex.javafx.control.prettyScrollPane
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
-import tornadofx.stringBinding
 
 /**
  * User: ykrasik
@@ -39,7 +39,7 @@ class JavaFxDeleteFilterView : ConfirmationWindow(icon = Icons.delete), DeleteFi
         .writeTo(filterView.filter) { it.value.filter.fromView }
 
     init {
-        titleProperty.bind(filter.property.stringBinding { "Delete filter '${it!!.id}'?" })
+        titleProperty.bind(filter.property.typesafeStringBinding { "Delete filter '${it.id}'?" })
         register()
     }
 

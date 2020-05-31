@@ -24,16 +24,16 @@ import com.gitlab.ykrasik.gamedex.app.api.util.fromView
 import com.gitlab.ykrasik.gamedex.app.api.util.writeFrom
 import com.gitlab.ykrasik.gamedex.app.api.util.writeTo
 import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
-import com.gitlab.ykrasik.gamedex.javafx.addComponent
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
-import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import tornadofx.*
+import tornadofx.borderpane
+import tornadofx.paddingAll
+import tornadofx.spacer
+import tornadofx.vbox
 
 /**
  * User: ykrasik
@@ -65,7 +65,7 @@ class JavaFxEditFilterView : ConfirmationWindow(), EditFilterView {
 //    override val unexcludeGameActions = broadcastFlow<Game>()
 
     init {
-        titleProperty.bind(initialNamedFilter.property.stringBinding { if (it!!.isAnonymous) "Save Filter" else "Edit Filter" })
+        titleProperty.bind(initialNamedFilter.property.typesafeStringBinding { if (it.isAnonymous) "Save Filter" else "Edit Filter" })
 //        iconProperty.bind(reportProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
         register()
     }

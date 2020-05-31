@@ -24,6 +24,12 @@ import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+/**
+ * User: ykrasik
+ * Date: 02/12/2018
+ * Time: 16:44
+ */
+
 fun <T> broadcastFlow() = BroadcastFlow<T>(BroadcastChannel(2))
 
 class BroadcastFlow<T> private constructor(

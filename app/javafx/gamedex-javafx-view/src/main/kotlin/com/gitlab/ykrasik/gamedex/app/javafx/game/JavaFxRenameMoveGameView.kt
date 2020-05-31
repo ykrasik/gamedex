@@ -71,19 +71,19 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                 row {
                     subHeader("From")
                     label {
-                        textProperty().bind(game.property.stringBinding { it!!.library.name })
-                        graphicProperty().bind(game.property.binding { it!!.library.platformOrNull?.logo })
+                        textProperty().bind(game.property.typesafeStringBinding { it.library.name })
+                        graphicProperty().bind(game.property.binding { it.library.platformOrNull?.logo })
                     }
                     jfxButton {
-                        textProperty().bind(game.property.stringBinding { it!!.path.path })
+                        textProperty().bind(game.property.typesafeStringBinding { it.path.path })
                         action(openFileActions) { game.v.path }
                     }
                 }
                 row {
                     subHeader("To")
                     label {
-                        textProperty().bind(targetPathLibrary.property.stringBinding { it!!.name })
-                        graphicProperty().bind(targetPathLibrary.property.binding { it!!.platformOrNull?.logo })
+                        textProperty().bind(targetPathLibrary.property.typesafeStringBinding { it.name })
+                        graphicProperty().bind(targetPathLibrary.property.binding { it.platformOrNull?.logo })
                     }
                     jfxTextField(targetPath.property, promptText = "Enter Path...") {
                         validWhen(targetPathIsValid)

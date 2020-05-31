@@ -172,7 +172,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             jfxButton {
                 graphicProperty().bind(sortOrder.property.objectBinding { if (it == SortOrder.Asc) Icons.ascending else Icons.descending })
                 tooltip {
-                    textProperty().bind(sortOrder.property.stringBinding { it!!.displayName })
+                    textProperty().bind(sortOrder.property.typesafeStringBinding { it.displayName })
                 }
                 action {
                     sortOrder *= sortOrder.v.toggle()

@@ -46,7 +46,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     private val commonOps: JavaFxCommonOps by di()
 
     override val state = mutableStateFlow(GameSearchState.Null, debugName = "state")
-    private val currentProviderId = state.property.stringBinding { it!!.currentProvider ?: "" }
+    private val currentProviderId = state.property.typesafeStringBinding { it.currentProvider ?: "" }
 
     override val query = viewMutableStateFlow("", debugName = "query")
     override val searchResults = mutableStateFlow(emptyList<GameProvider.SearchResult>(), debugName = "searchResults")
@@ -138,15 +138,15 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
             spacer()
             excludeButton {
                 showWhen(canExcludeSearchResult)
-                textProperty().bind(currentProviderId.stringBinding { "Exclude $it" })
-                tooltip(currentProviderId.stringBinding { "Exclude this path from ever syncing with $it" })
+                textProperty().bind(currentProviderId.typesafeStringBinding { "Exclude $it" })
+                tooltip(currentProviderId.typesafeStringBinding { "Exclude this path from ever syncing with $it" })
                 action(choiceActions) { GameSearchState.ProviderSearch.Choice.Exclude }
             }
             gap()
             excludeButton {
                 graphic = Icons.redo
-                textProperty().bind(currentProviderId.stringBinding { "Skip $it" })
-                tooltip(currentProviderId.stringBinding { "Skip syncing this path with $it this time" })
+                textProperty().bind(currentProviderId.typesafeStringBinding { "Skip $it" })
+                tooltip(currentProviderId.typesafeStringBinding { "Skip syncing this path with $it this time" })
                 action(choiceActions) { GameSearchState.ProviderSearch.Choice.Skip }
             }
             spacer()
@@ -161,7 +161,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
 //            vgrow = Priority.ALWAYS
             paddingAll = 10
 
-            label(state.property.stringBinding { it!!.libraryPath.path.toString() }) {
+            label(state.property.typesafeStringBinding { it.libraryPath.path.toString() }) {
                 addClass(Style.pathText)
             }
 
@@ -256,8 +256,8 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                     enableWhen(canSearchCurrentQuery.property.mapWith(canShowMoreResults.property) { canSearch, canShowMore ->
                         canShowMore or canSearch
                     })
-                    textProperty().bind(searchButtonMode.stringBinding {
-                        when (it!!) {
+                    textProperty().bind(searchButtonMode.typesafeStringBinding {
+                        when (it) {
                             SearchButtonMode.Search -> "Search"
                             SearchButtonMode.ShowMore -> "Show More Results"
                             SearchButtonMode.Disabled -> "Search"
@@ -276,10 +276,10 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                 }
 
                 jfxButton {
-                    showWhen { canToggleFilterPreviouslyDiscardedResults.property.booleanBinding { it!!.isSuccess } }
+                    showWhen { canToggleFilterPreviouslyDiscardedResults.property.typesafeBooleanBinding { it.isSuccess } }
                     graphicProperty().bind(isFilterPreviouslyDiscardedResults.property.binding { if (it) Icons.expand else Icons.collapse })
                     tooltip {
-                        textProperty().bind(isFilterPreviouslyDiscardedResults.property.stringBinding { "${if (it!!) "Show" else "Hide"} previously discarded search results" })
+                        textProperty().bind(isFilterPreviouslyDiscardedResults.property.typesafeStringBinding { "${if (it) "Show" else "Hide"} previously discarded search results" })
                     }
                     action {
                         isFilterPreviouslyDiscardedResults.valueFromView = !isFilterPreviouslyDiscardedResults.v

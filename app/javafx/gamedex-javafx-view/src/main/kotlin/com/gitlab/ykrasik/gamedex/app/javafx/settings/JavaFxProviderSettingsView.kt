@@ -111,7 +111,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider.Metadata, i
                                 visibleWhen { status.property.isNotEqualTo(ProviderAccountStatus.NotRequired) }
                                 label {
                                     addClass(Style.accountLabel)
-                                    textProperty().bind(status.property.stringBinding { it!!.text })
+                                    textProperty().bind(status.property.stringBinding { it?.text })
                                     graphicProperty().bind(status.property.binding { it.icon })
                                     textFillProperty().bind(status.property.binding { it.color })
                                 }

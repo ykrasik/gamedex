@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import tornadofx.label
-import tornadofx.stringBinding
 
 /**
  * User: ykrasik
@@ -47,7 +46,7 @@ class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGame
         defaultHbox {
             jfxCheckBox(fromFileSystem.property, "From File System")
             gap(10)
-            label(game.property.stringBinding { it!!.path.toString() })
+            label(game.property.typesafeStringBinding { it.path.toString() })
         }
     }
 }

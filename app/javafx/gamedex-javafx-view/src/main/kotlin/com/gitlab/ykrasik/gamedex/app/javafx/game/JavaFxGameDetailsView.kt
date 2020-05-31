@@ -574,7 +574,7 @@ class JavaFxGameDetailsView(
 
         register()
 
-        titleProperty.bind(game.property.stringBinding { it?.name })
+        titleProperty.bind(game.property.typesafeStringBinding { it.name })
     }
 
     class Style : Stylesheet() {
