@@ -117,7 +117,7 @@ class JavaFxGameDetailsView(
 
     private var slideDirection = ViewTransition.Direction.LEFT
 
-    val customizeOverlay: OverlayPane.OverlayLayer.() -> Unit = {
+    val customizeOverlay: OverlayPane.OverlayLayerImpl.() -> Unit = {
         val overlayPane = this
 
         stackpane {
@@ -125,7 +125,7 @@ class JavaFxGameDetailsView(
             maxWidth = Region.USE_PREF_SIZE
             maxHeight = Region.USE_PREF_SIZE
             stackpaneConstraints { alignment = Pos.CENTER_LEFT }
-            visibleProperty().bind(overlayPane.hidingProperty.not() and overlayPane.activeProperty)
+            visibleProperty().bind(overlayPane.hiding.not() and overlayPane.active)
             jfxButton(graphic = Icons.arrowLeftBold.size(120)) {
                 addClass(Style.arrowLeft)
                 visibleWhen(canViewPrevGame)
@@ -146,7 +146,7 @@ class JavaFxGameDetailsView(
             maxWidth = Region.USE_PREF_SIZE
             maxHeight = Region.USE_PREF_SIZE
             stackpaneConstraints { alignment = Pos.CENTER_RIGHT }
-            visibleProperty().bind(overlayPane.hidingProperty.not() and overlayPane.activeProperty)
+            visibleProperty().bind(overlayPane.hiding.not() and overlayPane.active)
             jfxButton(graphic = Icons.arrowRightBold.size(120)) {
                 addClass(Style.arrowRight)
                 visibleWhen(canViewNextGame)

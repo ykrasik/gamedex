@@ -18,10 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastFlow
-import com.gitlab.ykrasik.gamedex.app.api.util.Value
-import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
-import com.gitlab.ykrasik.gamedex.app.api.util.fromView
+import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.javafx.NotificationType
 import com.gitlab.ykrasik.gamedex.javafx.notification
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
@@ -67,6 +64,11 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
         }
     }
 
+    private val _hideActiveOverlaysRequests = broadcastFlow<Unit>()
+    val hideActiveOverlaysRequests: Flow<Unit> = _hideActiveOverlaysRequests
+
+    protected fun hideAllOverlays() = _hideActiveOverlaysRequests.event(Unit)
+
     override fun onError(message: String, title: String?, e: Exception?) =
         notification(NotificationType.Error, text = message, title = title)
 
@@ -78,9 +80,9 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
     inline fun <T, R> ObservableValue<T>.bindChanges(flow: BroadcastFlow<R>, crossinline factory: (T) -> R): ChangeListener<T> =
         typeSafeOnChange { flow.event(factory(it)) }
 
-    fun ButtonBase.action(channel: BroadcastFlow<Unit>) = action(channel) { }
-    inline fun <T> ButtonBase.action(channel: BroadcastFlow<T>, crossinline f: () -> T) = apply {
-        action { channel.offer(f()) }
+    fun ButtonBase.action(flow: BroadcastFlow<Unit>) = action(flow) { }
+    inline fun <T> ButtonBase.action(flow: BroadcastFlow<T>, crossinline f: () -> T) = apply {
+        action { flow.offer(f()) }
     }
 
     operator fun <T> ViewMutableStateFlow<T>.timesAssign(value: T) {

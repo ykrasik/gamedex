@@ -16,13 +16,42 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+
+fun <T> broadcastFlow() = BroadcastFlow<T>(BroadcastChannel(2))
+
+class BroadcastFlow<T> private constructor(
+    private val channel: BroadcastChannel<T>,
+    private val flow: Flow<T>
+) : BroadcastChannel<T> by channel, Flow<T> by flow {
+    companion object {
+        operator fun <T> invoke(channel: BroadcastChannel<T>) = BroadcastFlow(channel, channel.asFlow())
+    }
+}
+
+inline fun <F, T, R> F.writeTo(flow: MutableStateFlow<R>, crossinline f: (T) -> R) where F : Flow<T>, F : CoroutineScope = apply {
+    launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+        collect {
+            flow.value = f(it)
+        }
+    }
+}
+
+inline fun <F, T, R> F.writeFrom(flow: Flow<R>, crossinline f: (R) -> T) where F : MutableStateFlow<T>, F : CoroutineScope = apply {
+    launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+        flow.collect {
+            this@apply.value = f(it)
+        }
+    }
+}
 
 /**
- * User: ykrasik
- * Date: 02/12/2018
- * Time: 16:44
- *
  * When a view exposes a [MutableStateFlow], by convention the view should not write to that flow,
  * that flow is for presenters to update the view's state.
  * When a view exposes a [ViewMutableStateFlow],  by convention the view has permissions to write to this flow as well,
@@ -61,3 +90,29 @@ sealed class Value<T> {
 
 val <T> T.fromView: Value.FromView<T> get() = Value.FromView(this)
 val <T> T.fromPresenter: Value.FromPresenter<T> get() = Value.FromPresenter(this)
+
+typealias AsyncValue<T> = StateFlow<AsyncValueState<T>>
+
+sealed class AsyncValueState<T> {
+    object Loading : AsyncValueState<Any>()
+    data class Result<T>(val result: T) : AsyncValueState<T>()
+    data class Error<T>(val e: Exception) : AsyncValueState<T>()
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        inline fun <T> loading(): AsyncValueState<T> = Loading as AsyncValueState<T>
+    }
+}
+
+/**
+ * This class exists to work around a feature (or limitation) of StateFlow - value equality.
+ * There are a lot of situations where views contain 2 fields - a field with a value, and a field whether that value is valid.
+ * However, some presenters need to act on pairs of (value, valueIsValid), so they would zip the 2 flows together.
+ * However, if the value was valid, the value was then changed but remained valid, the IsValid flow will not emit a new element,
+ * which means the presenters zip will not fire.
+ * So instead of an 'IsValid' field, we use a ValidationResult field, which is guaranteed to fire on each value change.
+ */
+data class ValidatedValue<T>(
+    val value: T,
+    val isValid: IsValid
+)

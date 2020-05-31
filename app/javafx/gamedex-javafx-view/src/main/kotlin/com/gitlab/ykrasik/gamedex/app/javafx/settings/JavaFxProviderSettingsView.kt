@@ -47,16 +47,16 @@ class JavaFxProviderSettingsView(override val provider: GameProvider.Metadata, i
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val canChangeProviderSettings = mutableStateFlow(IsValid.valid, debugName = "canChangeProviderSettings")
+    override val canChangeProviderSettings = mutableStateFlow(IsValid.valid, debugName = "${provider.id}.canChangeProviderSettings")
 
-    override val status = mutableStateFlow(ProviderAccountStatus.Empty, debugName = "status")
-    override val enabled = viewMutableStateFlow(false, debugName = "enabled")
+    override val status = mutableStateFlow(ProviderAccountStatus.Empty, debugName = "${provider.id}.status")
+    override val enabled = viewMutableStateFlow(false, debugName = "${provider.id}.enabled")
 
-    override val currentAccount = viewMutableStateFlow(emptyMap<String, String>(), debugName = "currentAccount")
+    override val currentAccount = viewMutableStateFlow(emptyMap<String, String>(), debugName = "${provider.id}.currentAccount")
 
     override val browseUrlActions = broadcastFlow<String>()
 
-    override val canVerifyAccount = mutableStateFlow(IsValid.valid, debugName = "canVerifyAccount")
+    override val canVerifyAccount = mutableStateFlow(IsValid.valid, debugName = "${provider.id}.canVerifyAccount")
 
     override val verifyAccountActions = broadcastFlow<Unit>()
 

@@ -60,7 +60,9 @@ import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import javafx.scene.Node
 import javafx.scene.layout.VBox
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import tornadofx.Controller
@@ -77,6 +79,15 @@ class JavaFxViewManager : Controller(), ViewManager {
     private val mainView: MainView by inject()
 
     override val externalCloseRequests = broadcastFlow<Any>()
+
+    init {
+        // TODO: This is the place to add any other views that need this functionality
+        JavaFxScope.launch(CoroutineName("JavaFxViewManager.hideActiveOverlaysRequests")) {
+            mainView.hideActiveOverlaysRequests.collect {
+                mainView.forceHideAllOverlays()
+            }
+        }
+    }
 
     private val taskView: JavaFxTaskView by inject()
     override fun showTaskView() = taskView.showOverlay(modal = true)
@@ -188,7 +199,7 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: SettingsView) = view.hideOverlay()
 
     private val browserView: JavaFxBrowserView by inject()
-    override fun showBrowserView(url: String) = browserView.showOverlay() { load(url) }
+    override fun showBrowserView(url: String) = browserView.showOverlay { load(url) }
     override fun hide(view: BrowserView) {
         browserView.load(null)
         view.hideOverlay()
@@ -203,7 +214,7 @@ class JavaFxViewManager : Controller(), ViewManager {
         val view = object : ConfirmationWindow(text, icon) {
             override val root = buildAreYouSure(op = op)
 
-            val job: Job = JavaFxScope.launch {
+            val job: Job = JavaFxScope.launch(CoroutineName("AreYouSure.choice")) {
                 accept.complete(select {
                     acceptActions.openSubscription().onReceive { true }
                     cancelActions.openSubscription().onReceive { false }
@@ -220,11 +231,13 @@ class JavaFxViewManager : Controller(), ViewManager {
                 skipFirstUndock = true
             }
         }
-        mainView.showOverlay(view, modal = false, onExternalCloseRequested = {
-            view.job.cancel()
-            accept.complete(false)
-            view.hideOverlay()
-        })
+        val overlay = mainView.showOverlay(view)
+        JavaFxScope.launch(CoroutineName("AreYouSure.hideRequests")) {
+            overlay.hideRequests.collect {
+                view.job.cancel()
+                accept.complete(false)
+            }
+        }
         return accept.await().apply {
             view.hideOverlay()
         }
@@ -234,16 +247,21 @@ class JavaFxViewManager : Controller(), ViewManager {
 
     private inline fun <V : View> V.showOverlay(
         modal: Boolean = false,
-        noinline customizeOverlay: OverlayPane.OverlayLayer.() -> Unit = {},
+        noinline customizeOverlay: OverlayPane.OverlayLayerImpl.() -> Unit = {},
         f: V.() -> Unit = {}
     ): V = apply {
         f()
-        mainView.showOverlay(
+        val overlay = mainView.showOverlay(
             view = this,
-            modal = modal,
-            onExternalCloseRequested = { externalCloseRequests.offer(this) },
             customizeOverlay = customizeOverlay
         )
+        JavaFxScope.launch(CoroutineName("$this.hideRequests")) {
+            overlay.hideRequests.collect {
+                if (!modal) {
+                    externalCloseRequests.offer(this@apply)
+                }
+            }
+        }
     }
 
     private inline fun <V : View> hideOverlayPane(f: () -> V): V {

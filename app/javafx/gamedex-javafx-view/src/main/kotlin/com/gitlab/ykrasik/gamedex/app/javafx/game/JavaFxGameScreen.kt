@@ -200,7 +200,10 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             prefWidth = 400.0
             promptText = "Search"
             tooltip("Ctrl+f")
-            shortcut("ctrl+f") { requestFocus() }
+            shortcut("ctrl+f") {
+                requestFocus()
+                hideAllOverlays()
+            }
             val textField = this
 
             popOver(PopOver.ArrowLocation.TOP_LEFT) {

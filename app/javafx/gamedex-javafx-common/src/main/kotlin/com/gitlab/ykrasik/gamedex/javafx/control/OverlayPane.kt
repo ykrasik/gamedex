@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
+import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -30,6 +31,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import kotlinx.coroutines.flow.Flow
 import tornadofx.*
 
 /**
@@ -41,9 +43,9 @@ class OverlayPane : StackPane() {
     private val log = logger()
 
     @Suppress("UNCHECKED_CAST")
-    private val visibleLayers = children as ObservableList<OverlayLayer>
+    private val visibleLayers = children as ObservableList<OverlayLayerImpl>
 
-    private val savedLayers = mutableListOf<OverlayLayer>()
+    private val savedLayers = mutableListOf<OverlayLayerImpl>()
 
     init {
         visibleProperty().bind(isNotEmpty(visibleLayers))
@@ -51,10 +53,10 @@ class OverlayPane : StackPane() {
         addEventHandler(KeyEvent.KEY_PRESSED) { it.consume() }
         visibleLayers.onChange {
             val preLast = visibleLayers.getOrNull(visibleLayers.size - 2)
-            preLast?._activeProperty?.set(false)
+            preLast?.active?.set(false)
 
             val last = visibleLayers.lastOrNull()
-            last?._activeProperty?.set(true)
+            last?.active?.set(true)
 
             // Don't steal focus from already focused nodes.
             if (last?.hasFocus == false) {
@@ -63,7 +65,7 @@ class OverlayPane : StackPane() {
         }
     }
 
-    private val OverlayLayer.hasFocus: Boolean
+    private val OverlayLayerImpl.hasFocus: Boolean
         get() {
             var checkedNode = scene.focusOwner
             while (checkedNode != null) {
@@ -73,10 +75,10 @@ class OverlayPane : StackPane() {
             return false
         }
 
-    fun show(view: View, modal: Boolean, onExternalCloseRequested: () -> Unit, customizeOverlay: OverlayLayer.() -> Unit) =
-        show(OverlayLayer(view, modal, onExternalCloseRequested).also(customizeOverlay))
+    fun show(view: View, customizeOverlay: OverlayLayerImpl.() -> Unit): OverlayLayer =
+        show(OverlayLayerImpl(view).also(customizeOverlay))
 
-    private fun show(layer: OverlayLayer) {
+    private fun show(layer: OverlayLayerImpl) = layer.apply {
         log.trace("Showing overlay: $layer")
         layer.content.isVisible = true
         layer.content.children += layer.view.root
@@ -86,9 +88,9 @@ class OverlayPane : StackPane() {
 
     fun isShowing(view: View): Boolean = visibleLayers.any { it.view === view }
 
-    fun hide(view: View) = hide(checkNotNull(visibleLayers.findLast { it.view === view }) { "View not showing: $view" })
+    fun hide(view: View) = hide(checkNotNull(visibleLayers.findLast { it.view === view }) { "View not showing: $view" }, dispose = true)
 
-    private fun hide(layer: OverlayLayer) {
+    private fun hide(layer: OverlayLayerImpl, dispose: Boolean) {
         if (layer.isHiding) return
         layer.isHiding = true
         log.trace("Hiding overlay: $layer")
@@ -101,52 +103,45 @@ class OverlayPane : StackPane() {
             setOnFinished {
                 visibleLayers -= layer
                 layer.isHiding = false
+                if (dispose) layer.close()
             }
         }
     }
 
-    fun hideAll() = visibleLayers.forEach(::hide)
+    fun forceHideAll() = visibleLayers.forEach { it.requestHide() }
 
     fun saveAndClear() {
         savedLayers.setAll(visibleLayers.filter { !it.isHiding })
-        visibleLayers.toList().forEach(::hide)
+        visibleLayers.toList().forEach { hide(it, dispose = false) }
     }
 
     fun restoreSaved() {
-        savedLayers.forEach(::show)
+        savedLayers.forEach { show(it) }
         savedLayers.clear()
     }
 
-    class OverlayLayer(val view: View, modal: Boolean, onExternalCloseRequested: () -> Unit) : StackPane() {
-        internal val _activeProperty = SimpleBooleanProperty(false)
-        val activeProperty: ReadOnlyBooleanProperty = _activeProperty
-        var isActive: Boolean
-            get() = _activeProperty.value
-            internal set(value) {
-                _activeProperty.value = value
-            }
+    class OverlayLayerImpl(val view: View) : StackPane(), OverlayLayer {
+        override val active = SimpleBooleanProperty(false)
+        var isActive by active
 
-        internal val _hidingProperty = SimpleBooleanProperty(false)
-        val hidingProperty: ReadOnlyBooleanProperty = _hidingProperty
-        var isHiding: Boolean
-            get() = _hidingProperty.value
-            internal set(value) {
-                _hidingProperty.value = value
-            }
+        override val hiding = SimpleBooleanProperty(false)
+        var isHiding by hiding
+
+        override val hideRequests = broadcastFlow<Unit>()
 
         init {
             // This stackPane extends over the whole screen and will be darkened.
             // It catches clicks outside of the content area and hides the content.
             useMaxSize = true
             addEventHandler(MouseEvent.MOUSE_RELEASED) { e ->
-                if (!modal && e.source == this && e.target == this) {
-                    onExternalCloseRequested()
+                if (e.source == this && e.target == this) {
+                    requestHide()
                 }
                 e.consume()
             }
             addEventFilter(KeyEvent.KEY_PRESSED) { e ->
                 if (e.code == KeyCode.ESCAPE) {
-                    onExternalCloseRequested()
+                    requestHide()
                     e.consume()
                 }
             }
@@ -161,6 +156,14 @@ class OverlayPane : StackPane() {
             addClass(Style.overlayContent)
             clipRectangle(arc = 20)
             addEventHandler(MouseEvent.MOUSE_CLICKED) { it.consume() }
+        }
+
+        fun requestHide() {
+            hideRequests.offer(Unit)
+        }
+
+        fun close() {
+            hideRequests.close()
         }
 
         override fun toString() = view.toString()
@@ -186,4 +189,11 @@ class OverlayPane : StackPane() {
             }
         }
     }
+}
+
+interface OverlayLayer {
+    val active: ReadOnlyBooleanProperty
+    val hiding: ReadOnlyBooleanProperty
+
+    val hideRequests: Flow<Unit>
 }

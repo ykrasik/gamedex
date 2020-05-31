@@ -27,11 +27,8 @@ import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxFolderNameDiffScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxSyncGamesScreen
-import com.gitlab.ykrasik.gamedex.javafx.callOnDock
-import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.mutableStateFlow
 import com.gitlab.ykrasik.gamedex.javafx.theme.GameDexStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -46,6 +43,10 @@ import javafx.scene.control.TabPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.text.FontWeight
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import tornadofx.*
 import java.util.*
 import kotlin.time.TimeMark
@@ -175,7 +176,16 @@ class MainView : PresentableView("GameDex"),
             }
         }
 
-        shortcut("ctrl+q", overlayPane::hideAll)
+        shortcut("ctrl+q") { hideAllOverlays() }
+
+        JavaFxScope.launch(CoroutineName("MainView.hideActiveOverlaysRequests")) {
+            listOf(gameScreen, syncGamesScreen, duplicatesScreen, folderNameDiffScreen, maintenanceMenu, libraryMenu)
+                .map { it.hideActiveOverlaysRequests }
+                .merge()
+                .collect {
+                    hideAllOverlays()
+                }
+        }
     }
 
     private fun cleanupClosedTab(tab: Tab) {
@@ -245,10 +255,12 @@ class MainView : PresentableView("GameDex"),
         tabPane.selectionModel.select(screen.tab)
     }
 
-    fun showOverlay(view: View, modal: Boolean, onExternalCloseRequested: () -> Unit, customizeOverlay: OverlayPane.OverlayLayer.() -> Unit = {}) =
-        overlayPane.show(view, modal, onExternalCloseRequested, customizeOverlay)
+    fun showOverlay(view: View, customizeOverlay: OverlayPane.OverlayLayerImpl.() -> Unit = {}) =
+        overlayPane.show(view, customizeOverlay)
 
     fun hideOverlay(view: View) = overlayPane.hide(view)
+
+    fun forceHideAllOverlays() = overlayPane.forceHideAll()
 
     fun saveAndClearCurrentOverlays() = overlayPane.saveAndClear()
 

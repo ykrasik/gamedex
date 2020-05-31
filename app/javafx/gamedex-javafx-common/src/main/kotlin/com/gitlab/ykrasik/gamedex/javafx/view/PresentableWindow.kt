@@ -30,8 +30,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.event.EventTarget
 import javafx.scene.Node
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
@@ -55,23 +53,8 @@ abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : P
     protected val cancelButton = cancelButton { action(cancelActions) }
 
     init {
-        var installedHandler = false
-        whenDocked {
-            if (installedHandler) return@whenDocked
-            installedHandler = true
-            root.addEventHandler(KeyEvent.KEY_PRESSED) { e ->
-                if (e.code == KeyCode.ENTER) {
-                    acceptButton.fire()
-                    e.consume()
-                }
-            }
-            root.addEventFilter(KeyEvent.KEY_PRESSED) { e ->
-                if (e.code == KeyCode.ESCAPE) {
-                    cancelButton.fire()
-                    e.consume()
-                }
-            }
-        }
+        shortcut("enter") { acceptButton.fire() }
+        shortcut("esc") { cancelButton.fire() }
     }
 
     protected fun confirmationToolbar(toolbarOp: HBox.() -> Unit = { centeredWindowHeader() }) = prettyToolbar {
