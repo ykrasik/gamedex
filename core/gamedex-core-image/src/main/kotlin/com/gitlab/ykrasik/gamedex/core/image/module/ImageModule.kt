@@ -57,7 +57,12 @@ object ImageModule : InternalCoreModule() {
     @Singleton
     @ImageStorage
     fun imageStorage(): Storage<String, ByteArray> = FileStorage.binary("cache/images").stringId(
-        keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },
+        keyTransform = { url ->
+            val extension = url.toUrl().filePath.extension
+            val indexOfFirstNonWord = extension.indexOfFirst { !it.isLetterOrDigit() }
+            val sanitizedExtension = if (indexOfFirstNonWord > 0) extension.substring(0, indexOfFirstNonWord) else extension
+            "${url.base64Encoded()}.$sanitizedExtension"
+        },
         reverseKeyTransform = { fileName -> fileName.substringBeforeLast(".").base64Decoded() }
     )
 }
