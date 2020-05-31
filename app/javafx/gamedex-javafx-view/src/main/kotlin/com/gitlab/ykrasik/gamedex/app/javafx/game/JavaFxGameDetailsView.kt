@@ -80,7 +80,7 @@ class JavaFxGameDetailsView(
 
     private val commonOps: JavaFxCommonOps by di()
 
-    override val gameParams = viewMutableStateFlow(ViewGameParams.Null, debugName = "gameParams")
+    override val gameParams = viewMutableStateFlow(ViewGameParams.Null, debugName = "gameParams", traceValues = false)
     override val game = viewMutableStateFlow(gameParams.property.map { it.game }, debugName = "game")
 
     override val currentGameIndex = mutableStateFlow(-1, debugName = "currentGameIndex")

@@ -40,7 +40,8 @@ val log = logger("")
 class JavaFxViewMutableStateFlow<T, P : Property<T>>(
     private val flow: MutableStateFlow<Value<T>>,
     val property: P,
-    debugName: String
+    debugName: String,
+    traceValues: Boolean
 ) : MutableStateFlow<Value<T>> by flow, ViewMutableStateFlow<T>, CoroutineScope {
     override val coroutineContext = Dispatchers.Main.immediate + CoroutineName(debugName)
 
@@ -55,7 +56,7 @@ class JavaFxViewMutableStateFlow<T, P : Property<T>>(
 
         launch(start = CoroutineStart.UNDISPATCHED) {
             flow.drop(1).collect { value ->
-                log.trace("$value")
+                if (traceValues) log.trace("$value")
                 propertyChangedByPresenter = value is Value.FromPresenter
                 property.value = value.value
                 propertyChangedByPresenter = false
@@ -72,14 +73,26 @@ class JavaFxViewMutableStateFlow<T, P : Property<T>>(
     }
 }
 
-fun <T> Any.viewMutableStateFlow(initial: T, debugName: String) = viewMutableStateFlow(SimpleObjectProperty(initial), debugName)
-fun Any.viewMutableStateFlow(initial: Boolean, debugName: String) = viewMutableStateFlow(SimpleBooleanProperty(initial), debugName)
-fun Any.viewMutableStateFlow(initial: Double, debugName: String) = viewMutableStateFlow(SimpleObjectProperty(initial), debugName)
-fun Any.viewMutableStateFlow(initial: Int, debugName: String) = viewMutableStateFlow(SimpleObjectProperty(initial), debugName)
-fun Any.viewMutableStateFlow(initial: String, debugName: String) = viewMutableStateFlow(SimpleStringProperty(initial), debugName)
-fun <T, P : Property<T>> Any.viewMutableStateFlow(flow: JavaFxViewMutableStateFlow<T, P>, debugName: String) = viewMutableStateFlow(flow.property, debugName)
-fun <T, P : Property<T>> Any.viewMutableStateFlow(property: P, debugName: String) =
-    JavaFxViewMutableStateFlow(MutableStateFlow<Value<T>>(property.value.fromView), property, debugName = "${this.javaClass.simpleName}.$debugName")
+fun <T> Any.viewMutableStateFlow(initial: T, debugName: String, traceValues: Boolean = true) =
+    viewMutableStateFlow(SimpleObjectProperty(initial), debugName, traceValues)
+
+fun Any.viewMutableStateFlow(initial: Boolean, debugName: String, traceValues: Boolean = true) =
+    viewMutableStateFlow(SimpleBooleanProperty(initial), debugName, traceValues)
+
+fun Any.viewMutableStateFlow(initial: Double, debugName: String, traceValues: Boolean = true) =
+    viewMutableStateFlow(SimpleObjectProperty(initial), debugName, traceValues)
+
+fun Any.viewMutableStateFlow(initial: Int, debugName: String, traceValues: Boolean = true) =
+    viewMutableStateFlow(SimpleObjectProperty(initial), debugName, traceValues)
+
+fun Any.viewMutableStateFlow(initial: String, debugName: String, traceValues: Boolean = true) =
+    viewMutableStateFlow(SimpleStringProperty(initial), debugName, traceValues)
+
+fun <T, P : Property<T>> Any.viewMutableStateFlow(flow: JavaFxViewMutableStateFlow<T, P>, debugName: String, traceValues: Boolean = true) =
+    viewMutableStateFlow(flow.property, debugName, traceValues)
+
+fun <T, P : Property<T>> Any.viewMutableStateFlow(property: P, debugName: String, traceValues: Boolean = true) =
+    JavaFxViewMutableStateFlow(MutableStateFlow<Value<T>>(property.value.fromView), property, debugName = "${this.javaClass.simpleName}.$debugName", traceValues = traceValues)
 
 open class JavaFxMutableStateFlow<T, P : Property<T>>(
     private val flow: MutableStateFlow<T>,
@@ -103,14 +116,26 @@ open class JavaFxMutableStateFlow<T, P : Property<T>>(
     inline fun onInvalidated(crossinline f: (T) -> Unit) = property.onInvalidated(f)
 }
 
-fun <T> Any.mutableStateFlow(initial: T, debugName: String) = mutableStateFlow(SimpleObjectProperty(initial), debugName)
-fun Any.mutableStateFlow(initial: Boolean, debugName: String) = mutableStateFlow(SimpleBooleanProperty(initial), debugName)
-fun Any.mutableStateFlow(initial: Double, debugName: String) = mutableStateFlow(SimpleObjectProperty(initial), debugName)
-fun Any.mutableStateFlow(initial: Int, debugName: String) = mutableStateFlow(SimpleObjectProperty(initial), debugName)
-fun Any.mutableStateFlow(initial: String, debugName: String) = mutableStateFlow(SimpleStringProperty(initial), debugName)
-fun <T, P : Property<T>> Any.mutableStateFlow(flow: JavaFxMutableStateFlow<T, P>, debugName: String) = mutableStateFlow(flow.property, debugName)
-fun <T, P : Property<T>> Any.mutableStateFlow(property: P, debugName: String) =
-    JavaFxMutableStateFlow(MutableStateFlow(property.value), property, debugName = "${this.javaClass.simpleName}.$debugName", traceValues = true)
+fun <T> Any.mutableStateFlow(initial: T, debugName: String, traceValues: Boolean = true) =
+    mutableStateFlow(SimpleObjectProperty(initial), debugName, traceValues)
+
+fun Any.mutableStateFlow(initial: Boolean, debugName: String, traceValues: Boolean = true) =
+    mutableStateFlow(SimpleBooleanProperty(initial), debugName, traceValues)
+
+fun Any.mutableStateFlow(initial: Double, debugName: String, traceValues: Boolean = true) =
+    mutableStateFlow(SimpleObjectProperty(initial), debugName, traceValues)
+
+fun Any.mutableStateFlow(initial: Int, debugName: String, traceValues: Boolean = true) =
+    mutableStateFlow(SimpleObjectProperty(initial), debugName, traceValues)
+
+fun Any.mutableStateFlow(initial: String, debugName: String, traceValues: Boolean = true) =
+    mutableStateFlow(SimpleStringProperty(initial), debugName, traceValues)
+
+fun <T, P : Property<T>> Any.mutableStateFlow(flow: JavaFxMutableStateFlow<T, P>, debugName: String, traceValues: Boolean = true) =
+    mutableStateFlow(flow.property, debugName, traceValues)
+
+fun <T, P : Property<T>> Any.mutableStateFlow(property: P, debugName: String, traceValues: Boolean = true) =
+    JavaFxMutableStateFlow(MutableStateFlow(property.value), property, debugName = "${this.javaClass.simpleName}.$debugName", traceValues = traceValues)
 
 typealias JavaFxObjectMutableStateFlow<T> = JavaFxMutableStateFlow<T, SimpleObjectProperty<T>>
 
