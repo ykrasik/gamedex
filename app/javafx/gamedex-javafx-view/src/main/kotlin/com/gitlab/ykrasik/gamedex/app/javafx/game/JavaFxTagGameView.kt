@@ -38,14 +38,11 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
     override val game = viewMutableStateFlow(Game.Null, debugName = "game")
 
     override val tags = mutableStateFlow(emptyList<String>(), debugName = "tags")
-    override val checkedTags = mutableSetOf<String>().observable()
+    override val checkedTags = viewMutableStateFlow(emptySet<String>(), debugName = "checkedTags")
 
     override val toggleAll = viewMutableStateFlow(false, debugName = "toggleAll")
 
-    override val checkTagChanges = broadcastFlow<Pair<String, Boolean>>()
-
     override val newTagName = viewMutableStateFlow("", debugName = "newTagName")
-
     override val newTagNameIsValid = mutableStateFlow(IsValid.valid, debugName = "newTagNameIsValid")
 
     override val addNewTagActions = broadcastFlow<Unit>()
@@ -96,8 +93,10 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
                 tags.forEach { tag ->
                     jfxToggleButton {
                         text = tag
-                        isSelected = checkedTags.contains(tag)
-                        selectedProperty().bindChanges(checkTagChanges) { tag to it }
+                        isSelected = checkedTags.v.contains(tag)
+                        selectedProperty().typeSafeOnChange { selected ->
+                            checkedTags *= if (selected) checkedTags.v + tag else checkedTags.v - tag
+                        }
                     }
                 }
             }

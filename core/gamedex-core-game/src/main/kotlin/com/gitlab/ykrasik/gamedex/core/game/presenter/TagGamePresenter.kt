@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.view.Presenter
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,12 +46,10 @@ class TagGamePresenter @Inject constructor(
         private var tags by view.tags
 
         init {
-            view::tags *= commonData.tags
-
             this::isShowing.forEach {
                 if (it) {
-                    view.checkedTags /= game.tags
-                    view.toggleAll /= tags.toSet() == game.tags.toSet()
+                    tags = commonData.tags.value
+                    view.checkedTags /= game.tags.toSet()
                     view.newTagName /= ""
                 }
             }
@@ -61,26 +60,16 @@ class TagGamePresenter @Inject constructor(
                 }
             }
             view.toggleAll.onlyChangesFromView().forEach(debugName = "onToggleAllChanged") {
-                if (it) {
-                    view.checkedTags.addAll(tags)
-                } else {
-                    view.checkedTags.clear()
-                }
+                view.checkedTags /= if (it) tags.toSet() else emptySet()
             }
-            view::checkTagChanges.forEach { (tag, checked) ->
-                if (checked) {
-                    view.checkedTags += tag
-                    if (view.checkedTags == tags.toSet()) {
-                        view.toggleAll /= true
-                    }
-                } else {
-                    view.checkedTags -= tag
-                    view.toggleAll /= false
-                }
-            }
+            view.toggleAll *= view.tags.combine(view.checkedTags.allValues()) { tags, checkedTags ->
+                tags.isNotEmpty() && tags.toSet() == checkedTags
+            } withDebugName "toggleAll"
+            
             view::addNewTagActions.forEach {
-                tags = tags + view.newTagName.v
-                view.checkedTags += view.newTagName.v
+                val newTag = view.newTagName.v
+                tags = tags + newTag
+                view.checkedTags /= view.checkedTags.v + newTag
                 view.newTagName /= ""
             }
 
@@ -91,7 +80,7 @@ class TagGamePresenter @Inject constructor(
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val checkedTags = view.checkedTags.toList().sorted()
+            val checkedTags = view.checkedTags.v.toList().sorted()
             if (checkedTags != game.tags.sorted()) {
                 val newUserData = game.userData.copy(tags = checkedTags)
                 val newRawGame = game.rawGame.copy(userData = newUserData)

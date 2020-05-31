@@ -32,11 +32,9 @@ interface TagGameView : ConfirmationView {
     val game: ViewMutableStateFlow<Game>
 
     val tags: MutableStateFlow<List<String>>
-    val checkedTags: MutableSet<String>
+    val checkedTags: ViewMutableStateFlow<Set<String>>
 
     val toggleAll: ViewMutableStateFlow<Boolean>
-
-    val checkTagChanges: Flow<Pair<String, Boolean>>
 
     val newTagName: ViewMutableStateFlow<String>
     val newTagNameIsValid: MutableStateFlow<IsValid>
