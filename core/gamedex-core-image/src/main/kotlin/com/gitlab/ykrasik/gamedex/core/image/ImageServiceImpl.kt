@@ -26,14 +26,11 @@ import com.gitlab.ykrasik.gamedex.util.download
 import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.BindingAnnotation
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,10 +58,13 @@ class ImageServiceImpl @Inject constructor(
     override suspend fun fetchImage(url: String, persist: Boolean): AsyncValue<Image> = withContext(Dispatchers.Main.immediate) {
         cache.getOrPut(url) {
             val flow = MutableStateFlow<AsyncValueState<Image>>(AsyncValueState.loading())
-            GlobalScope.launch(Dispatchers.IO) {
+            GlobalScope.launch(Dispatchers.IO + coroutineContext[CoroutineName]!!) {
                 try {
                     val bytes = storage[url] ?: run {
-                        val downloadedBytes = downloadSemaphore.withPermit { httpClient.download(url) }
+                        val downloadedBytes = downloadSemaphore.withPermit {
+                            log.trace("Downloading: $url")
+                            httpClient.download(url)
+                        }
                         // Save downloaded image
                         if (persist) {
                             launch {

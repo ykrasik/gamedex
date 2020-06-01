@@ -65,6 +65,9 @@ interface ViewManager {
     fun showEditGameView(params: EditGameParams): EditGameView
     fun hide(view: EditGameView)
 
+    fun showRawGameDataView(game: Game): RawGameDataView
+    fun hide(view: RawGameDataView)
+
     fun showDeleteGameView(game: Game): DeleteGameView
     fun hide(view: DeleteGameView)
 

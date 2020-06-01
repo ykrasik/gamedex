@@ -261,6 +261,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                             SearchButtonMode.Search -> "Search"
                             SearchButtonMode.ShowMore -> "Show More Results"
                             SearchButtonMode.Disabled -> "Search"
+                            else -> kotlin.error("Invalid SearchButtonMode: $it")
                         }
                     })
                     // This becomes the new default button when the search textfield has focus.

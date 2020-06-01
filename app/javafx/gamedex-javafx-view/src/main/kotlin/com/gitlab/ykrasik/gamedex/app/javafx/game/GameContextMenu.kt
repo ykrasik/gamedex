@@ -49,6 +49,7 @@ import tornadofx.vbox
  */
 class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGameParams>(ViewGameParams(Game.Null, emptyList())),
     ViewCanShowGameDetails,
+    ViewCanDisplayRawGameData,
     ViewCanEditGame,
     ViewCanDeleteGame,
     ViewCanRenameMoveGame,
@@ -60,6 +61,7 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
         .writeFrom(data) { it.game.fromView }
 
     override val viewGameDetailsActions = broadcastFlow<ViewGameParams>()
+    override val displayRawGameDataActions = broadcastFlow<Game>()
     override val editGameActions = broadcastFlow<EditGameParams>()
     override val deleteGameActions = broadcastFlow<Game>()
     override val renameMoveGameActions = broadcastFlow<RenameMoveGameParams>()
@@ -75,8 +77,10 @@ class GameContextMenu(canView: Boolean = true) : InstallableContextMenu<ViewGame
         addClass(GameDexStyle.popOverMenu)
         if (canView) {
             item("View", Icons.view) { action(viewGameDetailsActions) { data.value } }
-            verticalGap()
         }
+        item("View Raw", Icons.json) { action(displayRawGameDataActions) { data.value.game } }
+        verticalGap()
+
         item("Edit", Icons.edit) { action { editGame(GameDataType.Name) } }
         item("Change Thumbnail", Icons.thumbnail) { action { editGame(GameDataType.Thumbnail) } }
         verticalGap()

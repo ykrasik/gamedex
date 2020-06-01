@@ -132,6 +132,10 @@ class JavaFxViewManager : Controller(), ViewManager {
 
     override fun hide(view: EditGameView) = view.hideOverlay()
 
+    private val rawGameDataView: JavaFxRawGameDataView by inject()
+    override fun showRawGameDataView(game: Game) = rawGameDataView.showOverlay { this.game *= game }
+    override fun hide(view: RawGameDataView) = view.hideOverlay()
+
     private val deleteGameView: JavaFxDeleteGameView by inject()
     override fun showDeleteGameView(game: Game) = deleteGameView.showOverlay { this.game *= game }
     override fun hide(view: DeleteGameView) = view.hideOverlay()

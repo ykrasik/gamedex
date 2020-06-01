@@ -67,6 +67,7 @@ class JavaFxGameDetailsView(
 ) : PresentableView(),
     GameDetailsView,
     ViewCanShowImageGallery,
+    ViewCanDisplayRawGameData,
     ViewCanEditGame,
     ViewCanDeleteGame,
     ViewCanRenameMoveGame,
@@ -94,6 +95,7 @@ class JavaFxGameDetailsView(
     override val hideViewActions = broadcastFlow<Unit>()
 
     override val viewImageActions = broadcastFlow<ViewImageParams>()
+    override val displayRawGameDataActions = broadcastFlow<Game>()
     override val editGameActions = broadcastFlow<EditGameParams>()
     override val deleteGameActions = broadcastFlow<Game>()
     override val renameMoveGameActions = broadcastFlow<RenameMoveGameParams>()
@@ -205,35 +207,46 @@ class JavaFxGameDetailsView(
         if (canClose) {
             cancelButton("Close") { action(hideViewActions) }
         }
+
         spacer()
+
         executeButton("Launch") {
             enableWhen(canLaunchGame)
             action(launchGameActions)
         }
-        gap()
+
+        gap(40)
+
         editButton("Edit") { action(editGameActions) { EditGameParams(game.v, initialView = GameDataType.Name) } }
-        gap()
         toolbarButton("Tag", Icons.tag) { action(tagGameActions) { game.v } }
-        gap()
+
+        gap(40)
+
+        infoButton("Update", graphic = Icons.download) {
+            enableWhen(canUpdateGame)
+            action(updateGameActions) { game.v }
+        }
+        infoButton("Sync", graphic = Icons.sync) {
+            enableWhen(canSyncGame)
+            action(syncGameActions)
+        }
+
+        gap(40)
+        
         extraMenu {
-            infoButton("Update", graphic = Icons.download) {
+            infoButton("View Raw", Icons.json) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                enableWhen(canUpdateGame)
-                action(updateGameActions) { game.v }
-            }
-            infoButton("Sync", graphic = Icons.sync) {
-                useMaxWidth = true
-                alignment = Pos.CENTER_LEFT
-                enableWhen(canSyncGame)
-                action(syncGameActions)
+                action(displayRawGameDataActions) { game.v }
             }
 
             verticalGap()
 
             warningButton("Rename/Move Folder", Icons.folderEdit) {
-                action(renameMoveGameActions) { RenameMoveGameParams(game.v, initialSuggestion = null) }
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
                 localShortcut(this, "ctrl+r")
+                action(renameMoveGameActions) { RenameMoveGameParams(game.v, initialSuggestion = null) }
             }
             deleteButton("Delete") {
                 useMaxWidth = true

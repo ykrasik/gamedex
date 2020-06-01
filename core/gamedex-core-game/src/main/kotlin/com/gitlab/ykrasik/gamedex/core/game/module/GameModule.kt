@@ -45,6 +45,9 @@ object GameModule : InternalCoreModule() {
         bindPresenter(EditGamePresenter::class)
         bindPresenter(ShowEditGamePresenter::class)
 
+        bindPresenter(RawGameDataPresenter::class)
+        bindPresenter(DisplayRawGameDataPresenter::class)
+
         bindPresenter(ShowTagGamePresenter::class)
         bindPresenter(TagGamePresenter::class)
 

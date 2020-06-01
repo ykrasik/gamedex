@@ -160,6 +160,7 @@ object Icons {
     val cloud get() = fontIcon(MaterialDesign.MDI_CLOUD_OUTLINE)
     val account get() = fontIcon(MaterialDesign.MDI_ACCOUNT)
     val accounts get() = fontIcon(MaterialDesign.MDI_ACCOUNT_GROUP)
+    val json get() = fontIcon(MaterialDesign.MDI_JSON)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val devices get() = fontIcon(MaterialDesign.MDI_MONITOR_CELLPHONE)

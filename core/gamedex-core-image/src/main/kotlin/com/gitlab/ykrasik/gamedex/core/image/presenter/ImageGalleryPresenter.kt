@@ -50,11 +50,11 @@ class ImageGalleryPresenter @Inject constructor() : Presenter<ImageGalleryView> 
                 }
             }
 
-            view.viewNextImageActions.debounce(100).forEach(debugName = "onViewNextImage") {
+            view.viewNextImageActions.debounce(20).forEach(debugName = "onViewNextImage") {
                 view.canViewNextImage.assert()
                 navigate(+1)
             }
-            view.viewPrevImageActions.debounce(100).forEach(debugName = "onViewPrevImage") {
+            view.viewPrevImageActions.debounce(20).forEach(debugName = "onViewPrevImage") {
                 view.canViewPrevImage.assert()
                 navigate(-1)
             }
