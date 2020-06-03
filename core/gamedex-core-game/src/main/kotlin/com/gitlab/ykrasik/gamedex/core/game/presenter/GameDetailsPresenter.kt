@@ -28,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.findTransform
 import com.gitlab.ykrasik.gamedex.util.replaceWhere
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,11 +60,11 @@ class GameDetailsPresenter @Inject constructor(
                 }
             }
 
-            view.viewNextGameActions.debounce(20).forEach(debugName = "onViewNextGame") {
+            view.viewNextGameActions.forEach(debugName = "onViewNextGame") {
                 view.canViewNextGame.assert()
                 navigate(+1)
             }
-            view.viewPrevGameActions.debounce(20).forEach(debugName = "onViewPrevGame") {
+            view.viewPrevGameActions.forEach(debugName = "onViewPrevGame") {
                 view.canViewPrevGame.assert()
                 navigate(-1)
             }
