@@ -53,13 +53,17 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     val applicationVersion: Version = ops.applicationVersion
 
-    fun fetchThumbnail(game: Game?): ObservableValue<JavaFxImage> = fetchImage(game?.thumbnailUrl, persist = true)
+    fun fetchThumbnail(game: Game?): ObservableValue<JavaFxImage> = fetchImage(game?.thumbnailUrl, game, persist = true, name = "fetchThumbnail")
 
-    fun fetchPoster(game: Game?): ObservableValue<JavaFxImage> = fetchImage(game?.posterUrl, persist = true)
+    fun fetchPoster(game: Game?): ObservableValue<JavaFxImage> = fetchImage(game?.posterUrl, game, persist = true, name = "fetchPoster")
 
-    fun fetchImage(url: String?, persist: Boolean): ObservableValue<JavaFxImage> = url.ifNotNull {
+    fun fetchScreenshot(game: Game, url: String): ObservableValue<JavaFxImage> = fetchImage(url, game, persist = true, name = "fetchScreenshot")
+
+    fun fetchImage(url: String?, persist: Boolean): ObservableValue<JavaFxImage> = fetchImage(url, null, persist, name = "fetchImage")
+
+    private fun fetchImage(url: String?, game: Game?, persist: Boolean, name: String): ObservableValue<JavaFxImage> = url.ifNotNull {
         val property = SimpleObjectProperty(loading)
-        JavaFxScope.launch(coroutineName, start = CoroutineStart.UNDISPATCHED) {
+        JavaFxScope.launch(CoroutineName("$game.$name"), start = CoroutineStart.UNDISPATCHED) {
             val result = ops.fetchImage(it, persist).first { it != AsyncValueState.loading<Image>() }
             when (result) {
                 is AsyncValueState.Result -> property.value = result.result.image
@@ -93,8 +97,6 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     fun youTubeGameplayUrl(name: String, platform: Platform): String = ops.youTubeGameplayUrl(name, platform)
     fun youTubeGameplayUrl(game: Game): String = youTubeGameplayUrl(game.name, game.platform)
-
-    private val coroutineName = CoroutineName("fetchImage")
 }
 
 private val noImage = JavaFxCommonOps::class.java.getResource("no-image-available.png").readBytes().toImage()

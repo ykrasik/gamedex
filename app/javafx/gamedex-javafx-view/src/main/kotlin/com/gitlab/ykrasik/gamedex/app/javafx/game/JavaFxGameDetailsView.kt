@@ -232,7 +232,7 @@ class JavaFxGameDetailsView(
         }
 
         gap(40)
-        
+
         extraMenu {
             infoButton("View Raw", Icons.json) {
                 useMaxWidth = true
@@ -262,7 +262,7 @@ class JavaFxGameDetailsView(
             // Background screenshot
             backgroundProperty().bind(game.property.flatMap { game ->
                 if (game.screenshotUrls.isNotEmpty()) {
-                    val image = commonOps.fetchImage(game.screenshotUrls.first(), persist = true)
+                    val image = commonOps.fetchScreenshot(game, game.screenshotUrls.first())
                     image.binding {
                         if (it.isNoImage) {
                             noBackground
@@ -519,7 +519,7 @@ class JavaFxGameDetailsView(
         addClass(Style.screenshots)
 
         game.screenshotUrls.forEach { url ->
-            makeRoundCorners(imageview(commonOps.fetchImage(url, persist = true)) {
+            makeRoundCorners(imageview(commonOps.fetchScreenshot(game, url)) {
                 fitWidth = 100.0
                 fitHeight = 70.0
             }, arc = 10) {
