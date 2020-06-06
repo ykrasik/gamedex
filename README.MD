@@ -7,18 +7,19 @@ You can [download it](https://github.com/ykrasik/gamedex/releases) or [build it]
 
 There is currently no tutorial.
 
-![GameDex Main Page](https://gitlab.com/ykrasik/gamedex/wikis/uploads/c07c1ba86490dabb8dc29a2c5c8ffb07/GameDex_Main.JPG)
+![GameDex Main Page](https://gitlab.com/ykrasik/gamedex/-/wikis/uploads/069cecaf2adac774392b8ead20e36aeb/GameDex.JPG)
 
 # Features
 * Supports multiple game platforms - Windows, Linux, Mac, Android.
-* A beautiful game wall display to proudly show off your collection.
-* A rich filter system that allows you to filter games by various parameters and combine filters using boolean `and`, `or` & `not` operators for ultimate control.
-* Add tags (labels) to games and use these tags as filters.
-* Define folders as game libraries and sync them with online game database providers - the sync process automatically determines newly added games.
-* Supports IGDB.com & GiantBomb.com as providers - just fill in your api key.
-* Designed to support multiple game database providers.
-* Use powerful filtering capabilities to create reports on your game collection.
-* Supports special reports for duplications in your collection and reports on how you should have named the game folder to be consistent with online information.
+* Define folders as game libraries and sync them with online game database providers. 
+  * The sync process automatically determines newly added games.
+* Comes with a rich filter system that allows filtering games by various parameters and combining filters using boolean `and`, `or` & `not` operators.
+    * Can be used to create reports on your game collection.
+* Supports IGDB.com, GiantBomb.com & OpenCritic as providers
+    * IGDB & GiantBomb require an account for an API key.
+* Choose between a beautiful wall display or a functional list display.
+* Add tags (labels) to games.
+* Comes with a duplication detection tool.
 * Supports updating game information from providers, so you always have the most up-to-date game information locally.
 
 # Build Distribution:

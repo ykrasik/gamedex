@@ -1,5 +1,42 @@
 # Change Log
 
+## [0.4.0] 2020-06-06
+#### Features
+* Refactor the whole codebase to use Kotlin [Flow](https://kotlinlang.org/docs/reference/coroutines/flow.html)
+* Add new provider: OpenCritic
+* GiantBomb: Update to latest api changes about releaseDate
+* GiantBomb: Add another image that should be treated as 'no-image'
+* IGDB: Filter out scores with 0 votes
+* Allow pagination in provider search (support offset-limit in provider api)
+* Allow fetching a search result during provider game sync. Useful for OpenCritic
+* Set max screenshots to 12
+* Add screenshot url as tooltip to game details view
+* Remove CriticScore & UserScore priorities, use score with the most votes instead
+* Add version to preloader view
+* Add path being searched to providerSearchView, and stop persisting thumbnails of search results
+* Add ability to set a file as the main executable of the game, and execute the game by pressing a button
+* Allow setting main executable file from the 'edit game' view
+* Add a RichTextFx LogView, with a maximum of 1000 entries
+* Every time game details are opened, trace the RawGame as a pretty json to the log
+* Add some more default genre mappings
+* Make default HttpClient timeouts much shorter
+* Hide all currently showing overlays when pressing 'ctrl+f' to search
+* Allow cleanup db view to display which images & file cache entries are stale
+* Add ability to view raw game data as text
+* Remove debounce when navigating games
+
+#### Bugfixes
+* Catch errors thrown while calculating FileTree
+* Catch errors thrown while bulk updating games
+* Fix filter, sort & displayType popOver arrow to always be Top Left 
+* Fix uncaught exception in RenameMove dialog when a communication error with the file system occurs
+* Fix uncaught exception when excluding or skipping all providers in a provider sync operation
+* Fix uncaught exception when cancelling bulk provider update Also update games by their update date, in increasing order.
+* Do not catch exceptions thrown when updating a single game
+* Limit game description width to 600, again
+* IGDB: Add missing genres (Visual Novel, Card & Board Game, MOBA)
+* Fix issue with cached image extensions sometimes having characters that are illegal in a file name
+
 ## [0.3.0] 2019-07-18 
 This release is NOT BACKWARDS COMPATIBLE with 0.2.0, there were internal changes to the database structure.
 * Redesign windows - windows will now darken the content underneath them
