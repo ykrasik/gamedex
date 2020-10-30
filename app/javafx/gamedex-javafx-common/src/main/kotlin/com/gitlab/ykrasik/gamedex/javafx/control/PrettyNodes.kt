@@ -51,11 +51,10 @@ inline fun <T> EventTarget.prettyListView(values: ObservableList<T>? = null, cro
         op()
     }
 
-inline fun <T> ListView<T>.prettyListCell(crossinline f: JFXListCell<T>.(T) -> Unit) {
+fun <T> ListView<T>.prettyListCell(f: JFXListCell<T>.(T) -> Unit) {
     setCellFactory {
         object : JFXListCell<T>() {
             override fun updateItem(item: T?, empty: Boolean) {
-                @Suppress("PROTECTED_CALL_FROM_PUBLIC_INLINE")
                 super.updateItem(item, empty)
                 if (item == null) return
                 f(item)

@@ -131,8 +131,8 @@ class ClasspathPluginScanner : PluginScanner {
 
     @Suppress("UNCHECKED_CAST")
     override fun scan() = ClassGraph()
-        .whitelistJars("*gamedex*")
-        .whitelistPackages("com.gitlab.ykrasik.gamedex")
+        .acceptJars("*gamedex*")
+        .acceptPackages("com.gitlab.ykrasik.gamedex")
         .scan().use { scanResult ->
             val pluginClassInfo = scanResult.getClassesImplementing(Plugin::class.qualifiedName)
             pluginClassInfo.mapNotNull {

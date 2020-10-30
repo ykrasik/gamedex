@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.version
 
 import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.util.fromJson
-import net.swiftzer.semver.SemVer
 
 /**
  * User: ykrasik
@@ -28,6 +27,3 @@ import net.swiftzer.semver.SemVer
 val ApplicationVersion = Version::class.java.getResource("/version.json")
     .readBytes()
     .fromJson<Version>()
-
-val String.semVer: SemVer get() = SemVer.parse(this)
-fun SemVer.isCompatible(other: SemVer) = this.major == other.major

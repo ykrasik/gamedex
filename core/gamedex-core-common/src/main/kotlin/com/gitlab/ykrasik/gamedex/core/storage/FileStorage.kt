@@ -195,7 +195,7 @@ class IntIdFileStorageKeyGenerator : FileStorageKeyGenerator<Int> {
     private val currentId = AtomicInteger()
 
     override fun init(keys: List<Int>) {
-        currentId.set(keys.max() ?: 0)
+        currentId.set(keys.maxOrNull() ?: 0)
     }
 
     override fun nextKey() = currentId.incrementAndGet()

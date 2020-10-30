@@ -17,31 +17,27 @@
 package com.gitlab.ykrasik.gamedex.util.ktor
 
 import com.gitlab.ykrasik.gamedex.util.humanReadable
-import io.ktor.client.HttpClient
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.call.HttpClientCall
-import io.ktor.client.features.HttpClientFeature
-import io.ktor.client.features.observer.ResponseHandler
-import io.ktor.client.features.observer.ResponseObserver
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.HttpSendPipeline
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.HttpResponsePipeline
-import io.ktor.http.ContentType
-import io.ktor.http.Url
-import io.ktor.http.charset
-import io.ktor.http.content.OutgoingContent
-import io.ktor.http.contentType
-import io.ktor.util.AttributeKey
-import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.ByteReadChannel
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.features.*
+import io.ktor.client.features.observer.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.core.readText
-import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.slf4j.Logger
+import kotlin.text.Charsets
+import kotlin.text.String
+import kotlin.text.StringBuilder
+import kotlin.text.appendLine
+import kotlin.text.startsWith
 import kotlin.time.milliseconds
 
 /**
@@ -96,8 +92,8 @@ class Slf4jLogging(val logger: Logger) {
     }
 
     private suspend fun requestMessage(request: HttpRequestBuilder): String {
-        val sb = StringBuilder().appendln()
-        sb.appendln("REQUEST: [${request.method.value}] ${Url(request.url)}")
+        val sb = StringBuilder().appendLine()
+        sb.appendLine("REQUEST: [${request.method.value}] ${Url(request.url)}")
         val content = request.body as OutgoingContent
 //        sb.logHeaders(request.headers.entries(), content.headers)
         sb.logRequestBody(content)
@@ -105,8 +101,8 @@ class Slf4jLogging(val logger: Logger) {
     }
 
     private suspend fun logResponse(response: HttpResponse) {
-        val sb = StringBuilder(response.call.request.attributes[requestLog]).appendln()
-        sb.appendln("RESPONSE: [${response.status}] ${response.timeTaken}")
+        val sb = StringBuilder(response.call.request.attributes[requestLog]).appendLine()
+        sb.appendLine("RESPONSE: [${response.status}] ${response.timeTaken}")
 //        sb.logHeaders(response.headers.entries())
         sb.logResponseBody(response.contentType(), response.content)
 
@@ -125,26 +121,26 @@ class Slf4jLogging(val logger: Logger) {
 //        requestHeaders: Set<Map.Entry<String, List<String>>>,
 //        contentHeaders: Headers? = null
 //    ) {
-//        appendln("COMMON HEADERS")
+//        appendLine("COMMON HEADERS")
 //        requestHeaders.forEach { (key, values) ->
-//            appendln("-> $key: ${values.joinToString("; ")}")
+//            appendLine("-> $key: ${values.joinToString("; ")}")
 //        }
 //
 //        if (contentHeaders != null && !contentHeaders.isEmpty()) {
-//            appendln("CONTENT HEADERS")
+//            appendLine("CONTENT HEADERS")
 //            contentHeaders.forEach { key, values ->
-//                appendln("-> $key: ${values.joinToString("; ")}")
+//                appendLine("-> $key: ${values.joinToString("; ")}")
 //            }
 //        }
 //    }
 
     private suspend fun StringBuilder.logResponseBody(contentType: ContentType?, content: ByteReadChannel) {
-        appendln("Content-Type: $contentType")
+        appendLine("Content-Type: $contentType")
         val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
         if (message.startsWith('{') || message.startsWith('[')) {
-            appendln(message)
+            appendLine(message)
         } else {
-            appendln("BODY NOT JSON")
+            appendLine("BODY NOT JSON")
         }
     }
 
@@ -168,8 +164,8 @@ class Slf4jLogging(val logger: Logger) {
         }
 
         if (text != null) {
-            appendln("Content-Type: ${content.contentType}")
-            appendln(text)
+            appendLine("Content-Type: ${content.contentType}")
+            appendLine(text)
         }
     }
 

@@ -68,6 +68,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
             when (result) {
                 is AsyncValueState.Result -> property.value = result.result.image
                 is AsyncValueState.Error -> property.value = noImage
+                else -> Unit
             }
         }
         property

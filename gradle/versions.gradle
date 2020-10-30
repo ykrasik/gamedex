@@ -18,7 +18,7 @@ dependencyUpdates.resolutionStrategy {
                 'org.controlsfx:controlsfx:9.*',
                 'org.controlsfx:controlsfx:11.*',
                 'com.jfoenix:jfoenix:9.*',
-                'com.h2database:h2:1.4.197'
+                'com.h2database:h2:1.4.200'
             ].any { regex ->
                 selection.candidate.toString() ==~ regex
             }

@@ -159,7 +159,7 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
     private val LogEntry.formattedMessage
         get() = throwable?.let { throwable ->
             val sw = StringWriter()
-            sw.appendln(message)
+            sw.appendLine(message)
             throwable.printStackTrace(PrintWriter(sw))
             sw.toString()
         } ?: message

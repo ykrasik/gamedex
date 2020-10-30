@@ -24,6 +24,9 @@ class PluginClassLoader(url: URL, parent: ClassLoader) : URLClassLoader(arrayOf(
         if (className.startsWith("java.")) {
             return findSystemClass(className)
         }
+        if (className.startsWith("kotlin")) {
+            return super.loadClass(className)
+        }
 
         val loadedClass = findLoadedClass(className)
         if (loadedClass != null) {

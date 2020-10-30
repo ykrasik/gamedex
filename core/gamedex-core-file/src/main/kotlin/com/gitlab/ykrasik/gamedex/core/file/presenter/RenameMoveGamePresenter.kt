@@ -110,7 +110,7 @@ class RenameMoveGamePresenter @Inject constructor(
                 view.targetPathLibrary.value = checkNotNull(libraryService.libraries
                     .asSequence()
                     .mapNotNull { library -> matchPath(library, path) }
-                    .maxBy { it.numElements }
+                    .maxByOrNull { it.numElements }
                     ?.library
                 ) { "Path doesn't belong to any library!" }
 

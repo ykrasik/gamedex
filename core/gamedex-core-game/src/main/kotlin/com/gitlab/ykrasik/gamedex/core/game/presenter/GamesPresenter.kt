@@ -78,9 +78,9 @@ class GamesPresenter @Inject constructor(
             val lastSearchText = MutableStateFlow("")
 //            lastSearchText *= view.searchActions.map { view.searchText.v }
             view::searchActions.forEach { lastSearchText /= view.searchText.v }
-            view::canSearch *= view.searchText.onlyChangesFromView().combine(lastSearchText) { currentSearchText, lastSearchText ->
+            view::canSearch *= view.searchText.onlyChangesFromView().combine(lastSearchText) { currentSearchText, prevSearchText ->
                 IsValid {
-                    check(currentSearchText != lastSearchText) { "Already searched!" }
+                    check(currentSearchText != prevSearchText) { "Already searched!" }
                 }
             }
 
