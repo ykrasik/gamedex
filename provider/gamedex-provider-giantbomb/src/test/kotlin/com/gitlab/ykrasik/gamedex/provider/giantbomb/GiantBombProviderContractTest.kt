@@ -79,6 +79,9 @@ class GiantBombProviderContractTest : Spec<GiantBombProviderContractTest.Scope>(
         val deck = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
         val genres = listOf("Simulation", "Action-Adventure")
         val screenshotUrls = listOf(
+            "https://giantbomb1.cbsistatic.com/uploads/scale_large/40/402691/3244832-sep-24%4012.34.51.jpg",
+            "https://giantbomb1.cbsistatic.com/uploads/scale_large/40/402691/3244831-sep-23%4023.26.11.jpg",
+            "https://giantbomb1.cbsistatic.com/uploads/scale_large/40/402691/3244830-sep-23%4022.27.7.jpg",
             "https://giantbomb1.cbsistatic.com/uploads/scale_large/6/66643/3038806-aug-1%403.11.36.jpg",
             "https://giantbomb1.cbsistatic.com/uploads/scale_large/6/66643/3038805-aug-1%402.38.2.jpg",
             "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036612-no%20man%27s%20sky_20180412003928.jpg",
@@ -105,10 +108,7 @@ class GiantBombProviderContractTest : Spec<GiantBombProviderContractTest.Scope>(
             "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016653-no%20man%27s%20sky_20180417232953.jpg",
             "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016652-no%20man%27s%20sky_20180417231341.jpg",
             "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016651-no%20man%27s%20sky_20180417231002.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016650-no%20man%27s%20sky_20180417230157.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016649-no%20man%27s%20sky_20180417223414.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016648-no%20man%27s%20sky_20180417211455.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016647-no%20man%27s%20sky_20180412171335.jpg"
+            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016650-no%20man%27s%20sky_20180417230157.jpg"
         )
     }
 }

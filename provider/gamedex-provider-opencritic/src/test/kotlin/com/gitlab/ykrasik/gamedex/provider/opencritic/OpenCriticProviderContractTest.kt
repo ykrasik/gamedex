@@ -79,7 +79,7 @@ class OpenCriticProviderContractTest : Spec<OpenCriticProviderContractTest.Scope
         val name = "No Man's Sky"
         val providerGameId = "2393"
         val releaseDate = "2016-08-12"
-        val Score?.verifiedCriticScore get() = assertScore(min = 65, max = 75, numReviews = 136)
+        val Score?.verifiedCriticScore get() = assertScore(min = 65, max = 75, numReviews = 135)
         val url = "https://opencritic.com/game/2393/no-man-s-sky"
         val description =
             "Inspired by the adventure and imagination that we love from classic science-fiction, No Man's Sky presents you with a galaxy to explore, filled with unique planets and lifeforms, and constant danger and action. \n\n" +
