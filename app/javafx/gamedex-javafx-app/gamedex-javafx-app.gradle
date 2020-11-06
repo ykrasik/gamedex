@@ -39,6 +39,7 @@ jfx {
     appName = "GameDex"
     skipJNLP = true
     skipMainClassScanning = true
+    usePatchedJFXAntLib = false
 }
 
 task customizeWindowsInstaller(type: Copy) {
