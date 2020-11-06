@@ -14,36 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider.module
+package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
-import com.gitlab.ykrasik.gamedex.core.provider.*
-import com.gitlab.ykrasik.gamedex.core.provider.presenter.*
+import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.memoryCached
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.ProviderStorage
 import com.gitlab.ykrasik.gamedex.provider.ProviderStorageFactory
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 15/10/2018
- * Time: 16:46
+ * Date: 31/10/2020
+ * Time: 10:38
  */
-object ProviderModule : InternalCoreModule() {
-    override fun configure() {
-        bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
-        bind(SyncGameService::class.java).to(SyncGameServiceImpl::class.java)
-        bind(ProviderStorageFactory::class.java).to(ProviderStorageFactoryImpl::class.java)
+@Singleton
+class ProviderStorageFactoryImpl @Inject constructor() : ProviderStorageFactory {
+    override fun <V : Any> create(id: ProviderId, klass: KClass<V>) = object : ProviderStorage<V> {
+        private val storage = StringIdJsonStorageFactory("data/provider/$id", klass).memoryCached()
 
-        bindPresenter(SyncLibrariesPresenter::class)
-        bindPresenter(SyncGamesPresenter::class)
-        bindPresenter(SyncGamePresenter::class)
-        bindPresenter(ProviderSearchPresenter::class)
-
-        bindPresenter(ShowBulkUpdateGamesPresenter::class)
-        bindPresenter(UpdateGamePresenter::class)
-        bindPresenter(BulkUpdateGamesPresenter::class)
-
-        bindPresenter(ShowSyncGamesWithMissingProviders::class)
-        bindPresenter(SyncGamesWithMissingProvidersPresenter::class)
-
-        bind(ShowSyncGamesPresenter::class.java)
+        override fun get() = storage.get(key)
+        override fun set(v: V) = storage.set(key, v)
     }
 }
+
+private const val key = "data"

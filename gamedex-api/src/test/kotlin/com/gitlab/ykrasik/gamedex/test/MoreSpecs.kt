@@ -36,8 +36,8 @@ import org.joda.time.DateTimeZone
 abstract class Spec<Scope> : WordSpec() {
     override val oneInstancePerTest = false
 
-    private val now = DateTime(1).withZone(DateTimeZone.UTC)
-    val nowMock = Timestamp(createDate = now, updateDate = now)
+    val now = DateTime(10000000).withZone(DateTimeZone.UTC)
+    val nowTimestamp = Timestamp(createDate = now, updateDate = now)
 
     init {
         DateTimeUtils.setCurrentMillisFixed(now.millis)
