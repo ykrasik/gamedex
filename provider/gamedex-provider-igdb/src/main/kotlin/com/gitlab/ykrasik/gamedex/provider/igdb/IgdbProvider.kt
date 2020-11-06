@@ -21,11 +21,10 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.id
+import com.gitlab.ykrasik.gamedex.util.JodaLocalDate
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormat
 import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,9 +60,9 @@ class IgdbProvider @Inject constructor(
         providerGameId = id.toString(),
         name = name,
         description = summary,
-        releaseDate = releaseDates?.findReleaseDate(platform),
-        criticScore = toScore(aggregatedRating, aggregatedRatingCount),
-        userScore = toScore(rating, ratingCount),
+        releaseDate = parseReleaseDate(platform),
+        criticScore = parseCriticScore(),
+        userScore = parseUserScore(),
         thumbnailUrl = cover?.imageId?.toImageUrl(config.thumbnailImageType)
     )
 
@@ -78,9 +77,9 @@ class IgdbProvider @Inject constructor(
         gameData = GameData(
             name = this.name,
             description = this.summary,
-            releaseDate = this.releaseDates?.findReleaseDate(platform),
-            criticScore = toScore(aggregatedRating, aggregatedRatingCount),
-            userScore = toScore(rating, ratingCount),
+            releaseDate = parseReleaseDate(platform),
+            criticScore = parseCriticScore(),
+            userScore = parseUserScore(),
             genres = this.genres?.map { it.genreName } ?: emptyList(),
             thumbnailUrl = this.cover?.imageId?.toThumbnailUrl(),
             posterUrl = this.cover?.imageId?.toPosterUrl(),
@@ -89,16 +88,16 @@ class IgdbProvider @Inject constructor(
         siteUrl = this.url
     )
 
-    private fun toScore(score: Double?, numReviews: Int?): Score? = score?.let { Score(it, numReviews!!).takeIf { it.numReviews > 0 } }
+    private fun IgdbClient.SharedSearchFetchFields.parseCriticScore(): Score? = toScore(aggregatedRating, aggregatedRatingCount)
+    private fun IgdbClient.SharedSearchFetchFields.parseUserScore(): Score? = toScore(rating, ratingCount)
+    private fun toScore(score: Double?, numReviews: Int?): Score? =
+        if (score != null && numReviews != null && numReviews > 0) Score(score, numReviews) else null
 
-    private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: Platform): String? {
+    private fun IgdbClient.SharedSearchFetchFields.parseReleaseDate(platform: Platform): String? {
         // IGDB returns all release dates for all platforms, not just the one we searched for.
-        val releaseDate = this.find { it.platform == platform.platformId } ?: return null
-        return try {
-            LocalDate.parse(releaseDate.human, DateTimeFormat.forPattern("YYYY-MMM-dd")).toString()
-        } catch (e: Exception) {
-            releaseDate.human
-        }
+        val dateFromReleaseDates = releaseDates?.find { it.platform == platform.platformId }?.date?.takeIf { it != 0L }
+        val dateWithFallback = dateFromReleaseDates ?: firstReleaseDate?.takeIf { it != 0L } ?: return null
+        return JodaLocalDate(dateWithFallback * 1000).toString("YYYY-MM-dd")
     }
 
     private fun String.toThumbnailUrl() = toImageUrl(config.thumbnailImageType)
@@ -135,9 +134,11 @@ class IgdbProvider @Inject constructor(
         defaultOrder = config.defaultOrder,
         accountFeature = object : GameProvider.AccountFeature {
             override val accountUrl = config.accountUrl
-            override val field1 = "Api Key"
+            override val field1 = "Client ID"
+            override val field2 = "Client Secret"
             override fun createAccount(fields: Map<String, String>) = IgdbUserAccount(
-                apiKey = fields.getValue(field1)
+                clientId = fields.getValue(field1),
+                clientSecret = fields.getValue(field2)
             )
         }
     )

@@ -23,9 +23,10 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.JodaLocalDate
 import io.kotlintest.matchers.*
-import io.ktor.client.features.ClientRequestException
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.features.*
+import io.ktor.http.*
 
 /**
  * User: ykrasik
@@ -46,7 +47,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                             providerGameId = result.id.toString(),
                             name = result.name,
                             description = result.summary,
-                            releaseDate = releaseDate,
+                            releaseDate = releaseDate.toString("YYYY-MM-dd"),
                             criticScore = Score(result.aggregatedRating!!, result.aggregatedRatingCount!!),
                             userScore = Score(result.rating!!, result.ratingCount!!),
                             thumbnailUrl = thumbnailUrl(result.cover!!.imageId!!)
@@ -58,11 +59,12 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 server.verify {
                     postRequestedFor(urlPathEqualTo("/"))
                         .withHeader("Accept", "application/json")
-                        .withHeader("user-key", account.apiKey)
+                        .withHeader("Client-ID", account.clientId)
+                        .withHeader("Authorization", "Bearer $authorizationToken")
                         .withBody(
                             """
                                 search "$query";
-                                fields name,summary,aggregated_rating,aggregated_rating_count,rating,rating_count,release_dates.category,release_dates.human,release_dates.platform,cover.image_id;
+                                fields name,summary,aggregated_rating,aggregated_rating_count,rating,rating_count,release_dates.date,release_dates.platform,first_release_date,cover.image_id;
                                 where name ~ *"$query"* & release_dates.platform = $platformId;
                                 offset $offset;
                                 limit $limit;
@@ -133,28 +135,28 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 search() should have1SearchResultWhere { userScore shouldBe null }
             }
 
-            "return null releaseDate when 'releaseDates' is null" test {
-                givenSearchResults(searchResult().copy(releaseDates = null))
+            "return null releaseDate when 'releaseDates' is null & 'firstReleaseDate' is null" test {
+                givenSearchResults(searchResult().copy(releaseDates = null, firstReleaseDate = null))
 
                 search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
-            "return null releaseDate when no releaseDate exists for given platform" test {
+            "return null releaseDate when no releaseDate exists for given platform and 'firstReleaseDate' is null" test {
+                givenSearchResults(searchResult(releaseDatePlatformId = platformId + 1).copy(firstReleaseDate = null))
+
+                search() should have1SearchResultWhere { releaseDate shouldBe null }
+            }
+
+            "return 'firstReleaseDate' as releaseDate when no releaseDate exists for given platform" test {
                 givenSearchResults(searchResult(releaseDatePlatformId = platformId + 1))
 
-                search() should have1SearchResultWhere { releaseDate shouldBe null }
+                search() should have1SearchResultWhere { releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd") }
             }
 
-            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
-                givenSearchResults(searchResult(releaseDate = "2000-Apr-07"))
+            "return 'firstReleaseDate' as releaseDate when releaseDate is null for given platform" test {
+                givenSearchResults(searchResult(releaseDate = null))
 
-                search() should have1SearchResultWhere { releaseDate shouldBe "2000-04-07" }
-            }
-
-            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
-                givenSearchResults(searchResult(releaseDate = "2017-Q4"))
-
-                search() should have1SearchResultWhere { releaseDate shouldBe "2017-Q4" }
+                search() should have1SearchResultWhere { releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd") }
             }
 
             "return null thumbnailUrl when 'cover.cloudinaryId' is null" test {
@@ -191,7 +193,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                     gameData = GameData(
                         name = result.name,
                         description = result.summary,
-                        releaseDate = releaseDate,
+                        releaseDate = releaseDate.toString("YYYY-MM-dd"),
                         criticScore = Score(result.aggregatedRating!!, result.aggregatedRatingCount!!),
                         userScore = Score(result.rating!!, result.ratingCount!!),
                         genres = listOf(genre),
@@ -205,10 +207,11 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 server.verify {
                     postRequestedFor(urlPathEqualTo("/"))
                         .withHeader("Accept", "application/json")
-                        .withHeader("user-key", account.apiKey)
+                        .withHeader("Client-ID", account.clientId)
+                        .withHeader("Authorization", "Bearer $authorizationToken")
                         .withBody(
                             """
-                                fields name,summary,aggregated_rating,aggregated_rating_count,rating,rating_count,release_dates.category,release_dates.human,release_dates.platform,cover.image_id,url,screenshots.image_id,genres;
+                                fields name,summary,aggregated_rating,aggregated_rating_count,rating,rating_count,release_dates.date,release_dates.platform,first_release_date,cover.image_id,url,screenshots.image_id,genres;
                                 where id = $id;
                             """.trimIndent()
                         )
@@ -245,28 +248,28 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 fetch().gameData.userScore shouldBe null
             }
 
-            "return null releaseDate when 'releaseDates' is null" test {
-                givenFetchResult(fetchResult().copy(releaseDates = null))
+            "return null releaseDate when 'releaseDates' is null & 'firstReleaseDate' is null" test {
+                givenFetchResult(fetchResult().copy(releaseDates = null, firstReleaseDate = null))
 
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "return null releaseDate when no releaseDate exists for given platform" test {
+            "return null releaseDate when no releaseDate exists for given platform and 'firstReleaseDate' is null" test {
+                givenFetchResult(fetchResult(releaseDatePlatformId = platformId + 1).copy(firstReleaseDate = null))
+
+                fetch().gameData.releaseDate shouldBe null
+            }
+
+            "return 'firstReleaseDate' as releaseDate when no releaseDate exists for given platform" test {
                 givenFetchResult(fetchResult(releaseDatePlatformId = platformId + 1))
 
-                fetch().gameData.releaseDate shouldBe null
+                fetch().gameData.releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd")
             }
 
-            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
-                givenFetchResult(fetchResult(releaseDate = "2000-Apr-07"))
+            "return 'firstReleaseDate' as releaseDate when releaseDate is null for given platform" test {
+                givenFetchResult(fetchResult(releaseDate = null))
 
-                fetch().gameData.releaseDate shouldBe "2000-04-07"
-            }
-
-            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
-                givenFetchResult(fetchResult(releaseDate = "2017-Q4"))
-
-                fetch().gameData.releaseDate shouldBe "2017-Q4"
+                fetch().gameData.releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd")
             }
 
             "return empty genres when 'genres' is null" test {
@@ -323,12 +326,116 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 }
             }
         }
+
+        "OAuth token" should {
+            "exchange clientId & clientSecret for an authorization token if there is no previous authorizationToken in the storage" test {
+                storage.reset()
+                val newAuthorizationToken = randomString()
+                server.oauthRequest().willReturn(newAuthorizationToken, 10)
+
+                givenFetchResult(fetchResult())
+                fetch()
+
+                verifyAuthorizationTokenRequested()
+            }
+
+            "exchange clientId & clientSecret for an authorization token if there is a previous authorizationToken in the storage but it is expired" test {
+                storage.set(IgdbStorageData(authorizationToken = "oldToken", expiresOn = now))
+
+                val newAuthorizationToken = randomString()
+                server.oauthRequest().willReturn(newAuthorizationToken, 10)
+
+                givenFetchResult(fetchResult())
+                fetch()
+
+                verifyAuthorizationTokenRequested()
+                storage.get()?.authorizationToken shouldBe newAuthorizationToken
+            }
+
+            "exchange clientId & clientSecret for an authorization token if there is a previous authorizationToken in the storage but it is almost expired (within expiration buffer time)" test {
+                storage.set(IgdbStorageData(authorizationToken = "oldToken", expiresOn = now.plusSeconds(oauthTokenExpirationBufferSeconds - 1)))
+
+                val newAuthorizationToken = randomString()
+                server.oauthRequest().willReturn(newAuthorizationToken, 10)
+
+                givenFetchResult(fetchResult())
+                fetch()
+
+                verifyAuthorizationTokenRequested()
+                storage.get()?.authorizationToken shouldBe newAuthorizationToken
+            }
+
+            "not renew token if previous token wasn't expired" test {
+                val authorizationToken = "authorizationToken"
+                storage.set(IgdbStorageData(authorizationToken = authorizationToken, expiresOn = now.plusSeconds(oauthTokenExpirationBufferSeconds)))
+
+                givenFetchResult(fetchResult())
+                fetch()
+
+                // Check oauth endpoint not called
+                shouldThrowAny {
+                    server.verify {
+                        postRequestedFor(urlPathEqualTo("/${server.oauthPath}"))
+                    }
+                }
+                storage.get()?.authorizationToken shouldBe authorizationToken
+            }
+
+            "store returned token in storage with correct expiresAt time" test {
+                storage.reset()
+
+                val newAuthorizationToken = randomString()
+                server.oauthRequest().willReturn(newAuthorizationToken, 100)
+
+                givenFetchResult(fetchResult())
+                fetch()
+
+                storage.get()?.authorizationToken shouldBe newAuthorizationToken
+                storage.get()?.expiresOn shouldBe now.plusSeconds(100)
+            }
+
+            "delete stored auth token on error from provider" test {
+                val authorizationToken = "authorizationToken"
+                storage.set(IgdbStorageData(authorizationToken = authorizationToken, expiresOn = now.plusYears(1)))
+
+                server.anyRequest() willFailWith HttpStatusCode.BadRequest
+
+                shouldThrowAny {
+                    fetch()
+                }
+
+                storage.get() shouldBe null
+            }
+
+            "error cases" should {
+                "throw ClientRequestException on invalid http response status" test {
+                    storage.reset()
+                    server.oauthRequest() willFailWith HttpStatusCode.BadRequest
+
+                    val e = shouldThrow<ClientRequestException> {
+                        fetch()
+                    }
+                    e.response.status shouldBe HttpStatusCode.BadRequest
+                }
+            }
+        }
     }
 
+    val authorizationToken = randomString()
     val server = IgdbMockServer()
+    val storage = MockProviderStorage(
+        IgdbStorageData(
+            authorizationToken = authorizationToken,
+            expiresOn = now.plusYears(1)
+        )
+    )
+
     override fun beforeAll() = server.start()
     override fun afterAll() = server.close()
-    override fun beforeEach() = server.reset()
+    override fun beforeEach() {
+        server.reset()
+        server.oauthRequest().willReturn(authorizationToken, 99999)
+    }
 
     override fun scope() = Scope()
     inner class Scope {
@@ -336,10 +443,12 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
         val platformId = randomInt(100)
         val genreId = randomInt(100)
         val genre = randomWord()
-        val releaseDate = randomLocalDateString()
-        val account = IgdbUserAccount(apiKey = randomWord())
+        val releaseDate = randomLocalDate()
+        val firstReleaseDate = randomLocalDate()
+        val account = IgdbUserAccount(clientId = randomString(), clientSecret = randomString())
         val offset = randomInt(100)
         val limit = randomInt(max = 100, min = 1)
+        val oauthTokenExpirationBufferSeconds = 10
 
         val baseImageUrl = randomUrl()
 
@@ -348,7 +457,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
         fun screenshotUrl(imageId: String) = posterUrl(imageId)
 
         fun searchResult(
-            releaseDate: String = randomLocalDateString(),
+            releaseDate: JodaLocalDate? = this.releaseDate,
             releaseDatePlatformId: Int = this.platformId
         ) = IgdbClient.SearchResult(
             id = randomInt(),
@@ -359,17 +468,19 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
             rating = randomScore().score,
             ratingCount = randomScore().numReviews,
             releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
+            firstReleaseDate = this.firstReleaseDate.toDateTimeAtStartOfDay().millis.div(1000),
             cover = image()
         )
 
         fun fetchResult(
-            releaseDate: String = randomLocalDateString(),
+            releaseDate: JodaLocalDate? = this.releaseDate,
             releaseDatePlatformId: Int = this.platformId
         ) = IgdbClient.FetchResult(
             url = randomWord(),
             name = randomName(),
             summary = randomParagraph(),
             releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
+            firstReleaseDate = this.firstReleaseDate.toDateTimeAtStartOfDay().millis.div(1000),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
             rating = randomScore().score,
@@ -379,10 +490,9 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
             genres = listOf(genreId)
         )
 
-        private fun releaseDate(releaseDate: String, platformId: Int) = IgdbClient.ReleaseDate(
+        private fun releaseDate(releaseDate: JodaLocalDate?, platformId: Int) = IgdbClient.ReleaseDate(
             platform = platformId,
-            category = 0,
-            human = releaseDate
+            date = releaseDate?.toDateTimeAtStartOfDay()?.millis?.div(1000)
         )
 
         fun image(imageId: String? = randomString()) = IgdbClient.Image(imageId = imageId)
@@ -396,9 +506,20 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
         suspend fun search(query: String = randomName()) = provider.search(query, platform, account, offset, limit).results
         suspend fun fetch(providerGameId: String = randomString()) = provider.fetch(providerGameId, platform, account)
 
+        fun verifyAuthorizationTokenRequested() {
+            server.verify {
+                postRequestedFor(urlPathEqualTo("/${server.oauthPath}"))
+                    .withQueryParam("client_id", account.clientId)
+                    .withQueryParam("client_secret", account.clientSecret)
+                    .withQueryParam("grant_type", "client_credentials")
+            }
+        }
+
         private val config = IgdbConfig(
             baseUrl = server.baseUrl,
             baseImageUrl = baseImageUrl,
+            oauthUrl = server.oauthUrl,
+            oauthTokenExpirationBufferSeconds = oauthTokenExpirationBufferSeconds,
             accountUrl = "",
             thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
             posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
@@ -407,6 +528,6 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
             platforms = mapOf(platform.name to platformId),
             genres = mapOf(genreId.toString() to genre)
         )
-        val provider = IgdbProvider(config, IgdbClient(config))
+        val provider = IgdbProvider(config, IgdbClient(config, storage))
     }
 }

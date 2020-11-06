@@ -18,6 +18,9 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderStorage
+import com.gitlab.ykrasik.gamedex.provider.ProviderStorageFactory
+import com.gitlab.ykrasik.gamedex.provider.create
 import com.google.inject.Provides
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -44,4 +47,9 @@ object IgdbProviderPlugin : DefaultPlugin() {
                 ConfigFactory.load(javaClass.classLoader, "com/gitlab/ykrasik/gamedex/provider/igdb/igdb.conf")
             )
         )
+
+    @Provides
+    @Singleton
+    @IgdbStorage
+    fun igdbStorage(factory: ProviderStorageFactory): ProviderStorage<IgdbStorageData> = factory.create("igdb")
 }

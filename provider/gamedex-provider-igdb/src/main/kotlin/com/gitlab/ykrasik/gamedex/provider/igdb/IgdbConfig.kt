@@ -29,6 +29,8 @@ import io.github.config4k.extract
 data class IgdbConfig(
     val baseUrl: String,
     val baseImageUrl: String,
+    val oauthUrl: String,
+    val oauthTokenExpirationBufferSeconds: Int,
     val accountUrl: String,
     val thumbnailImageType: IgdbProvider.IgdbImageType,
     val posterImageType: IgdbProvider.IgdbImageType,

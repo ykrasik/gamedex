@@ -21,8 +21,8 @@ package com.gitlab.ykrasik.gamedex.core.storage
  * Date: 16/09/2018
  * Time: 14:41
  */
-class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K, V> {
-    private val cache = delegate.getAll().toMutableMap()
+class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>, lazy: Boolean) : Storage<K, V> {
+    private val cache = if (lazy) mutableMapOf() else delegate.getAll().toMutableMap()
 
     override fun add(value: V): K {
         val key = delegate.add(value)
@@ -81,4 +81,4 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
     override fun toString() = "MemoryCachedStorage[$delegate]"
 }
 
-fun <K, V> Storage<K, V>.memoryCached(): Storage<K, V> = MemoryCachedStorage(this)
+fun <K, V> Storage<K, V>.memoryCached(lazy: Boolean = false): Storage<K, V> = MemoryCachedStorage(this, lazy)

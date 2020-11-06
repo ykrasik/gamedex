@@ -14,24 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.provider
+package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import kotlin.reflect.KClass
+import com.gitlab.ykrasik.gamedex.util.JodaDateTime
+import com.google.inject.BindingAnnotation
 
 /**
  * User: ykrasik
  * Date: 31/10/2020
- * Time: 10:14
+ * Time: 10:10
  */
-interface ProviderStorage<V> {
-    fun get(): V?
-    fun set(v: V)
-    fun reset()
-}
+data class IgdbStorageData(
+    val authorizationToken: String,
+    val expiresOn: JodaDateTime,
+)
 
-interface ProviderStorageFactory {
-    fun <V : Any> create(id: ProviderId, klass: KClass<V>): ProviderStorage<V>
-}
-
-inline fun <reified V : Any> ProviderStorageFactory.create(id: ProviderId): ProviderStorage<V> =
-    create(id, V::class)
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class IgdbStorage

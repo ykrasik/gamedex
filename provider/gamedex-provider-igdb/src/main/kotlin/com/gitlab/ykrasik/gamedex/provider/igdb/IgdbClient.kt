@@ -20,10 +20,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.provider.ProviderStorage
 import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.listFromJson
-import io.ktor.client.request.header
-import io.ktor.client.request.post
+import com.gitlab.ykrasik.gamedex.util.now
+import io.ktor.client.request.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,7 +34,10 @@ import javax.inject.Singleton
  * Time: 15:13
  */
 @Singleton
-open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
+open class IgdbClient @Inject constructor(
+    private val config: IgdbConfig,
+    @IgdbStorage private val storage: ProviderStorage<IgdbStorageData>,
+) {
     open suspend fun search(
         query: String,
         platform: Platform,
@@ -63,12 +67,41 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         }.firstOrNull()
 
     private suspend inline fun <reified T : Any> post(account: IgdbUserAccount, body: () -> String): List<T> {
+        val token = getAuthorizationToken(account)
+
         // Ktor fails to correctly parse a list of data classes, we have to do it manually.
-        val response = httpClient.post<ByteArray>(config.baseUrl) {
-            header("user-key", account.apiKey)
-            this.body = body()
+        val response = try {
+            httpClient.post<ByteArray>(config.baseUrl) {
+                header("Client-ID", account.clientId)
+                header("Authorization", "Bearer $token")
+                this.body = body()
+            }
+        } catch (e: Exception) {
+            storage.reset()
+            throw e
         }
         return response.listFromJson()
+    }
+
+    private suspend fun getAuthorizationToken(account: IgdbUserAccount): String {
+        var data = storage.get()
+        val now = now
+        val expirationTime = data?.expiresOn?.minusSeconds(config.oauthTokenExpirationBufferSeconds)
+        if (expirationTime == null || expirationTime.isBefore(now)) {
+            val response = fetchAuthorization(account)
+            val expiresOn = now.plusSeconds(response.expiresIn)
+            data = IgdbStorageData(authorizationToken = response.accessToken, expiresOn)
+            storage.set(data)
+        }
+        return data!!.authorizationToken
+    }
+
+    private suspend fun fetchAuthorization(account: IgdbUserAccount): OAuthResponse {
+        return httpClient.post(config.oauthUrl) {
+            parameter("client_id", account.clientId)
+            parameter("client_secret", account.clientSecret)
+            parameter("grant_type", "client_credentials")
+        }
     }
 
     private val Platform.id: Int get() = config.getPlatformId(this)
@@ -81,9 +114,9 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
             "aggregated_rating_count",
             "rating",
             "rating_count",
-            "release_dates.category",
-            "release_dates.human",
+            "release_dates.date",
             "release_dates.platform",
+            "first_release_date",
             "cover.image_id"
         )
         val searchFieldsStr = searchFields.joinToString(",")
@@ -99,43 +132,63 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     data class SearchResult(
         val id: Int,
-        val name: String,
-        val summary: String?,
-        val aggregatedRating: Double?,
-        val aggregatedRatingCount: Int?,
-        val rating: Double?,
-        val ratingCount: Int?,
-        val releaseDates: List<ReleaseDate>?,
-        val cover: Image?
-    )
+        override val name: String,
+        override val summary: String?,
+        override val aggregatedRating: Double?,
+        override val aggregatedRatingCount: Int?,
+        override val rating: Double?,
+        override val ratingCount: Int?,
+        override val releaseDates: List<ReleaseDate>?,
+        override val firstReleaseDate: Long?,
+        override val cover: Image?
+    ) : SharedSearchFetchFields
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ReleaseDate(
         val platform: Int,
-        val category: Int,
-        val human: String
+        val date: Long?
     )
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class FetchResult(
         val url: String,
-        val name: String,
-        val summary: String?,
-        val releaseDates: List<ReleaseDate>?,
-        val aggregatedRating: Double?,
-        val aggregatedRatingCount: Int?,
-        val rating: Double?,
-        val ratingCount: Int?,
-        val cover: Image?,
+        override val name: String,
+        override val summary: String?,
+        override val releaseDates: List<ReleaseDate>?,
+        override val firstReleaseDate: Long?,
+        override val aggregatedRating: Double?,
+        override val aggregatedRatingCount: Int?,
+        override val rating: Double?,
+        override val ratingCount: Int?,
+        override val cover: Image?,
         val screenshots: List<Image>?,
         val genres: List<Int>?
-    )
+    ) : SharedSearchFetchFields
+
+    interface SharedSearchFetchFields {
+        val name: String
+        val summary: String?
+        val aggregatedRating: Double?
+        val aggregatedRatingCount: Int?
+        val rating: Double?
+        val ratingCount: Int?
+        val releaseDates: List<ReleaseDate>?
+        val firstReleaseDate: Long?
+        val cover: Image?
+    }
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val imageId: String?
+    )
+
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    internal data class OAuthResponse(
+        val accessToken: String,
+        val expiresIn: Int
     )
 }

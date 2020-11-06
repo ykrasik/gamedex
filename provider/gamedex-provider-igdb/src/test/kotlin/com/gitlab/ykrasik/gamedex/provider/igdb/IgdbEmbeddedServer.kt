@@ -25,18 +25,12 @@ import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.Provides
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.request.receiveText
-import io.ktor.response.respond
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.routing
-import io.ktor.util.pipeline.PipelineContext
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.delay
 import java.io.Closeable
 import javax.inject.Singleton
@@ -48,6 +42,8 @@ import javax.inject.Singleton
  */
 class IgdbMockServer(port: Int = freePort) : Closeable {
     val baseUrl = "http://localhost:$port"
+    val oauthPath = "oauth"
+    val oauthUrl = "$baseUrl/$oauthPath"
     private val wiremock = WireMockServer(port)
 
     fun start() = wiremock.start()
@@ -55,6 +51,17 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
     override fun close() = wiremock.stop()
 
     fun verify(requestPatternBuilder: () -> RequestPatternBuilder) = wiremock.verify(requestPatternBuilder())
+
+    @Suppress("ClassName")
+    inner class oauthRequest {
+        fun willReturn(token: String, expiresInSeconds: Int) =
+            wiremock.givenThat(post(urlPathEqualTo("/oauth"))
+                .willReturn(aJsonResponse(mapOf("access_token" to token, "expires_in" to expiresInSeconds))))
+
+        infix fun willFailWith(status: HttpStatusCode) {
+            wiremock.givenThat(post(urlPathEqualTo("/oauth")).willReturn(aResponse().withStatus(status.value)))
+        }
+    }
 
     @Suppress("ClassName")
     inner class anyRequest {
@@ -66,7 +73,7 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
         }
 
         infix fun willFailWith(status: HttpStatusCode) {
-            wiremock.givenThat(post(anyUrl()).willReturn(aResponse().withStatus(status.value)))
+            wiremock.givenThat(post(urlPathEqualTo("/")).willReturn(aResponse().withStatus(status.value)))
         }
     }
 }
@@ -84,6 +91,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
     override val screenshotUrl = posterUrl
 
     override fun Application.setupServer() {
+        System.setProperty("gameDex.provider.igdb.oauthUrl", "$baseUrl/oauth")
         routing {
             post("/") {
                 authorized {
@@ -104,6 +112,9 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
             get("$imagePath/$posterPath/{imageName}") {
                 delay(200, 800)
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Use a different set of images
+            }
+            post("/oauth") {
+                call.respondText(IgdbClient.OAuthResponse(accessToken = "accessToken", expiresIn = 999999999).toJsonStr(), ContentType.Application.Json)
             }
         }
     }
@@ -128,6 +139,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
             rating = randomScore().score.sometimesNull(),
             ratingCount = randomScore().numReviews,
             releaseDates = randomReleaseDates().sometimesNull(),
+            firstReleaseDate = randomDateTime().millis.sometimesNull(),
             cover = randomImage().sometimesNull()
         )
     }.toJsonStr()
@@ -140,6 +152,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
             name = randomName(),
             summary = randomParagraph().sometimesNull(),
             releaseDates = randomReleaseDates().sometimesNull(),
+            firstReleaseDate = randomDateTime().millis.sometimesNull(),
             aggregatedRating = randomScore().score.sometimesNull(),
             aggregatedRatingCount = randomScore().numReviews,
             rating = randomScore().score.sometimesNull(),
@@ -155,23 +168,9 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
     private fun randomReleaseDates() = randomList(3) { randomReleaseDate() }
 
     private fun randomReleaseDate(): IgdbClient.ReleaseDate {
-        val category = randomInt(7)
-        val date = randomLocalDate()
-        val human = when (category) {
-            0 -> date.toString("YYYY-MMM-dd")
-            1 -> date.toString("YYYY-MMM")
-            2 -> date.toString("YYYY")
-            3 -> date.toString("YYYY-'Q1'")
-            4 -> date.toString("YYYY-'Q2'")
-            5 -> date.toString("YYYY-'Q3'")
-            6 -> date.toString("YYYY-'Q4'")
-            7 -> "TBD"
-            else -> error("Unsupported format: $category")
-        }
         return IgdbClient.ReleaseDate(
             platform = randomPlatform(),
-            category = category,
-            human = human
+            date = randomDateTime().millis.sometimesNull()
         )
     }
 

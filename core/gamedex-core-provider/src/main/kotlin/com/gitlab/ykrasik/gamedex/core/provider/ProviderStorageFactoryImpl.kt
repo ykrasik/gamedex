@@ -33,10 +33,13 @@ import kotlin.reflect.KClass
 @Singleton
 class ProviderStorageFactoryImpl @Inject constructor() : ProviderStorageFactory {
     override fun <V : Any> create(id: ProviderId, klass: KClass<V>) = object : ProviderStorage<V> {
-        private val storage = StringIdJsonStorageFactory("data/provider/$id", klass).memoryCached()
+        private val storage = StringIdJsonStorageFactory("data/provider/$id", klass).memoryCached(lazy = true)
 
         override fun get() = storage.get(key)
         override fun set(v: V) = storage.set(key, v)
+        override fun reset() {
+            storage.delete(key)
+        }
     }
 }
 

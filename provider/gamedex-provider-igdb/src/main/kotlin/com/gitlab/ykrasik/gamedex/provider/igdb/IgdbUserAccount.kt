@@ -23,4 +23,7 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
  * Date: 04/03/2018
  * Time: 12:32
  */
-data class IgdbUserAccount(val apiKey: String) : GameProvider.Account
+data class IgdbUserAccount(
+    val clientId: String,
+    val clientSecret: String
+) : GameProvider.Account

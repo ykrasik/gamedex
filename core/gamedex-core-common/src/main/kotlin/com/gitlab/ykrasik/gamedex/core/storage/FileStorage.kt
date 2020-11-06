@@ -91,7 +91,7 @@ class FileStorage<K, V>(
             null
         }
     } catch (e: Exception) {
-        log.error("Error reading file: $file", e)
+        log.error("Error reading file: ${file.absolutePath}", e)
         null
     }
 

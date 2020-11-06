@@ -29,7 +29,7 @@ class MockProviderStorage<V>(var value: V? = null) : ProviderStorage<V> {
         value = v
     }
 
-    fun reset() {
+    override fun reset() {
         this.value = null
     }
 }

@@ -73,7 +73,10 @@ fun randomDateTime(): DateTime = now.minusSeconds(randomInt(999999999))
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
 fun randomLocalDateString(): String = randomLocalDate().toString()
 
-fun randomScore() = Score(score = DecimalFormat("###.##").format(rnd.nextDouble() * 100).toDouble(), numReviews = randomInt(30))
+fun randomScore() = Score(
+    score = DecimalFormat("###.##").format(rnd.nextDouble() * 100).toDouble(),
+    numReviews = randomInt(max = 3000, min = 1)
+)
 
 fun randomGenre() = TestResources.genres.randomElement()
 
