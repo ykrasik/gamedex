@@ -91,10 +91,24 @@ class UpdateGameServiceImpl @Inject constructor(
         }
     }
 
-    private fun RawGame.withProviderData(providerData: List<ProviderData>): RawGame = copy(
-        providerData = this.providerData.filterNot { d -> providerData.any { it.providerId == d.providerId } } +
-            providerData.map { it.updatedNow() }
-    )
+    private fun RawGame.withProviderData(providerData: List<ProviderData>): RawGame {
+        val providerDataById = (this.providerData + providerData).groupBy { it.providerId }
+        val mergedProviderData = providerDataById.mapValues { (_, datas) ->
+            val updatedData = datas.last()
+            if (datas.size > 1) {
+                val initialData = datas.first()
+                if (initialData != updatedData.copy(timestamp = initialData.timestamp)) {
+                    updatedData.copy(timestamp = initialData.timestamp.updatedNow())
+                } else {
+                    initialData
+                }
+            } else {
+                updatedData
+            }
+        }
+        val updatedProviderData = mergedProviderData.map { (_, v) -> v }
+        return copy(providerData = updatedProviderData)
+    }
 }
 
 fun GameProviderService.assertHasEnabledProvider() = check(enabledProviders.isNotEmpty()) {

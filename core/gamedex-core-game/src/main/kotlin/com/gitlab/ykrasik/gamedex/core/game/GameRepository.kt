@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
@@ -44,7 +45,7 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
     }
 
     fun add(request: AddGameRequest): RawGame {
-        val game = persistenceService.insertGame(request.metadata.createdNow(), request.providerData, request.userData)
+        val game = persistenceService.insertGame(request.metadata.createdNow(), request.providerData.sorted(), request.userData)
         games += game
         return game
     }
@@ -56,7 +57,7 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
         val games = requests.map { request ->
             GlobalScope.async(Dispatchers.IO) {
                 // TODO: Batch insert?
-                persistenceService.insertGame(request.metadata, request.providerData, request.userData).also(afterEach)
+                persistenceService.insertGame(request.metadata, request.providerData.sorted(), request.userData).also(afterEach)
             }
         }.map { it.await() }
 
@@ -65,7 +66,7 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
     }
 
     fun replace(source: RawGame, target: RawGame) {
-        source.verifySuccess { persistenceService.updateGame(target) }
+        source.verifySuccess { persistenceService.updateGame(target.copy(providerData = target.providerData.sorted())) }
         games.replace(source, target)
     }
 
@@ -91,4 +92,6 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
     }
 
     private fun RawGame.verifySuccess(f: () -> Boolean) = require(f()) { "Game doesn't exist: $this" }
+
+    private fun List<ProviderData>.sorted() = sortedBy { it.providerId }
 }
