@@ -325,7 +325,9 @@ project("core:gamedex-core-persistence") {
         fullDependency ":gamedex-api"
 
         implementation h2
-        implementation exposed
+        implementation(exposed) {
+            exclude group: h2.group, module: h2.name
+        }
     }
 }
 
