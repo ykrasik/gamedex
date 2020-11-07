@@ -49,7 +49,7 @@ class GameWallCellFragment(
     gameWallDisplaySettings: GameWallDisplaySettings,
     nameOverlayDisplaySettings: OverlayDisplaySettings,
     metaTagOverlayDisplaySettings: OverlayDisplaySettings,
-    versionOverlayDisplaySettings: OverlayDisplaySettings
+    versionOverlayDisplaySettings: OverlayDisplaySettings,
 ) : Fragment() {
     private var imageView: ImageView by singleAssign()
     private var nameOverlayLabel: Label by singleAssign()

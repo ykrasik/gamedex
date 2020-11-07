@@ -33,7 +33,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SyncLibraryServiceImpl @Inject constructor(
-    private val commonData: CommonData
+    private val commonData: CommonData,
 ) : SyncLibraryService {
     private val log = logger()
 

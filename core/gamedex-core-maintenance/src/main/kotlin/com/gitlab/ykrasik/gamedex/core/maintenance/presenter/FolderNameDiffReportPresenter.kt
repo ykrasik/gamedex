@@ -43,7 +43,7 @@ import javax.inject.Singleton
 class FolderNameDiffReportPresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<FolderNameDiffView> {
     override fun present(view: FolderNameDiffView) = object : ViewSession() {
         private val isDirty = MutableStateFlow(true)

@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowDeleteGamePresenter @Inject constructor(
-    private val viewService: ViewService
+    private val viewService: ViewService,
 ) : Presenter<ViewCanDeleteGame> {
     override fun present(view: ViewCanDeleteGame) = object : ViewSession() {
         init {

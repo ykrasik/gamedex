@@ -42,7 +42,7 @@ class ProviderSettingsPresenter @Inject constructor(
     private val settingsRepo: ProviderSettingsRepository,
     private val gameProviderService: GameProviderService,
     private val commonData: CommonData,
-    private val taskService: TaskService
+    private val taskService: TaskService,
 ) : Presenter<ProviderSettingsView> {
     override fun present(view: ProviderSettingsView) = object : ViewSession() {
         val settings = settingsRepo.providers.getValue(view.provider.id)

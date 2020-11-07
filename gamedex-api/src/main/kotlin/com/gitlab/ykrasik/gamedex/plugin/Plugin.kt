@@ -43,7 +43,7 @@ data class PluginDescriptor(
     val buildDate: DateTime? = null,
     val commitHash: String? = null,
     val commitDate: DateTime? = null,
-    val apiDependencies: Map<ApplicationApi, Int> = emptyMap()
+    val apiDependencies: Map<ApplicationApi, Int> = emptyMap(),
 ) {
     val appVersion by lazy {
         Version(

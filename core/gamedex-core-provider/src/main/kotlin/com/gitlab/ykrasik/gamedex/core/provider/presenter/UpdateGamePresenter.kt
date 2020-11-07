@@ -31,7 +31,7 @@ import javax.inject.Singleton
 class UpdateGamePresenter @Inject constructor(
     private val updateGameService: UpdateGameService,
     private val gameProviderService: GameProviderService,
-    private val taskService: TaskService
+    private val taskService: TaskService,
 ) : Presenter<ViewCanUpdateGame> {
     override fun present(view: ViewCanUpdateGame) = object : ViewSession() {
         init {

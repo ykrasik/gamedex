@@ -36,7 +36,7 @@ import javax.inject.Singleton
 @Singleton
 class OpenCriticProvider @Inject constructor(
     private val config: OpenCriticConfig,
-    private val client: OpenCriticClient
+    private val client: OpenCriticClient,
 ) : GameProvider {
     private val log = logger()
 
@@ -45,7 +45,7 @@ class OpenCriticProvider @Inject constructor(
         platform: Platform,
         account: GameProvider.Account,
         offset: Int,
-        limit: Int
+        limit: Int,
     ): GameProvider.SearchResponse {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             client.search(query).mapIndexed { i, result -> result.toSearchResult(platform, account, i) }

@@ -33,7 +33,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class RawGameDataPresenter @Inject constructor(
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<RawGameDataView> {
     override fun present(view: RawGameDataView) = object : ViewSession() {
         init {

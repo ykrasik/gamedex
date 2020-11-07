@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.util.dateTime
  */
 object PortableFilter {
     data class Filters(
-        val filters: List<Filter>
+        val filters: List<Filter>,
     )
 
     data class Filter(
@@ -35,7 +35,7 @@ object PortableFilter {
         val filter: com.gitlab.ykrasik.gamedex.app.api.filter.Filter,
         val isTag: Boolean,
         val createDate: Long,
-        val updateDate: Long
+        val updateDate: Long,
     ) {
         fun toDomain() = NamedFilter(
             id = id,

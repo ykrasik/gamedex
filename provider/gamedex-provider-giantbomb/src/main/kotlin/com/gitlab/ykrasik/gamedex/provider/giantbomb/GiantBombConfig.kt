@@ -31,7 +31,7 @@ data class GiantBombConfig(
     val noImageFileNames: List<String>,
     val accountUrl: String,
     val defaultOrder: GameProvider.OrderPriorities,
-    private val platforms: Map<String, Int>
+    private val platforms: Map<String, Int>,
 ) {
     private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }
     fun getPlatformId(platform: Platform) = _platforms.getValue(platform)

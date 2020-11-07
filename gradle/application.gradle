@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-applicationDefaultJvmArgs = [ "-Xmx$javaMaxHeap", "-XX:+UseConcMarkSweepGC", "-XX:+HeapDumpOnOutOfMemoryError", "-server" ]
+applicationDefaultJvmArgs = ["-Xmx$javaMaxHeap", "-XX:+UseConcMarkSweepGC", "-XX:+HeapDumpOnOutOfMemoryError", "-server"]
 executableDir = ''
 
 task('launcherJar', type: Jar) {

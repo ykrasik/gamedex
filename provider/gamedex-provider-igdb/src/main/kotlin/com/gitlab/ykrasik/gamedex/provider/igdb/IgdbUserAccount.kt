@@ -25,5 +25,5 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
  */
 data class IgdbUserAccount(
     val clientId: String,
-    val clientSecret: String
+    val clientSecret: String,
 ) : GameProvider.Account

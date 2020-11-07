@@ -47,7 +47,7 @@ import javax.inject.Singleton
 @Singleton
 class FileSystemServiceImpl @Inject constructor(
     @FileTreeStorage initialStorage: Storage<GameId, FileTree>,
-    eventBus: EventBus
+    eventBus: EventBus,
 ) : FileSystemService {
     private val log = logger()
 

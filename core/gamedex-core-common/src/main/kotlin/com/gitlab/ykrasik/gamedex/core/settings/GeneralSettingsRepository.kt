@@ -33,7 +33,7 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
         val exportDbDirectory: File,
         val logFilterLevel: LogLevel,
         val useInternalBrowser: Boolean,
-        val searchResultLimit: Int
+        val searchResultLimit: Int,
     )
 
     private val storage = repo.storage(basePath = "", name = "general") {

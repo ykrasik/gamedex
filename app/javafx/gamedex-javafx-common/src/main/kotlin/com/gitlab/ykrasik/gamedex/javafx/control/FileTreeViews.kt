@@ -43,7 +43,7 @@ import java.util.*
 fun EventTarget.prettyFileTreeView(
     root: FileTree,
     mainExecutableFileTree: FileTree? = null,
-    op: PrettyListView<FileTree>.() -> Unit = {}
+    op: PrettyListView<FileTree>.() -> Unit = {},
 ) = prettyListView<FileTree> {
     val (files, indents) = processFileTree(root)
     items.setAll(files)
@@ -137,7 +137,7 @@ private fun TreeItem<FileTree>.determineFile(): File =
 inline fun <T> TreeView<T>.onUserSelect(
     clickCount: Int = 2,
     bindEnter: Boolean = false,
-    crossinline action: (TreeItem<T>) -> Unit
+    crossinline action: (TreeItem<T>) -> Unit,
 ) {
     addEventFilter(MouseEvent.MOUSE_CLICKED) { event ->
         val selectedItem = selectionModel.selectedItem

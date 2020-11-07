@@ -38,7 +38,7 @@ class SyncGamesWithMissingProvidersPresenter @Inject constructor(
     private val repo: BulkSyncGamesFilterRepository,
     private val syncGameService: SyncGameService,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<SyncGamesWithMissingProvidersView> {
     override fun present(view: SyncGamesWithMissingProvidersView) = object : ViewSession() {
         init {

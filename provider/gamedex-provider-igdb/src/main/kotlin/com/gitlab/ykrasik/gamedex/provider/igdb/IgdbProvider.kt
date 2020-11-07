@@ -37,7 +37,7 @@ import javax.inject.Singleton
 @Singleton
 class IgdbProvider @Inject constructor(
     private val config: IgdbConfig,
-    private val client: IgdbClient
+    private val client: IgdbClient,
 ) : GameProvider {
     private val log = logger()
 
@@ -46,7 +46,7 @@ class IgdbProvider @Inject constructor(
         platform: Platform,
         account: GameProvider.Account,
         offset: Int,
-        limit: Int
+        limit: Int,
     ): GameProvider.SearchResponse {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             client.search(query, platform, account as IgdbUserAccount, offset = offset, limit = limit)

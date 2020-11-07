@@ -49,7 +49,7 @@ class ProviderSearchPresenter @Inject constructor(
     private val gameService: GameService,
     private val taskService: TaskService,
     private val settingsRepo: GeneralSettingsRepository,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<ProviderSearchView> {
     override fun present(view: ProviderSearchView) = object : ViewSession() {
         private var state by view.state

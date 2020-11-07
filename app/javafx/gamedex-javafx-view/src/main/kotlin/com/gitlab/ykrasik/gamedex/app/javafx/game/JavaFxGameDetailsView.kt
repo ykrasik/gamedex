@@ -63,7 +63,7 @@ class JavaFxGameDetailsView(
     private val canClose: Boolean,
     private val imageFitWidth: Double? = null,
     private val imageFitHeight: Double? = null,
-    private val maxDetailsWidth: Double? = null
+    private val maxDetailsWidth: Double? = null,
 ) : PresentableView(),
     GameDetailsView,
     ViewCanShowImageGallery,

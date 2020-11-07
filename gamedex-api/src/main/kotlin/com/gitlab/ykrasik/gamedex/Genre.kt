@@ -26,7 +26,7 @@ typealias GenreId = String
 data class Genre(
     val id: GenreId,
     val color: String?,
-    val timestamp: Timestamp
+    val timestamp: Timestamp,
 ) {
     fun createdNow() = copy(timestamp = Timestamp.now)
     fun updatedNow() = copy(timestamp = timestamp.updatedNow())

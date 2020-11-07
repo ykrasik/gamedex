@@ -31,7 +31,7 @@ import javax.inject.Singleton
 @Singleton
 class ExternalHidePresenter @Inject constructor(
     eventBus: EventBus,
-    private val viewManager: ViewManager
+    private val viewManager: ViewManager,
 ) {
     init {
         object : ViewSession() {

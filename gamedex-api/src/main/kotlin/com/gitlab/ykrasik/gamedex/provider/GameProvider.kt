@@ -33,7 +33,7 @@ interface GameProvider {
 
     data class SearchResponse(
         val results: List<SearchResult>,
-        val canShowMoreResults: Boolean?  // Null means the provider doesn't know if it can or cannot show more results.
+        val canShowMoreResults: Boolean?,  // Null means the provider doesn't know if it can or cannot show more results.
     )
 
     data class SearchResult(
@@ -43,14 +43,14 @@ interface GameProvider {
         val releaseDate: String?,
         val criticScore: Score?,
         val userScore: Score?,
-        val thumbnailUrl: String?
+        val thumbnailUrl: String?,
     ) {
         override fun toString() = "GameProvider.SearchResult(providerGameId=$providerGameId, name=$name, releaseDate=$releaseDate)"
     }
 
     data class FetchResponse(
         val gameData: GameData,
-        val siteUrl: String
+        val siteUrl: String,
     )
 
     data class Metadata(
@@ -58,7 +58,7 @@ interface GameProvider {
         val logo: ByteArray,
         val supportedPlatforms: List<Platform>,
         val defaultOrder: OrderPriorities,
-        val accountFeature: AccountFeature?
+        val accountFeature: AccountFeature?,
     ) {
         fun supports(platform: Platform) = supportedPlatforms.contains(platform)
 
@@ -90,7 +90,7 @@ interface GameProvider {
         val releaseDate: Int,
         val thumbnail: Int,
         val poster: Int,
-        val screenshot: Int
+        val screenshot: Int,
     ) {
         companion object {
             val default = OrderPriorities(

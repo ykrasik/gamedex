@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class ClearUserDataPresenter @Inject constructor(
     private val gameService: GameService,
-    private val taskService: TaskService
+    private val taskService: TaskService,
 ) : Presenter<ClearUserDataView> {
     override fun present(view: ClearUserDataView) = object : ViewSession() {
         init {

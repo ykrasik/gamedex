@@ -27,7 +27,7 @@ data class Version(
     val version: String,
     val buildDate: DateTime?,
     val commitHash: String?,
-    val commitDate: DateTime?
+    val commitDate: DateTime?,
 ) {
     companion object {
         val Null = Version(

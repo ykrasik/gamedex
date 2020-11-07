@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowImageGalleryPresenter @Inject constructor(
-    private val viewService: ViewService
+    private val viewService: ViewService,
 ) : Presenter<ViewCanShowImageGallery> {
     override fun present(view: ViewCanShowImageGallery) = object : ViewSession() {
         init {

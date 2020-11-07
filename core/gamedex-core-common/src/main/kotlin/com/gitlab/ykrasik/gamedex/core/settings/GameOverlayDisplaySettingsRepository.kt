@@ -35,7 +35,7 @@ class GameOverlayDisplaySettingsRepository(repo: SettingsRepository, name: Strin
         val italicFont: Boolean,
         val textColor: String,
         val backgroundColor: String,
-        val opacity: Double
+        val opacity: Double,
     )
 
     private val storage = repo.storage(basePath = "display", name = name, default = default)

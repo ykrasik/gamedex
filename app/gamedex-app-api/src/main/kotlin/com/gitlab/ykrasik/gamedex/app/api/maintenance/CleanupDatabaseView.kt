@@ -40,7 +40,7 @@ data class StaleData(
     val libraries: List<Library>,
     val games: List<Game>,
     val images: Map<String, FileSize>,
-    val fileTrees: Map<GameId, FileSize>
+    val fileTrees: Map<GameId, FileSize>,
 ) {
     val isEmpty = this == Null
 

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.preloader
 
 import com.gitlab.ykrasik.gamedex.Version
 import kotlinx.coroutines.flow.MutableStateFlow
+
 /**
  * User: ykrasik
  * Date: 08/06/2018

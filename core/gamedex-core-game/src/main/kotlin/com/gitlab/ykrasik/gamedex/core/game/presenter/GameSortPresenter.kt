@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameSortPresenter @Inject constructor(
-    private val settingsRepo: GameSettingsRepository
+    private val settingsRepo: GameSettingsRepository,
 ) : Presenter<ViewWithGameSort> {
     override fun present(view: ViewWithGameSort) = object : ViewSession() {
         init {

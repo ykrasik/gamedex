@@ -25,8 +25,8 @@ import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.should
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
-import io.ktor.client.features.ClientRequestException
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.features.*
+import io.ktor.http.*
 
 /**
  * User: ykrasik

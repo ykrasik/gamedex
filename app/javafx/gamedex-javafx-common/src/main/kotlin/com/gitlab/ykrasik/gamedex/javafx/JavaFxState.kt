@@ -41,7 +41,7 @@ class JavaFxViewMutableStateFlow<T, P : Property<T>>(
     private val flow: MutableStateFlow<Value<T>>,
     val property: P,
     debugName: String,
-    traceValues: Boolean
+    traceValues: Boolean,
 ) : MutableStateFlow<Value<T>> by flow, ViewMutableStateFlow<T>, CoroutineScope {
     override val coroutineContext = Dispatchers.Main.immediate + CoroutineName(debugName)
 
@@ -98,7 +98,7 @@ open class JavaFxMutableStateFlow<T, P : Property<T>>(
     private val flow: MutableStateFlow<T>,
     val property: P,
     debugName: String,
-    traceValues: Boolean
+    traceValues: Boolean,
 ) : MutableStateFlow<T> by flow, CoroutineScope {
     override val coroutineContext = Dispatchers.Main.immediate + CoroutineName(debugName)
 
@@ -142,7 +142,7 @@ typealias JavaFxObjectMutableStateFlow<T> = JavaFxMutableStateFlow<T, SimpleObje
 open class JavaFxListMutableStateFlow<T>(
     flow: MutableStateFlow<List<T>>,
     property: SimpleObjectProperty<List<T>>,
-    debugName: String
+    debugName: String,
 ) : JavaFxMutableStateFlow<List<T>, SimpleObjectProperty<List<T>>>(flow, property, debugName, traceValues = false) {
     val list: ObservableList<T> = property.asObservableList()
 }

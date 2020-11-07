@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
-    private val settingsRepo: GameCellDisplaySettingsRepository
+    private val settingsRepo: GameCellDisplaySettingsRepository,
 ) : Presenter<ViewCanChangeGameWallDisplaySettings> {
     override fun present(view: ViewCanChangeGameWallDisplaySettings) = object : ViewSession() {
         init {
@@ -49,7 +49,7 @@ class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
 
 @Singleton
 class GameWallDisplaySettingsPresenter @Inject constructor(
-    private val settingsRepo: GameCellDisplaySettingsRepository
+    private val settingsRepo: GameCellDisplaySettingsRepository,
 ) : Presenter<ViewWithGameWallDisplaySettings> {
     override fun present(view: ViewWithGameWallDisplaySettings) = object : ViewSession() {
         init {

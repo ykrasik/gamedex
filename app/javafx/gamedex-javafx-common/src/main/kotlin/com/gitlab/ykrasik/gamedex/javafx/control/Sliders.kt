@@ -41,7 +41,7 @@ import tornadofx.opcr
 inline fun EventTarget.jfxSlider(
     orientation: Orientation = Orientation.HORIZONTAL,
     indicatorPosition: JFXSlider.IndicatorPosition = JFXSlider.IndicatorPosition.LEFT,
-    crossinline op: JFXSlider.() -> Unit = {}
+    crossinline op: JFXSlider.() -> Unit = {},
 ): JFXSlider = opcr(this, JFXSlider()) {
     this.orientation = orientation
     this.indicatorPosition = indicatorPosition
@@ -54,7 +54,7 @@ inline fun EventTarget.jfxSlider(
     max: Number,
     conflateValueChanges: Boolean = true,
     crossinline valueProcess: (Number) -> Number = { it },
-    crossinline op: JFXSlider.() -> Unit = {}
+    crossinline op: JFXSlider.() -> Unit = {},
 ) = jfxSlider {
     this.min = min.toDouble()
     this.max = max.toDouble()
@@ -83,7 +83,7 @@ inline fun EventTarget.plusMinusSlider(
     step: Double = 1.0,
     conflateValueChanges: Boolean = true,
     noinline valueDisplay: ((Double) -> String)? = null,
-    crossinline op: JFXSlider.() -> Unit = {}
+    crossinline op: JFXSlider.() -> Unit = {},
 ) = defaultHbox(spacing = 2) {
     val minusButton = minusButton()
     val slider = jfxSlider(property, min, max, conflateValueChanges = conflateValueChanges, valueProcess = { it.toDouble().roundBy(step) }) {
@@ -126,7 +126,7 @@ inline fun EventTarget.percentSlider(
     min: Double = 0.0,
     max: Double = 1.0,
     conflateValueChanges: Boolean = true,
-    crossinline op: JFXSlider.() -> Unit = {}
+    crossinline op: JFXSlider.() -> Unit = {},
 ) = plusMinusSlider(
     property,
     min,

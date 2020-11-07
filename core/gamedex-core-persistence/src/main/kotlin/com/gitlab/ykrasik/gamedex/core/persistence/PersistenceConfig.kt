@@ -25,5 +25,5 @@ data class PersistenceConfig(
     val dbUrl: String,
     val driver: String,
     val user: String,
-    val password: String
+    val password: String,
 )

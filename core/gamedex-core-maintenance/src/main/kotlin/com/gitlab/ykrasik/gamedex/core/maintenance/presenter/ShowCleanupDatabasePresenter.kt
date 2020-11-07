@@ -35,7 +35,7 @@ import javax.inject.Singleton
 class ShowCleanupDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
-    private val viewService: ViewService
+    private val viewService: ViewService,
 ) : Presenter<ViewCanCleanupDatabase> {
     override fun present(view: ViewCanCleanupDatabase) = object : ViewSession() {
         init {

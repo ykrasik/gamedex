@@ -43,7 +43,7 @@ open class IgdbClient @Inject constructor(
         platform: Platform,
         account: IgdbUserAccount,
         offset: Int,
-        limit: Int
+        limit: Int,
     ): List<SearchResult> = post(account) {
         // Split by non-word characters
         val queryWords = query.split("[\\W]".toRegex()).asSequence()
@@ -140,14 +140,14 @@ open class IgdbClient @Inject constructor(
         override val ratingCount: Int?,
         override val releaseDates: List<ReleaseDate>?,
         override val firstReleaseDate: Long?,
-        override val cover: Image?
+        override val cover: Image?,
     ) : SharedSearchFetchFields
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ReleaseDate(
         val platform: Int,
-        val date: Long?
+        val date: Long?,
     )
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
@@ -164,7 +164,7 @@ open class IgdbClient @Inject constructor(
         override val ratingCount: Int?,
         override val cover: Image?,
         val screenshots: List<Image>?,
-        val genres: List<Int>?
+        val genres: List<Int>?,
     ) : SharedSearchFetchFields
 
     interface SharedSearchFetchFields {
@@ -182,13 +182,13 @@ open class IgdbClient @Inject constructor(
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
-        val imageId: String?
+        val imageId: String?,
     )
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     internal data class OAuthResponse(
         val accessToken: String,
-        val expiresIn: Int
+        val expiresIn: Int,
     )
 }

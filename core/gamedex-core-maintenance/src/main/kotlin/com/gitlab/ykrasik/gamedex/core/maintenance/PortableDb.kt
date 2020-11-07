@@ -39,7 +39,7 @@ import com.gitlab.ykrasik.gamedex.UserData as DomainUserData
 object PortableDb {
     data class Db(
         val libraries: List<Library> = emptyList(),
-        val games: List<Game> = emptyList()
+        val games: List<Game> = emptyList(),
     ) {
         fun findLib(path: File, type: LibraryType, platform: Platform?) = libraries.find { lib ->
             lib.path == path.path &&
@@ -53,7 +53,7 @@ object PortableDb {
         val path: String,
         val type: String,
         val platform: Platform?,
-        val name: String
+        val name: String,
     ) {
         fun toLibraryData() = LibraryData(
             name = name,
@@ -77,7 +77,7 @@ object PortableDb {
         val providerData: List<ProviderData> = emptyList(),
         val userData: UserData? = null,
         val createDate: Long = now.millis,
-        val updateDate: Long = now.millis
+        val updateDate: Long = now.millis,
     ) {
         fun toGameRequest(libraries: Map<Int, DomainLibrary>) = AddGameRequest(
             metadata = Metadata(
@@ -118,7 +118,7 @@ object PortableDb {
         val screenshotUrls: List<String> = emptyList(),
         val siteUrl: String,
         val createDate: Long = now.millis,
-        val updateDate: Long = now.millis
+        val updateDate: Long = now.millis,
     ) {
         fun toProviderData() = DomainProviderData(
             header = ProviderHeader(
@@ -176,7 +176,7 @@ object PortableDb {
         val posterOverride: GameDataOverride? = null,
         val screenshotsOverride: GameDataOverride? = null,
         val tags: List<String> = emptyList(),
-        val excludedProviders: List<ProviderId> = emptyList()
+        val excludedProviders: List<ProviderId> = emptyList(),
     ) {
         fun toUserData(): DomainUserData {
             val overrides = mutableMapOf<GameDataType, DomainGameDataOverride>()

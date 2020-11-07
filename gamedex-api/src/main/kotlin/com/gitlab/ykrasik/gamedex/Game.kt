@@ -41,7 +41,7 @@ data class Game(
     val folderName: FolderName,
     val fileTree: StateFlow<FileTree?>,
     val genres: List<Genre>,
-    val filterTags: List<TagId>
+    val filterTags: List<TagId>,
 ) {
     val id get() = rawGame.id
     val path by lazy { library.path.resolve(metadata.path) }
@@ -123,7 +123,7 @@ data class RawGame(
     val id: GameId,
     val metadata: Metadata,
     val providerData: List<ProviderData>,
-    val userData: UserData
+    val userData: UserData,
 ) {
     fun withMetadata(metadata: Metadata) = copy(metadata = metadata)
     fun withMetadata(f: (Metadata) -> Metadata) = withMetadata(f(metadata))
@@ -133,7 +133,7 @@ data class ProviderData(
     val header: ProviderHeader,
     val gameData: GameData,
     val siteUrl: String,
-    val timestamp: Timestamp
+    val timestamp: Timestamp,
 ) {
     val providerId get() = header.providerId
     val providerGameId get() = header.providerGameId
@@ -150,25 +150,25 @@ data class GameData(
     val genres: List<String>,
     val thumbnailUrl: String?,
     val posterUrl: String?,
-    val screenshotUrls: List<String>
+    val screenshotUrls: List<String>,
 )
 
 data class Score(
     val score: Double,
-    val numReviews: Int
+    val numReviews: Int,
 ) : Comparable<Score> {
     override fun compareTo(other: Score) = score.compareTo(other.score)
 }
 
 data class ProviderHeader(
     val providerId: ProviderId,
-    val providerGameId: String
+    val providerGameId: String,
 )
 
 data class Metadata(
     val libraryId: LibraryId,
     val path: String,
-    val timestamp: Timestamp
+    val timestamp: Timestamp,
 ) {
     val createDate get() = timestamp.createDate
     val updateDate get() = timestamp.updateDate
@@ -179,7 +179,7 @@ data class Metadata(
 
 data class Timestamp(
     val createDate: DateTime,
-    val updateDate: DateTime
+    val updateDate: DateTime,
 ) {
     fun withCreateDate(createDate: DateTime) = copy(createDate = createDate)
     fun createdNow() = com.gitlab.ykrasik.gamedex.util.now.let { copy(createDate = it, updateDate = it) }
@@ -195,7 +195,7 @@ data class FileTree(
     val name: String,
     val size: FileSize,
     val isDirectory: Boolean,
-    val children: List<FileTree>
+    val children: List<FileTree>,
 ) {
     fun pathTo(target: FileTree): File? =
         if (this === target) {
@@ -230,7 +230,7 @@ data class FolderName(
     val processedName: String,
     val order: String?,            // TODO: Consider adding option to display this.
     val metaTag: String?,
-    val version: String?
+    val version: String?,
 )
 
 typealias TagId = String
@@ -251,7 +251,7 @@ data class UserData(
     val overrides: Map<GameDataType, GameDataOverride> = emptyMap(),
     val tags: List<TagId> = emptyList(),
     val excludedProviders: List<ProviderId> = emptyList(),
-    val mainExecutablePath: String? = null
+    val mainExecutablePath: String? = null,
 ) {
     fun nameOverride() = overrides[GameDataType.Name]
     fun descriptionOverride() = overrides[GameDataType.Description]

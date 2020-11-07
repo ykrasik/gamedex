@@ -38,7 +38,7 @@ import javax.inject.Singleton
 class EditFilterPresenter @Inject constructor(
     private val filterService: FilterService,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<EditFilterView> {
     override fun present(view: EditFilterView) = object : ViewSession() {
         init {

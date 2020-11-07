@@ -42,7 +42,7 @@ inline fun Image.toImageView(op: ImageView.() -> Unit = {}): ImageView = ImageVi
 inline fun Image.toImageView(
     height: Number? = null,
     width: Number? = null,
-    f: ImageView.() -> Unit = {}
+    f: ImageView.() -> Unit = {},
 ): ImageView = toImageView {
     height?.let { fitHeight = it.toDouble() }
     width?.let { fitWidth = it.toDouble() }
@@ -54,7 +54,7 @@ inline fun Image.toImageView(
 inline fun EventTarget.imageview(
     image: ObservableValue<Image>,
     isPreserveRatio: Boolean = true,
-    crossinline op: ImageView.() -> Unit = {}
+    crossinline op: ImageView.() -> Unit = {},
 ) = imageview(image as ObservableValue<Image?>) {
     this.isPreserveRatio = isPreserveRatio
     op()
@@ -63,7 +63,7 @@ inline fun EventTarget.imageview(
 inline fun EventTarget.makeRoundCorners(
     imageView: ImageView,
     arc: Number = 20,
-    crossinline op: VBox.() -> Unit = {}
+    crossinline op: VBox.() -> Unit = {},
 ) = vbox {
     alignment = Pos.TOP_RIGHT
     maxWidth = Region.USE_PREF_SIZE
@@ -83,12 +83,12 @@ fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageVi
 
 inline fun EventTarget.imageViewResizingPane(
     imageView: ImageView,
-    op: ImageViewResizingPane.() -> Unit = {}
+    op: ImageViewResizingPane.() -> Unit = {},
 ) = opcr(this, ImageViewResizingPane(imageView), op)
 
 inline fun EventTarget.imageViewResizingPane(
     image: ObservableValue<Image>,
-    op: ImageViewResizingPane.() -> Unit = {}
+    op: ImageViewResizingPane.() -> Unit = {},
 ) = imageViewResizingPane(ImageView()) {
     imageProperty.bind(image)
     op()

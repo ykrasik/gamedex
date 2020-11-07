@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowDuplicatesReportPresenter @Inject constructor(
-    private val viewService: ViewService
+    private val viewService: ViewService,
 ) : Presenter<ViewCanShowDuplicatesReport> {
     override fun present(view: ViewCanShowDuplicatesReport) = object : ViewSession() {
         init {

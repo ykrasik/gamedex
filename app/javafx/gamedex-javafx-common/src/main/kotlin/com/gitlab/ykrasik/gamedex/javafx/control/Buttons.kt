@@ -36,7 +36,7 @@ inline fun EventTarget.jfxButton(
     graphic: Node? = null,
     type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT,
     alignment: Pos = Pos.CENTER,
-    op: JFXButton.() -> Unit = {}
+    op: JFXButton.() -> Unit = {},
 ) = opcr(this, JFXButton()) {
     addClass(GameDexStyle.jfxHoverable)
     this.text = text
@@ -51,7 +51,7 @@ inline fun EventTarget.buttonWithPopover(
     graphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation? = null,
     closeOnAction: Boolean = true,
-    op: PopOverContent.() -> Unit = {}
+    op: PopOverContent.() -> Unit = {},
 ) = jfxButton(text = text, graphic = graphic, alignment = Pos.CENTER_LEFT) {
     val popover = popOver(closeOnAction = closeOnAction, op = op)
     action {

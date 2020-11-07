@@ -34,7 +34,7 @@ class FileStorage<K, V>(
     private val basePath: File,
     private val format: FileStorageFormat<V>,
     private val namingStrategy: FileStorageNamingStrategy<K>,
-    private val keyGenerator: FileStorageKeyGenerator<K>?
+    private val keyGenerator: FileStorageKeyGenerator<K>?,
 ) : Storage<K, V> {
     private val log = logger()
 
@@ -131,7 +131,7 @@ class FileStorage<K, V>(
 
         class JsonBuilder<V>(
             private val basePath: File,
-            private val format: FileStorageFormat<V>
+            private val format: FileStorageFormat<V>,
         ) {
             fun intId(): FileStorage<Int, V> = FileStorage(basePath, format, IntIdFileStorageNamingStrategy("json"), IntIdFileStorageKeyGenerator())
             fun stringId(): FileStorage<String, V> = FileStorage(basePath, format, StringIdFileStorageNamingStrategy("json"), keyGenerator = null)
@@ -139,13 +139,13 @@ class FileStorage<K, V>(
 
         class BinaryBuilder(
             private val basePath: File,
-            private val format: FileStorageFormat<ByteArray>
+            private val format: FileStorageFormat<ByteArray>,
         ) {
             fun intId(): FileStorage<Int, ByteArray> = FileStorage(basePath, format, IntIdFileStorageNamingStrategy("dat"), IntIdFileStorageKeyGenerator())
             fun stringId(
                 extension: String? = null,
                 keyTransform: (String) -> String = { it },
-                reverseKeyTransform: (String) -> String = { it }
+                reverseKeyTransform: (String) -> String = { it },
             ): FileStorage<String, ByteArray> =
                 FileStorage(basePath, format, StringIdFileStorageNamingStrategy(extension, keyTransform, reverseKeyTransform), keyGenerator = null)
         }
@@ -180,7 +180,7 @@ class IntIdFileStorageNamingStrategy(private val extension: String) : FileStorag
 class StringIdFileStorageNamingStrategy(
     private val extension: String? = null,
     private val keyTransform: (String) -> String = { it },
-    private val reverseKeyTransform: (String) -> String = { it }
+    private val reverseKeyTransform: (String) -> String = { it },
 ) : FileStorageNamingStrategy<String> {
     override fun toKey(file: File): String = reverseKeyTransform(if (extension != null) file.nameWithoutExtension else file.name)
     override fun toFileName(key: String) = if (extension != null) "${keyTransform(key)}.$extension" else keyTransform(key)

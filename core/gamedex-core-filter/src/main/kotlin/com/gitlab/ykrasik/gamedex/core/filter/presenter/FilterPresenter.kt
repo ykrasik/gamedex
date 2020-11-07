@@ -40,7 +40,7 @@ import kotlin.reflect.full.superclasses
  */
 @Singleton
 class FilterPresenter @Inject constructor(
-    private val commonData: CommonData
+    private val commonData: CommonData,
 ) : Presenter<FilterView> {
     override fun present(view: FilterView) = object : ViewSession() {
         private val excludedRules = listOf(Filter.Platform::class)
@@ -227,7 +227,7 @@ class FilterPresenter @Inject constructor(
         private fun newCompoundFilter(
             from: Filter.Compound,
             to: KClass<out Filter.Compound> = from::class,
-            transform: ((Filter) -> Filter)? = null
+            transform: ((Filter) -> Filter)? = null,
         ) = metaFilters.getValue(to).let { new ->
             if (transform == null) {
                 new
@@ -239,7 +239,7 @@ class FilterPresenter @Inject constructor(
         private fun newModifierFilter(
             from: Filter.Modifier,
             to: KClass<out Filter.Modifier> = from::class,
-            transform: ((Filter) -> Filter)? = null
+            transform: ((Filter) -> Filter)? = null,
         ) = metaFilters.getValue(to).let { new ->
             if (transform == null) {
                 new
@@ -253,7 +253,7 @@ class FilterPresenter @Inject constructor(
         val klass: KClass<T>,
         private val param1: Any? = null,
         private val param2: Any? = null,
-        private val build: (Any?, Any?) -> T
+        private val build: (Any?, Any?) -> T,
     ) {
         fun withParams(param1: Any? = null, param2: Any? = null) =
             copy(param1 = param1, param2 = param2)
@@ -273,7 +273,7 @@ class FilterPresenter @Inject constructor(
             inline fun <reified T : Filter, reified A, reified B> twoParams(
                 crossinline factory: (A, B) -> T,
                 crossinline defaultA: () -> A,
-                crossinline defaultB: () -> B
+                crossinline defaultB: () -> B,
             ): FilterBuilder<T> = FilterBuilder { param1, param2 ->
                 factory(param1 as? A ?: defaultA(), param2 as? B ?: defaultB())
             }

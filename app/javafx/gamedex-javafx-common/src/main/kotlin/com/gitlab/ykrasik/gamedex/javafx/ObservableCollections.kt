@@ -90,7 +90,7 @@ class JavaFxSettableSortedFilteredList<E>(private val list: SortedFilteredList<E
 fun <E> settableList(list: ObservableList<E> = mutableListOf<E>().observable()) = JavaFxSettableList(list)
 fun <E> settableSortedFilteredList(
     list: SortedFilteredList<E> = SortedFilteredList(),
-    comparator: Comparator<E>? = null
+    comparator: Comparator<E>? = null,
 ) = JavaFxSettableSortedFilteredList(list).apply {
     if (comparator != null) {
         sortedItems.comparator = comparator

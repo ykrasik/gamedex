@@ -27,7 +27,7 @@ typealias LibraryId = Int
 
 data class Library(
     val id: LibraryId,
-    val data: LibraryData
+    val data: LibraryData,
 ) {
     val name get() = data.name
     val path get() = data.path
@@ -52,7 +52,7 @@ data class LibraryData(
     val name: String,
     val path: File,
     val type: LibraryType,
-    val platform: Platform?
+    val platform: Platform?,
 )
 
 enum class LibraryType(val displayName: String) {

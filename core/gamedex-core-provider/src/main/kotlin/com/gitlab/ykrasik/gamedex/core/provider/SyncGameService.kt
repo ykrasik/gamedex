@@ -42,7 +42,7 @@ class SyncGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
     private val filterService: FilterService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : SyncGameService {
     override val isGameSyncRunning = MutableStateFlow(false).apply {
         flowScope(Dispatchers.Default) {

@@ -32,7 +32,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class BulkUpdateGamesFilterRepository @Inject constructor(
-    private val filterService: FilterService
+    private val filterService: FilterService,
 ) {
     private val _bulkUpdateGamesFilter = MutableStateFlow(filterService.getOrPutSystemFilter(filterName) { Filter.PeriodUpdateDate(2.months).not })
     val bulkUpdateGamesFilter: StateFlow<Filter> = _bulkUpdateGamesFilter

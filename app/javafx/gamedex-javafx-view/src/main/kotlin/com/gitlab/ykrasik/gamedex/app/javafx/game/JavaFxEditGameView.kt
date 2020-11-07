@@ -125,7 +125,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     private fun <T : Any> VBox.entry(
         state: JavaFxGameDataOverrideState<T>,
         defaultValue: T,
-        dataDisplay: EventTarget.(ObservableValue<T>) -> Node
+        dataDisplay: EventTarget.(ObservableValue<T>) -> Node,
     ) = jfxToggleNode(state.type.displayName, graphic = state.icon, group = navigationToggle) {
         useMaxWidth = true
         tabPane.tab(state.type.displayName) {

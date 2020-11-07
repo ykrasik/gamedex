@@ -50,7 +50,7 @@ class RenameMoveGamePresenter @Inject constructor(
     private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<RenameMoveGameView> {
     private val log = logger()
 
@@ -165,6 +165,6 @@ class RenameMoveGamePresenter @Inject constructor(
 
     private data class LibraryMatch(
         val library: Library,
-        val numElements: Int
+        val numElements: Int,
     )
 }

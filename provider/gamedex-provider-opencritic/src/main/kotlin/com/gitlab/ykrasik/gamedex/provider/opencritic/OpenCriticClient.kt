@@ -18,8 +18,7 @@ package com.gitlab.ykrasik.gamedex.provider.opencritic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.util.httpClient
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
+import io.ktor.client.request.*
 import org.joda.time.DateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,7 +48,7 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
     data class SearchResult(
         val id: Int,
         val name: String,
-        val dist: Double
+        val dist: Double,
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -64,23 +63,23 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
         val firstReleaseDate: DateTime?,
         val logoScreenshot: Image?,
         val mastheadScreenshot: Image?,
-        val screenshots: List<Image>
+        val screenshots: List<Image>,
     )
 
     data class Image(
         val fullRes: String,
-        val thumbnail: String?
+        val thumbnail: String?,
     )
 
     data class Genre(
         val id: Int,
-        val name: String
+        val name: String,
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Platform(
         val id: Int,
         val shortName: String,
-        val releaseDate: DateTime?
+        val releaseDate: DateTime?,
     )
 }

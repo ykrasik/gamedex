@@ -46,7 +46,7 @@ interface UpdateGameService {
 class UpdateGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
-    private val filterService: FilterService
+    private val filterService: FilterService,
 ) : UpdateGameService {
     private val log = logger()
 

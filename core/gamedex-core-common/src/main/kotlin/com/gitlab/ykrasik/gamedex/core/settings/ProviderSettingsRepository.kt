@@ -34,11 +34,11 @@ import javax.inject.Singleton
 @Singleton
 class ProviderSettingsRepository @Inject constructor(
     private val repo: SettingsRepository,
-    private val logService: LogService
+    private val logService: LogService,
 ) {
     data class Data(
         val enabled: Boolean,
-        val account: Map<String, String>
+        val account: Map<String, String>,
     )
 
     class Repo(storage: StorageMutableStateFlow<Data>) {

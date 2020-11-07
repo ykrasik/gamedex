@@ -34,7 +34,7 @@ import javax.inject.Singleton
 @Singleton
 class ShowSyncGamesPresenter @Inject constructor(
     private val eventBus: EventBus,
-    private val viewManager: ViewManager
+    private val viewManager: ViewManager,
 ) {
     init {
         flowScope(Dispatchers.Main.immediate) {

@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class ProviderOrderSettingsPresenter @Inject constructor(
     private val commonData: CommonData,
-    private val settingsRepo: ProviderOrderSettingsRepository
+    private val settingsRepo: ProviderOrderSettingsRepository,
 ) : Presenter<ProviderOrderSettingsView> {
     override fun present(view: ProviderOrderSettingsView) = object : ViewSession() {
         init {

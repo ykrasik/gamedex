@@ -88,7 +88,7 @@ class PluginManagerImpl(injector: Injector, pluginScanners: List<PluginScanner>)
     data class InternalPlugin(
         val plugin: Plugin,
         val classLoader: ClassLoader,
-        val injector: Injector
+        val injector: Injector,
     )
 }
 

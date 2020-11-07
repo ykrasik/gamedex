@@ -23,8 +23,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.httpClient
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
+import io.ktor.client.request.*
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,7 +40,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         platform: Platform,
         account: GiantBombUserAccount,
         offset: Int,
-        limit: Int
+        limit: Int,
     ): SearchResponse = get(
         endpoint = config.baseUrl,
         account = account,
@@ -94,7 +93,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class SearchResponse(
         val statusCode: Status,
-        val results: List<SearchResult>
+        val results: List<SearchResult>,
     )
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
@@ -108,7 +107,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         override val expectedReleaseQuarter: Int?,
         override val expectedReleaseMonth: Int?,
         override val expectedReleaseDay: Int?,
-        val image: Image?
+        val image: Image?,
     ) : HasReleaseDate
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
@@ -118,7 +117,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
 
         // When result is found - GiantBomb returns a Json object. When result is not found, GiantBomb returns an empty Json array []. Annoying.
         @JsonFormat(with = [(JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)])
-        val results: List<FetchResult>
+        val results: List<FetchResult>,
     )
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
@@ -134,20 +133,20 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         override val expectedReleaseDay: Int?,
         val image: Image?,
         val images: List<Image>,
-        val genres: List<Genre>?
+        val genres: List<Genre>?,
     ) : HasReleaseDate
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Genre(
-        val name: String
+        val name: String,
     )
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val thumbUrl: String,
-        val superUrl: String
+        val superUrl: String,
     )
 
     interface HasReleaseDate {

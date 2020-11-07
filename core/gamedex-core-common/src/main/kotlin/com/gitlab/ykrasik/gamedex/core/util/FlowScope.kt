@@ -37,7 +37,7 @@ open class FlowScope(override val coroutineContext: CoroutineContext, open val b
     inline fun <T> Flow<T>.forEach(
         debugName: String,
         traceValues: Boolean = true,
-        crossinline f: suspend (T) -> Unit
+        crossinline f: suspend (T) -> Unit,
     ) = launch(
         CoroutineName("$baseDebugName.$debugName"),
         start = CoroutineStart.UNDISPATCHED
@@ -132,5 +132,5 @@ interface FlowWithDebugInfo<T> : Flow<T> {
 private class FlowWithDebugInfoImpl<T>(
     override val flow: Flow<T>,
     override val debugName: String,
-    override val traceValues: Boolean
+    override val traceValues: Boolean,
 ) : Flow<T> by flow, FlowWithDebugInfo<T>

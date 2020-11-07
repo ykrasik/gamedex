@@ -63,13 +63,13 @@ val Genre.genreBackground: Background
 inline fun EventTarget.header(
     text: String,
     graphic: Node? = null,
-    crossinline op: Label.() -> Unit = {}
+    crossinline op: Label.() -> Unit = {},
 ) = header(text.toProperty(), graphic?.toProperty(), op)
 
 inline fun EventTarget.header(
     textProperty: ObservableValue<String>,
     graphic: ObservableValue<out Node>? = null,
-    crossinline op: Label.() -> Unit = {}
+    crossinline op: Label.() -> Unit = {},
 ) = label(textProperty) {
     addClass(GameDexStyle.headerLabel)
     if (graphic != null) this.graphicProperty().bind(graphic)
@@ -79,13 +79,13 @@ inline fun EventTarget.header(
 inline fun EventTarget.subHeader(
     text: String,
     graphic: Node? = null,
-    crossinline op: Label.() -> Unit = {}
+    crossinline op: Label.() -> Unit = {},
 ) = subHeader(text.toProperty(), graphic?.toProperty(), op)
 
 inline fun EventTarget.subHeader(
     textProperty: ObservableValue<String>,
     graphic: ObservableValue<out Node>? = null,
-    crossinline op: Label.() -> Unit = {}
+    crossinline op: Label.() -> Unit = {},
 ) = label(textProperty) {
     addClass(GameDexStyle.subHeaderLabel)
     if (graphic != null) this.graphicProperty().bind(graphic)
@@ -103,7 +103,7 @@ private fun EventTarget.scoreDisplay(
     name: String,
     scoreStyleClass: CssRule,
     reviewsStyleClass: CssRule,
-    op: (VBox.() -> Unit)? = null
+    op: (VBox.() -> Unit)? = null,
 ) = vbox {
     alignment = Pos.TOP_CENTER
     paddingAll = 5

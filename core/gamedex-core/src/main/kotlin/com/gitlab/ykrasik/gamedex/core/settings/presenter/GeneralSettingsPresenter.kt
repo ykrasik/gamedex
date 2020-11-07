@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GeneralSettingsPresenter @Inject constructor(
-    private val settingsRepo: GeneralSettingsRepository
+    private val settingsRepo: GeneralSettingsRepository,
 ) : Presenter<GeneralSettingsView> {
     override fun present(view: GeneralSettingsView) = object : ViewSession() {
         init {

@@ -34,7 +34,7 @@ import javax.inject.Singleton
 @Singleton
 class PlatformPresenter @Inject constructor(
     private val settingsRepo: GameSettingsRepository,
-    private val commonData: CommonData
+    private val commonData: CommonData,
 ) : Presenter<ViewWithPlatform> {
     override fun present(view: ViewWithPlatform) = object : ViewSession() {
         init {

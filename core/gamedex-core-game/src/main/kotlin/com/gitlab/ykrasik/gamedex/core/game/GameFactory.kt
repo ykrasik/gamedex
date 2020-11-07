@@ -42,7 +42,7 @@ class GameFactory @Inject constructor(
     private val gameSettingsRepository: GameSettingsRepository,
     private val providerOrderSettingsRepo: ProviderOrderSettingsRepository,
     private val genreService: GenreService,
-    private val filterService: FilterService
+    private val filterService: FilterService,
 ) {
     fun create(rawGame: RawGame): Game {
         val library = libraryService[rawGame.metadata.libraryId]
@@ -103,7 +103,7 @@ class GameFactory @Inject constructor(
         defaultOrder: Order,
         override: GameDataOverride?,
         converter: (Any) -> T = { it as T },
-        crossinline extractor: (ProviderData) -> T?
+        crossinline extractor: (ProviderData) -> T?,
     ): T? = when (override) {
         is GameDataOverride.Custom -> converter(override.value)
         else -> {

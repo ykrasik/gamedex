@@ -37,7 +37,7 @@ import javax.inject.Singleton
 @Singleton
 class LibraryServiceImpl @Inject constructor(
     private val repo: LibraryRepository,
-    eventBus: EventBus
+    eventBus: EventBus,
 ) : LibraryService {
     override val libraries = repo.libraries
 

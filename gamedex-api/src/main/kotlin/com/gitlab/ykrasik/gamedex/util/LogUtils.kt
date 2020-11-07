@@ -123,7 +123,7 @@ inline fun <T> Logger.logResult(
     beforeMessage: String,
     afterMessage: (T) -> String = { if (it != Unit) "Done: ${it.toString()}" else "Done." },
     log: Logger.(String) -> Unit = Logger::info,
-    f: () -> T
+    f: () -> T,
 ): T {
     log(beforeMessage)
     val result = f()
@@ -135,7 +135,7 @@ inline fun <T> Logger.time(
     beforeMessage: String,
     afterMessage: (String, T) -> String = { time, _ -> time },
     log: Logger.(String) -> Unit = Logger::info,
-    f: () -> T
+    f: () -> T,
 ): T {
     log(beforeMessage)
     val (result, timeTaken) = measureTimedValue(f)

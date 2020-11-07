@@ -33,7 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class ShowSyncGamesWithMissingProviders @Inject constructor(
     private val viewService: ViewService,
-    private val commonData: CommonData
+    private val commonData: CommonData,
 ) : Presenter<ViewCanSyncGamesWithMissingProviders> {
     override fun present(view: ViewCanSyncGamesWithMissingProviders) = object : ViewSession() {
         init {

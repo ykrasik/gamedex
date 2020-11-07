@@ -252,7 +252,7 @@ class JavaFxViewManager : Controller(), ViewManager {
     private inline fun <V : View> V.showOverlay(
         modal: Boolean = false,
         noinline customizeOverlay: OverlayPane.OverlayLayerImpl.() -> Unit = {},
-        f: V.() -> Unit = {}
+        f: V.() -> Unit = {},
     ): V = apply {
         f()
         val overlay = mainView.showOverlay(

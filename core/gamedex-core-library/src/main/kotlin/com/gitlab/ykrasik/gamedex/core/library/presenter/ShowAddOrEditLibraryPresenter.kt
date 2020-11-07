@@ -33,7 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class ShowAddOrEditLibraryPresenter @Inject constructor(
     private val viewService: ViewService,
-    private val commonData: CommonData
+    private val commonData: CommonData,
 ) : Presenter<ViewCanAddOrEditLibrary> {
     override fun present(view: ViewCanAddOrEditLibrary) = object : ViewSession() {
         init {

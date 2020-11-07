@@ -48,7 +48,7 @@ class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
     private val gameFactory: GameFactory,
     eventBus: EventBus,
-    settingsRepo: ProviderOrderSettingsRepository
+    settingsRepo: ProviderOrderSettingsRepository,
 ) : GameService {
     private val log = logger()
 

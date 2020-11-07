@@ -44,7 +44,7 @@ import javax.inject.Singleton
 class ImageServiceImpl @Inject constructor(
     @ImageStorage private val storage: Storage<String, ByteArray>,
     private val imageFactory: ImageFactory,
-    config: ImageConfig
+    config: ImageConfig,
 ) : ImageService {
     private val log = logger()
 

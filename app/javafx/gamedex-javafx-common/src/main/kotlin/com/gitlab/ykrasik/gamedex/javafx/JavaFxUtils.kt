@@ -81,7 +81,7 @@ private fun printSize(
     min: ObservableValue<Number>,
     max: ObservableValue<Number>,
     pref: ObservableValue<Number>?,
-    actual: ObservableValue<Number>
+    actual: ObservableValue<Number>,
 ) {
     println("$id min-$sizeName = ${min.value}")
     println("$id max-$sizeName = ${max.value}")

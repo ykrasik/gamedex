@@ -41,7 +41,7 @@ interface SyncGameService {
 data class SyncPathRequest(
     val libraryPath: LibraryPath,
     val existingGame: Game? = null,
-    val syncOnlyTheseProviders: List<ProviderId> = emptyList()  // If empty, sync all providers.
+    val syncOnlyTheseProviders: List<ProviderId> = emptyList(),  // If empty, sync all providers.
 ) {
     val library get() = libraryPath.library
     val path get() = libraryPath.path

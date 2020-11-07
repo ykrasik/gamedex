@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class GenreServiceImpl @Inject constructor(
     genreRepo: GenreRepository,
     private val genreMappingRepo: GenreMappingRepository,
-    private val gameSettingsRepository: GameSettingsRepository
+    private val gameSettingsRepository: GameSettingsRepository,
 ) : GenreService {
     override val genres = genreRepo.genres
     private val genresById = genres.toMap(Genre::id)

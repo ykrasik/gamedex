@@ -37,7 +37,7 @@ import javax.inject.Singleton
 @Singleton
 class BrowseUrlPresenter @Inject constructor(
     private val viewService: ViewService,
-    private val settingsRepo: GeneralSettingsRepository
+    private val settingsRepo: GeneralSettingsRepository,
 ) : Presenter<ViewCanBrowseUrl> {
     override fun present(view: ViewCanBrowseUrl) = object : ViewSession() {
         init {

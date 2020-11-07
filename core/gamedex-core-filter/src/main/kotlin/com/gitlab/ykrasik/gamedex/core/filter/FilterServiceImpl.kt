@@ -43,7 +43,7 @@ class FilterServiceImpl @Inject constructor(
     @UserFilters private val userFilterRepo: FilterRepository,
     @SystemFilters private val systemFilterRepo: FilterRepository,
     private val gameProviderService: GameProviderService,
-    eventBus: EventBus
+    eventBus: EventBus,
 ) : FilterService {
     private val log = logger()
 

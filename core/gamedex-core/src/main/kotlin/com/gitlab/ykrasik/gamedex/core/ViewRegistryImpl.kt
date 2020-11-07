@@ -32,7 +32,7 @@ import kotlin.reflect.full.allSuperclasses
  */
 @Singleton
 class ViewRegistryImpl @Inject constructor(
-    private val presenters: MutableMap<KClass<*>, Presenter<*>>
+    private val presenters: MutableMap<KClass<*>, Presenter<*>>,
 ) : ViewRegistry {
     private val log = logger()
 

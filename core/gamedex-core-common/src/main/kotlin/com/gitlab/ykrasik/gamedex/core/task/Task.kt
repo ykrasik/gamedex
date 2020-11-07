@@ -31,7 +31,7 @@ class Task<T>(
     val title: String,
     val isCancellable: Boolean,
     initialImage: Image?,
-    private val run: suspend Task<*>.() -> T
+    private val run: suspend Task<*>.() -> T,
 ) {
     val message = MutableStateFlow("")
 
@@ -130,7 +130,7 @@ fun <T> task(
     title: String = "",
     isCancellable: Boolean = false,
     initialImage: Image? = null,
-    run: suspend Task<*>.() -> T
+    run: suspend Task<*>.() -> T,
 ): Task<T> = Task(title, isCancellable, initialImage, run)
 
 class ExpectedException(cause: Exception) : RuntimeException(cause)

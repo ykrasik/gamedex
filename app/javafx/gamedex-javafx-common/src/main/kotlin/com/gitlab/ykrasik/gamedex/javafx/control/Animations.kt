@@ -49,7 +49,7 @@ inline fun Region.fillTransition(
     to: Color,
     easing: Interpolator = Interpolator.EASE_BOTH,
     play: Boolean = true,
-    op: JFXFillTransition.() -> Unit = {}
+    op: JFXFillTransition.() -> Unit = {},
 ): JFXFillTransition = JFXFillTransition(duration, this, from, to).apply {
     interpolator = easing
     op()
@@ -60,7 +60,7 @@ fun Region.flashColor(
     duration: Duration,
     from: Color,
     to: Color,
-    easing: Interpolator = Interpolator.EASE_BOTH
+    easing: Interpolator = Interpolator.EASE_BOTH,
 ): JFXFillTransition {
     return fillTransition(duration, from = from, to = to, easing = easing) {
         setOnFinished {

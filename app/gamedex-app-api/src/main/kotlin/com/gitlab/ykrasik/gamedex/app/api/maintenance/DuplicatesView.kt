@@ -40,10 +40,10 @@ interface DuplicatesView {
 
 data class GameDuplicates(
     val game: Game,
-    val duplicates: List<GameDuplicate>
+    val duplicates: List<GameDuplicate>,
 )
 
 data class GameDuplicate(
     val game: Game,
-    val providerId: ProviderId
+    val providerId: ProviderId,
 )

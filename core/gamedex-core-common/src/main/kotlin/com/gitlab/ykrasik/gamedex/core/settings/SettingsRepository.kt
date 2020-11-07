@@ -25,7 +25,7 @@ interface SettingsRepository {
         name: String,
         klass: KClass<T>,
         resettable: Boolean,
-        default: () -> T
+        default: () -> T,
     ): StorageMutableStateFlow<T>
 
     fun saveSnapshot()
@@ -38,5 +38,5 @@ inline fun <reified T : Any> SettingsRepository.storage(
     basePath: String,
     name: String,
     resettable: Boolean = true,
-    noinline default: () -> T
+    noinline default: () -> T,
 ): StorageMutableStateFlow<T> = storage(basePath, name, T::class, resettable, default)

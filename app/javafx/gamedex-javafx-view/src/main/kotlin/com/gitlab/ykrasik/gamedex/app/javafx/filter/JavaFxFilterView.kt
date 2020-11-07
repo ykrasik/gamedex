@@ -67,7 +67,7 @@ import kotlin.reflect.KClass
 class JavaFxFilterView(
     allowSaveLoad: Boolean = true,
     private val readOnly: Boolean = false,
-    private val preProcessHeader: HBox.() -> Unit = {}
+    private val preProcessHeader: HBox.() -> Unit = {},
 ) : PresentableView(),
     FilterView,
     ViewWithFilters,
@@ -281,7 +281,7 @@ class JavaFxFilterView(
         filter: Filter,
         parentFilter: Filter,
         availableFilters: List<KClass<out Filter>>,
-        op: HBox.() -> Unit = {}
+        op: HBox.() -> Unit = {},
     ) = defaultHbox {
         useMaxWidth = true
 
@@ -486,7 +486,7 @@ class JavaFxFilterView(
 
     private inline fun <Rule : Filter.Rule, T : Any> Rule.toProperty(
         extractor: Extractor<Rule, T>,
-        crossinline factory: (T) -> Rule
+        crossinline factory: (T) -> Rule,
     ): Property<T> = extractor(this).toProperty().apply {
         bindChanges(updateFilterActions) { this@toProperty to factory(it) }
     }
@@ -509,7 +509,7 @@ class JavaFxFilterView(
         val gap: Boolean = false,
         val actionIcon: () -> FontIcon = Icons::checked,
         val negatedActionIcon: () -> FontIcon = Icons::checkX,
-        val subMenu: FilterDisplaySubMenu? = null
+        val subMenu: FilterDisplaySubMenu? = null,
     ) {
         val selectedName = subMenu?.text ?: name
         val selectedIcon = subMenu?.icon ?: icon
@@ -517,7 +517,7 @@ class JavaFxFilterView(
 
     private data class FilterDisplaySubMenu(
         val text: String,
-        val icon: () -> FontIcon
+        val icon: () -> FontIcon,
     )
 
     private companion object {

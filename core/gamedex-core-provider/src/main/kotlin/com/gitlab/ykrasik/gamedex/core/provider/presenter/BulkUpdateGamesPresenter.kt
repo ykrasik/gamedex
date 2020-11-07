@@ -38,7 +38,7 @@ class BulkUpdateGamesPresenter @Inject constructor(
     private val repo: BulkUpdateGamesFilterRepository,
     private val updateGameService: UpdateGameService,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<BulkUpdateGamesView> {
     override fun present(view: BulkUpdateGamesView) = object : ViewSession() {
         init {

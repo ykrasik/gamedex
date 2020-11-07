@@ -38,7 +38,7 @@ class DeleteGamePresenter @Inject constructor(
     private val taskService: TaskService,
     private val gameService: GameService,
     private val fileSystemService: FileSystemService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<DeleteGameView> {
     override fun present(view: DeleteGameView) = object : ViewSession() {
         private val game by view.game

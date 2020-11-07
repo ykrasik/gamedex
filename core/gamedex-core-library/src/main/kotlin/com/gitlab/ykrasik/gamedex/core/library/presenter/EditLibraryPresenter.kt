@@ -48,7 +48,7 @@ class EditLibraryPresenter @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
     private val settingsRepo: GeneralSettingsRepository,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<EditLibraryView> {
     override fun present(view: EditLibraryView) = object : ViewSession() {
         private val library by view.library

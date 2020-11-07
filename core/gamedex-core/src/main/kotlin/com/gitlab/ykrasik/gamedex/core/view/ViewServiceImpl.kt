@@ -32,11 +32,11 @@ import javax.inject.Singleton
 @Singleton
 class ViewServiceImpl @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : ViewService {
     override suspend fun <V : Any> showAndHide(
         show: ViewManager.() -> V,
-        hide: ViewManager.(V) -> Unit
+        hide: ViewManager.(V) -> Unit,
     ) {
         val view = viewManager.show()
         try {
@@ -49,7 +49,7 @@ class ViewServiceImpl @Inject constructor(
     override suspend fun <V : Any, Params> showAndHide(
         show: ViewManager.(Params) -> V,
         hide: ViewManager.(V) -> Unit,
-        params: Params
+        params: Params,
     ) {
         val view = viewManager.show(params)
         try {

@@ -33,7 +33,7 @@ fun chooseFile(
     mode: FileChooserMode = FileChooserMode.Single,
     initialDirectory: File? = null,
     owner: Window? = null,
-    op: FileChooser.() -> Unit = {}
+    op: FileChooser.() -> Unit = {},
 ): List<File> {
     val chooser = FileChooser()
     if (title != null) chooser.title = title

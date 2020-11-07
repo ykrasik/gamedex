@@ -75,7 +75,7 @@ class CommonDataImpl @Inject constructor(
     libraryService: LibraryService,
     gameProviderService: GameProviderService,
     syncGameService: SyncGameService,
-    settingsRepo: GameSettingsRepository   // TODO: Consider hiding this class, send 'currentPlatform' events to the eventBus and have each service expose what this service does?
+    settingsRepo: GameSettingsRepository,   // TODO: Consider hiding this class, send 'currentPlatform' events to the eventBus and have each service expose what this service does?
 ) : FlowScope(Dispatchers.Default, baseDebugName = "CommonDataImpl"), CommonData {
 
     override val games = gameService.games.items

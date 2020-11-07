@@ -37,7 +37,7 @@ class DeleteLibraryPresenter @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<DeleteLibraryView> {
     override fun present(view: DeleteLibraryView) = object : ViewSession() {
         init {

@@ -58,7 +58,7 @@ inline fun popOverWith(op: PopOver.() -> Unit = {}): PopOver = PopOver().apply {
 inline fun popOver(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     closeOnAction: Boolean = true,
-    op: PopOverContent.() -> Unit = {}
+    op: PopOverContent.() -> Unit = {},
 ): PopOver = popOverWith {
     val popover = this
     this.arrowLocation = arrowLocation
@@ -163,7 +163,7 @@ fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
 inline fun Node.popoverContextMenu(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     closeOnAction: Boolean = true,
-    op: PopOverContent.() -> Unit = {}
+    op: PopOverContent.() -> Unit = {},
 ): PopOver {
     val popover = popOver(arrowLocation, closeOnAction) {
         popOver.isAutoFix = false
@@ -177,7 +177,7 @@ inline fun Node.popoverContextMenu(
 inline fun Node.dropDownMenu(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     closeOnAction: Boolean = true,
-    op: PopOverContent.() -> Unit = {}
+    op: PopOverContent.() -> Unit = {},
 ): PopOver {
     val popover = popOver(arrowLocation, closeOnAction) {
         setOnMouseExited { hide() }
@@ -201,7 +201,7 @@ inline fun EventTarget.popOverMenu(
     text: String? = null,
     graphic: Node? = null,
     closeOnAction: Boolean = true,
-    op: PopOverMenu.() -> Unit = {}
+    op: PopOverMenu.() -> Unit = {},
 ) = jfxButton(text = text, graphic = graphic, alignment = Pos.CENTER_LEFT) {
     val popOver = popOverWith {
         contentNode = PrettyScrollPane().apply {
@@ -216,7 +216,7 @@ inline fun PopOverMenu.popOverSubMenu(
     text: String? = null,
     graphic: Node? = null,
     closeOnAction: Boolean = true,
-    crossinline op: PopOverMenu.() -> Unit = {}
+    crossinline op: PopOverMenu.() -> Unit = {},
 ) = hbox(alignment = Pos.CENTER_LEFT) {
     addClass(GameDexStyle.popOverSubMenu, GameDexStyle.jfxHoverable)
     label(text ?: "", graphic) {

@@ -38,7 +38,7 @@ class StorageMutableStateFlow<T> private constructor(
     private val storage: Storage<String, T>,
     private val key: String,
     private val default: () -> T,
-    private val flow: MutableStateFlow<T>
+    private val flow: MutableStateFlow<T>,
 ) : MutableStateFlow<T> by flow, CoroutineScope {
     override val coroutineContext = dispatcher
 
@@ -113,7 +113,7 @@ class StorageMutableStateFlow<T> private constructor(
         operator fun <T> invoke(
             storage: Storage<String, T>,
             key: String,
-            default: () -> T
+            default: () -> T,
         ) = StorageMutableStateFlow(storage, key, default, MutableStateFlow(default()))
     }
 }

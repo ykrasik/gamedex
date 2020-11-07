@@ -39,4 +39,5 @@ interface ProviderOrderSettingsView {
 }
 
 typealias Order = List<ProviderId>
+
 val minOrder = -1

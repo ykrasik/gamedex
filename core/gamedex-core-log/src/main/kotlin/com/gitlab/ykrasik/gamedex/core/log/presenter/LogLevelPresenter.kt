@@ -25,7 +25,7 @@ import javax.inject.Singleton
 
 @Singleton
 class LogLevelPresenter @Inject constructor(
-    private val settingsRepo: GeneralSettingsRepository
+    private val settingsRepo: GeneralSettingsRepository,
 ) : Presenter<ViewCanChangeLogLevel> {
     override fun present(view: ViewCanChangeLogLevel) = object : ViewSession() {
         init {

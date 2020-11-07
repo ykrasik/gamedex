@@ -56,7 +56,7 @@ inline fun EventTarget.jfxTextField(
     text: String? = null,
     promptText: String? = null,
     isLabelFloat: Boolean = false,
-    op: JFXTextField.() -> Unit = {}
+    op: JFXTextField.() -> Unit = {},
 ): JFXTextField = opcr(this, JFXTextField()) {
     this.text = text
     this.isLabelFloat = isLabelFloat
@@ -68,7 +68,7 @@ inline fun EventTarget.jfxTextField(
     property: ObservableValue<String>,
     promptText: String? = null,
     isLabelFloat: Boolean = false,
-    op: JFXTextField.() -> Unit = {}
+    op: JFXTextField.() -> Unit = {},
 ): JFXTextField = jfxTextField(promptText = promptText, isLabelFloat = isLabelFloat) {
     bind(property)
     op()
@@ -79,7 +79,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
     min: Number,
     max: Number,
     withButtons: Boolean = true,
-    crossinline op: JFXTextField.() -> Unit = {}
+    crossinline op: JFXTextField.() -> Unit = {},
 ): ObjectBinding<Try<T>> {
     lateinit var parse: (String) -> T
     var stringify: (Double) -> String = { it.toString() }
@@ -154,7 +154,7 @@ inline fun EventTarget.searchTextField(
     component: UIComponent,
     textProperty: StringProperty,
     promptText: String = "Search",
-    op: CustomJFXTextField.() -> Unit = {}
+    op: CustomJFXTextField.() -> Unit = {},
 ) = clearableTextField(textProperty) {
     prefWidth = 300.0
     this.promptText = promptText

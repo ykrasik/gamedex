@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowAboutViewPresenter @Inject constructor(
-    private val viewService: ViewService
+    private val viewService: ViewService,
 ) : Presenter<ViewCanShowAboutView> {
     override fun present(view: ViewCanShowAboutView) = object : ViewSession() {
         init {

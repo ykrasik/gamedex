@@ -27,7 +27,7 @@ data class MaterialDesign(private val description: String, private val code: Cha
 
     companion object {
         private val all = mutableMapOf<String, MaterialDesign>()
-        
+
         val MDI_ACCESS_POINT = glyph("mdi-access-point", '\uf002')
         val MDI_ACCESS_POINT_NETWORK = glyph("mdi-access-point-network", '\uf003')
         val MDI_ACCESS_POINT_NETWORK_OFF = glyph("mdi-access-point-network-off", '\ufbbd')

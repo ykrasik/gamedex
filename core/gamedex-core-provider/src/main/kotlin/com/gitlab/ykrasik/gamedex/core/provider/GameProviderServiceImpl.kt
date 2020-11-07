@@ -46,7 +46,7 @@ import javax.inject.Singleton
 class GameProviderServiceImpl @Inject constructor(
     pluginManager: PluginManager,
     settingsRepo: ProviderSettingsRepository,
-    private val imageService: ImageService
+    private val imageService: ImageService,
 ) : GameProviderService {
     private val log = logger()
 
@@ -140,7 +140,7 @@ class GameProviderServiceImpl @Inject constructor(
 
     data class InternalGameProvider(
         private val provider: GameProvider,
-        val account: GameProvider.Account
+        val account: GameProvider.Account,
     ) : GameProvider by provider {
 
         override fun toString() = provider.toString()

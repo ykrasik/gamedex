@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class CurrentPlatformFilterPresenter @Inject constructor(
-    private val repo: CurrentPlatformFilterRepository
+    private val repo: CurrentPlatformFilterRepository,
 ) : Presenter<ViewWithCurrentPlatformFilter> {
     override fun present(view: ViewWithCurrentPlatformFilter) = object : ViewSession() {
         init {

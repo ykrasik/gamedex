@@ -458,7 +458,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
 
         fun searchResult(
             releaseDate: JodaLocalDate? = this.releaseDate,
-            releaseDatePlatformId: Int = this.platformId
+            releaseDatePlatformId: Int = this.platformId,
         ) = IgdbClient.SearchResult(
             id = randomInt(),
             name = randomName(),
@@ -474,7 +474,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
 
         fun fetchResult(
             releaseDate: JodaLocalDate? = this.releaseDate,
-            releaseDatePlatformId: Int = this.platformId
+            releaseDatePlatformId: Int = this.platformId,
         ) = IgdbClient.FetchResult(
             url = randomWord(),
             name = randomName(),

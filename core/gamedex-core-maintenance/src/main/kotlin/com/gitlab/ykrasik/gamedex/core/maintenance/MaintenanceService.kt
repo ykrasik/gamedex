@@ -76,17 +76,17 @@ interface MaintenanceService {
 data class ImportExportParams(
     val library: Boolean,
     val providerAccounts: Boolean,
-    val filters: Boolean
+    val filters: Boolean,
 )
 
 data class ImportDbContent(
     val db: PortableDb.Db?,
     val accounts: PortableProviderAccounts?,
-    val filters: PortableFilter.Filters?
+    val filters: PortableFilter.Filters?,
 )
 
 data class PortableProviderAccounts(
-    val accounts: Map<ProviderId, Map<String, String>>
+    val accounts: Map<ProviderId, Map<String, String>>,
 )
 
 @Singleton
@@ -98,7 +98,7 @@ class MaintenanceServiceImpl @Inject constructor(
     private val persistenceService: PersistenceService,
     private val settingsRepo: ProviderSettingsRepository,
     private val filterService: FilterService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : MaintenanceService {
     private val objectMapper = jacksonObjectMapper()
         .registerModule(JodaModule())

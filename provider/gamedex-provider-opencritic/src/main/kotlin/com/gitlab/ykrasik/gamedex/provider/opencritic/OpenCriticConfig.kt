@@ -29,7 +29,7 @@ import io.github.config4k.extract
 data class OpenCriticConfig(
     val baseUrl: String,
     val defaultOrder: GameProvider.OrderPriorities,
-    private val platforms: Map<String, Int>
+    private val platforms: Map<String, Int>,
 ) {
     private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }
     fun getPlatformId(platform: Platform) = _platforms.getValue(platform)

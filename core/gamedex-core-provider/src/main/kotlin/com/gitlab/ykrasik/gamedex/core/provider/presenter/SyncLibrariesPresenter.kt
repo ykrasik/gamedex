@@ -37,7 +37,7 @@ class SyncLibrariesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val syncLibraryService: SyncLibraryService,
     private val syncGameService: SyncGameService,
-    private val taskService: TaskService
+    private val taskService: TaskService,
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {

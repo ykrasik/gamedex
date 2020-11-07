@@ -29,7 +29,7 @@ data class NamedFilter(
     val id: FilterId,
     val filter: Filter,
     val isTag: Boolean,
-    val timestamp: Timestamp
+    val timestamp: Timestamp,
 ) {
     val isAnonymous: Boolean get() = id.isEmpty()
     fun createdNow() = copy(timestamp = Timestamp.now)
@@ -49,7 +49,7 @@ data class NamedFilter(
             id: FilterId,
             filter: Filter,
             isTag: Boolean,
-            timestamp: Timestamp = Timestamp.now
+            timestamp: Timestamp = Timestamp.now,
         ) = NamedFilter(id, filter, isTag, timestamp)
     }
 }

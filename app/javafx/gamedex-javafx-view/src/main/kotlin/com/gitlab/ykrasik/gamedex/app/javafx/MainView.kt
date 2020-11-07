@@ -237,7 +237,7 @@ class MainView : PresentableView("GameDex"),
 
     private inline fun PopOverMenu.subMenu(
         view: PresentableView,
-        crossinline op: PopOverMenu.() -> Unit = { children += view.root }
+        crossinline op: PopOverMenu.() -> Unit = { children += view.root },
     ): HBox = popOverSubMenu(view.title, view.icon, op = op)
 
     fun showSyncGamesView(): JavaFxSyncGamesScreen = showScreen(syncGamesScreen)

@@ -37,7 +37,7 @@ class ViewCommonOpsImpl @Inject constructor(
     private val config: CommonOpsConfig,
     private val imageService: ImageService,
     gameProviderService: GameProviderService,
-    private val fileSystemService: FileSystemService
+    private val fileSystemService: FileSystemService,
 ) : ViewCommonOps {
     override val applicationVersion = ApplicationVersion
 
@@ -55,5 +55,5 @@ class ViewCommonOpsImpl @Inject constructor(
 }
 
 data class CommonOpsConfig(
-    val youTubeBaseUrl: String
+    val youTubeBaseUrl: String,
 )

@@ -41,7 +41,7 @@ class ImportDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
     private val settingsRepo: GeneralSettingsRepository,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<ImportDatabaseView> {
     override fun present(view: ImportDatabaseView) = object : ViewSession() {
         val importDbContent = MutableStateFlow(Try.error<ImportDbContent>(IllegalArgumentException("Empty")))

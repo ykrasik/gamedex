@@ -33,21 +33,21 @@ abstract class AbstractPersistenceTest<Scope> : Spec<Scope>() {
             name: String = randomName(),
             path: String = randomPath(),
             type: LibraryType = LibraryType.Digital,
-            platform: Platform = randomEnum()
+            platform: Platform = randomEnum(),
         ) = LibraryData(name, path.file, type, platform)
 
         fun givenLibrary(
             path: String = randomPath(),
             platform: Platform = randomEnum(),
             name: String = randomName(),
-            type: LibraryType = LibraryType.Digital
+            type: LibraryType = LibraryType.Digital,
         ): Library = insertLibrary(path, platform, name, type)
 
         fun insertLibrary(
             path: String = randomPath(),
             platform: Platform = randomEnum(),
             name: String = randomName(),
-            type: LibraryType = LibraryType.Digital
+            type: LibraryType = LibraryType.Digital,
         ): Library = persistenceService.insertLibrary(libraryData(name, path, type, platform))
 
         fun fetchLibraries() = persistenceService.fetchLibraries()
@@ -119,20 +119,20 @@ abstract class AbstractPersistenceTest<Scope> : Spec<Scope>() {
             library: Library = this.library,
             path: String = randomPath(),
             providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
-            userData: UserData = randomUserData()
+            userData: UserData = randomUserData(),
         ): RawGame = insertGame(library, path, providerData, userData)
 
         fun insertGame(
             library: Library = this.library,
             path: String = randomPath(),
             providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
-            userData: UserData = randomUserData()
+            userData: UserData = randomUserData(),
         ): RawGame = insertGame(randomMetadata(library, path), providerData, userData)
 
         fun insertGame(
             metadata: Metadata = randomMetadata(),
             providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
-            userData: UserData = randomUserData()
+            userData: UserData = randomUserData(),
         ): RawGame = persistenceService.insertGame(metadata, providerData, userData)
 
         fun fetchGames() = persistenceService.fetchGames()

@@ -45,7 +45,7 @@ interface FolderNameDiffView {
 
 data class FolderNameDiffs(
     val game: Game,
-    val diffs: List<FolderNameDiff>
+    val diffs: List<FolderNameDiff>,
 ) {
     val name get() = game.name
 }
@@ -54,7 +54,7 @@ data class FolderNameDiff(
     val providerId: ProviderId,
     val folderName: String,
     val expectedFolderName: String,
-    val patch: Patch<Char>?
+    val patch: Patch<Char>?,
 )
 
 enum class FolderNameDiffFilterMode(val displayName: String) {

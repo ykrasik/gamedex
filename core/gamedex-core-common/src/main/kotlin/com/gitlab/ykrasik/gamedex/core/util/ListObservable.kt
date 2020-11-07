@@ -198,7 +198,7 @@ fun <T, K> ListObservable<T>.broadcastTo(
     idExtractor: Extractor<T, K>,
     itemsAddedEvent: (List<T>) -> CoreEvent,
     itemsDeletedEvent: (List<T>) -> CoreEvent,
-    itemsUpdatedEvent: (List<Pair<T, T>>) -> CoreEvent
+    itemsUpdatedEvent: (List<Pair<T, T>>) -> CoreEvent,
 ) = flowScope(Dispatchers.Default) {
     changes.forEach(debugName = "broadcastTo") { e ->
         val broadcastEvents = when (e) {

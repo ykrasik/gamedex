@@ -53,5 +53,5 @@ sealed class GameEvent : CoreEvent {
 data class AddGameRequest(
     val metadata: Metadata,
     val providerData: List<ProviderData>,
-    val userData: UserData
+    val userData: UserData,
 )

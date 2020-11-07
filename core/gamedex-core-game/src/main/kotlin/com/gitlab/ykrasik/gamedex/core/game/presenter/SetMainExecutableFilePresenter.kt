@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class SetMainExecutableFilePresenter @Inject constructor(
     private val gameService: GameService,
-    private val taskService: TaskService
+    private val taskService: TaskService,
 ) : Presenter<ViewCanSetMainExecutableFile> {
     override fun present(view: ViewCanSetMainExecutableFile) = object : ViewSession() {
         init {

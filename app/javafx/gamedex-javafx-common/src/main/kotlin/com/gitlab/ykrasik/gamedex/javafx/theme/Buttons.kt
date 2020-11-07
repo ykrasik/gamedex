@@ -34,7 +34,7 @@ import tornadofx.tooltip
 inline fun EventTarget.toolbarButton(
     text: String? = null,
     graphic: Node? = null,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, graphic) {
     addClass(GameDexStyle.toolbarButton)
     op()
@@ -44,7 +44,7 @@ inline fun EventTarget.confirmButton(
     text: String? = null,
     graphic: Node? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, graphic) {
     addClass(GameDexStyle.confirmButton)
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
@@ -55,7 +55,7 @@ inline fun EventTarget.warningButton(
     text: String? = null,
     graphic: Node? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, graphic) {
     addClass(GameDexStyle.warningButton)
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
@@ -66,7 +66,7 @@ inline fun EventTarget.dangerButton(
     text: String? = null,
     graphic: Node? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, graphic) {
     addClass(GameDexStyle.dangerButton)
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
@@ -77,7 +77,7 @@ inline fun EventTarget.infoButton(
     text: String? = null,
     graphic: Node? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, graphic) {
     addClass(GameDexStyle.infoButton)
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
@@ -87,7 +87,7 @@ inline fun EventTarget.infoButton(
 inline fun EventTarget.acceptButton(
     text: String? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = confirmButton(text, Icons.accept, isToolbarButton) {
     isDefaultButton = true
     tooltip("Accept")
@@ -97,7 +97,7 @@ inline fun EventTarget.acceptButton(
 inline fun EventTarget.cancelButton(
     text: String? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = dangerButton(text, Icons.cancel, isToolbarButton) {
     isCancelButton = true
     tooltip("Cancel")
@@ -107,7 +107,7 @@ inline fun EventTarget.cancelButton(
 inline fun EventTarget.backButton(
     text: String? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, Icons.arrowLeft) {
     isCancelButton = true
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
@@ -118,7 +118,7 @@ inline fun EventTarget.backButton(
 inline fun EventTarget.resetToDefaultButton(
     text: String? = "Reset to Default",
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = warningButton(text, Icons.resetToDefault, isToolbarButton) {
     tooltip("Reset to Default")
     op()
@@ -127,7 +127,7 @@ inline fun EventTarget.resetToDefaultButton(
 inline fun EventTarget.addButton(
     text: String? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = confirmButton(text, Icons.add, isToolbarButton) {
     tooltip("Add")
     op()
@@ -136,7 +136,7 @@ inline fun EventTarget.addButton(
 inline fun EventTarget.deleteButton(
     text: String? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = dangerButton(text, Icons.delete, isToolbarButton) {
     tooltip("Delete")
     op()
@@ -145,19 +145,19 @@ inline fun EventTarget.deleteButton(
 inline fun EventTarget.plusButton(
     text: String? = null,
     isToolbarButton: Boolean = false,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = confirmButton(text, Icons.plus.size(22), isToolbarButton, op)
 
 inline fun EventTarget.minusButton(
     text: String? = null,
     isToolbarButton: Boolean = false,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = dangerButton(text, Icons.minus.size(22), isToolbarButton, op)
 
 inline fun EventTarget.excludeButton(
     text: String = "Exclude",
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = warningButton(text, Icons.warning, isToolbarButton) {
     tooltip(text)
     op()
@@ -166,7 +166,7 @@ inline fun EventTarget.excludeButton(
 inline fun EventTarget.executeButton(
     text: String? = "Execute",
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, Icons.play) {
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
     op()
@@ -175,7 +175,7 @@ inline fun EventTarget.executeButton(
 inline fun EventTarget.editButton(
     text: String? = null,
     isToolbarButton: Boolean = true,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, Icons.edit) {
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
     op()
@@ -184,7 +184,7 @@ inline fun EventTarget.editButton(
 inline fun EventTarget.browseButton(
     text: String? = "Browse",
     isToolbarButton: Boolean = false,
-    crossinline op: JFXButton.() -> Unit = {}
+    crossinline op: JFXButton.() -> Unit = {},
 ) = jfxButton(text, Icons.folderOpen.size(24)) {
     if (isToolbarButton) addClass(GameDexStyle.toolbarButton)
     op()

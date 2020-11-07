@@ -23,5 +23,5 @@ package com.gitlab.ykrasik.gamedex.core.image
  */
 data class ImageConfig(
     val cacheSize: Int,
-    val maxConcurrentDownloads: Int
+    val maxConcurrentDownloads: Int,
 )

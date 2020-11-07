@@ -36,7 +36,7 @@ import javax.inject.Singleton
 @Singleton
 class GiantBombProvider @Inject constructor(
     private val config: GiantBombConfig,
-    private val client: GiantBombClient
+    private val client: GiantBombClient,
 ) : GameProvider {
     private val log = logger()
 
@@ -45,7 +45,7 @@ class GiantBombProvider @Inject constructor(
         platform: Platform,
         account: GameProvider.Account,
         offset: Int,
-        limit: Int
+        limit: Int,
     ): GameProvider.SearchResponse {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             val response = client.search(query, platform, account as GiantBombUserAccount, offset = offset, limit = limit)

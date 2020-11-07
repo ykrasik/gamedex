@@ -57,7 +57,7 @@ class GamesPresenter @Inject constructor(
     private val gameSearchService: GameSearchService,
     private val settingsRepo: GameSettingsRepository,
     private val repo: CurrentPlatformFilterRepository,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<ViewWithGames> {
     private val log = logger()
 

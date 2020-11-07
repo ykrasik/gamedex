@@ -47,7 +47,7 @@ inline fun <T> EventTarget.popoverComboMenu(
     buttonGraphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation? = null,
     crossinline itemOp: JFXButton.(T) -> Unit = {},
-    menuOp: PopOverContent.(T) -> Unit = {}
+    menuOp: PopOverContent.(T) -> Unit = {},
 ) = buttonWithPopover(arrowLocation = arrowLocation) {
     possibleItems.forEach { item ->
 //        customListView(possibleItems.observable()) {
@@ -80,7 +80,7 @@ inline fun <T> EventTarget.popoverDynamicComboMenu(
     buttonGraphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation? = null,
     crossinline itemOp: JFXButton.() -> Unit = {},
-    crossinline menuOp: VBox.(T) -> Unit = {}
+    crossinline menuOp: VBox.(T) -> Unit = {},
 ) = buttonWithPopover(arrowLocation = arrowLocation) {
     possibleItems.perform { items ->
         replaceChildren {
@@ -108,7 +108,7 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
     noinline graphic: ((T) -> Node)? = null,
     buttonGraphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation? = null,
-    menuOp: PopOverContent.(T) -> Unit = {}
+    menuOp: PopOverContent.(T) -> Unit = {},
 ) = popoverComboMenu(
     possibleItems = T::class.java.enumConstants.asList(),
     selectedItemProperty = selectedItemProperty,

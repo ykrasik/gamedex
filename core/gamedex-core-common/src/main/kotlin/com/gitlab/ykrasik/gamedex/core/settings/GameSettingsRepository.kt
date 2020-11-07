@@ -37,7 +37,7 @@ class GameSettingsRepository @Inject constructor(repo: SettingsRepository) {
         val sortBy: SortBy,
         val sortOrder: SortOrder,
         val maxGenres: Int,
-        val maxScreenshots: Int
+        val maxScreenshots: Int,
     )
 
     private val storage = repo.storage(basePath = "", name = "game") {

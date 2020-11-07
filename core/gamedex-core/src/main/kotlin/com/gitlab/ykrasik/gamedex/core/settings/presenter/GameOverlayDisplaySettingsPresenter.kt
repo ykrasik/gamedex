@@ -55,21 +55,21 @@ abstract class ChangeGameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
 
 @Singleton
 class ChangeGameNameOverlayDisplaySettingsPresenter @Inject constructor(
-    @NameDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository
+    @NameDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository,
 ) : ChangeGameOverlayDisplaySettingsPresenter<ViewCanChangeNameOverlayDisplaySettings>() {
     override fun extractOverlay(view: ViewCanChangeNameOverlayDisplaySettings) = view.mutableNameOverlayDisplaySettings
 }
 
 @Singleton
 class ChangeGameMetaTagOverlayDisplaySettingsPresenter @Inject constructor(
-    @MetaTagDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository
+    @MetaTagDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository,
 ) : ChangeGameOverlayDisplaySettingsPresenter<ViewCanChangeMetaTagOverlayDisplaySettings>() {
     override fun extractOverlay(view: ViewCanChangeMetaTagOverlayDisplaySettings) = view.mutableMetaTagOverlayDisplaySettings
 }
 
 @Singleton
 class ChangeGameVersionOverlayDisplaySettingsPresenter @Inject constructor(
-    @VersionDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository
+    @VersionDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository,
 ) : ChangeGameOverlayDisplaySettingsPresenter<ViewCanChangeVersionOverlayDisplaySettings>() {
     override fun extractOverlay(view: ViewCanChangeVersionOverlayDisplaySettings) = view.mutableVersionOverlayDisplaySettings
 }
@@ -98,21 +98,21 @@ abstract class GameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
 
 @Singleton
 class GameNameOverlayDisplaySettingsPresenter @Inject constructor(
-    @NameDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository
+    @NameDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository,
 ) : GameOverlayDisplaySettingsPresenter<ViewWithNameOverlayDisplaySettings>() {
     override fun extractOverlay(view: ViewWithNameOverlayDisplaySettings) = view.nameOverlayDisplaySettings
 }
 
 @Singleton
 class GameMetaTagOverlayDisplaySettingsPresenter @Inject constructor(
-    @MetaTagDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository
+    @MetaTagDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository,
 ) : GameOverlayDisplaySettingsPresenter<ViewWithMetaTagOverlayDisplaySettings>() {
     override fun extractOverlay(view: ViewWithMetaTagOverlayDisplaySettings) = view.metaTagOverlayDisplaySettings
 }
 
 @Singleton
 class GameVersionOverlayDisplaySettingsPresenter @Inject constructor(
-    @VersionDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository
+    @VersionDisplaySettingsRepository override val settingsRepo: GameOverlayDisplaySettingsRepository,
 ) : GameOverlayDisplaySettingsPresenter<ViewWithVersionOverlayDisplaySettings>() {
     override fun extractOverlay(view: ViewWithVersionOverlayDisplaySettings) = view.versionOverlayDisplaySettings
 }

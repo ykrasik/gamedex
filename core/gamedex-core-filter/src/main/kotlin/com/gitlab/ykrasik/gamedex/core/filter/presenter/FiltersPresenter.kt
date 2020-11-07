@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class FiltersPresenter @Inject constructor(
-    private val filterService: FilterService
+    private val filterService: FilterService,
 ) : Presenter<ViewWithFilters> {
     override fun present(view: ViewWithFilters) = object : ViewSession() {
         init {

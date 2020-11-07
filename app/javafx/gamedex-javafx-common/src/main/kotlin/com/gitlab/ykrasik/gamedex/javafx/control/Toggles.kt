@@ -42,7 +42,7 @@ inline fun EventTarget.jfxToggleButton(
     property: Property<Boolean>,
     text: String? = null,
     group: ToggleGroup? = getToggleGroup(),
-    crossinline op: JFXToggleButton.() -> Unit = {}
+    crossinline op: JFXToggleButton.() -> Unit = {},
 ) = jfxToggleButton {
     selectedProperty().bindBidirectional(property)
     this.text = text
@@ -55,7 +55,7 @@ inline fun EventTarget.jfx2SideToggleButton(
     checkedText: String,
     uncheckedText: String,
     group: ToggleGroup? = getToggleGroup(),
-    crossinline op: JFXToggleButton.() -> Unit = {}
+    crossinline op: JFXToggleButton.() -> Unit = {},
 ) = defaultHbox {
     label(uncheckedText) {
         addClass(GameDexStyle.toggleButtonUncheckedText)
@@ -79,7 +79,7 @@ inline fun EventTarget.jfxToggleNode(
     text: String? = null,
     graphic: Node? = null,
     group: ToggleGroup? = getToggleGroup(),
-    op: JFXToggleNode.() -> Unit = {}
+    op: JFXToggleNode.() -> Unit = {},
 ) = opcr(this, JFXToggleNode()) {
     addClass(GameDexStyle.jfxHoverable)
     this.graphic = Label(text, graphic).apply {
@@ -95,7 +95,7 @@ inline fun EventTarget.jfxToggleNode(
     graphic: Node? = null,
     value: Any? = null,
     group: ToggleGroup? = getToggleGroup(),
-    op: JFXToggleNode.() -> Unit = {}
+    op: JFXToggleNode.() -> Unit = {},
 ): JFXToggleNode = jfxToggleNode(text, graphic, group) {
     toggleValue(value)
     op()
@@ -110,7 +110,7 @@ inline fun EventTarget.jfxCheckBox(op: JFXCheckBox.() -> Unit = {}) = opcr(this,
 inline fun EventTarget.jfxCheckBox(
     property: Property<Boolean>,
     text: String? = null,
-    crossinline op: JFXCheckBox.() -> Unit = {}
+    crossinline op: JFXCheckBox.() -> Unit = {},
 ) = jfxCheckBox {
     selectedProperty().bindBidirectional(property)
     this.text = text

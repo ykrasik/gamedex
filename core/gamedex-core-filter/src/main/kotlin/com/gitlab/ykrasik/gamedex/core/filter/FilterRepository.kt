@@ -30,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.util.time
  */
 class FilterRepository(
     private val name: String,
-    private val storage: Storage<FilterId, NamedFilter>
+    private val storage: Storage<FilterId, NamedFilter>,
 ) {
     private val log = logger()
 

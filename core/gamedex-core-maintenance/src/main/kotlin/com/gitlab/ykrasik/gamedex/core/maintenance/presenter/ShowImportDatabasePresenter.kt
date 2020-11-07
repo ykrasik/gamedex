@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowImportDatabasePresenter @Inject constructor(
-    private val viewService: ViewService
+    private val viewService: ViewService,
 ) : Presenter<ViewCanImportDatabase> {
     override fun present(view: ViewCanImportDatabase) = object : ViewSession() {
         init {

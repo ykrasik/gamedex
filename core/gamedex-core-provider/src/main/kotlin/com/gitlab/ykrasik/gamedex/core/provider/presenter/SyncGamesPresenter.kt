@@ -44,7 +44,7 @@ import javax.inject.Singleton
 class SyncGamesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val settingsRepo: ProviderOrderSettingsRepository,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<SyncGamesView> {
     private val log = logger()
 

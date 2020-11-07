@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowFolderNameDiffReportPresenter @Inject constructor(
-    private val viewService: ViewService
+    private val viewService: ViewService,
 ) : Presenter<ViewCanShowFolderNameDiffReport> {
     override fun present(view: ViewCanShowFolderNameDiffReport) = object : ViewSession() {
         init {

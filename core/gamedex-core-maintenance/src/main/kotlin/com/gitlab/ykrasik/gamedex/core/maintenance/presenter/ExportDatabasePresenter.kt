@@ -42,7 +42,7 @@ class ExportDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
     private val taskService: TaskService,
     private val settingsRepo: GeneralSettingsRepository,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<ExportDatabaseView> {
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
         init {

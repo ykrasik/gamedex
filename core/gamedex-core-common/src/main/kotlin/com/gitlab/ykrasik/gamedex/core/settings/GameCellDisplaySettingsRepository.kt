@@ -33,7 +33,7 @@ class GameCellDisplaySettingsRepository @Inject constructor(repo: SettingsReposi
         val width: Double,
         val height: Double,
         val horizontalSpacing: Double,
-        val verticalSpacing: Double
+        val verticalSpacing: Double,
     )
 
     private val storage = repo.storage(basePath = "display", name = "cell") {

@@ -48,7 +48,7 @@ fun <S, T> TableView<S>.simpleColumn(title: String, valueProvider: (S) -> T): Ta
 
 inline fun <reified S> TableView<S>.customColumn(
     title: String,
-    crossinline cellFactory: (TableColumn<S, S>) -> TableCell<S, S>
+    crossinline cellFactory: (TableColumn<S, S>) -> TableCell<S, S>,
 ): TableColumn<S, S> {
     val column = TableColumn<S, S>(title)
     addColumnInternal(column)
@@ -60,7 +60,7 @@ inline fun <reified S> TableView<S>.customColumn(
 fun <S, T> TableView<S>.customColumn(
     title: String,
     valueProvider: (S) -> ObservableValue<T>,
-    cellFactory: (TableColumn<S, T>) -> TableCell<S, T>
+    cellFactory: (TableColumn<S, T>) -> TableCell<S, T>,
 ): TableColumn<S, T> {
     val column = TableColumn<S, T>(title)
     addColumnInternal(column)
@@ -72,7 +72,7 @@ fun <S, T> TableView<S>.customColumn(
 inline fun <reified S, T> TableView<S>.customColumn(
     title: String,
     prop: KProperty1<S, T>,
-    crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>
+    crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>,
 ): TableColumn<S, T> {
     val column = TableColumn<S, T>(title)
     addColumnInternal(column)
@@ -84,7 +84,7 @@ inline fun <reified S, T> TableView<S>.customColumn(
 fun <S, T> TableView<S>.customGraphicColumn(
     title: String,
     valueProvider: (S) -> ObservableValue<T>,
-    graphicFactory: (T) -> Node
+    graphicFactory: (T) -> Node,
 ): TableColumn<S, T> = customColumn(title, valueProvider) {
     object : TableCell<S, T>() {
         override fun updateItem(item: T?, empty: Boolean) {
@@ -112,7 +112,7 @@ inline fun <reified S> TableView<S>.imageViewColumn(
     fitWidth: Number,
     fitHeight: Number,
     isPreserveRatio: Boolean = true,
-    crossinline imageRetriever: (S) -> ObservableValue<Image>
+    crossinline imageRetriever: (S) -> ObservableValue<Image>,
 ): TableColumn<S, S> = customColumn(title) {
     object : TableCell<S, S>() {
         private val imageView = ImageView().apply {

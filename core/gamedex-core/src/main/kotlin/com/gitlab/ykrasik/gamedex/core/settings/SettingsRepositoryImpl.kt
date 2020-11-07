@@ -39,7 +39,7 @@ class SettingsRepositoryImpl @Inject constructor(private val factory: JsonStorag
         name: String,
         klass: KClass<T>,
         resettable: Boolean,
-        default: () -> T
+        default: () -> T,
     ) = addStorage {
         SettingsStorage(
             storage = StorageMutableStateFlow(
@@ -103,7 +103,7 @@ class SettingsRepositoryImpl @Inject constructor(private val factory: JsonStorag
 
     private class SettingsStorage<T>(
         val storage: StorageMutableStateFlow<T>,
-        val resettable: Boolean
+        val resettable: Boolean,
     ) {
         private var snapshot: T? = null
 

@@ -37,7 +37,7 @@ data class IgdbConfig(
     val screenshotImageType: IgdbProvider.IgdbImageType,
     val defaultOrder: GameProvider.OrderPriorities,
     private val platforms: Map<String, Int>,
-    private val genres: Map<String, String>
+    private val genres: Map<String, String>,
 ) {
     private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }
     fun getPlatformId(platform: Platform) = _platforms.getValue(platform)

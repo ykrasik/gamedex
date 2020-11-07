@@ -40,7 +40,7 @@ import javax.inject.Singleton
 class CurrentPlatformFilterRepository @Inject constructor(
     private val settingsRepo: GameSettingsRepository,
     private val filterService: FilterService,
-    eventBus: EventBus
+    eventBus: EventBus,
 ) {
     private val _currentPlatformFilter = MutableStateFlow(Filter.Null)
     val currentPlatformFilter: StateFlow<Filter> = _currentPlatformFilter

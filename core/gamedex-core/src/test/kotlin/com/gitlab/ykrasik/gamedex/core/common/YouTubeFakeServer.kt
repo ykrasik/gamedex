@@ -22,12 +22,10 @@ import com.gitlab.ykrasik.gamedex.test.FakeServerFactory
 import com.gitlab.ykrasik.gamedex.test.KtorFakeServer
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.google.inject.Provides
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.http.ContentType
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import javax.inject.Singleton
 
 /**

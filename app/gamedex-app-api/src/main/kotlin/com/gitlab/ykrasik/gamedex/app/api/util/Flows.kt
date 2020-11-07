@@ -34,7 +34,7 @@ fun <T> broadcastFlow() = BroadcastFlow<T>(BroadcastChannel(2))
 
 class BroadcastFlow<T> private constructor(
     private val channel: BroadcastChannel<T>,
-    private val flow: Flow<T>
+    private val flow: Flow<T>,
 ) : BroadcastChannel<T> by channel, Flow<T> by flow {
     companion object {
         operator fun <T> invoke(channel: BroadcastChannel<T>) = BroadcastFlow(channel, channel.asFlow())
@@ -120,5 +120,5 @@ sealed class AsyncValueState<T> {
  */
 data class ValidatedValue<T>(
     val value: T,
-    val isValid: IsValid
+    val isValid: IsValid,
 )

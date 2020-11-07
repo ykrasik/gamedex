@@ -40,7 +40,7 @@ data class LogEntry(
     val threadName: String,
     val loggerName: String,
     val message: String,
-    val throwable: Throwable?
+    val throwable: Throwable?,
 )
 
 enum class LogLevel(val displayName: String) {

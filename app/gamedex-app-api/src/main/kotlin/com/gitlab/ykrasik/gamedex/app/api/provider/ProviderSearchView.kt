@@ -68,7 +68,7 @@ data class GameSearchState(
     val currentProvider: ProviderId?,
     val history: MultiMap<ProviderId, ProviderSearch>,
     val status: Status,
-    val existingGame: Game?
+    val existingGame: Game?,
 ) {
     val isFinished: Boolean get() = status != Status.Running
     fun historyFor(providerId: ProviderId): List<ProviderSearch> = history.getOrDefault(providerId, emptyList())
@@ -113,7 +113,7 @@ data class GameSearchState(
         val offset: Int,
         val results: List<GameProvider.SearchResult>,
         val canShowMoreResults: Boolean,
-        val choice: Choice?
+        val choice: Choice?,
     ) {
         sealed class Choice {
             data class Accept(val result: GameProvider.SearchResult) : ProviderSearch.Choice()

@@ -33,7 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class ProviderOrderSettingsRepository @Inject constructor(
     repo: SettingsRepository,
-    gameProviderService: GameProviderService
+    gameProviderService: GameProviderService,
 ) {
     data class Data(
         val search: Order,
@@ -42,7 +42,7 @@ class ProviderOrderSettingsRepository @Inject constructor(
         val releaseDate: Order,
         val thumbnail: Order,
         val poster: Order,
-        val screenshot: Order
+        val screenshot: Order,
     )
 
     private val storage = repo.storage(basePath = "provider", name = "order") {

@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class TaskServiceImpl @Inject constructor(
     private val viewManager: ViewManager,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : TaskService {
     private val mutex = Mutex()
 

@@ -55,7 +55,7 @@ fun File.assertExists() = existsOrNull() ?: throw IOException("File doesn't exis
 @JsonIgnoreProperties("humanReadable")
 data class FileSize(@JsonValue val bytes: Long) : Comparable<FileSize> {
     val scaled: Pair<Double, Scale>
-        get () {
+        get() {
             val unit = 1024
             if (bytes < unit) return bytes.toDouble() to Scale.B
 

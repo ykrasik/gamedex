@@ -39,7 +39,7 @@ class TagGamePresenter @Inject constructor(
     private val gameService: GameService,
     private val commonData: CommonData,
     private val taskService: TaskService,
-    private val eventBus: EventBus
+    private val eventBus: EventBus,
 ) : Presenter<TagGameView> {
     override fun present(view: TagGameView) = object : ViewSession() {
         private val game by view.game
@@ -65,7 +65,7 @@ class TagGamePresenter @Inject constructor(
             view.toggleAll *= view.tags.combine(view.checkedTags.allValues()) { tags, checkedTags ->
                 tags.isNotEmpty() && tags.toSet() == checkedTags
             } withDebugName "toggleAll"
-            
+
             view::addNewTagActions.forEach {
                 val newTag = view.newTagName.v
                 tags = tags + newTag

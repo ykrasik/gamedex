@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameDisplayTypePresenter @Inject constructor(
-    private val settingsRepo: GameSettingsRepository
+    private val settingsRepo: GameSettingsRepository,
 ) : Presenter<ViewWithGameDisplayType> {
     override fun present(view: ViewWithGameDisplayType) = object : ViewSession() {
         init {
