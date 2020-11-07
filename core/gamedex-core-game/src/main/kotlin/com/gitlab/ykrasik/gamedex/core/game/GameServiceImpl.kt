@@ -94,9 +94,13 @@ class GameServiceImpl @Inject constructor(
     }
 
     override fun replace(source: Game, target: RawGame) = task("Updating Game '${source.name}'...") {
-        val updatedTarget = target.withMetadata { it.updatedNow() }
-        repo.replace(source.rawGame, updatedTarget)
-        updatedTarget.toGame()
+        if (source.rawGame != target) {
+            val updatedTarget = target.withMetadata { it.updatedNow() }
+            repo.replace(source.rawGame, updatedTarget)
+            updatedTarget.toGame()
+        } else {
+            source
+        }
     }
 
     override fun delete(game: Game) = task("Deleting Game '${game.name}'...") {
