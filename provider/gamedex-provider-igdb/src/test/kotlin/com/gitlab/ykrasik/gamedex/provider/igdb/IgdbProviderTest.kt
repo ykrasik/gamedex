@@ -423,7 +423,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
 
     val authorizationToken = randomString()
     val server = IgdbMockServer()
-    val storage = MockProviderStorage(
+    val storage = MockSingleValueStorage(
         IgdbStorageData(
             authorizationToken = authorizationToken,
             expiresOn = now.plusYears(1)

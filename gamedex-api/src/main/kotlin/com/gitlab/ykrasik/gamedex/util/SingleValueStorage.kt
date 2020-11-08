@@ -14,22 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.test
-
-import com.gitlab.ykrasik.gamedex.provider.ProviderStorage
+package com.gitlab.ykrasik.gamedex.util
 
 /**
  * User: ykrasik
- * Date: 31/10/2020
- * Time: 12:58
+ * Date: 08/11/2020
+ * Time: 14:16
  */
-class MockProviderStorage<V>(var value: V? = null) : ProviderStorage<V> {
-    override fun get() = value
-    override fun set(v: V) {
-        value = v
-    }
-
-    override fun reset() {
-        this.value = null
-    }
+interface SingleValueStorage<V> {
+    fun get(): V?
+    fun set(v: V)
+    fun reset()
 }

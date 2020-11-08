@@ -14,42 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.provider.igdb
+package com.gitlab.ykrasik.gamedex.test
 
-import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderStorageFactory
-import com.gitlab.ykrasik.gamedex.provider.create
 import com.gitlab.ykrasik.gamedex.util.SingleValueStorage
-import com.google.inject.Provides
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/02/2017
- * Time: 21:51
+ * Date: 31/10/2020
+ * Time: 12:58
  */
-@Suppress("unused")
-object IgdbProviderPlugin : DefaultPlugin() {
-    override val descriptor = readPluginDescriptor("/com/gitlab/ykrasik/gamedex/provider/igdb/plugin.json")
-
-    override fun configure() {
-        bind(GameProvider::class.java).to(IgdbProvider::class.java)
+class MockSingleValueStorage<V>(var value: V? = null) : SingleValueStorage<V> {
+    override fun get() = value
+    override fun set(v: V) {
+        value = v
     }
 
-    @Provides
-    @Singleton
-    fun igdbConfig(config: Config) =
-        IgdbConfig(
-            config.withFallback(
-                ConfigFactory.load(javaClass.classLoader, "com/gitlab/ykrasik/gamedex/provider/igdb/igdb.conf")
-            )
-        )
-
-    @Provides
-    @Singleton
-    @IgdbStorage
-    fun igdbStorage(factory: ProviderStorageFactory): SingleValueStorage<IgdbStorageData> = factory.create("igdb")
+    override fun reset() {
+        this.value = null
+    }
 }

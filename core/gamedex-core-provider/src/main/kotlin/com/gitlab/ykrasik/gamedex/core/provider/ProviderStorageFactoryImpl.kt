@@ -16,10 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
-import com.gitlab.ykrasik.gamedex.core.storage.memoryCached
+import com.gitlab.ykrasik.gamedex.core.storage.SingleValueStorageImpl
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.ProviderStorage
 import com.gitlab.ykrasik.gamedex.provider.ProviderStorageFactory
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,15 +30,14 @@ import kotlin.reflect.KClass
  */
 @Singleton
 class ProviderStorageFactoryImpl @Inject constructor() : ProviderStorageFactory {
-    override fun <V : Any> create(id: ProviderId, klass: KClass<V>) = object : ProviderStorage<V> {
-        private val storage = StringIdJsonStorageFactory("data/provider/$id", klass).memoryCached(lazy = true)
-
-        override fun get() = storage.get(key)
-        override fun set(v: V) = storage.set(key, v)
-        override fun reset() {
-            storage.delete(key)
-        }
-    }
+    override fun <V : Any> create(id: ProviderId, klass: KClass<V>) =
+        SingleValueStorageImpl(
+            basePath = "data/provider/$id",
+            key = key,
+            klass = klass,
+            memoryCached = true,
+            lazy = true,
+        )
 }
 
 private const val key = "data"

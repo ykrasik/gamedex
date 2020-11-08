@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderStorage
+import com.gitlab.ykrasik.gamedex.util.SingleValueStorage
 import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.listFromJson
 import com.gitlab.ykrasik.gamedex.util.now
@@ -36,7 +36,7 @@ import javax.inject.Singleton
 @Singleton
 open class IgdbClient @Inject constructor(
     private val config: IgdbConfig,
-    @IgdbStorage private val storage: ProviderStorage<IgdbStorageData>,
+    @IgdbStorage private val storage: SingleValueStorage<IgdbStorageData>,
 ) {
     open suspend fun search(
         query: String,

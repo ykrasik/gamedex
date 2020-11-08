@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.test.MockProviderStorage
+import com.gitlab.ykrasik.gamedex.test.MockSingleValueStorage
 import com.gitlab.ykrasik.gamedex.test.Spec
 import com.gitlab.ykrasik.gamedex.test.assertScore
 import com.typesafe.config.ConfigFactory
@@ -35,7 +35,7 @@ import io.kotlintest.matchers.shouldBe
  */
 class IgdbProviderContractTest : Spec<IgdbProviderContractTest.Scope>() {
     val config = IgdbConfig(ConfigFactory.load("com/gitlab/ykrasik/gamedex/provider/igdb/igdb.conf"))
-    val provider = IgdbProvider(config, IgdbClient(config, MockProviderStorage()))
+    val provider = IgdbProvider(config, IgdbClient(config, MockSingleValueStorage()))
     val account = IgdbUserAccount(
         clientId = System.getProperty("gameDex.igdb.clientId"),
         clientSecret = System.getProperty("gameDex.igdb.clientSecret")

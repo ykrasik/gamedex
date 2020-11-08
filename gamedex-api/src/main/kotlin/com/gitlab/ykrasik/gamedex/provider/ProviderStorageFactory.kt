@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.provider
 
+import com.gitlab.ykrasik.gamedex.util.SingleValueStorage
 import kotlin.reflect.KClass
 
 /**
@@ -23,15 +24,9 @@ import kotlin.reflect.KClass
  * Date: 31/10/2020
  * Time: 10:14
  */
-interface ProviderStorage<V> {
-    fun get(): V?
-    fun set(v: V)
-    fun reset()
-}
-
 interface ProviderStorageFactory {
-    fun <V : Any> create(id: ProviderId, klass: KClass<V>): ProviderStorage<V>
+    fun <V : Any> create(id: ProviderId, klass: KClass<V>): SingleValueStorage<V>
 }
 
-inline fun <reified V : Any> ProviderStorageFactory.create(id: ProviderId): ProviderStorage<V> =
+inline fun <reified V : Any> ProviderStorageFactory.create(id: ProviderId): SingleValueStorage<V> =
     create(id, V::class)

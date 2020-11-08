@@ -14,42 +14,40 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.provider.igdb
+package com.gitlab.ykrasik.gamedex.core.storage
 
-import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderStorageFactory
-import com.gitlab.ykrasik.gamedex.provider.create
 import com.gitlab.ykrasik.gamedex.util.SingleValueStorage
-import com.google.inject.Provides
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import javax.inject.Singleton
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 05/02/2017
- * Time: 21:51
+ * Date: 08/11/2020
+ * Time: 14:14
  */
-@Suppress("unused")
-object IgdbProviderPlugin : DefaultPlugin() {
-    override val descriptor = readPluginDescriptor("/com/gitlab/ykrasik/gamedex/provider/igdb/plugin.json")
-
-    override fun configure() {
-        bind(GameProvider::class.java).to(IgdbProvider::class.java)
+class SingleValueStorageImpl<V>(private val storage: Storage<String, V>, private val key: String) : SingleValueStorage<V> {
+    override fun get() = storage[key]
+    override fun set(v: V) = storage.set(key, v)
+    override fun reset() {
+        storage.delete(key)
     }
 
-    @Provides
-    @Singleton
-    fun igdbConfig(config: Config) =
-        IgdbConfig(
-            config.withFallback(
-                ConfigFactory.load(javaClass.classLoader, "com/gitlab/ykrasik/gamedex/provider/igdb/igdb.conf")
-            )
-        )
+    companion object {
+        operator fun <V : Any> invoke(
+            basePath: String,
+            key: String,
+            klass: KClass<V>,
+            memoryCached: Boolean = false,
+            lazy: Boolean = true,
+        ): SingleValueStorage<V> {
+            val storage = StringIdJsonStorageFactory(basePath, klass).let { if (memoryCached) it.memoryCached(lazy = lazy) else it }
+            return SingleValueStorageImpl(storage, key)
+        }
 
-    @Provides
-    @Singleton
-    @IgdbStorage
-    fun igdbStorage(factory: ProviderStorageFactory): SingleValueStorage<IgdbStorageData> = factory.create("igdb")
+        inline operator fun <reified V : Any> invoke(
+            basePath: String,
+            key: String,
+            memoryCached: Boolean = false,
+            lazy: Boolean = true,
+        ): SingleValueStorage<V> = invoke(basePath, key, V::class, memoryCached, lazy)
+    }
 }
