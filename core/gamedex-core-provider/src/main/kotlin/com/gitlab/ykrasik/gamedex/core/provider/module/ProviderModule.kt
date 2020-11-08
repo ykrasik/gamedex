@@ -16,10 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.module
 
+import com.gitlab.ykrasik.gamedex.app.api.provider.UpdateGameProgressData
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.provider.*
 import com.gitlab.ykrasik.gamedex.core.provider.presenter.*
+import com.gitlab.ykrasik.gamedex.core.storage.SingleValueStorageImpl
 import com.gitlab.ykrasik.gamedex.provider.ProviderStorageFactory
+import com.gitlab.ykrasik.gamedex.util.SingleValueStorage
+import com.google.inject.Provides
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -46,4 +51,10 @@ object ProviderModule : InternalCoreModule() {
 
         bind(ShowSyncGamesPresenter::class.java)
     }
+
+    @Provides
+    @Singleton
+    @UpdateGameServiceStorage
+    fun updateGameServiceStorage(): SingleValueStorage<UpdateGameProgressData> =
+        SingleValueStorageImpl("data/bulk-update", "progress")
 }

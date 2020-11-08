@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
+import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.util.ValidatedValue
@@ -29,4 +30,11 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 interface BulkUpdateGamesView : ConfirmationView {
     val bulkUpdateGamesFilter: ViewMutableStateFlow<Filter>
     val bulkUpdateGamesFilterValidatedValue: ViewMutableStateFlow<ValidatedValue<Filter>>
+
+    suspend fun confirmResumeInProgressUpdate(progressData: UpdateGameProgressData): Boolean
 }
+
+data class UpdateGameProgressData(
+    val filter: Filter,
+    val remainingGames: Set<GameId>,
+)

@@ -18,13 +18,17 @@ package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.provider.UpdateGameProgressData
 import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.util.SingleValueStorage
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.google.inject.BindingAnnotation
 import com.google.inject.ImplementedBy
 import kotlinx.coroutines.isActive
 import javax.inject.Inject
@@ -38,8 +42,11 @@ import kotlin.coroutines.coroutineContext
  */
 @ImplementedBy(UpdateGameServiceImpl::class)
 interface UpdateGameService {
+    val inProgressUpdate: UpdateGameProgressData?
+
     fun updateGame(game: Game): Task<Unit>
     fun bulkUpdateGames(filter: Filter): Task<Unit>
+    fun bulkUpdateGames(updateData: UpdateGameProgressData): Task<Unit>
 }
 
 @Singleton
@@ -47,46 +54,85 @@ class UpdateGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
     private val filterService: FilterService,
+    @UpdateGameServiceStorage private val storage: SingleValueStorage<UpdateGameProgressData>,
 ) : UpdateGameService {
     private val log = logger()
 
-    override fun updateGame(game: Game) = updateGames(listOf(game), swallowExceptions = false)
+    override val inProgressUpdate get() = storage.get()
+
+    override fun updateGame(game: Game) = updateGames(sequenceOf(game), filter = null)
 
     override fun bulkUpdateGames(filter: Filter): Task<Unit> {
-        val games = filterService.filter(gameService.games, filter).sortedBy { it.name }
-        return updateGames(games, swallowExceptions = true)
+        val games = filterService.filter(gameService.games, filter)
+        return updateGames(games, filter)
     }
 
-    private fun updateGames(games: List<Game>, swallowExceptions: Boolean) = task(
-        "Updating ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}",
-        isCancellable = games.size > 1
-    ) {
-        gameProviderService.assertHasEnabledProvider()
+    override fun bulkUpdateGames(updateData: UpdateGameProgressData): Task<Unit> {
+        return updateGames(updateData.remainingGames.asSequence().mapNotNull {
+            runCatching {
+                gameService[it]
+            }.getOrNull()
+        }, updateData.filter)
+    }
 
-        successOrCancelledMessage { success ->
-            "${if (success) "Done" else "Cancelled"}${if (games.size > 1) ": Updated $processedItems Games." else "."}"
+    private fun updateGames(gamesWithoutProviders: Sequence<Game>, filter: Filter?): Task<Unit> {
+        val games: List<Pair<Game, List<ProviderHeader>>> = gamesWithoutProviders.mapNotNullTo(mutableListOf()) { game ->
+            val providersToUpdate = game.providerHeaders.filter { gameProviderService.isEnabled(it.providerId) }.toList()
+            if (providersToUpdate.isNotEmpty()) {
+                game to providersToUpdate
+            } else {
+                null
+            }
         }
+        val isSingleUpdate = games.size == 1
 
-        val context = coroutineContext
-        val sortedBy = games.sortedBy(Game::updateDate)
-        sortedBy.forEachWithProgress { game ->
-            if (!context.isActive) return@task
+        return task(
+            title = "Updating ${if (isSingleUpdate) "'${games.first().first.name}'..." else "${games.size} games..."}",
+            isCancellable = !isSingleUpdate
+        ) {
+            gameProviderService.assertHasEnabledProvider()
 
-            val providersToDownload = game.providerHeaders.filter { gameProviderService.isEnabled(it.providerId) }.toList()
-            if (providersToDownload.isEmpty()) return@forEachWithProgress
+            successOrCancelledMessage { success ->
+                "${if (success) "Done" else "Cancelled"}${if (games.size > 1) ": Updated $processedItems Games." else "."}"
+            }
 
-            try {
-                val downloadedProviderData = executeSubTask(gameProviderService.fetch(game.name, game.platform, providersToDownload))
+            val remainingGames = games.mapTo(mutableSetOf()) { it.first.id }
+            if (!isSingleUpdate) {
+                storage.set(UpdateGameProgressData(filter!!, remainingGames))
+            }
 
-                // Replace existing data with new data, pass-through any data that wasn't replaced.
-                val newRawGame = game.rawGame.withProviderData(downloadedProviderData)
-                executeSubTask(gameService.replace(game, newRawGame))
-            } catch (e: Exception) {
-                if (swallowExceptions) {
-                    log.error("Error updating $game", e)
-                } else {
-                    throw e
+            var shouldResetStorage = !isSingleUpdate
+            val context = coroutineContext
+            val sortedBy = games.sortedBy { it.first.name }
+            sortedBy.forEachWithProgress { (game, providersToDownload) ->
+                if (!context.isActive) {
+                    // Do not reset storage on task cancellation.
+                    shouldResetStorage = false
+                    return@task
                 }
+
+                try {
+                    val downloadedProviderData = executeSubTask(gameProviderService.fetch(game.name, game.platform, providersToDownload))
+
+                    // Replace existing data with new data, pass-through any data that wasn't replaced.
+                    val newRawGame = game.rawGame.withProviderData(downloadedProviderData)
+                    executeSubTask(gameService.replace(game, newRawGame))
+                    remainingGames -= game.id
+                    if (!isSingleUpdate) {
+                        storage.set(UpdateGameProgressData(filter!!, remainingGames))
+                    }
+                } catch (e: Exception) {
+                    shouldResetStorage = false
+                    if (!isSingleUpdate) {
+                        log.error("Error updating $game", e)
+                    } else {
+                        throw e
+                    }
+                }
+            }
+
+            if (shouldResetStorage) {
+                storage.reset()
             }
         }
     }
@@ -114,3 +160,8 @@ class UpdateGameServiceImpl @Inject constructor(
 fun GameProviderService.assertHasEnabledProvider() = check(enabledProviders.isNotEmpty()) {
     "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
 }
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class UpdateGameServiceStorage

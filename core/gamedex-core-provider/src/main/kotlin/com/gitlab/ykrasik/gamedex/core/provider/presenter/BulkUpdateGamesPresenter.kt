@@ -47,6 +47,21 @@ class BulkUpdateGamesPresenter @Inject constructor(
             view::canAccept *= view.bulkUpdateGamesFilterValidatedValue.allValues().map { it.isValid }
             view::acceptActions.forEach { onAccept() }
             view::cancelActions.forEach { onCancel() }
+
+            isShowing.forEach(debugName = "onShow") {
+                if (it) {
+                    resumeInProgressUpdateIfRelevant()
+                }
+            }
+        }
+
+        private suspend fun resumeInProgressUpdateIfRelevant() {
+            val inProgressUpdate = updateGameService.inProgressUpdate
+            if (inProgressUpdate != null && view.confirmResumeInProgressUpdate(inProgressUpdate)) {
+                hideView()
+
+                taskService.execute(updateGameService.bulkUpdateGames(inProgressUpdate))
+            }
         }
 
         private suspend fun onAccept() {
