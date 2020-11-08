@@ -99,18 +99,25 @@ object TestApplication {
                     (0 until numGames).map {
                         async(context) {
                             val providerServers = providerFakeServers.toMutableList()
+                            val providerData = randomList(providerServers.size) {
+                                val provider = providerServers.randomElement()
+                                providerServers -= provider
+                                randomProviderData(provider)
+                            }
+                            val possibleLibraries = libraries.filter { library ->
+                                providerData.all { data ->
+                                    val providerServer = providerFakeServers.find { it.id == data.providerId }!!
+                                    library.platform in providerServer.supportedPlatforms
+                                }
+                            }
                             val path = randomPath(maxElements = 6, minElements = 3)
                             persistenceService.insertGame(
                                 metadata = Metadata(
-                                    libraryId = libraries.randomElement().id,
+                                    libraryId = possibleLibraries.randomElement().id,
                                     path = path,
                                     timestamp = Timestamp.now
                                 ),
-                                providerData = randomList(providerServers.size) {
-                                    val provider = providerServers.randomElement()
-                                    providerServers -= provider
-                                    randomProviderData(provider)
-                                },
+                                providerData = providerData,
                                 userData = UserData.Null
                             )
                         }

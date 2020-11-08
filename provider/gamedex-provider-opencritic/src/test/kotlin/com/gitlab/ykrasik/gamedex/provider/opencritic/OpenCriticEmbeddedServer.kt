@@ -74,7 +74,9 @@ class OpenCriticFakeServer(port: Int = freePort) : KtorFakeServer(port), GamePro
     private val thumbnailPath = "images/thumbnail"
     private val screenshotPath = "images/screenshot"
 
-    override val id = "OpenCritic"
+    override val id = OpenCriticProvider.id
+    override val supportedPlatforms = OpenCriticProvider.supportedPlatforms
+
     override fun randomProviderGameId() = randomInt().toString()
     override val thumbnailUrl = "$baseUrl/$thumbnailPath"
     override val posterUrl = null

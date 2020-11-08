@@ -84,7 +84,8 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
     private val thumbnailPath = "t_thumb_2x"
     private val posterPath = "t_screenshot_huge"
 
-    override val id = "Igdb"
+    override val id = IgdbProvider.id
+    override val supportedPlatforms = IgdbProvider.supportedPlatforms
     override fun randomProviderGameId() = randomInt().toString()
     override val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
     override val posterUrl = "$baseImageUrl/$posterPath"

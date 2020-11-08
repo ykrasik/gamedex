@@ -96,7 +96,7 @@ interface PluginScanner {
     fun scan(): List<Pair<Class<out Plugin>, ClassLoader>>
 }
 
-class DirectoryPluginScanner(private val pluginsDir: String = "plugins") : PluginScanner {
+class DirectoryPluginScanner(private val pluginsDir: String) : PluginScanner {
     private val log = logger()
 
     @Suppress("UNCHECKED_CAST")

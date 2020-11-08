@@ -75,7 +75,9 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
     private val thumbnailPath = "images/thumbnail"
     private val superPath = "images/super"
 
-    override val id = "GiantBomb"
+    override val id = GiantBombProvider.id
+    override val supportedPlatforms = GiantBombProvider.supportedPlatforms
+
     override fun randomProviderGameId() = "$baseUrl/3030-${randomInt()}/"
     override val thumbnailUrl = "$baseUrl/$thumbnailPath"
     override val posterUrl = "$baseUrl/$superPath"

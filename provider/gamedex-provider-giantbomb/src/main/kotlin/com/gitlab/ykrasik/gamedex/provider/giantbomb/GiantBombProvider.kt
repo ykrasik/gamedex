@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -111,9 +110,9 @@ class GiantBombProvider @Inject constructor(
     }
 
     override val metadata = GameProvider.Metadata(
-        id = "GiantBomb",
+        id = id,
         logo = getResourceAsByteArray("giantbomb.png"),
-        supportedPlatforms = Platform.values().toList(),
+        supportedPlatforms = supportedPlatforms,
         defaultOrder = config.defaultOrder,
         accountFeature = object : GameProvider.AccountFeature {
             override val accountUrl = config.accountUrl
@@ -125,4 +124,9 @@ class GiantBombProvider @Inject constructor(
     )
 
     override fun toString() = id
+
+    companion object {
+        const val id = "GiantBomb"
+        val supportedPlatforms = Platform.values().toList()
+    }
 }

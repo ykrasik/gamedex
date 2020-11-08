@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -111,12 +110,17 @@ class OpenCriticProvider @Inject constructor(
     private val Platform.platformId: Int get() = config.getPlatformId(this)
 
     override val metadata = GameProvider.Metadata(
-        id = "OpenCritic",
+        id = id,
         logo = getResourceAsByteArray("opencritic.png"),
-        supportedPlatforms = listOf(Platform.Windows),
+        supportedPlatforms = supportedPlatforms,
         defaultOrder = config.defaultOrder,
         accountFeature = null
     )
 
     override fun toString() = id
+
+    companion object {
+        const val id = "OpenCritic"
+        val supportedPlatforms = listOf(Platform.Windows)
+    }
 }

@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.JodaLocalDate
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
@@ -128,9 +127,9 @@ class IgdbProvider @Inject constructor(
     private val Int.genreName: String get() = config.getGenreName(this)
 
     override val metadata = GameProvider.Metadata(
-        id = "Igdb",
+        id = id,
         logo = getResourceAsByteArray("igdb.png"),
-        supportedPlatforms = Platform.values().toList(),
+        supportedPlatforms = supportedPlatforms,
         defaultOrder = config.defaultOrder,
         accountFeature = object : GameProvider.AccountFeature {
             override val accountUrl = config.accountUrl
@@ -144,4 +143,9 @@ class IgdbProvider @Inject constructor(
     )
 
     override fun toString() = id
+
+    companion object {
+        const val id = "Igdb"
+        val supportedPlatforms = Platform.values().toList()
+    }
 }

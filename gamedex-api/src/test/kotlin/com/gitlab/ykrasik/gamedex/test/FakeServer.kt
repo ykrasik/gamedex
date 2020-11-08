@@ -16,17 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.test
 
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.logger
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.features.StatusPages
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import java.io.Closeable
 
 /**
@@ -44,6 +45,7 @@ interface FakeServer : Closeable {
 
 interface GameProviderFakeServer : FakeServer {
     val id: ProviderId
+    val supportedPlatforms: List<Platform>
     fun randomProviderGameId(): String
     val thumbnailUrl: String?
     val posterUrl: String?
