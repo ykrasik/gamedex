@@ -137,7 +137,7 @@ class MaintenanceMenu : PresentableView("Maintenance", Icons.wrench),
         }
     }
 
-    override suspend fun confirmClearUserData() = viewManager.showAreYouSureDialog("Clear game user data?") {
+    override suspend fun confirmClearUserData() = viewManager.showAreYouSureDialog("Clear game user data?", Icons.warning) {
         text("This will remove tags, excluded providers & any custom information entered (like custom names or thumbnails) from all games.") {
             wrappingWidth = 400.0
         }

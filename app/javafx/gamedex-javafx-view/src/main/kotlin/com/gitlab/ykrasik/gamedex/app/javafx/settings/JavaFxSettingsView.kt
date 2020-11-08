@@ -161,7 +161,7 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
         }
     }
 
-    override suspend fun confirmResetDefaults() = viewManager.showAreYouSureDialog("Reset all settings to default?")
+    override suspend fun confirmResetDefaults() = viewManager.showAreYouSureDialog("Reset all settings to default?", Icons.warning)
 
     private var Toggle.component: UIComponent
         get() = properties["gameDex.component"] as UIComponent
