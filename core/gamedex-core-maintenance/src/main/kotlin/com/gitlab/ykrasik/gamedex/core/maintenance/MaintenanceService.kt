@@ -41,7 +41,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.*
 import com.google.inject.ImplementedBy
 import difflib.DiffUtils
-import kotlinx.coroutines.delay
 import java.io.File
 import java.io.RandomAccessFile
 import java.util.zip.ZipEntry
@@ -187,8 +186,7 @@ class MaintenanceServiceImpl @Inject constructor(
         content.db?.let { db ->
             withMessage("Importing Library...") {
                 persistenceService.dropDb()
-                eventBus.send(DatabaseInvalidatedEvent)
-                delay(200)  // Should be enough time for the above event to take effect
+                eventBus.emit(DatabaseInvalidatedEvent)
 
                 val libraries: Map<Int, Library> = executeSubTask(libraryService.addAll(db.libraries.map { it.toLibraryData() }))
                     .associateBy { library -> db.findLib(library.path, library.type, library.platformOrNull).id }

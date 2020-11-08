@@ -18,9 +18,8 @@ package com.gitlab.ykrasik.gamedex.core
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.merge
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -35,23 +34,22 @@ class EventBusImpl : EventBus, CoroutineScope {
     override val coroutineContext = Dispatchers.Default
 
     // TODO: Consider serializing all access to this with a special dispatcher.
-    private val channels = mutableMapOf<KClass<out CoreEvent>, BroadcastChannel<out CoreEvent>>()
+    private val flows = mutableMapOf<KClass<out CoreEvent>, MutableSharedFlow<CoreEvent>>()
 
     override fun <E : CoreEvent> flowOf(eventClass: KClass<E>): Flow<E> {
         return if (eventClass.isSealed) {
-            val channels = eventClass.sealedSubclasses.map { it.channel }
-            channels.map { it.asFlow() }.merge()
+            val subClassFlows = eventClass.sealedSubclasses.map { it.flow }
+            subClassFlows.merge()
         } else {
-            eventClass.channel.asFlow()
+            eventClass.flow
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private val <E : CoreEvent> KClass<E>.channel: BroadcastChannel<E>
-        get() = channels.getOrPut(this) { BroadcastChannel(32) } as BroadcastChannel<E>
+    private val <E : CoreEvent> KClass<out E>.flow: MutableSharedFlow<E>
+        get() = flows.getOrPut(this) { MutableSharedFlow() } as MutableSharedFlow<E>
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <E : CoreEvent> send(event: E) {
-        (event::class.channel as BroadcastChannel<E>).offer(event)
+    override suspend fun <E : CoreEvent> emit(event: E) {
+        event::class.flow.emit(event)
     }
 }

@@ -16,15 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.core.util
 
-import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
  */
 interface ListObservable<T> : List<T> {
     val items: StateFlow<List<T>>
-    val changes: Flow<ListEvent<T>>
+    val changes: SharedFlow<ListEvent<T>>
 
     // Record all changes that happened while executing f() and execute them as a single 'set' operation.
     suspend fun <R> conflate(f: suspend () -> R): R
@@ -44,7 +44,7 @@ interface ListObservable<T> : List<T> {
 class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> {
     private var _list: List<T> = initial
     override val items = MutableStateFlow(initial)
-    override val changes = broadcastFlow<ListEvent<T>>()
+    override val changes = MutableSharedFlow<ListEvent<T>>(extraBufferCapacity = 32)
 
     private var conflate = false
 
@@ -127,7 +127,7 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
         if (!conflate) {
             items.value = _list
             GlobalScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                changes.send(event)
+                changes.emit(event)
             }
         }
     }
@@ -236,7 +236,7 @@ fun <T, K> ListObservable<T>.broadcastTo(
             }
             else -> emptyList()
         }
-        broadcastEvents.forEach { eventBus.send(it) }
+        broadcastEvents.forEach { eventBus.emit(it) }
     }
 }
 

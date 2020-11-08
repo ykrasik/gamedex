@@ -27,9 +27,7 @@ import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.setAll
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
@@ -120,5 +118,7 @@ abstract class ViewSession : FlowScope(
         setAll(iterable)
     }
 
-    fun <V : Any> EventBus.requestHideView(view: V) = send(ViewEvent.RequestHide(view))
+    fun <V : Any> EventBus.requestHideView(view: V) = launch(start = CoroutineStart.UNDISPATCHED) {
+        emit(ViewEvent.RequestHide(view))
+    }
 }

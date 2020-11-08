@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.view.Presenter
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.and
+import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.file
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -79,7 +80,7 @@ class ExportDatabasePresenter @Inject constructor(
         }
 
         private fun onBrowse() {
-            val dir = view.selectExportDatabaseDirectory(settingsRepo.exportDbDirectory.value)
+            val dir = view.selectExportDatabaseDirectory(settingsRepo.exportDbDirectory.value.existsOrNull())
             if (dir != null) {
                 view.exportDatabaseDirectory /= dir.absolutePath
             }

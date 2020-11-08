@@ -39,7 +39,7 @@ class TaskServiceImpl @Inject constructor(
     override suspend fun <T> execute(task: Task<T>): T = mutex.withLock {
         val view = viewManager.showTaskView()
         try {
-            eventBus.send(TaskEvent.RequestStart(task))
+            eventBus.emit(TaskEvent.RequestStart(task))
             val event = eventBus.awaitEvent<TaskEvent.Finished<T>> { it.task === task }
             event.result.getOrThrow()
         } finally {

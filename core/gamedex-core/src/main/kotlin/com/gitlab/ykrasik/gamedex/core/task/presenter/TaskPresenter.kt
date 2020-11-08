@@ -125,7 +125,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                 }
             }
 
-            eventBus.send(TaskEvent.Finished(task, resultToReturn))
+            eventBus.emit(TaskEvent.Finished(task, resultToReturn))
         }
 
         private fun bindTaskProgress(task: Task<*>, taskProgress: TaskProgress) {

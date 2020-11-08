@@ -52,7 +52,7 @@ class SyncGamePresenter @Inject constructor(
             view::syncGameActions.forEach { syncGame() }
         }
 
-        private fun syncGame() {
+        private suspend fun syncGame() {
             view.canSyncGame.assert()
             syncGameService.syncGame(view.game.v)
         }

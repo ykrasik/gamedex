@@ -51,7 +51,7 @@ class SyncGameServiceImpl @Inject constructor(
         }
     }
 
-    override fun syncGame(game: Game) = syncGames(listOf(toRequest(game, emptyList())), isAllowSmartChooseResults = false)
+    override suspend fun syncGame(game: Game) = syncGames(listOf(toRequest(game, emptyList())), isAllowSmartChooseResults = false)
 
     override fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean) = task("Detecting games with missing providers...") {
         val games = filterService.filter(gameService.games, filter).asSequence()
@@ -71,11 +71,11 @@ class SyncGameServiceImpl @Inject constructor(
         syncOnlyTheseProviders = providersToSync
     )
 
-    override fun syncGames(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean) {
+    override suspend fun syncGames(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean) {
         gameProviderService.assertHasEnabledProvider()
 
         if (requests.isNotEmpty()) {
-            eventBus.send(SyncGamesEvent.RequestSync(requests, isAllowSmartChooseResults))
+            eventBus.emit(SyncGamesEvent.RequestSync(requests, isAllowSmartChooseResults))
         }
     }
 

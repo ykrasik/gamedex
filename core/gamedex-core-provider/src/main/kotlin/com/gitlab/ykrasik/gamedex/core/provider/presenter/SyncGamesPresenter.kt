@@ -59,14 +59,14 @@ class SyncGamesPresenter @Inject constructor(
             }
             view.currentState.allValues().forEach(debugName = "onCurrentStateChanged") { currentState ->
                 if (currentState != null) {
-                    eventBus.send(GameSearchEvent.Started(currentState, view.isAllowSmartChooseResults.value))
+                    eventBus.emit(GameSearchEvent.Started(currentState, view.isAllowSmartChooseResults.value))
                 }
             }
             view::restartStateActions.forEach { onRestart(it) }
             view::cancelActions.forEach { onCancel() }
         }
 
-        private fun onSyncGamesRequested(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean) {
+        private suspend fun onSyncGamesRequested(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean) {
             check(requests.isNotEmpty()) { "No games to sync!" }
             val state = requests.asSequence()
                 .mapNotNull(::initState)
@@ -90,7 +90,7 @@ class SyncGamesPresenter @Inject constructor(
             startGameSearch(view.state.first())
         }
 
-        private fun onGameSearchStateUpdated(newState: GameSearchState) {
+        private suspend fun onGameSearchStateUpdated(newState: GameSearchState) {
             check(view.isGameSyncRunning.value || newState.isFinished) { "Received search update event when not syncing games" }
             val prevState = view.state[newState.index]
             view.state[newState.index] = newState
@@ -138,7 +138,7 @@ class SyncGamesPresenter @Inject constructor(
             startGameSearch(newState)
         }
 
-        private fun onCancel() {
+        private suspend fun onCancel() {
             finish(success = false)
             val message = finishedMessage()
             log.info("Cancelled: $message")
@@ -147,13 +147,13 @@ class SyncGamesPresenter @Inject constructor(
             }
         }
 
-        private fun start() {
+        private suspend fun start() {
             check(!view.isGameSyncRunning.value) { "Game sync already running!" }
             view.isGameSyncRunning /= true
-            eventBus.send(SyncGamesEvent.Started)
+            eventBus.emit(SyncGamesEvent.Started)
         }
 
-        private fun finish(success: Boolean) {
+        private suspend fun finish(success: Boolean) {
             check(view.isGameSyncRunning.value) { "Game sync not running!" }
             view.isGameSyncRunning /= false
 
@@ -161,7 +161,7 @@ class SyncGamesPresenter @Inject constructor(
                 // This will update the current search that it's finished.
                 startGameSearch(currentState.copy(status = if (success) GameSearchState.Status.Success else GameSearchState.Status.Cancelled))
             }
-            eventBus.send(SyncGamesEvent.Finished)
+            eventBus.emit(SyncGamesEvent.Finished)
         }
 
         private fun startGameSearch(state: GameSearchState) {

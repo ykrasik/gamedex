@@ -385,15 +385,15 @@ class ProviderSearchPresenter @Inject constructor(
             }
         }
 
-        private fun updateProvider(provider: ProviderId) {
+        private suspend fun updateProvider(provider: ProviderId) {
             if (state.currentProvider != provider) {
                 modifyState { copy(currentProvider = provider) }
             }
         }
 
-        private inline fun modifyState(crossinline f: Modifier<GameSearchState>) {
+        private suspend inline fun modifyState(crossinline f: Modifier<GameSearchState>) {
             state = f(state)
-            eventBus.send(GameSearchEvent.Updated(state))
+            eventBus.emit(GameSearchEvent.Updated(state))
         }
 
         private val firstAcceptedResult: GameProvider.SearchResult?

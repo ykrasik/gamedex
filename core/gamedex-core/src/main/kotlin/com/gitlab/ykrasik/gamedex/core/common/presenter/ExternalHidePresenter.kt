@@ -37,7 +37,7 @@ class ExternalHidePresenter @Inject constructor(
         object : ViewSession() {
             init {
                 viewManager::externalCloseRequests.forEach { view ->
-                    eventBus.send(ViewEvent.RequestHide(view))
+                    eventBus.emit(ViewEvent.RequestHide(view))
                 }
             }
         }

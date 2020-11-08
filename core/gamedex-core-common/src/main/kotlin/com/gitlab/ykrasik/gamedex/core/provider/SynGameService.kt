@@ -31,11 +31,11 @@ import kotlinx.coroutines.flow.StateFlow
 interface SyncGameService {
     val isGameSyncRunning: StateFlow<Boolean>
 
-    fun syncGame(game: Game)
+    suspend fun syncGame(game: Game)
 
     fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean): Task<List<SyncPathRequest>>
 
-    fun syncGames(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean)
+    suspend fun syncGames(requests: List<SyncPathRequest>, isAllowSmartChooseResults: Boolean)
 }
 
 data class SyncPathRequest(

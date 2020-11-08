@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
 interface EventBus {
     fun <E : CoreEvent> flowOf(eventClass: KClass<E>): Flow<E>
 
-    fun <E : CoreEvent> send(event: E)
+    suspend fun <E : CoreEvent> emit(event: E)
 }
 
 inline fun <reified E : CoreEvent> EventBus.flowOf(): Flow<E> = flowOf(E::class)

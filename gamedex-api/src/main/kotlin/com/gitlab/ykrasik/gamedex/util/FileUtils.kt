@@ -47,7 +47,7 @@ fun File.deleteWithChildren() {
     walkBottomUp().forEach { Files.delete(it.toPath()) }
 }
 
-fun File.existsOrNull(): File? = if (exists()) this else null
+fun File.existsOrNull(): File? = takeIf { it.exists() }
 
 fun File.assertExists() = existsOrNull() ?: throw IOException("File doesn't exist: $this")
 

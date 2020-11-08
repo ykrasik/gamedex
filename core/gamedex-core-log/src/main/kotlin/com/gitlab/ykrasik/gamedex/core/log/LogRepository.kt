@@ -54,9 +54,8 @@ class LogRepository(private val maxLogEntries: Int) : CoroutineScope {
 
     fun addBlacklistValue(value: String) {
         if (value.isNotBlank()) {
-            blacklist += value.trim()
-
             launch {
+                blacklist += value.trim()
                 _entries.setAll(_entries.map(::censorEntry))
             }
         }
