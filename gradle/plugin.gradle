@@ -15,6 +15,10 @@ jar {
 
 shadowJar {
     archiveClassifier = null
+    dependencies {
+        exclude(dependency('org.intellij.*::'))
+        exclude(dependency('org.jetbrains.*::'))
+    }
 }
 
 assemble.dependsOn shadowJar
