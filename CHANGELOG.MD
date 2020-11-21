@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.4.1] 2020-11-21
+* IGDB: Migrate to V4 API
+* Upgrade embedded JRE version to 1.8.0_271
+* Revert to embedded H2 version 1.4.196, a transitive dependency was pulling 1.4.199 which has performance issues on large dbs
+* When updating a game, fix issue where provider data 'createDate' was being updated to current 'updateDate'
+* When updating a game, only update its provider data 'updateDate' if the provider actually had updated data
+* When updating a game, only update its global 'updateDate' if something actually changed
+* Add warning icons to confirmation dialogs of risky actions
+* Allow resuming bulk update operations that did not update all games (due to errors on some games, usually)
+* Use Kotlin 1.4 SharedFlow instead of BroadcastChannel in a few places
+
 ## [0.4.0] 2020-06-06
 #### Features
 * Refactor the whole codebase to use Kotlin [Flow](https://kotlinlang.org/docs/reference/coroutines/flow.html)
