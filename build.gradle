@@ -5,7 +5,7 @@ buildscript {
         javaMaxHeap = '3g'
 
         ktlin = [:].with {
-            v = '1.4.10'
+            v = '1.4.32'
             majorV = '1.4'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
@@ -13,7 +13,7 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '1.4.0'
+            v = '1.4.3'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
             debug = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-debug', version: v]
@@ -21,8 +21,8 @@ buildscript {
             delegate
         }
 
-        guice = [group: 'com.google.inject', name: 'guice', version: '4.2.3']
-        classGraph = [group: 'io.github.classgraph', name: 'classgraph', version: '4.8.90']
+        guice = [group: 'com.google.inject', name: 'guice', version: '5.0.1']
+        classGraph = [group: 'io.github.classgraph', name: 'classgraph', version: '4.8.103']
 
         slf4j = [:].with {
             v = '1.7.30'
@@ -35,14 +35,14 @@ buildscript {
         typesafeConfig = [group: 'com.typesafe', name: 'config', version: '1.4.1']
         config4k = [group: 'io.github.config4k', name: 'config4k', version: '0.4.2']
 
-        guava = [group: 'com.google.guava', name: 'guava', version: '30.0-jre']
+        guava = [group: 'com.google.guava', name: 'guava', version: '30.1.1-jre']
 
-        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.10.8']
+        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.10.10']
 
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
         jackson = [:].with {
-            v = '2.11.3'
+            v = '2.12.2'
             core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
             kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
             joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: v]
@@ -50,9 +50,9 @@ buildscript {
         }
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.17.7']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.17.9']
 
-        controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.17']
+        controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.18']
         jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.10']
         tornadoFx = [group: 'no.tornado', name: 'tornadofx', version: '1.7.18']
         ikonli = [:].with {
@@ -70,10 +70,10 @@ buildscript {
         stringSimilarity = [group: 'info.debatty', name: 'java-string-similarity', version: '2.0.0']
 
         kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.7']
-        mockK = [group: 'io.mockk', name: 'mockk', version: '1.10.2']
+        mockK = [group: 'io.mockk', name: 'mockk', version: '1.11.0']
 
         ktor = [:].with {
-            v = '1.4.1'
+            v = '1.5.2'
             core = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
             clientCore = [group: 'io.ktor', name: 'ktor-client-core-jvm', version: v]
@@ -101,7 +101,7 @@ buildscript {
 
 plugins {
     id 'com.github.hierynomus.license' version '0.15.0'
-    id 'com.github.ben-manes.versions' version '0.33.0'
+    id 'com.github.ben-manes.versions' version '0.38.0'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
