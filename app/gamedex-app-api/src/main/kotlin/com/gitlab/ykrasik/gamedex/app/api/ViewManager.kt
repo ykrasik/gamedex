@@ -98,7 +98,7 @@ interface ViewManager {
     fun showExportDatabaseView(): ExportDatabaseView
     fun hide(view: ExportDatabaseView)
 
-    fun showCleanupDatabaseView(staleData: StaleData): CleanupDatabaseView
+    fun showCleanupDatabaseView(cleanupData: CleanupData): CleanupDatabaseView
     fun hide(view: CleanupDatabaseView)
 
     fun showDuplicatesView(): DuplicatesView

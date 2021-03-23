@@ -67,6 +67,7 @@ buildscript {
 
         diff = [group: 'com.googlecode.java-diff-utils', name: 'diffutils', version: '1.3.0']
         completely = [group: 'com.miguelfonseca.completely', name: 'completely-core', version: '0.8.0']
+        stringSimilarity = [group: 'info.debatty', name: 'java-string-similarity', version: '2.0.0']
 
         kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.7']
         mockK = [group: 'io.mockk', name: 'mockk', version: '1.10.2']
@@ -295,6 +296,8 @@ project("core:gamedex-core-maintenance") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
         implementation project(":core:gamedex-core-persistence")
+
+        implementation stringSimilarity
     }
 }
 

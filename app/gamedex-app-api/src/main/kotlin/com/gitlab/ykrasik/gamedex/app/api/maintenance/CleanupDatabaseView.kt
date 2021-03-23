@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api.maintenance
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.FileSize
@@ -29,25 +30,27 @@ import com.gitlab.ykrasik.gamedex.util.FileSize
  * Time: 12:29
  */
 interface CleanupDatabaseView : ConfirmationView {
-    val staleData: ViewMutableStateFlow<StaleData>
+    val cleanupData: ViewMutableStateFlow<CleanupData>
 
+    val movedGamesToFix: ViewMutableStateFlow<List<Pair<Game, LibraryPath>>>
     val isDeleteLibrariesAndGames: ViewMutableStateFlow<Boolean>
     val isDeleteImages: ViewMutableStateFlow<Boolean>
     val isDeleteFileCache: ViewMutableStateFlow<Boolean>
 }
 
-data class StaleData(
-    val libraries: List<Library>,
-    val games: List<Game>,
-    val images: Map<String, FileSize>,
-    val fileTrees: Map<GameId, FileSize>,
+data class CleanupData(
+    val movedGames: List<Pair<Game, LibraryPath>>,
+    val missingLibraries: List<Library>,
+    val missingGames: List<Game>,
+    val staleImages: Map<String, FileSize>,
+    val staleFileTrees: Map<GameId, FileSize>,
 ) {
     val isEmpty = this == Null
 
-    val staleImagesSizeTaken get() = images.values.fold(FileSize(0)) { acc, next -> acc + next }
-    val staleFileTreesSizeTaken get() = fileTrees.values.fold(FileSize(0)) { acc, next -> acc + next }
+    val staleImagesSizeTaken get() = staleImages.values.fold(FileSize(0)) { acc, next -> acc + next }
+    val staleFileTreesSizeTaken get() = staleFileTrees.values.fold(FileSize(0)) { acc, next -> acc + next }
 
     companion object {
-        val Null = StaleData(emptyList(), emptyList(), emptyMap(), emptyMap())
+        val Null = CleanupData(emptyList(), emptyList(), emptyList(), emptyMap(), emptyMap())
     }
 }

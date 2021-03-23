@@ -40,9 +40,9 @@ class ShowCleanupDatabasePresenter @Inject constructor(
     override fun present(view: ViewCanCleanupDatabase) = object : ViewSession() {
         init {
             view::cleanupDatabaseActions.forEach {
-                val staleData = taskService.execute(maintenanceService.detectStaleData())
-                if (!staleData.isEmpty) {
-                    viewService.showAndHide(ViewManager::showCleanupDatabaseView, ViewManager::hide, staleData)
+                val cleanupData = taskService.execute(maintenanceService.detectCleanupData())
+                if (!cleanupData.isEmpty) {
+                    viewService.showAndHide(ViewManager::showCleanupDatabaseView, ViewManager::hide, cleanupData)
                 }
             }
         }

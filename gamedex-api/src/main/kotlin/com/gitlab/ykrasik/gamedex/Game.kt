@@ -231,7 +231,11 @@ data class FolderName(
     val order: String?,            // TODO: Consider adding option to display this.
     val metaTag: String?,
     val version: String?,
-)
+) {
+    fun isSameBaseName(other: FolderName): Boolean {
+        return processedName == other.processedName
+    }
+}
 
 typealias TagId = String
 

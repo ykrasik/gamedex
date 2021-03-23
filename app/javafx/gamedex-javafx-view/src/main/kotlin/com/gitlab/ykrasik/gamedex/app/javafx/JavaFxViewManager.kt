@@ -177,7 +177,7 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun hide(view: SyncGamesWithMissingProvidersView) = view.hideOverlay()
 
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
-    override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showOverlay(modal = true) { this.staleData *= staleData }
+    override fun showCleanupDatabaseView(cleanupData: CleanupData) = cleanupDatabaseView.showOverlay(modal = true) { this.cleanupData *= cleanupData }
     override fun hide(view: CleanupDatabaseView) = view.hideOverlay()
 
     private val importDatabaseView: JavaFxImportDatabaseView by inject()

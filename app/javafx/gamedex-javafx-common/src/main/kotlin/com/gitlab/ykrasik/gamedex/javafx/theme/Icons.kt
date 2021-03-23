@@ -113,6 +113,7 @@ object Icons {
     val diff get() = fontIcon(MaterialDesign.MDI_VECTOR_DIFFERENCE)
     val select get() = fontIcon(MaterialDesign.MDI_SELECT)
     val regex get() = fontIcon(MaterialDesign.MDI_REGEX)
+    val fix get() = fontIcon(MaterialDesign.MDI_HAMMER)
 
     val folder get() = fontIcon(MaterialDesign.MDI_FOLDER_OUTLINE)
     val folders get() = fontIcon(MaterialDesign.MDI_FOLDER_MULTIPLE_OUTLINE, color = Colors.green)

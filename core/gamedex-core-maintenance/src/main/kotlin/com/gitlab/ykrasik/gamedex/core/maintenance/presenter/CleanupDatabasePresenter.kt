@@ -38,6 +38,12 @@ class CleanupDatabasePresenter @Inject constructor(
 ) : Presenter<CleanupDatabaseView> {
     override fun present(view: CleanupDatabaseView) = object : ViewSession() {
         init {
+            this::isShowing.forEach {
+                if (it) {
+                    view.movedGamesToFix /= view.cleanupData.v.movedGames
+                }
+            }
+
             view.isDeleteLibrariesAndGames *= isShowing withDebugName "isDeleteLibrariesAndGames"
             view.isDeleteImages *= isShowing withDebugName "isDeleteImages"
             view.isDeleteFileCache *= isShowing withDebugName "isDeleteFileCache"
@@ -51,15 +57,16 @@ class CleanupDatabasePresenter @Inject constructor(
 
             hideView()
 
-            val staleData = view.staleData.v
-            val staleDataToDelete = staleData.copy(
-                libraries = if (view.isDeleteLibrariesAndGames.v) staleData.libraries else emptyList(),
-                games = if (view.isDeleteLibrariesAndGames.v) staleData.games else emptyList(),
-                images = if (view.isDeleteImages.v) staleData.images else emptyMap(),
-                fileTrees = if (view.isDeleteFileCache.v) staleData.fileTrees else emptyMap()
+            val cleanupData = view.cleanupData.v
+            val cleanupDataFix = cleanupData.copy(
+                movedGames = view.movedGamesToFix.v,
+                missingLibraries = if (view.isDeleteLibrariesAndGames.v) cleanupData.missingLibraries else emptyList(),
+                missingGames = if (view.isDeleteLibrariesAndGames.v) cleanupData.missingGames else emptyList(),
+                staleImages = if (view.isDeleteImages.v) cleanupData.staleImages else emptyMap(),
+                staleFileTrees = if (view.isDeleteFileCache.v) cleanupData.staleFileTrees else emptyMap()
             )
-            if (!staleDataToDelete.isEmpty) {
-                taskService.execute(maintenanceService.deleteStaleData(staleDataToDelete))
+            if (!cleanupDataFix.isEmpty) {
+                taskService.execute(maintenanceService.fixCleanupData(cleanupDataFix))
             }
         }
 

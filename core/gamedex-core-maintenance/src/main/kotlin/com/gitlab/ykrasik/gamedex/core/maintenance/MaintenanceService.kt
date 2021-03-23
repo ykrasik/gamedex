@@ -31,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryService
 import com.gitlab.ykrasik.gamedex.core.maintenance.PortableDb.toPortable
 import com.gitlab.ykrasik.gamedex.core.maintenance.PortableFilter.toPortable
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
@@ -41,6 +42,7 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.*
 import com.google.inject.ImplementedBy
 import difflib.DiffUtils
+import info.debatty.java.stringsimilarity.JaroWinkler
 import java.io.File
 import java.io.RandomAccessFile
 import java.util.zip.ZipEntry
@@ -62,8 +64,8 @@ interface MaintenanceService {
     fun readImportDbFile(file: File): Task<ImportDbContent>
     fun importDatabase(content: ImportDbContent): Task<Unit>
 
-    fun detectStaleData(): Task<StaleData>
-    fun deleteStaleData(staleData: StaleData): Task<Unit>
+    fun detectCleanupData(): Task<CleanupData>
+    fun fixCleanupData(cleanupData: CleanupData): Task<Unit>
 
     fun deleteAllUserData(): Task<Unit>
 
@@ -91,6 +93,7 @@ data class PortableProviderAccounts(
 @Singleton
 class MaintenanceServiceImpl @Inject constructor(
     private val libraryService: LibraryService,
+    private val syncLibraryService: SyncLibraryService,
     private val gameService: GameService,
     private val imageService: ImageService,
     private val fileSystemService: FileSystemService,
@@ -99,6 +102,8 @@ class MaintenanceServiceImpl @Inject constructor(
     private val filterService: FilterService,
     private val eventBus: EventBus,
 ) : MaintenanceService {
+    private val log = logger()
+
     private val objectMapper = jacksonObjectMapper()
         .registerModule(JodaModule())
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
@@ -106,6 +111,8 @@ class MaintenanceServiceImpl @Inject constructor(
         .configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
         .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
         .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+
+    private val jaroWinkler = JaroWinkler()
 
     override fun exportDatabase(dir: File, params: ImportExportParams) = task("Exporting Database...") {
         val file = dir.resolve("GameDex ${now.defaultTimeZone.toString("yyyy-MM-dd HH_mm_ss")}.zip")
@@ -167,10 +174,10 @@ class MaintenanceServiceImpl @Inject constructor(
 
             var entry = zis.nextEntry
             while (entry != null) {
-                when {
-                    entry.name == libraryEntry -> db = read(PortableDb.Db::class)
-                    entry.name == providerAccountsEntry -> accounts = read(PortableProviderAccounts::class)
-                    entry.name == filtersEntry -> filters = read(PortableFilter.Filters::class)
+                when (entry.name) {
+                    libraryEntry -> db = read(PortableDb.Db::class)
+                    providerAccountsEntry -> accounts = read(PortableProviderAccounts::class)
+                    filtersEntry -> filters = read(PortableFilter.Filters::class)
                 }
                 entry = zis.nextEntry
             }
@@ -215,15 +222,19 @@ class MaintenanceServiceImpl @Inject constructor(
         incProgress()
     }
 
-    override fun detectStaleData() = task("Detecting stale data...") {
-        totalItems.value = 4
-        val libraries = libraryService.libraries.filter { !it.path.isDirectory }
+    override fun detectCleanupData() = task("Detecting cleanup data...") {
+        totalItems.value = 5
+
+        val missingLibraries = libraryService.libraries.filter { !it.path.isDirectory }
         incProgress()
 
-        val games = gameService.games.filter { !it.path.isDirectory }
+        val missingGames = gameService.games.filter { !it.path.isDirectory }
         incProgress()
 
-        val images = run {
+        val movedGames = detectMovedGames(missingGames)
+        incProgress()
+
+        val staleImages = run {
             val usedImages = gameService.games.flatMapTo(mutableSetOf()) { game ->
                 game.screenshotUrls + listOfNotNull(game.thumbnailUrl, game.posterUrl)
             }
@@ -231,53 +242,132 @@ class MaintenanceServiceImpl @Inject constructor(
         }
         incProgress()
 
-        val fileTree = fileSystemService.getFileTreeSizeTakenExcept(gameService.games)
+        val staleFileTrees = fileSystemService.getFileTreeSizeTakenExcept(gameService.games)
         incProgress()
 
-        val staleData = StaleData(libraries, games, images, fileTree)
+        val cleanupData = CleanupData(movedGames, missingLibraries, missingGames, staleImages, staleFileTrees)
 
-        successMessage = if (staleData.isEmpty) {
+        successMessage = if (cleanupData.isEmpty) {
             { "No stale data detected." }
         } else {
             null
         }
-        staleData
+        cleanupData
     }
 
-    override fun deleteStaleData(staleData: StaleData) = task("Deleting Stale Data...") {
-        totalItems.value = 4
+    private suspend fun Task<*>.detectMovedGames(missingGames: List<Game>): List<Pair<Game, LibraryPath>> {
+        val newPaths = executeSubTask(syncLibraryService.detectNewPaths())
+        if (newPaths.isEmpty()) {
+            return emptyList()
+        }
 
-        staleData.games.emptyToNull()?.let { games ->
+        val newPathFolderNames = newPaths.map { it to fileSystemService.analyzeFolderName(it.path.name) }
+        return missingGames.mapNotNull { game ->
+            val newPath = detectMoveTarget(game, newPathFolderNames)
+            if (newPath != null) {
+                game to newPath
+            } else {
+                null
+            }
+        }
+    }
+
+    private fun detectMoveTarget(game: Game, newPaths: List<Pair<LibraryPath, FolderName>>): LibraryPath? {
+        val movedWithoutRename = newPaths.find { (path) -> path.path.name == game.folderName.rawName }
+        if (movedWithoutRename != null) {
+            log.debug("Detected move without renaming: ${game.path} -> ${movedWithoutRename.first.path}")
+            return movedWithoutRename.first
+        }
+
+        val renamedMetadata = newPaths.find { (_, folderName) ->
+            game.folderName.isSameBaseName(folderName)
+        }
+        if (renamedMetadata != null) {
+            log.debug("Detected renamed metadata: ${game.path} -> ${renamedMetadata.first.path}")
+            return renamedMetadata.first
+        }
+
+        val mostSimilar = newPaths.asSequence()
+            .map { (path, folderName) ->
+                val similarity = jaroWinkler.similarity(
+                    game.folderName.processedName,
+                    folderName.processedName,
+                )
+                Triple(path, folderName, similarity)
+            }
+            .sortedByDescending { (_, _, similarity) -> similarity }
+            .firstOrNull()
+        if (mostSimilar != null && mostSimilar.third >= renameSimilarityThreshold) {
+            log.debug("Detected rename to similar name: ${game.path} -> ${mostSimilar.first.path} [${mostSimilar.third}%]")
+            return mostSimilar.first
+        }
+
+        return null
+    }
+
+    override fun fixCleanupData(cleanupData: CleanupData) = task("Cleaning up data...") {
+        totalItems.value = 5
+
+        val missingGames =
+            if (cleanupData.movedGames.isNotEmpty()) {
+                cleanupData.missingGames.filterNot { missingGame ->
+                    cleanupData.movedGames.any { (game) -> game.id == missingGame.id }
+                }
+            } else {
+                cleanupData.missingGames
+            }
+        missingGames.emptyToNull()?.let { games ->
             message.value = "Deleting stale games..."
             executeSubTask(gameService.deleteAll(games))
         }
         incProgress()
 
-        staleData.libraries.emptyToNull()?.let { libraries ->
+        cleanupData.missingLibraries.emptyToNull()?.let { libraries ->
             message.value = "Deleting stale libraries..."
             executeSubTask(libraryService.deleteAll(libraries))
         }
         incProgress()
 
-        staleData.images.toList().emptyToNull()?.let { images ->
+        cleanupData.movedGames.emptyToNull()?.let { movedGames ->
+            message.value = "Fixing moved games..."
+            executeSubTask(task("Updating ${movedGames.size} games...") {
+                movedGames.forEachWithProgress { (game, newPath) ->
+                    gameService.replace(
+                        game,
+                        game.rawGame.withMetadata {
+                            it.copy(
+                                libraryId = newPath.library.id,
+                                path = newPath.relativePath.path
+                            )
+                        }).execute()
+                }
+            })
+
+        }
+        incProgress()
+
+        cleanupData.staleImages.toList().emptyToNull()?.let { images ->
             message.value = "Deleting stale images..."
             imageService.deleteImages(images.map { it.first })
         }
         incProgress()
 
-        staleData.fileTrees.toList().emptyToNull()?.let { fileTrees ->
+        cleanupData.staleFileTrees.toList().emptyToNull()?.let { fileTrees ->
             message.value = "Deleting stale file cache..."
             fileTrees.forEach { fileSystemService.deleteCachedFileTree(it.first) }
         }
         incProgress()
 
-        successMessage = { staleData.toFormattedString() }
+        successMessage = { cleanupData.toFormattedString() }
     }
 
-    private fun StaleData.toFormattedString() =
-        listOf(games.size to "Games", libraries.size to "Libraries", images.size to "Images", fileTrees.size to "File Cache")
-            .asSequence()
-            .filter { it.first != 0 }
+    private fun CleanupData.toFormattedString() =
+        sequenceOf(
+            missingGames.size to "Games",
+            missingLibraries.size to "Libraries",
+            staleImages.size to "Images",
+            staleFileTrees.size to "File Cache"
+        ).filter { it.first != 0 }
             .joinToString("\n") { "${it.first} ${it.second}" }
 
     override fun deleteAllUserData() = gameService.deleteAllUserData()
@@ -363,5 +453,6 @@ class MaintenanceServiceImpl @Inject constructor(
         private const val libraryEntry = "library.json"
         private const val providerAccountsEntry = "accounts.json"
         private const val filtersEntry = "filters.json"
+        private const val renameSimilarityThreshold = 0.7
     }
 }
