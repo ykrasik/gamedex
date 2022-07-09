@@ -19,17 +19,14 @@ package com.gitlab.ykrasik.gamedex.util
 import com.gitlab.ykrasik.gamedex.util.ktor.JacksonSerializer
 import com.gitlab.ykrasik.gamedex.util.ktor.Logging
 import com.google.common.net.UrlEscapers
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.features.HttpTimeout
-import io.ktor.client.features.UserAgent
-import io.ktor.client.features.json.Json
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.readBytes
-import io.ktor.http.contentLength
-import io.ktor.http.isSuccess
-import io.ktor.utils.io.consumeEachBufferRange
+import io.ktor.client.*
+import io.ktor.client.engine.apache.*
+import io.ktor.client.features.*
+import io.ktor.client.features.json.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.utils.io.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.*
@@ -43,8 +40,8 @@ import java.util.*
 val httpClient = HttpClient(Apache) {
     install(UserAgent)
     install(HttpTimeout) {
-        requestTimeoutMillis = 5000
-        connectTimeoutMillis = 1000
+        requestTimeoutMillis = 10000
+        connectTimeoutMillis = 3000
     }
     Logging {
         logger = logger("HttpClient")

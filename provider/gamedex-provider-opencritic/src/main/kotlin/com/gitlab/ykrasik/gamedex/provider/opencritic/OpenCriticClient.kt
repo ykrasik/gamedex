@@ -30,10 +30,10 @@ import javax.inject.Singleton
  */
 @Singleton
 open class OpenCriticClient @Inject constructor(private val config: OpenCriticConfig) {
-    open suspend fun search(query: String): List<SearchResult> = get(
-        endpoint = "${config.baseUrl}/api/game/search",
+    open suspend fun search(query: String): List<SearchResult> = get<List<SearchResult>>(
+        endpoint = "${config.baseUrl}/api/meta/search",
         params = mapOf("criteria" to query)
-    )
+    ).filter { it.relation == "game" }
 
     open suspend fun fetch(providerGameId: String): FetchResult = get(
         endpoint = "${config.baseUrl}/api/game/${providerGameId}",
@@ -43,12 +43,26 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
     private suspend inline fun <reified T : Any> get(endpoint: String, params: Map<String, String>): T =
         httpClient.get(endpoint) {
             params.forEach { parameter(it.key, it.value) }
+            header("origin", "https://opencritic.com")
+            header("referer", "https://opencritic.com/")
+            header(
+                "User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36"
+            )
+            header("authority", "api.opencritic.com")
+            header("dnt", 1)
+            header("pragma", "no-cache")
+            header("sec-fetch-dest", "empty")
+            header("sec-fetch-mode", "cors")
+            header("sec-fetch-site", "same-site")
+            header("sec-gpc", 1)
         }
 
     data class SearchResult(
         val id: Int,
         val name: String,
         val dist: Double,
+        val relation: String
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -56,11 +70,13 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
         val id: Int,
         val name: String,
         val description: String?,
-        val averageScore: Double,
+        val medianScore: Double,
         val numReviews: Int,
         val Genres: List<Genre>,
         val Platforms: List<Platform>,
         val firstReleaseDate: DateTime?,
+        val verticalLogoScreenshot: Image?,
+        val bannerScreenshot: Image?,
         val logoScreenshot: Image?,
         val mastheadScreenshot: Image?,
         val screenshots: List<Image>,

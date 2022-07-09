@@ -58,7 +58,7 @@ class OpenCriticMockServer(port: Int = freePort) : Closeable {
     @Suppress("ClassName")
     inner class anySearchRequest : BaseRequest() {
         infix fun willReturn(results: List<OpenCriticClient.SearchResult>) {
-            wiremock.givenThat(get(urlPathEqualTo("/api/game/search")).willReturn(aJsonResponse(results)))
+            wiremock.givenThat(get(urlPathEqualTo("/api/meta/search")).willReturn(aJsonResponse(results)))
         }
     }
 
@@ -109,7 +109,8 @@ class OpenCriticFakeServer(port: Int = freePort) : KtorFakeServer(port), GamePro
         OpenCriticClient.SearchResult(
             id = randomInt(),
             name = randomName(),
-            dist = Random.nextDouble()
+            dist = Random.nextDouble(),
+            relation = "game"
         )
     }.toJsonStr()
 
@@ -117,7 +118,7 @@ class OpenCriticFakeServer(port: Int = freePort) : KtorFakeServer(port), GamePro
         id = randomInt(),
         name = randomName(),
         description = randomParagraph(),
-        averageScore = randomScore().score.sometimesNull() ?: -1.0,
+        medianScore = randomScore().score.sometimesNull() ?: -1.0,
         numReviews = randomScore().numReviews.sometimesNull() ?: 0,
         Genres = randomList(4) {
             OpenCriticClient.Genre(id = randomInt(), name = randomGenre())
@@ -126,6 +127,8 @@ class OpenCriticFakeServer(port: Int = freePort) : KtorFakeServer(port), GamePro
             OpenCriticClient.Platform(id = randomInt(), shortName = randomWord(), releaseDate = randomDateTime())
         ),
         firstReleaseDate = randomDateTime(),
+        verticalLogoScreenshot = randomImage().sometimesNull(),
+        bannerScreenshot = randomImage().sometimesNull(),
         logoScreenshot = randomImage().sometimesNull(),
         mastheadScreenshot = randomImage().sometimesNull(),
         screenshots = randomList(10) { randomImage() }.sometimesNull() ?: emptyList()

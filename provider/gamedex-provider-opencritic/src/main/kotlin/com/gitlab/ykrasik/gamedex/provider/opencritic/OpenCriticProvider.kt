@@ -55,7 +55,11 @@ class OpenCriticProvider @Inject constructor(
         return GameProvider.SearchResponse(results, canShowMoreResults = false)
     }
 
-    private suspend fun OpenCriticClient.SearchResult.toSearchResult(platform: Platform, account: GameProvider.Account, index: Int): GameProvider.SearchResult {
+    private suspend fun OpenCriticClient.SearchResult.toSearchResult(
+        platform: Platform,
+        account: GameProvider.Account,
+        index: Int
+    ): GameProvider.SearchResult {
         if (index > 0) {
             return GameProvider.SearchResult(
                 providerGameId = id.toString(),
@@ -91,12 +95,15 @@ class OpenCriticProvider @Inject constructor(
             name = this.name,
             description = this.description?.takeUnless { it.isBlank() },
             releaseDate = this.Platforms.findReleaseDate(platform) ?: firstReleaseDate?.toLocalDate()?.toString(),
-            criticScore = if (averageScore > 0 && numReviews != 0) Score(averageScore, numReviews) else null,
+            criticScore = if (medianScore > 0 && numReviews != 0) Score(medianScore, numReviews) else null,
             userScore = null,
             genres = this.Genres.map { it.name },
-            thumbnailUrl = this.logoScreenshot?.thumbnail?.toImageUrl(),
+            thumbnailUrl = this.verticalLogoScreenshot?.fullRes?.toImageUrl()
+                ?: this.bannerScreenshot?.fullRes?.toImageUrl()
+                ?: this.logoScreenshot?.thumbnail?.toImageUrl(),
             posterUrl = null,
-            screenshotUrls = (this.mastheadScreenshot?.let { listOf(it.fullRes.toImageUrl()) } ?: emptyList()) + this.screenshots.map { it.fullRes.toImageUrl() }
+            screenshotUrls = (this.mastheadScreenshot?.let { listOf(it.fullRes.toImageUrl()) }
+                ?: emptyList()) + this.screenshots.map { it.fullRes.toImageUrl() }
         ),
         siteUrl = "${config.baseUrl}/game/${id}/${name.replace("[\\W]+".toRegex(), "-").toLowerCase()}"
     )
