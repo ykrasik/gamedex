@@ -73,42 +73,42 @@ class GiantBombProviderContractTest : Spec<GiantBombProviderContractTest.Scope>(
         val name = "No Man's Sky"
         val apiUrl = "https://www.giantbomb.com/api/game/3030-44656/"
         val releaseDate = "2016-08-09"
-        val thumbnailUrl = "https://giantbomb1.cbsistatic.com/uploads/scale_avatar/0/3699/2927125-no%20man%27s%20sky.jpg"
-        val posterUrl = "https://giantbomb1.cbsistatic.com/uploads/scale_large/0/3699/2927125-no%20man%27s%20sky.jpg"
+        val thumbnailUrl = "https://www.giantbomb.com/a/uploads/scale_avatar/0/3699/2927125-no%20man%27s%20sky.jpg"
+        val posterUrl = "https://www.giantbomb.com/a/uploads/scale_large/0/3699/2927125-no%20man%27s%20sky.jpg"
         val url = "https://www.giantbomb.com/no-mans-sky/3030-44656/"
         val deck = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
         val genres = listOf("Simulation", "Action-Adventure")
         val screenshotUrls = listOf(
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/40/402691/3244832-sep-24%4012.34.51.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/40/402691/3244831-sep-23%4023.26.11.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/40/402691/3244830-sep-23%4022.27.7.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/6/66643/3038806-aug-1%403.11.36.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/6/66643/3038805-aug-1%402.38.2.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036612-no%20man%27s%20sky_20180412003928.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036611-no%20man%27s%20sky_20180503060656.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036610-no%20man%27s%20sky_20180507060546.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036609-no%20man%27s%20sky_20180503054218.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036608-no%20man%27s%20sky_20180503093659.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036607-no%20man%27s%20sky_20180503055521.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036606-no%20man%27s%20sky_20180502092642.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036605-no%20man%27s%20sky_20180503051728.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036604-no%20man%27s%20sky_20180503040539.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036603-no%20man%27s%20sky_20180502075738.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036602-no%20man%27s%20sky_20180502203736.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036601-no%20man%27s%20sky_20180502083627.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036600-no%20man%27s%20sky_20180427175532.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036599-no%20man%27s%20sky_20180330134905.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036598-no%20man%27s%20sky_20180427001150.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036597-no%20man%27s%20sky_20180426184952.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036596-no%20man%27s%20sky_20180426183529.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036595-no%20man%27s%20sky_20180424051117.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036594-no%20man%27s%20sky_20180424044747.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3036593-no%20man%27s%20sky_20180411172614.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016654-no%20man%27s%20sky_20180418134254.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016653-no%20man%27s%20sky_20180417232953.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016652-no%20man%27s%20sky_20180417231341.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016651-no%20man%27s%20sky_20180417231002.jpg",
-            "https://giantbomb1.cbsistatic.com/uploads/scale_large/1/14876/3016650-no%20man%27s%20sky_20180417230157.jpg"
+            "https://www.giantbomb.com/a/uploads/scale_large/40/402691/3244832-sep-24%4012.34.51.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/40/402691/3244831-sep-23%4023.26.11.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/40/402691/3244830-sep-23%4022.27.7.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/6/66643/3038806-aug-1%403.11.36.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/6/66643/3038805-aug-1%402.38.2.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036612-no%20man%27s%20sky_20180412003928.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036611-no%20man%27s%20sky_20180503060656.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036610-no%20man%27s%20sky_20180507060546.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036609-no%20man%27s%20sky_20180503054218.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036608-no%20man%27s%20sky_20180503093659.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036607-no%20man%27s%20sky_20180503055521.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036606-no%20man%27s%20sky_20180502092642.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036605-no%20man%27s%20sky_20180503051728.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036604-no%20man%27s%20sky_20180503040539.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036603-no%20man%27s%20sky_20180502075738.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036602-no%20man%27s%20sky_20180502203736.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036601-no%20man%27s%20sky_20180502083627.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036600-no%20man%27s%20sky_20180427175532.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036599-no%20man%27s%20sky_20180330134905.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036598-no%20man%27s%20sky_20180427001150.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036597-no%20man%27s%20sky_20180426184952.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036596-no%20man%27s%20sky_20180426183529.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036595-no%20man%27s%20sky_20180424051117.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036594-no%20man%27s%20sky_20180424044747.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3036593-no%20man%27s%20sky_20180411172614.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3016654-no%20man%27s%20sky_20180418134254.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3016653-no%20man%27s%20sky_20180417232953.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3016652-no%20man%27s%20sky_20180417231341.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3016651-no%20man%27s%20sky_20180417231002.jpg",
+            "https://www.giantbomb.com/a/uploads/scale_large/1/14876/3016650-no%20man%27s%20sky_20180417230157.jpg"
         )
     }
 }
