@@ -23,6 +23,7 @@ import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.core.UnsynchronizedAppenderBase
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
+import com.gitlab.ykrasik.gamedex.util.capitalize
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -48,7 +49,7 @@ class LogServiceImpl(maxLogEntries: Int = 1000) : LogService {
             repo += LogEntry(
                 id = id.incrementAndGet(),
                 timestamp = DateTime(e.timeStamp),
-                level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
+                level = LogLevel.valueOf(e.level.toString().lowercase().capitalize()),
                 threadName = e.threadName,
                 loggerName = e.loggerName.substringAfterLast('.'),
                 message = e.formattedMessage,

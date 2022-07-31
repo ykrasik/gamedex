@@ -16,6 +16,8 @@ task testSourcesJar(type: Jar) {
 
 configurations {
     testArtifacts.extendsFrom testRuntime
+    testDependencies.extendsFrom testImplementation
+    testRuntimeOnlyDependencies.extendsFrom testRuntimeOnly
 }
 
 artifacts {
@@ -36,14 +38,15 @@ sourceSets {
 ext {
     fullDependency = { String dep ->
         dependencies {
-            compile project(dep)
-            testCompile project(path: dep, configuration: 'testArtifacts')
+            api project(dep)
+            testImplementation project(path: dep, configuration: 'testArtifacts')
+            testImplementation project(path: dep, configuration: 'testDependencies')
         }
     }
 
     testDependency = { String dep ->
         dependencies {
-            testCompile project(path: dep, configuration: 'testArtifacts')
+            testImplementation project(path: dep, configuration: 'testDependencies')
         }
     }
 

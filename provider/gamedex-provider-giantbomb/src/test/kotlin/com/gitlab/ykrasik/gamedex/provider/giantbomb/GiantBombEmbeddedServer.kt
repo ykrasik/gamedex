@@ -26,10 +26,10 @@ import com.gitlab.ykrasik.gamedex.util.filterNullValues
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.Provides
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.delay
 import java.io.Closeable
@@ -83,7 +83,7 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
     override val posterUrl = "$baseUrl/$superPath"
     override val screenshotUrl = posterUrl
 
-    override fun Application.setupServer() {
+    override fun setupServer(app: Application) = with(app) {
         routing {
             get("/") {
                 authorized {
@@ -112,7 +112,10 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
         if (call.parameters["api_key"] == apiKey || System.getProperty("gameDex.provider.skipCredentialValidation") != null) {
             body()
         } else {
-            call.respond(HttpStatusCode.Unauthorized, GiantBombClient.SearchResponse(GiantBombClient.Status.InvalidApiKey, emptyList()).toMap().toJsonStr())
+            call.respond(
+                HttpStatusCode.Unauthorized,
+                GiantBombClient.SearchResponse(GiantBombClient.Status.InvalidApiKey, emptyList()).toMap().toJsonStr()
+            )
         }
     }
 
@@ -247,4 +250,4 @@ private fun GiantBombClient.Genre.toMap() = mapOf(
     "site_detail_url" to randomUrl()
 )
 
-private fun GiantBombClient.Status.asString() = this.toString().toUpperCase()
+private fun GiantBombClient.Status.asString() = this.toString().uppercase()

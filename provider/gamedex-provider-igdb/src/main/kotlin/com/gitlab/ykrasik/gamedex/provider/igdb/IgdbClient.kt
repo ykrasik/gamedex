@@ -17,13 +17,14 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.SingleValueStorage
 import com.gitlab.ykrasik.gamedex.util.httpClient
 import com.gitlab.ykrasik.gamedex.util.listFromJson
 import com.gitlab.ykrasik.gamedex.util.now
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -71,11 +72,11 @@ open class IgdbClient @Inject constructor(
 
         // Ktor fails to correctly parse a list of data classes, we have to do it manually.
         val response = try {
-            httpClient.post<ByteArray>(config.baseUrl) {
+            httpClient.post(config.baseUrl) {
                 header("Client-ID", account.clientId)
                 header("Authorization", "Bearer $token")
-                this.body = body()
-            }
+                setBody(body())
+            }.body<ByteArray>()
         } catch (e: Exception) {
             storage.reset()
             throw e
@@ -101,7 +102,7 @@ open class IgdbClient @Inject constructor(
             parameter("client_id", account.clientId)
             parameter("client_secret", account.clientSecret)
             parameter("grant_type", "client_credentials")
-        }
+        }.body()
     }
 
     private val Platform.id: Int get() = config.getPlatformId(this)
@@ -129,7 +130,7 @@ open class IgdbClient @Inject constructor(
         val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
     }
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     data class SearchResult(
         val id: Int,
         override val name: String,
@@ -143,14 +144,14 @@ open class IgdbClient @Inject constructor(
         override val cover: Image?,
     ) : SharedSearchFetchFields
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ReleaseDate(
         val platform: Int,
         val date: Long?,
     )
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class FetchResult(
         val url: String,
@@ -179,13 +180,13 @@ open class IgdbClient @Inject constructor(
         val cover: Image?
     }
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val imageId: String?,
     )
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     internal data class OAuthResponse(
         val accessToken: String,

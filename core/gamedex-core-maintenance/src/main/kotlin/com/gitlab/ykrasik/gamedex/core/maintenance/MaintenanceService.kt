@@ -387,7 +387,7 @@ class MaintenanceServiceImpl @Inject constructor(
             games.groupBy { it.platform }.flatMap { (_, games) -> if (games.size > 1) games else emptyList() }
         }.filterValues { it.take(2).toList().size > 1 }
 
-        totalItems.value = duplicateHeaders.values.sumBy { it.size }
+        totalItems.value = duplicateHeaders.values.sumOf { it.size }
 
         val gameIdsToDuplicates = mutableMapOf<GameId, MutableList<Pair<Game, ProviderId>>>()
         duplicateHeaders.forEach { (header, games) ->

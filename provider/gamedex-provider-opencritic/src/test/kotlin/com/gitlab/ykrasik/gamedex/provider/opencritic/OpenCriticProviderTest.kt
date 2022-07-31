@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import org.joda.time.DateTime
 import kotlin.random.Random
@@ -122,7 +122,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                     val e = shouldThrow<ClientRequestException> {
                         search()
                     }
-                    e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
+                    e.message shouldHave substring(HttpStatusCode.BadRequest.value.toString())
                 }
             }
         }
@@ -144,7 +144,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                         posterUrl = null,
                         screenshotUrls = listOf(screenshotUrl(result.mastheadScreenshot!!)) + result.screenshots.map(::screenshotUrl)
                     ),
-                    siteUrl = "${server.baseUrl}/game/${result.id}/${result.name.toLowerCase()}"
+                    siteUrl = "${server.baseUrl}/game/${result.id}/${result.name.lowercase()}"
                 )
 
                 server.verify {

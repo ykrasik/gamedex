@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.provider.opencritic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.util.httpClient
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import org.joda.time.DateTime
 import javax.inject.Inject
@@ -56,7 +57,7 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
             header("sec-fetch-mode", "cors")
             header("sec-fetch-site", "same-site")
             header("sec-gpc", 1)
-        }
+        }.body()
 
     data class SearchResult(
         val id: Int,

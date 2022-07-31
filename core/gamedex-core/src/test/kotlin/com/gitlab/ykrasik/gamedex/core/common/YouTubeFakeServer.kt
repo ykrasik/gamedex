@@ -22,10 +22,10 @@ import com.gitlab.ykrasik.gamedex.test.FakeServerFactory
 import com.gitlab.ykrasik.gamedex.test.KtorFakeServer
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.google.inject.Provides
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import javax.inject.Singleton
 
 /**
@@ -34,7 +34,7 @@ import javax.inject.Singleton
  * Time: 08:19
  */
 class YouTubeFakeServer(port: Int = freePort) : KtorFakeServer(port) {
-    override fun Application.setupServer() {
+    override fun setupServer(app: Application) = with(app) {
         routing {
             get("/results") {
                 call.respondText(

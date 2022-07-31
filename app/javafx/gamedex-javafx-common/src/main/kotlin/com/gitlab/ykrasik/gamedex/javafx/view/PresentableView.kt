@@ -28,6 +28,7 @@ import javafx.scene.Node
 import javafx.scene.control.Button
 import javafx.scene.control.ButtonBase
 import javafx.scene.layout.HBox
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.kordamp.ikonli.javafx.FontIcon
@@ -74,7 +75,7 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
 
     protected fun register() = viewRegistry.onCreate(this)
 
-    fun <E> BroadcastFlow<E>.event(e: E) = offer(e)
+    fun <E> BroadcastFlow<E>.event(e: E) = trySendBlocking(e).getOrThrow()
 
     fun <T> ObservableValue<T>.bindChanges(flow: BroadcastFlow<T>): ChangeListener<T> = bindChanges(flow) { it }
     inline fun <T, R> ObservableValue<T>.bindChanges(flow: BroadcastFlow<R>, crossinline factory: (T) -> R): ChangeListener<T> =
@@ -82,7 +83,7 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
 
     fun ButtonBase.action(flow: BroadcastFlow<Unit>) = action(flow) { }
     inline fun <T> ButtonBase.action(flow: BroadcastFlow<T>, crossinline f: () -> T) = apply {
-        action { flow.offer(f()) }
+        action { flow.trySendBlocking(f()).getOrThrow() }
     }
 
     operator fun <T> ViewMutableStateFlow<T>.timesAssign(value: T) {

@@ -19,10 +19,11 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.httpClient
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import org.joda.time.LocalDate
 import javax.inject.Inject
@@ -65,7 +66,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
             parameter("api_key", account.apiKey)
             parameter("format", "json")
             params.forEach { parameter(it.key, it.value) }
-        }
+        }.body()
 
     private companion object {
         val searchFields = listOf(
@@ -89,14 +90,14 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
     }
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class SearchResponse(
         val statusCode: Status,
         val results: List<SearchResult>,
     )
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     data class SearchResult(
         val apiDetailUrl: String,
         val name: String,
@@ -110,7 +111,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val image: Image?,
     ) : HasReleaseDate
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class FetchResponse(
         val statusCode: Status,
@@ -120,7 +121,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val results: List<FetchResult>,
     )
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     data class FetchResult(
         val siteDetailUrl: String,
         val name: String,
@@ -136,13 +137,13 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val genres: List<Genre>?,
     ) : HasReleaseDate
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Genre(
         val name: String,
     )
 
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val thumbUrl: String,

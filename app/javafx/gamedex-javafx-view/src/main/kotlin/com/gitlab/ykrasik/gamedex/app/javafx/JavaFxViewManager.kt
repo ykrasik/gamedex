@@ -62,7 +62,7 @@ import javafx.scene.layout.VBox
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import tornadofx.Controller
@@ -262,7 +262,7 @@ class JavaFxViewManager : Controller(), ViewManager {
         JavaFxScope.launch(CoroutineName("$this.hideRequests")) {
             overlay.hideRequests.collect {
                 if (!modal) {
-                    externalCloseRequests.offer(this@apply)
+                    externalCloseRequests.trySendBlocking(this@apply).getOrThrow()
                 }
             }
         }

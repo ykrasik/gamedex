@@ -16,16 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.util.ktor.JacksonSerializer
-import com.gitlab.ykrasik.gamedex.util.ktor.Logging
 import com.google.common.net.UrlEscapers
 import io.ktor.client.*
-import io.ktor.client.engine.apache.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.ContentType.Application.Json
+import io.ktor.serialization.jackson.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -37,30 +39,29 @@ import java.util.*
  * Date: 10/02/2017
  * Time: 10:24
  */
-val httpClient = HttpClient(Apache) {
+val httpClient = HttpClient(CIO) {
+    expectSuccess = true
+
     install(UserAgent)
     install(HttpTimeout) {
-        requestTimeoutMillis = 10000
-        connectTimeoutMillis = 3000
+        requestTimeoutMillis = 2000
+        connectTimeoutMillis = 1000
     }
-    Logging {
-        logger = logger("HttpClient")
+    install(HttpRequestRetry) {
+        retryOnServerErrors(maxRetries = 5)
+        constantDelay(millis = 500)
     }
-    Json {
-        serializer = JacksonSerializer
+    install(Logging) {
+        level = LogLevel.BODY
     }
-    engine {
-        followRedirects = true  // Follow HTTP Location redirects - default false. It uses the default number of redirects defined by Apache's HttpClient that is 50.
-
-        // For timeouts: 0 means infinite, while negative value mean to use the system's default value
-        socketTimeout = 30_000  // Max time between TCP packets - default 10 seconds
-        connectTimeout = 30_000 // Max time to establish an HTTP connection - default 10 seconds
-        connectionRequestTimeout = 30_000 // Max time for the connection manager to start a request - 20 seconds
+    install(ContentNegotiation) {
+        register(Json, JacksonConverter(objectMapper))
     }
 }
 
+@OptIn(InternalAPI::class)
 suspend fun HttpClient.download(url: String, progressHandler: ((downloaded: Int, total: Int) -> Unit)? = null): ByteArray {
-    val response = get<HttpResponse>(url)
+    val response = get(url)
     if (!response.status.isSuccess()) throw IllegalStateException("Download '$url': ${response.status}")
     return if (progressHandler != null) {
         val total = response.contentLength()?.toInt() ?: -1

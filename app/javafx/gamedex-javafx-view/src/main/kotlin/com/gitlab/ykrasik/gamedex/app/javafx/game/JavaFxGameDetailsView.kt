@@ -50,6 +50,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
+import kotlinx.coroutines.channels.trySendBlocking
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import java.io.File
@@ -195,9 +196,9 @@ class JavaFxGameDetailsView(
             if (e.code == KeyCode.S && e.isControlDown) {
                 val screenshotUrls = game.v.screenshotUrls
                 if (screenshotUrls.isNotEmpty()) {
-                    viewImageActions.offer(
+                    viewImageActions.trySendBlocking(
                         ViewImageParams(imageUrl = screenshotUrls.first(), imageUrls = screenshotUrls)
-                    )
+                    ).getOrThrow()
                 }
             }
         }
@@ -383,10 +384,11 @@ class JavaFxGameDetailsView(
         }
     }
 
-    private inline fun EventTarget.poster(game: Game, crossinline op: VBox.() -> Unit = {}) = makeRoundCorners(imageview(commonOps.fetchPoster(game)) {
-        fitWidth = imageFitWidth ?: 0.0
-        fitHeight = imageFitHeight ?: 0.0
-    }, op = op)
+    private inline fun EventTarget.poster(game: Game, crossinline op: VBox.() -> Unit = {}) =
+        makeRoundCorners(imageview(commonOps.fetchPoster(game)) {
+            fitWidth = imageFitWidth ?: 0.0
+            fitHeight = imageFitHeight ?: 0.0
+        }, op = op)
 
     private inline fun EventTarget.gameDetails(game: Game, crossinline op: VBox.() -> Unit = {}) = defaultVbox {
         addClass(Style.gameDetails)
@@ -499,13 +501,13 @@ class JavaFxGameDetailsView(
 
                 onUserSelect {
                     val file = fileTree.pathTo(it)!!
-                    openFileActions.offer(file)
+                    openFileActions.trySendBlocking(file).getOrThrow()
                 }
             }
         } else {
             jfxButton(game.path.toString()) {
                 addClass(Style.path)
-                action { openFileActions.offer(game.path) }
+                action { openFileActions.trySendBlocking(game.path).getOrThrow() }
             }
         }.apply {
             addClass(Style.fileTreeContainer)
@@ -528,7 +530,7 @@ class JavaFxGameDetailsView(
                 addClass(Style.screenshotItem)
                 tooltip(url)
                 setOnMouseClicked {
-                    viewImageActions.offer(ViewImageParams(imageUrl = url, imageUrls = game.screenshotUrls))
+                    viewImageActions.trySendBlocking(ViewImageParams(imageUrl = url, imageUrls = game.screenshotUrls)).getOrThrow()
                 }
             }
         }
@@ -549,7 +551,7 @@ class JavaFxGameDetailsView(
             scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
             val url = commonOps.youTubeGameplayUrl(game)
             tooltip(url)
-            setOnMouseClicked { browseUrlActions.offer(url) }
+            setOnMouseClicked { browseUrlActions.trySendBlocking(url).getOrThrow() }
         }
         game.providerData.sortedBy { it.providerId }.forEach {
             val url = it.siteUrl
@@ -558,15 +560,18 @@ class JavaFxGameDetailsView(
                 addClass(Style.externalLinkItem)
                 scaleOnMouseOver(duration = 0.1.seconds, target = 1.15)
                 tooltip(url)
-                setOnMouseClicked { browseUrlActions.offer(url) }
+                setOnMouseClicked { browseUrlActions.trySendBlocking(url).getOrThrow() }
             }
         }
 
         op()
     }
 
-    private fun StackPane.createDate(createDate: JodaDateTime) = dateDisplay(createDate, Icons.createDate, Style.createDate, "Create Date", Pos.BOTTOM_RIGHT)
-    private fun StackPane.updateDate(updateDate: JodaDateTime) = dateDisplay(updateDate, Icons.updateDate, Style.updateDate, "Update Date", Pos.BOTTOM_LEFT)
+    private fun StackPane.createDate(createDate: JodaDateTime) =
+        dateDisplay(createDate, Icons.createDate, Style.createDate, "Create Date", Pos.BOTTOM_RIGHT)
+
+    private fun StackPane.updateDate(updateDate: JodaDateTime) =
+        dateDisplay(updateDate, Icons.updateDate, Style.updateDate, "Update Date", Pos.BOTTOM_LEFT)
 
     private fun StackPane.dateDisplay(date: JodaDateTime, icon: FontIcon, styleClass: CssRule, tooltip: String, alignment: Pos) =
         label(date.defaultTimeZone.humanReadable, graphic = icon.size(16)) {

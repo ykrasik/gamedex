@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.test
 
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.Timestamp
+import com.gitlab.ykrasik.gamedex.util.capitalize
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.repackaged.net.bytebuddy.utility.RandomString
@@ -34,8 +35,8 @@ import java.util.*
  * Time: 13:45
  */
 private object TestResources {
-    val words = javaClass.getResource("words.txt").readText().lines()
-    val genres = javaClass.getResource("genres.txt").readText().lines()
+    val words = javaClass.getResource("words.txt")!!.readText().lines()
+    val genres = javaClass.getResource("genres.txt")!!.readText().lines()
 
     /* These images were all taken from [[igdb.com]] */
     val images = Reflections("com.gitlab.ykrasik.gamedex.test.images", ResourcesScanner())
@@ -66,7 +67,7 @@ fun randomParagraph(minWords: Int = 20, maxWords: Int = 100): String =
 
 fun randomPath(maxElements: Int = 4, minElements: Int = 1): String = randomWords(minWords = minElements, maxWords = maxElements).joinToString("/")
 fun randomFile() = randomPath().file
-fun randomUrl() = "http://${randomWords(minWords = 3, maxWords = 3).joinToString(".")}/${randomPath()}".toLowerCase()
+fun randomUrl() = "http://${randomWords(minWords = 3, maxWords = 3).joinToString(".")}/${randomPath()}".lowercase()
 
 fun randomTimestamp(): Timestamp = Timestamp(createDate = randomDateTime(), updateDate = randomDateTime())
 fun randomDateTime(): DateTime = now.minusSeconds(randomInt(999999999))
@@ -80,7 +81,7 @@ fun randomScore() = Score(
 
 fun randomGenre() = TestResources.genres.randomElement()
 
-fun randomImage(): ByteArray = TestResources.images.randomElement().readBytes()
+fun randomImage(): ByteArray = TestResources.images.randomElement()!!.readBytes()
 
 inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
 

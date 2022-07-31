@@ -52,7 +52,7 @@ class ProviderSettingsRepository @Inject constructor(
     val providers: Map<ProviderId, Repo> = _providers
 
     fun register(provider: GameProvider.Metadata): Repo {
-        val repo = Repo(repo.storage(basePath = "provider/${provider.id.toLowerCase()}", name = "account", resettable = false) {
+        val repo = Repo(repo.storage(basePath = "provider/${provider.id.lowercase()}", name = "account", resettable = false) {
             Data(
                 enabled = provider.accountFeature == null,
                 account = emptyMap()

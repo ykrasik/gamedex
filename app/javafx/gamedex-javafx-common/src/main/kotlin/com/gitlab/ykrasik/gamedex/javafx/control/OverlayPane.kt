@@ -31,6 +31,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import tornadofx.*
 
@@ -159,7 +160,7 @@ class OverlayPane : StackPane() {
         }
 
         fun requestHide() {
-            hideRequests.offer(Unit)
+            hideRequests.trySendBlocking(Unit).getOrThrow()
         }
 
         fun close() {

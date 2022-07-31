@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.JodaLocalDate
 import io.kotlintest.matchers.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 
 /**
@@ -178,7 +178,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                     val e = shouldThrow<ClientRequestException> {
                         search()
                     }
-                    e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
+                    e.message shouldHave substring(HttpStatusCode.BadRequest.value.toString())
                 }
             }
         }
@@ -353,7 +353,12 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
             }
 
             "exchange clientId & clientSecret for an authorization token if there is a previous authorizationToken in the storage but it is almost expired (within expiration buffer time)" test {
-                storage.set(IgdbStorageData(authorizationToken = "oldToken", expiresOn = now.plusSeconds(oauthTokenExpirationBufferSeconds - 1)))
+                storage.set(
+                    IgdbStorageData(
+                        authorizationToken = "oldToken",
+                        expiresOn = now.plusSeconds(oauthTokenExpirationBufferSeconds - 1)
+                    )
+                )
 
                 val newAuthorizationToken = randomString()
                 server.oauthRequest().willReturn(newAuthorizationToken, 10)
@@ -367,7 +372,12 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
 
             "not renew token if previous token wasn't expired" test {
                 val authorizationToken = "authorizationToken"
-                storage.set(IgdbStorageData(authorizationToken = authorizationToken, expiresOn = now.plusSeconds(oauthTokenExpirationBufferSeconds)))
+                storage.set(
+                    IgdbStorageData(
+                        authorizationToken = authorizationToken,
+                        expiresOn = now.plusSeconds(oauthTokenExpirationBufferSeconds)
+                    )
+                )
 
                 givenFetchResult(fetchResult())
                 fetch()

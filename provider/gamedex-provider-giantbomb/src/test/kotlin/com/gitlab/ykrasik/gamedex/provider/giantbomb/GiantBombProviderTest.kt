@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.should
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 
 /**
@@ -64,7 +64,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                         .withQueryParam(
                             "field_list",
                             "api_detail_url,name,deck,original_release_date,expected_release_year," +
-                                "expected_release_quarter,expected_release_month,expected_release_day,image"
+                                    "expected_release_quarter,expected_release_month,expected_release_day,image"
                         )
                         .withQueryParam("offset", "$offset")
                         .withQueryParam("limit", "$limit")
@@ -137,7 +137,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             }
 
             "use expectedReleaseYear & expectedReleaseQuarter as releaseDate when originalReleaseDate is null and those are present, " +
-                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
                 givenSearchResults(
                     searchResult().copy(
                         originalReleaseDate = null,
@@ -152,7 +152,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             }
 
             "return null releaseDate if originalReleaseDate & expectedReleaseYear are null," +
-                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
                 givenSearchResults(
                     searchResult().copy(
                         originalReleaseDate = null,
@@ -230,8 +230,8 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                         .withQueryParam(
                             "field_list",
                             "name,deck,original_release_date,expected_release_year," +
-                                "expected_release_quarter,expected_release_month,expected_release_day," +
-                                "image,site_detail_url,genres,images"
+                                    "expected_release_quarter,expected_release_month,expected_release_day," +
+                                    "image,site_detail_url,genres,images"
                         )
                 }
             }
@@ -285,7 +285,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             }
 
             "use expectedReleaseYear & expectedReleaseQuarter as releaseDate when originalReleaseDate is null and those are present, " +
-                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
                 givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
@@ -300,7 +300,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             }
 
             "return null releaseDate if originalReleaseDate & expectedReleaseYear are null," +
-                "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
+                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
                 givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
@@ -444,7 +444,8 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             server.aFetchRequest(apiUrl) willReturn response
 
         suspend fun search(query: String = randomName()) = provider.search(query, platform, account, offset, limit).results
-        suspend fun fetch(apiUrl: String = "${server.baseUrl}/$apiDetailsUrl", platform: Platform = this.platform) = provider.fetch(apiUrl, platform, account)
+        suspend fun fetch(apiUrl: String = "${server.baseUrl}/$apiDetailsUrl", platform: Platform = this.platform) =
+            provider.fetch(apiUrl, platform, account)
 
         private val config = GiantBombConfig(
             baseUrl = server.baseUrl,

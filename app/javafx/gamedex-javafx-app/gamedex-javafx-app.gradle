@@ -7,7 +7,7 @@ dependencies {
     fullDependency ":core:gamedex-core"
     fullDependency ":app:javafx:gamedex-javafx-view"
 
-    testCompile project(":core:gamedex-core-persistence")
+    testImplementation project(":core:gamedex-core-persistence")
 
     pluginProjects().forEach {
         testRuntime project(path: it.path, configuration: 'testArtifacts')

@@ -21,7 +21,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -32,6 +35,7 @@ import kotlinx.coroutines.launch
 
 fun <T> broadcastFlow() = BroadcastFlow<T>(BroadcastChannel(2))
 
+@Suppress("DEPRECATION")
 class BroadcastFlow<T> private constructor(
     private val channel: BroadcastChannel<T>,
     private val flow: Flow<T>,

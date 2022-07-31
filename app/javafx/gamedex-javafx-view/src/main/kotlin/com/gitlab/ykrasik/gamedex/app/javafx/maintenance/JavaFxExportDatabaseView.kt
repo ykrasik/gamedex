@@ -29,6 +29,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.browseButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import kotlinx.coroutines.channels.trySendBlocking
 import tornadofx.*
 import java.io.File
 
@@ -89,6 +90,6 @@ class JavaFxExportDatabaseView : ConfirmationWindow("Export Database", Icons.exp
         chooseDirectory("Select Database Export Folder...", initialDirectory)
 
     override fun openDirectory(directory: File) {
-        openFileActions.offer(directory)
+        openFileActions.trySendBlocking(directory).getOrThrow()
     }
 }

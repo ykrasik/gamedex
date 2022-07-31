@@ -45,11 +45,14 @@ inline fun Node.clipRectangle(op: Rectangle.() -> Unit) {
     clip = Rectangle().apply(op)
 }
 
-fun Region.clipRectangle(arc: Number) = clipRectangle {
-    arcHeight = arc.toDouble()
-    arcWidth = arc.toDouble()
-    heightProperty().bind(this@clipRectangle.heightProperty())
-    widthProperty().bind(this@clipRectangle.widthProperty())
+fun Region.clipRectangle(arc: Number) {
+    val region = this
+    clipRectangle {
+        arcHeight = arc.toDouble()
+        arcWidth = arc.toDouble()
+        heightProperty().bind(region.heightProperty())
+        widthProperty().bind(region.widthProperty())
+    }
 }
 
 fun <T> ListView<T>.fitAtMost(numItems: Int) {

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.util
 
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.*
 import java.util.function.Predicate
 
 /**
@@ -30,7 +31,7 @@ typealias Modifier<T> = T.() -> T
 
 typealias Extractor<T, R> = T.() -> R
 
-fun Any.getResourceAsByteArray(path: String): ByteArray = this::class.java.getResource(path).readBytes()
+fun Any.getResourceAsByteArray(path: String): ByteArray = this::class.java.getResource(path)!!.readBytes()
 
 val Int.kb: Int get() = this * 1024
 val Int.mb: Int get() = kb * 1024
@@ -53,4 +54,11 @@ val caseInsensitiveStringComparator = Comparator<String> { o1, o2 ->
 
 inline fun <T> caseInsensitiveStringComparator(crossinline keyExtractor: (T) -> String) = Comparator<T> { t1, t2 ->
     keyExtractor(t1).compareTo(keyExtractor(t2), ignoreCase = true)
+}
+
+fun String.capitalize(): String {
+    return this.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase(Locale.getDefault())
+        else it.toString()
+    }
 }

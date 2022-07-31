@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
@@ -49,7 +50,7 @@ class LogRepository(private val maxLogEntries: Int) : CoroutineScope {
     private val blacklist = mutableSetOf<String>()
 
     operator fun plusAssign(entry: LogEntry) {
-        actor.offer(entry)
+        actor.trySendBlocking(entry).getOrThrow()
     }
 
     fun addBlacklistValue(value: String) {

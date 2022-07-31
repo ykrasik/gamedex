@@ -25,11 +25,11 @@ import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.Provides
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.delay
 import java.io.Closeable
@@ -55,8 +55,10 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
     @Suppress("ClassName")
     inner class oauthRequest {
         fun willReturn(token: String, expiresInSeconds: Int) =
-            wiremock.givenThat(post(urlPathEqualTo("/oauth"))
-                .willReturn(aJsonResponse(mapOf("access_token" to token, "expires_in" to expiresInSeconds))))
+            wiremock.givenThat(
+                post(urlPathEqualTo("/oauth"))
+                    .willReturn(aJsonResponse(mapOf("access_token" to token, "expires_in" to expiresInSeconds)))
+            )
 
         infix fun willFailWith(status: HttpStatusCode) {
             wiremock.givenThat(post(urlPathEqualTo("/oauth")).willReturn(aResponse().withStatus(status.value)))
@@ -91,7 +93,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
     override val posterUrl = "$baseImageUrl/$posterPath"
     override val screenshotUrl = posterUrl
 
-    override fun Application.setupServer() {
+    override fun setupServer(app: Application) = with(app) {
         System.setProperty("gameDex.provider.igdb.oauthUrl", "$baseUrl/oauth")
         routing {
             post("/") {
@@ -115,7 +117,10 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Use a different set of images
             }
             post("/oauth") {
-                call.respondText(IgdbClient.OAuthResponse(accessToken = "accessToken", expiresIn = 999999999).toJsonStr(), ContentType.Application.Json)
+                call.respondText(
+                    IgdbClient.OAuthResponse(accessToken = "accessToken", expiresIn = 999999999).toJsonStr(),
+                    ContentType.Application.Json
+                )
             }
         }
     }

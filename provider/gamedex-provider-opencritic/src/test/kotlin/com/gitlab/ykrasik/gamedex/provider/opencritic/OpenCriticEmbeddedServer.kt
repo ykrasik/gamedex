@@ -25,10 +25,10 @@ import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.Provides
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import java.io.Closeable
 import javax.inject.Singleton
@@ -82,7 +82,7 @@ class OpenCriticFakeServer(port: Int = freePort) : KtorFakeServer(port), GamePro
     override val posterUrl = null
     override val screenshotUrl = "$baseUrl/$screenshotPath"
 
-    override fun Application.setupServer() {
+    override fun setupServer(app: Application) = with(app) {
         routing {
             get("/api/game/search") {
                 delay(50, 400)

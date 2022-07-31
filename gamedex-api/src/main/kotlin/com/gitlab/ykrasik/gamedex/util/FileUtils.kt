@@ -86,7 +86,7 @@ data class FileSize(@JsonValue val bytes: Long) : Comparable<FileSize> {
         operator fun invoke(humanReadable: String): FileSize {
             val result = regex.find(humanReadable) ?: throw IllegalArgumentException("Invalid input: '$humanReadable'")
             val (amount, scale) = result.destructured
-            return invoke(amount.toDouble(), Scale.valueOf(scale.toUpperCase()))
+            return invoke(amount.toDouble(), Scale.valueOf(scale.uppercase()))
         }
 
         operator fun invoke(amount: Number, scale: Scale): FileSize {

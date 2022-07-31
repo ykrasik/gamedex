@@ -105,7 +105,7 @@ class OpenCriticProvider @Inject constructor(
             screenshotUrls = (this.mastheadScreenshot?.let { listOf(it.fullRes.toImageUrl()) }
                 ?: emptyList()) + this.screenshots.map { it.fullRes.toImageUrl() }
         ),
-        siteUrl = "${config.baseUrl}/game/${id}/${name.replace("[\\W]+".toRegex(), "-").toLowerCase()}"
+        siteUrl = "${config.baseUrl}/game/${id}/${name.replace("[\\W]+".toRegex(), "-").lowercase()}"
     )
 
     private fun List<OpenCriticClient.Platform>.findReleaseDate(platform: Platform): String? =
