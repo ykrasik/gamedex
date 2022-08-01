@@ -83,10 +83,11 @@ class OpenCriticProviderContractTest : Spec<OpenCriticProviderContractTest.Scope
         val url = "https://api.opencritic.com/game/2393/no-man-s-sky"
         val description =
             "Inspired by the adventure and imagination that we love from classic science-fiction, No Man's Sky presents you with a galaxy to explore, filled with unique planets and lifeforms, and constant danger and action. \n\n" +
-                "In No Man's Sky, every star is the light of a distant sun, each orbited by planets filled with life, and you can go to any of them you choose. Fly smoothly from deep space to planetary surfaces, with no loading screens, and no limits. In this infinite procedurally generated universe, you'll discover places and creatures that no other players have seen before - and perhaps never will again."
+                    "In No Man's Sky, every star is the light of a distant sun, each orbited by planets filled with life, and you can go to any of them you choose. Fly smoothly from deep space to planetary surfaces, with no loading screens, and no limits. In this infinite procedurally generated universe, you'll discover places and creatures that no other players have seen before - and perhaps never will again."
         val genres = listOf("Survival", "Adventure")
         val thumbnailUrl = "http://c.opencritic.com/images/games/2393/zBeOdAlHJM0dOWaSWGFx5OWiEdORxYiZ7Br5dKZyVv83HjVR.jpg"
         val screenshotUrls = listOf(
+            "http://c.opencritic.com/images/games/2393/0u9UnW9YvP7GjsBL83BnXBjzwF8hMQ7gY1NoYg65Qk42sFaX.jpg",
             "http://c.opencritic.com/images/games/2393/lbedCKA9ZkFv0kD6EqII1tiYm3mcOp1B.jpg",
             "http://c.opencritic.com/images/games/2393/tl0NTSmTitve31yK0PlhIqLrNOxS75Eo.jpg",
             "http://c.opencritic.com/images/games/2393/SnMYwWJ4bFWpCfRNrLv28Notvl22LxQj.jpg"
