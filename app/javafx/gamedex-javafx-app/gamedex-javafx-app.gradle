@@ -1,7 +1,14 @@
-apply from: gradleFile('application.gradle')
+apply plugin: 'application'
+
+applicationDefaultJvmArgs = ["-Xmx$javaMaxHeap", "-XX:+UseConcMarkSweepGC", "-XX:+HeapDumpOnOutOfMemoryError", "-server"]
+executableDir = ''
 mainClassName = "com.gitlab.ykrasik.gamedex.javafx.Main"
-apply plugin: 'javafx-gradle-plugin'
-//apply plugin: 'com.github.johnrengelman.shadow'
+
+startScripts {
+    classpath = files('$APP_HOME/lib/*')
+}
+
+apply plugin: 'io.github.fvarrui.javapackager.plugin'
 
 dependencies {
     fullDependency ":core:gamedex-core"
@@ -10,69 +17,48 @@ dependencies {
     testImplementation project(":core:gamedex-core-persistence")
 
     pluginProjects().forEach {
-        testRuntime project(path: it.path, configuration: 'testArtifacts')
+        testRuntimeOnly project(path: it.path)
+        testRuntimeOnly project(path: it.path, configuration: 'testArtifacts')
     }
 
 //    compile bootstrapFx
 }
 
-jfx {
-//    verbose = true
-    mainClass = mainClassName
-    jfxMainAppJarName = "gamedex-${version}.jar"
-    identifier = "faeb5e02-a70d-4f15-b09b-77022499cd18"
-    vendor = "Yevgeny Krasik"
-    jvmProperties = ["-Xmx": javaMaxHeap]
-//    useLibFolderContentForManifestClasspath = true
-//    fixedManifestClasspath = "jfxMainAppJarName"
-//    fixedManifestClasspath = "$jfxMainAppJarName;./lib/*;./plugins/*"
-//    jvmArgs = ['-cp', jfxMainAppJarName + ';lib/*;plugins/*', 'com.gitlab.ykrasik.gamedex.javafx.Main']
-//    addPackagerJar = false
-//    useLibFolderContentForManifestClasspath = true
-//    copyAdditionalAppResourcesToJar = true
-//    skipCopyingDependencies = true
-//    alternativePathToJarFile = shadowJar.outputs.files[0]
-//    alternativePathToJarFile = shadowJar
-    nativeReleaseVersion = version
-    needShortcut = true
-    needMenu = true
-    appName = "GameDex"
-    skipJNLP = true
-    skipMainClassScanning = true
-    usePatchedJFXAntLib = false
-}
-
-task customizeWindowsInstaller(type: Copy) {
-    from 'src/main/deploy/package/windows/'
-    into 'src/main/deploy/package/windows/'
-    include 'gamedex.iss.template'
-    rename { file -> 'gamedex.iss' }
-    expand(version: version)
-}
-
-task cleanInstallerIss(type: Delete) {
-    delete 'src/main/deploy/package/windows/gamedex.iss'
-}
-
 task copyPluginsDist(type: Copy) {
     from pluginProjects().shadowJar
-    into new File(project.buildDir, "/jfx/app/plugins")
+    into new File(project.buildDir, "plugins")
 }
 
-jfxNative {
-//    dependsOn shadowJar
-    dependsOn rootProject.subprojects.assemble
-    dependsOn customizeWindowsInstaller
-    dependsOn copyPluginsDist
-    finalizedBy cleanInstallerIss
+javapackager {
+    mainClass = mainClassName
+    additionalResources = copyPluginsDist.outputs.files.files.asList()
+    bundleJre = true
+    jrePath = new File(System.properties['java.home'])
+    generateInstaller = project.hasProperty("installer")
+
+    name = "GameDex"
+    displayName = "GameDex"
+    description = "GameDex"
+    organizationName = "Yevgeny Krasik"
+    url = "https://github.com/ykrasik/gamedex"
+    vmArgs = applicationDefaultJvmArgs
+
+    winConfig {
+        generateSetup = true
+        generateMsi = false
+
+        disableWelcomePage = false
+        disableDirPage = false
+        disableProgramGroupPage = true
+        disableFinishedPage = false
+        disableRunAfterInstall = false
+    }
 }
 
-task cleanJfxNative(type: Delete) {
-    delete new File(project.buildDir, "jfx")
-}
+project.tasks.getByName("package").dependsOn copyPluginsDist
 
-task dist(type: Copy, dependsOn: jfxNative) {
-    from new File(project.buildDir, "jfx/native")
+task dist(type: Copy, dependsOn: 'package') {
+    from new File(project.buildDir, "GameDex")
     into new File(project.rootDir, "dist")
 }
 

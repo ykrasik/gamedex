@@ -98,7 +98,7 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${ktlin.v}"
-        classpath "de.dynamicfiles.projects.gradle.plugins:javafx-gradle-plugin:8.8.2"
+        classpath "io.github.fvarrui:javapackager:1.6.7"
     }
 }
 
