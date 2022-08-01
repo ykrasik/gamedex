@@ -49,8 +49,17 @@ buildscript {
             delegate
         }
 
+        // Newer versions of H2 are slower when importing a 2k+ items db...
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.17.14']
+        exposed = [:].with {
+            v = '0.38.2'
+            core = [group: 'org.jetbrains.exposed', name: 'exposed-core', version: v]
+            dao = [group: 'org.jetbrains.exposed', name: 'exposed-dao', version: v]
+            jdbc = [group: 'org.jetbrains.exposed', name: 'exposed-jdbc', version: v]
+            jodaTime = [group: 'org.jetbrains.exposed', name: 'exposed-jodatime', version: v]
+            javaTime = [group: 'org.jetbrains.exposed', name: 'exposed-java-time', version: v]
+            delegate
+        }
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.18']
         jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.10']
@@ -342,9 +351,10 @@ project("core:gamedex-core-persistence") {
         fullDependency ":gamedex-api"
 
         implementation h2
-        implementation(exposed) {
-            exclude group: h2.group, module: h2.name
-        }
+        implementation exposed.core
+        implementation exposed.dao
+        implementation exposed.jdbc
+        implementation exposed.jodaTime
     }
 }
 

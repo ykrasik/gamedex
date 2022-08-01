@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.util.fromJson
 import com.gitlab.ykrasik.gamedex.util.listFromJson
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.ImplementedBy
-import org.jetbrains.exposed.dao.EntityID
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTimeZone
