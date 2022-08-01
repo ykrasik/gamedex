@@ -45,7 +45,7 @@ class GameListView(games: ObservableList<Game>) : PresentableView("Game List"), 
     private val gameDetailsView = JavaFxGameDetailsView(
         canClose = false,
         imageFitWidth = screenBounds.width / 3,
-        imageFitHeight = screenBounds.height * 2 / 3, // TODO: This sucks, find a way to make this be dynamic.
+        imageFitHeight = screenBounds.height * 1 / 2, // TODO: This sucks, find a way to make this be dynamic.
         maxDetailsWidth = screenBounds.width / 4
     )
 

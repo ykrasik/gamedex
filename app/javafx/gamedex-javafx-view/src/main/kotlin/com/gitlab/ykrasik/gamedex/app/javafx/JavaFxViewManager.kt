@@ -97,7 +97,7 @@ class JavaFxViewManager : Controller(), ViewManager {
         JavaFxGameDetailsView(
             canClose = true,
             imageFitWidth = screenBounds.width / 3,
-            imageFitHeight = screenBounds.height * 2 / 3
+            imageFitHeight = screenBounds.height * 1 / 2
         )
     }
 
