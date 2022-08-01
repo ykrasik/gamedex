@@ -13,10 +13,3 @@ ext {
 }
 
 apply from: gradleFile('plugin.gradle')
-
-dependencies {
-    compileOnly project(":gamedex-api")
-    testCompileClasspath project(":gamedex-api")
-    testCompileClasspath project(path: ":gamedex-api", configuration: 'testArtifacts')
-    testCompileClasspath project(path: ":gamedex-api", configuration: 'testDependencies')
-}

@@ -17,7 +17,6 @@ task testSourcesJar(type: Jar) {
 configurations {
     testArtifacts.extendsFrom testRuntime
     testDependencies.extendsFrom testImplementation
-    testRuntimeOnlyDependencies.extendsFrom testRuntimeOnly
 }
 
 artifacts {

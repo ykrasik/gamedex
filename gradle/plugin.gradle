@@ -54,3 +54,13 @@ task generatePluginJsonFile() {
 }
 
 compileKotlin.dependsOn generatePluginJsonFile
+licenseFormatMain.dependsOn generatePluginJsonFile
+licenseMain.dependsOn generatePluginJsonFile
+processResources.dependsOn(licenseFormatMain, licenseMain)
+
+dependencies {
+    compileOnly project(":gamedex-api")
+    testImplementation project(":gamedex-api")
+    testImplementation project(path: ":gamedex-api", configuration: 'testArtifacts')
+    testImplementation project(path: ":gamedex-api", configuration: 'testDependencies')
+}

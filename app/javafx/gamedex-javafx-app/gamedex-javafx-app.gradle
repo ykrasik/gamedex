@@ -17,6 +17,7 @@ dependencies {
     testImplementation project(":core:gamedex-core-persistence")
 
     pluginProjects().forEach {
+        test.dependsOn it.shadowJar
         testRuntimeOnly project(path: it.path)
         testRuntimeOnly project(path: it.path, configuration: 'testArtifacts')
     }
@@ -69,6 +70,6 @@ task cleanDist(type: Delete) {
 clean.finalizedBy cleanDist
 
 task runDemo(dependsOn: 'classes', type: JavaExec) {
-    main = 'com.gitlab.ykrasik.gamedex.javafx.TestApplication'
+    mainClass = 'com.gitlab.ykrasik.gamedex.javafx.TestApplication'
     classpath = sourceSets.test.runtimeClasspath
 }
