@@ -19,11 +19,13 @@ package com.gitlab.ykrasik.gamedex.test
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import io.kotlintest.Spec
-import io.kotlintest.TestCaseContext
-import io.kotlintest.matchers.*
-import io.kotlintest.specs.WordSpec
-import kotlinx.coroutines.runBlocking
+import io.kotest.core.spec.IsolationMode
+import io.kotest.core.spec.Spec
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.core.spec.style.scopes.DescribeSpecContainerScope
+import io.kotest.core.test.TestCase
+import io.kotest.core.test.TestResult
+import io.kotest.matchers.*
 import org.joda.time.DateTime
 import org.joda.time.DateTimeUtils
 import org.joda.time.DateTimeZone
@@ -33,8 +35,9 @@ import org.joda.time.DateTimeZone
  * Date: 25/03/2017
  * Time: 11:26
  */
-abstract class Spec<Scope> : WordSpec() {
-    override val oneInstancePerTest = false
+abstract class Spec<Scope> : DescribeSpec() {
+    override fun isolationMode() = IsolationMode.SingleInstance
+
 
     val now = DateTime(10000000).withZone(DateTimeZone.UTC)
     val nowTimestamp = Timestamp(createDate = now, updateDate = now)
@@ -43,15 +46,20 @@ abstract class Spec<Scope> : WordSpec() {
         DateTimeUtils.setCurrentMillisFixed(now.millis)
     }
 
-    override fun interceptSpec(context: Spec, spec: () -> Unit) {
+    override suspend fun beforeSpec(spec: Spec) {
         beforeAll()
-        spec()
+    }
+
+    override suspend fun afterSpec(spec: Spec) {
         afterAll()
     }
 
-    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
+    override suspend fun beforeTest(testCase: TestCase) {
         beforeEach()
-        test()
+
+    }
+
+    override suspend fun afterTest(testCase: TestCase, result: TestResult) {
         afterEach()
     }
 
@@ -62,28 +70,33 @@ abstract class Spec<Scope> : WordSpec() {
     protected open fun beforeEach() {}
     protected open fun afterEach() {}
 
-    infix fun String.test(test: suspend Scope.() -> Unit) = this.invoke { runBlocking { test(scope()) } }
+    suspend fun DescribeSpecContainerScope.itShould(name: String, test: suspend Scope.() -> Unit) {
+        it(name) { test(scope()) }
+    }
 }
 
 fun Score?.assertScore(min: Number, max: Number, numReviews: Int): Score {
     this shouldNotBe null
-    this!!.score should (beGreaterThanOrEqualTo(min.toDouble()) and beLessThanOrEqualTo(max.toDouble()))
-    this.numReviews should beGreaterThanOrEqualTo(numReviews)
+    this!!.score should (io.kotest.matchers.doubles.beGreaterThanOrEqualTo(min.toDouble()) and io.kotest.matchers.doubles.beLessThanOrEqualTo(
+        max.toDouble()
+    ))
+    this.numReviews should io.kotest.matchers.ints.beGreaterThanOrEqualTo(numReviews)
     return this
 }
 
 fun have1SearchResultWhere(f: GameProvider.SearchResult.() -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
-    override fun test(value: List<GameProvider.SearchResult>): Result {
-        value should haveSize(1)
+    override fun test(value: List<GameProvider.SearchResult>): MatcherResult {
+        value should io.kotest.matchers.collections.haveSize(1)
         f(value.first())
-        return Result(true, "")
+        return MatcherResult.Companion.invoke(true, { "" }, { "" })
     }
 }
 
-fun have2SearchResultsWhere(f: (first: GameProvider.SearchResult, second: GameProvider.SearchResult) -> Unit) = object : Matcher<List<GameProvider.SearchResult>> {
-    override fun test(value: List<GameProvider.SearchResult>): Result {
-        value should haveSize(2)
-        f(value[0], value[1])
-        return Result(true, "")
+fun have2SearchResultsWhere(f: (first: GameProvider.SearchResult, second: GameProvider.SearchResult) -> Unit) =
+    object : Matcher<List<GameProvider.SearchResult>> {
+        override fun test(value: List<GameProvider.SearchResult>): MatcherResult {
+            value should io.kotest.matchers.collections.haveSize(2)
+            f(value[0], value[1])
+            return MatcherResult.Companion.invoke(true, { "" }, { "" })
+        }
     }
-}

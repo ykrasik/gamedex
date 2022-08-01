@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.core.persistence.AbstractPersistenceTest.GameScope
 import com.gitlab.ykrasik.gamedex.test.randomPath
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldThrow
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 
 /**
@@ -33,8 +33,8 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
     override fun scope() = GameScope()
 
     init {
-        "Insert" should {
-            "insert and retrieve a single game with userData" test {
+        describe("Insert") {
+            itShould("insert and retrieve a single game with userData") {
                 val metadata = randomMetadata()
                 val providerData = listOf(randomProviderData(), randomProviderData())
                 val userData = randomUserData()
@@ -47,7 +47,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game)
             }
 
-            "insert and retrieve a single game with provider-override userData" test {
+            itShould("insert and retrieve a single game with provider-override userData") {
                 val userData = UserData(overrides = randomProviderOverrides())
 
                 val game = insertGame(userData = userData)
@@ -56,7 +56,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game)
             }
 
-            "insert and retrieve a single game with custom-override userData" test {
+            itShould("insert and retrieve a single game with custom-override userData") {
                 val userData = UserData(overrides = randomCustomOverrides())
 
                 val game = insertGame(userData = userData)
@@ -65,7 +65,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game)
             }
 
-            "insert and retrieve a single game with empty userData" test {
+            itShould("insert and retrieve a single game with empty userData") {
                 val userData = UserData()
 
                 val game = insertGame(userData = userData)
@@ -74,21 +74,21 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game)
             }
 
-            "insert and retrieve a single game with null userData" test {
+            itShould("insert and retrieve a single game with null userData") {
                 val game = insertGame(userData = UserData.Null)
                 game.userData shouldBe UserData.Null
 
                 fetchGames() shouldBe listOf(game)
             }
 
-            "insert and retrieve multiple games" test {
+            itShould("insert and retrieve multiple games") {
                 val game1 = insertGame()
                 val game2 = insertGame()
 
                 fetchGames() shouldBe listOf(game1, game2)
             }
 
-            "throw an exception when trying to insert a game for an already existing path in the same library" test {
+            itShould("throw an exception when trying to insert a game for an already existing path in the same library") {
                 val path = randomPath()
                 givenGame(path = path)
 
@@ -97,7 +97,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 }
             }
 
-            "allow inserting a game for an already existing path in a different library" test {
+            itShould("allow inserting a game for an already existing path in a different library") {
                 val path = randomPath()
                 val game1 = givenGame(path = path)
                 val library2 = givenLibrary()
@@ -107,7 +107,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game1, game2)
             }
 
-            "throw an exception when trying to insert a game for a non-existing library" test {
+            itShould("throw an exception when trying to insert a game for a non-existing library") {
                 val library = givenLibrary()
 
                 shouldThrow<ExposedSQLException> {
@@ -116,8 +116,8 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
             }
         }
 
-        "Update" should {
-            "update game" test {
+        describe("Update") {
+            itShould("update game") {
                 val game = givenGame()
                 val updatedGame = game.copy(
                     metadata = randomMetadata(),
@@ -131,7 +131,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(updatedGame.withMetadata { it.withCreateDate(game.metadata.createDate) })
             }
 
-            "update game user data with provider overrides" test {
+            itShould("update game user data with provider overrides") {
                 val game = givenGame()
 
                 val updatedGame = game.copy(userData = UserData(overrides = randomProviderOverrides()))
@@ -140,7 +140,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(updatedGame)
             }
 
-            "update game user data with custom overrides" test {
+            itShould("update game user data with custom overrides") {
                 val game = givenGame()
 
                 val updatedGame = game.copy(userData = UserData(overrides = randomCustomOverrides()))
@@ -149,7 +149,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(updatedGame)
             }
 
-            "update game user data to empty" test {
+            itShould("update game user data to empty") {
                 val game = givenGame()
 
                 val updatedGame = game.copy(userData = UserData())
@@ -158,7 +158,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(updatedGame)
             }
 
-            "update game user data to null" test {
+            itShould("update game user data to null") {
                 val game = givenGame()
 
                 val updatedGame = game.copy(userData = UserData.Null)
@@ -167,7 +167,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(updatedGame)
             }
 
-            "update game metadata to a different library" test {
+            itShould("update game metadata to a different library") {
                 val library2 = givenLibrary()
                 val game = givenGame()
 
@@ -178,7 +178,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(updatedGame.withMetadata { it.withCreateDate(game.metadata.createDate) })
             }
 
-            "not update a game that doesn't exist" test {
+            itShould("not update a game that doesn't exist") {
                 val game = givenGame()
 
                 persistenceService.updateGame(game.copy(id = game.id + 1)) shouldBe false
@@ -186,7 +186,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game)
             }
 
-            "throw an exception when trying to update a game's path to one that already exists in the same library" test {
+            itShould("throw an exception when trying to update a game's path to one that already exists in the same library") {
                 val game1 = givenGame(library)
                 val game2 = givenGame(library)
 
@@ -197,7 +197,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game1, game2)
             }
 
-            "allow updating a game's path to one that already exists in a different library" test {
+            itShould("allow updating a game's path to one that already exists in a different library") {
                 val path = randomPath()
                 val game1 = givenGame()
                 val library2 = givenLibrary()
@@ -209,7 +209,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(updatedGame1, game2)
             }
 
-            "throw an exception when trying to update a game to a different library, but the game's path already exists under that library" test {
+            itShould("throw an exception when trying to update a game to a different library, but the game's path already exists under that library") {
                 val path = randomPath()
                 val game1 = givenGame(path = path)
                 val library2 = givenLibrary()
@@ -222,7 +222,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe listOf(game1, game2)
             }
 
-            "throw an exception when trying to update a game to a non-existing library" test {
+            itShould("throw an exception when trying to update a game to a non-existing library") {
                 val game = givenGame()
 
                 shouldThrow<ExposedSQLException> {
@@ -231,8 +231,8 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
             }
         }
 
-        "Delete" should {
-            "delete existing games" test {
+        describe("Delete") {
+            itShould("delete existing games") {
                 val game1 = givenGame()
                 val game2 = givenGame()
 
@@ -243,7 +243,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 fetchGames() shouldBe emptyList<Game>()
             }
 
-            "not delete a game that doesn't exist" test {
+            itShould("not delete a game that doesn't exist") {
                 val game = givenGame()
 
                 persistenceService.deleteGame(game.id + 1) shouldBe false
@@ -252,7 +252,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
             }
 
             @Suppress("UNUSED_VARIABLE")
-            "delete all games belonging to a library when that library is deleted" test {
+            itShould("delete all games belonging to a library when that library is deleted") {
                 val game1 = givenGame(library = library)
                 val game2 = givenGame(library = library)
 
@@ -268,8 +268,8 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
             }
         }
 
-        "BatchDelete" should {
-            "batch delete games by id" test {
+        describe("BatchDelete") {
+            itShould("batch delete games by id") {
                 val game1 = givenGame(library = library)
                 val game2 = givenGame(library = library)
 
@@ -297,7 +297,7 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
             }
 
             @Suppress("UNUSED_VARIABLE")
-            "delete all games belonging to a library when that library is deleted" test {
+            itShould("delete all games belonging to a library when that library is deleted") {
                 val game1 = givenGame(library = library)
                 val game2 = givenGame(library = library)
 
@@ -313,8 +313,8 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
             }
         }
 
-        "ClearUserData" should {
-            "set userData of all games to null" test {
+        describe("ClearUserData") {
+            itShould("set userData of all games to null") {
                 val game1 = givenGame(userData = randomUserData())
                 val game2 = givenGame(userData = randomUserData())
 
@@ -323,7 +323,12 @@ class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
                 val game4 = givenGame(library = library2, userData = UserData.Null)
 
                 persistenceService.clearUserData()
-                fetchGames() shouldBe listOf(game1.copy(userData = UserData.Null), game2.copy(userData = UserData.Null), game3.copy(userData = UserData.Null), game4)
+                fetchGames() shouldBe listOf(
+                    game1.copy(userData = UserData.Null),
+                    game2.copy(userData = UserData.Null),
+                    game3.copy(userData = UserData.Null),
+                    game4
+                )
             }
         }
     }

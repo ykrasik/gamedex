@@ -69,7 +69,12 @@ buildscript {
         completely = [group: 'com.miguelfonseca.completely', name: 'completely-core', version: '0.8.0']
         stringSimilarity = [group: 'info.debatty', name: 'java-string-similarity', version: '2.0.0']
 
-        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.7']
+        koTest = [:].with {
+            v = '5.4.1'
+            junit = [group: 'io.kotest', name: 'kotest-runner-junit5', version: v]
+            assertions = [group: 'io.kotest', name: 'kotest-assertions-core', version: v]
+            delegate
+        }
         mockK = [group: 'io.mockk', name: 'mockk', version: '1.12.5']
 
         ktor = [:].with {
@@ -177,6 +182,8 @@ subprojects {
     }
 
     test {
+        useJUnitPlatform()
+
         testLogging {
             events 'failed'
         }
@@ -220,7 +227,8 @@ project("gamedex-api") {
         implementation jackson.kotlin
         implementation jackson.joda
 
-        testImplementation kotlinTest
+        testImplementation koTest.junit
+        testImplementation koTest.assertions
         testImplementation mockK
 
         testImplementation coroutines.debug

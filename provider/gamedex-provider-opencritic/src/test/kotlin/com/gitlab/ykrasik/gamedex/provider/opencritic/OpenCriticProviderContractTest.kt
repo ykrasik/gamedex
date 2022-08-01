@@ -23,9 +23,9 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.Spec
 import com.gitlab.ykrasik.gamedex.test.assertScore
 import com.typesafe.config.ConfigFactory
-import io.kotlintest.matchers.haveSize
-import io.kotlintest.matchers.should
-import io.kotlintest.matchers.shouldBe
+import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 
 /**
  * User: ykrasik
@@ -37,8 +37,8 @@ class OpenCriticProviderContractTest : Spec<OpenCriticProviderContractTest.Scope
     val provider = OpenCriticProvider(config, OpenCriticClient(config))
 
     init {
-        "OpenCriticProvider" should {
-            "search & retrieve a single search result" test {
+        describe("OpenCriticProvider") {
+            itShould("search & retrieve a single search result") {
                 val results = provider.search(name, Platform.Windows, GameProvider.Account.Null, offset = 0, limit = 10).results
                 results should haveSize(8)
 
@@ -54,7 +54,7 @@ class OpenCriticProviderContractTest : Spec<OpenCriticProviderContractTest.Scope
                 )
             }
 
-            "fetch game details" test {
+            itShould("fetch game details") {
                 val result = provider.fetch(providerGameId, Platform.Windows, GameProvider.Account.Null)
                 result shouldBe GameProvider.FetchResponse(
                     gameData = GameData(

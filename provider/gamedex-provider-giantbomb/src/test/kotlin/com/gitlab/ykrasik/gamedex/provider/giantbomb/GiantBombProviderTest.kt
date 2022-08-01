@@ -22,9 +22,9 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
-import io.kotlintest.matchers.should
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldThrow
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 
@@ -35,8 +35,8 @@ import io.ktor.http.*
  */
 class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
     init {
-        "search" should {
-            "be able to return a single search result" test {
+        describe("search") {
+            itShould("be able to return a single search result") {
                 val query = "query"
                 val result = searchResult()
                 givenSearchResults(result)
@@ -71,13 +71,13 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 }
             }
 
-            "be able to return empty search results" test {
+            itShould("be able to return empty search results") {
                 givenSearchResults()
 
-                search() shouldBe emptyList<GameProvider.SearchResult>()
+                search() shouldBe emptyList()
             }
 
-            "be able to return multiple search results" test {
+            itShould("be able to return multiple search results") {
                 val result1 = searchResult()
                 val result2 = searchResult()
                 givenSearchResults(result1, result2)
@@ -88,13 +88,13 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 }
             }
 
-            "return null description when 'deck' is null" test {
+            itShould("return null description when 'deck' is null") {
                 givenSearchResults(searchResult().copy(deck = null))
 
                 search() should have1SearchResultWhere { description shouldBe null }
             }
 
-            "return null releaseDate when 'originalReleaseDate' & 'expectedReleaseDates' are null" test {
+            itShould("return null releaseDate when 'originalReleaseDate' & 'expectedReleaseDates' are null") {
                 givenSearchResults(
                     searchResult().copy(
                         originalReleaseDate = null,
@@ -108,7 +108,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
-            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay as releaseDate when originalReleaseDate is null and those are present" test {
+            itShould("use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay as releaseDate when originalReleaseDate is null and those are present") {
                 givenSearchResults(
                     searchResult().copy(
                         originalReleaseDate = null,
@@ -122,7 +122,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 search() should have1SearchResultWhere { releaseDate shouldBe "2019-07-12" }
             }
 
-            "use expectedReleaseYear & expectedReleaseMonth as releaseDate when originalReleaseDate is null and those are present" test {
+            itShould("use expectedReleaseYear & expectedReleaseMonth as releaseDate when originalReleaseDate is null and those are present") {
                 givenSearchResults(
                     searchResult().copy(
                         originalReleaseDate = null,
@@ -137,55 +137,55 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             }
 
             "use expectedReleaseYear & expectedReleaseQuarter as releaseDate when originalReleaseDate is null and those are present, " +
-                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenSearchResults(
-                    searchResult().copy(
-                        originalReleaseDate = null,
-                        expectedReleaseYear = 1998,
-                        expectedReleaseMonth = 10,
-                        expectedReleaseDay = 12,
-                        expectedReleaseQuarter = 1
-                    )
-                )
+                    itShould("even if expectedReleaseMonth & expectedReleaseDay are also present") {
+                        givenSearchResults(
+                            searchResult().copy(
+                                originalReleaseDate = null,
+                                expectedReleaseYear = 1998,
+                                expectedReleaseMonth = 10,
+                                expectedReleaseDay = 12,
+                                expectedReleaseQuarter = 1
+                            )
+                        )
 
-                search() should have1SearchResultWhere { releaseDate shouldBe "1998 Q1" }
-            }
+                        search() should have1SearchResultWhere { releaseDate shouldBe "1998 Q1" }
+                    }
 
             "return null releaseDate if originalReleaseDate & expectedReleaseYear are null," +
-                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenSearchResults(
-                    searchResult().copy(
-                        originalReleaseDate = null,
-                        expectedReleaseYear = null,
-                        expectedReleaseMonth = 10,
-                        expectedReleaseDay = 12,
-                        expectedReleaseQuarter = 1
-                    )
-                )
+                    itShould("even if expectedReleaseMonth & expectedReleaseDay are also present") {
+                        givenSearchResults(
+                            searchResult().copy(
+                                originalReleaseDate = null,
+                                expectedReleaseYear = null,
+                                expectedReleaseMonth = 10,
+                                expectedReleaseDay = 12,
+                                expectedReleaseQuarter = 1
+                            )
+                        )
 
-                search() should have1SearchResultWhere { releaseDate shouldBe null }
-            }
+                        search() should have1SearchResultWhere { releaseDate shouldBe null }
+                    }
 
-            "return null thumbnailUrl when 'image' is null" test {
+            itShould("return null thumbnailUrl when 'image' is null") {
                 givenSearchResults(searchResult().copy(image = null))
 
                 search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
-            "consider noImageUrl1 as absent image" test {
+            itShould("consider noImageUrl1 as absent image") {
                 givenSearchResults(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1")))
 
                 search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
-            "consider noImageUrl2 as absent image" test {
+            itShould("consider noImageUrl2 as absent image") {
                 givenSearchResults(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2")))
 
                 search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
-            "error cases" should {
-                "throw IllegalStateException on invalid response status" test {
+            describe("error cases") {
+                itShould("throw IllegalStateException on invalid response status") {
                     givenSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
                     shouldThrow<IllegalStateException> {
@@ -193,7 +193,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                     }
                 }
 
-                "throw ClientRequestException on invalid http response status" test {
+                itShould("throw ClientRequestException on invalid http response status") {
                     server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
                     val e = shouldThrow<ClientRequestException> {
@@ -204,8 +204,8 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             }
         }
 
-        "fetch" should {
-            "fetch details" test {
+        describe("fetch") {
+            itShould("fetch details") {
                 val result = detailsResult()
                 givenFetchResult(result, apiUrl = apiDetailsUrl)
 
@@ -236,13 +236,13 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 }
             }
 
-            "return null description when 'deck' is null" test {
+            itShould("return null description when 'deck' is null") {
                 givenFetchResult(detailsResult().copy(deck = null))
 
                 fetch().gameData.description shouldBe null
             }
 
-            "return null releaseDate when 'originalReleaseDate' & 'expectedReleaseDates' are null" test {
+            itShould("return null releaseDate when 'originalReleaseDate' & 'expectedReleaseDates' are null") {
                 givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
@@ -256,7 +256,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay as releaseDate when originalReleaseDate is null and those are present" test {
+            itShould("use expectedReleaseYear, expectedReleaseMonth & expectedReleaseDay as releaseDate when originalReleaseDate is null and those are present") {
                 givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
@@ -270,7 +270,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "2019-07-12"
             }
 
-            "use expectedReleaseYear & expectedReleaseMonth as releaseDate when originalReleaseDate is null and those are present" test {
+            itShould("use expectedReleaseYear & expectedReleaseMonth as releaseDate when originalReleaseDate is null and those are present") {
                 givenFetchResult(
                     detailsResult().copy(
                         originalReleaseDate = null,
@@ -285,73 +285,73 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
             }
 
             "use expectedReleaseYear & expectedReleaseQuarter as releaseDate when originalReleaseDate is null and those are present, " +
-                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenFetchResult(
-                    detailsResult().copy(
-                        originalReleaseDate = null,
-                        expectedReleaseYear = 1998,
-                        expectedReleaseMonth = 10,
-                        expectedReleaseDay = 12,
-                        expectedReleaseQuarter = 1
-                    )
-                )
+                    itShould("even if expectedReleaseMonth & expectedReleaseDay are also present") {
+                        givenFetchResult(
+                            detailsResult().copy(
+                                originalReleaseDate = null,
+                                expectedReleaseYear = 1998,
+                                expectedReleaseMonth = 10,
+                                expectedReleaseDay = 12,
+                                expectedReleaseQuarter = 1
+                            )
+                        )
 
-                fetch().gameData.releaseDate shouldBe "1998 Q1"
-            }
+                        fetch().gameData.releaseDate shouldBe "1998 Q1"
+                    }
 
             "return null releaseDate if originalReleaseDate & expectedReleaseYear are null," +
-                    "even if expectedReleaseMonth & expectedReleaseDay are also present" test {
-                givenFetchResult(
-                    detailsResult().copy(
-                        originalReleaseDate = null,
-                        expectedReleaseYear = null,
-                        expectedReleaseMonth = 10,
-                        expectedReleaseDay = 12,
-                        expectedReleaseQuarter = 1
-                    )
-                )
+                    itShould("even if expectedReleaseMonth & expectedReleaseDay are also present") {
+                        givenFetchResult(
+                            detailsResult().copy(
+                                originalReleaseDate = null,
+                                expectedReleaseYear = null,
+                                expectedReleaseMonth = 10,
+                                expectedReleaseDay = 12,
+                                expectedReleaseQuarter = 1
+                            )
+                        )
 
-                fetch().gameData.releaseDate shouldBe null
-            }
+                        fetch().gameData.releaseDate shouldBe null
+                    }
 
-            "return empty genres when 'genres' field is null" test {
+            itShould("return empty genres when 'genres' field is null") {
                 givenFetchResult(detailsResult().copy(genres = null))
 
                 fetch().gameData.genres shouldBe emptyList<String>()
             }
 
-            "return null thumbnail when 'image' is null" test {
+            itShould("return null thumbnail when 'image' is null") {
                 givenFetchResult(detailsResult().copy(image = null))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "consider noImageUrl1 as absent thumbnail" test {
+            itShould("consider noImageUrl1 as absent thumbnail") {
                 givenFetchResult(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage1")))
 
                 fetch().gameData.thumbnailUrl shouldBe null
             }
 
-            "consider noImageUrl2 as absent thumbnail" test {
+            itShould("consider noImageUrl2 as absent thumbnail") {
                 givenFetchResult(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage2")))
 
                 fetch().gameData.thumbnailUrl shouldBe null
             }
 
-            "consider noImageUrl1 as absent poster" test {
+            itShould("consider noImageUrl1 as absent poster") {
                 givenFetchResult(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage1")))
 
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "consider noImageUrl2 as absent poster" test {
+            itShould("consider noImageUrl2 as absent poster") {
                 givenFetchResult(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage2")))
 
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "filter out no image urls from screenshots" test {
+            itShould("filter out no image urls from screenshots") {
                 val screenshot1 = randomImage()
                 givenFetchResult(
                     detailsResult().copy(
@@ -366,8 +366,8 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                 fetch().gameData.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
 
-            "error cases" should {
-                "throw IllegalStateException on invalid response status" test {
+            describe("error cases") {
+                itShould("throw IllegalStateException on invalid response status") {
                     givenFetchReturns(GiantBombClient.FetchResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
                     shouldThrow<IllegalStateException> {
@@ -375,7 +375,7 @@ class GiantBombProviderTest : Spec<GiantBombProviderTest.Scope>() {
                     }
                 }
 
-                "throw ClientRequestException on invalid http response status" test {
+                itShould("throw ClientRequestException on invalid http response status") {
                     server.aFetchRequest(apiDetailsUrl) willFailWith HttpStatusCode.BadRequest
 
                     val e = shouldThrow<ClientRequestException> {

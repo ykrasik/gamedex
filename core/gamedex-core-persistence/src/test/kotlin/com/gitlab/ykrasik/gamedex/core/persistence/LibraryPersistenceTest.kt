@@ -23,8 +23,8 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.persistence.AbstractPersistenceTest.LibraryScope
 import com.gitlab.ykrasik.gamedex.test.randomPath
 import com.gitlab.ykrasik.gamedex.util.file
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldThrow
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 
 /**
@@ -36,8 +36,8 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
     override fun scope() = LibraryScope()
 
     init {
-        "Insert" should {
-            "insert and retrieve a single library" test {
+        describe("Insert") {
+            itShould("insert and retrieve a single library") {
                 val data = libraryData()
 
                 val library = persistenceService.insertLibrary(data)
@@ -47,14 +47,14 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
                 fetchLibraries() shouldBe listOf(library)
             }
 
-            "insert and retrieve multiple libraries" test {
+            itShould("insert and retrieve multiple libraries") {
                 val library1 = insertLibrary()
                 val library2 = insertLibrary()
 
                 fetchLibraries() shouldBe listOf(library1, library2)
             }
 
-            "throw an exception when trying to insert a library at the same path twice" test {
+            itShould("throw an exception when trying to insert a library at the same path twice") {
                 val path = randomPath()
                 val library = givenLibrary(path = path)
 
@@ -66,8 +66,8 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
             }
         }
 
-        "Update" should {
-            "update a library's data" test {
+        describe("Update") {
+            itShould("update a library's data") {
                 val library = givenLibrary(platform = Platform.Windows)
                 val updatedLibrary = library.copy(
                     data = library.data.copy(
@@ -83,7 +83,7 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
                 fetchLibraries() shouldBe listOf(updatedLibrary)
             }
 
-            "not update a library that doesn't exist" test {
+            itShould("not update a library that doesn't exist") {
                 val library = givenLibrary()
 
                 persistenceService.updateLibrary(library.copy(id = library.id + 1)) shouldBe false
@@ -91,7 +91,7 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
                 fetchLibraries() shouldBe listOf(library)
             }
 
-            "throw an exception when trying to update a library's path to one that already exists" test {
+            itShould("throw an exception when trying to update a library's path to one that already exists") {
                 val library1 = givenLibrary()
                 val library2 = givenLibrary()
 
@@ -105,8 +105,8 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
             }
         }
 
-        "Delete" should {
-            "delete existing libraries" test {
+        describe("Delete") {
+            itShould("delete existing libraries") {
                 val library1 = givenLibrary()
                 val library2 = givenLibrary()
 
@@ -117,7 +117,7 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
                 fetchLibraries() shouldBe emptyList<Library>()
             }
 
-            "not delete a library that doesn't exist" test {
+            itShould("not delete a library that doesn't exist") {
                 val library = givenLibrary()
 
                 persistenceService.deleteLibrary(library.id + 1) shouldBe false
@@ -126,8 +126,8 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
             }
         }
 
-        "BatchDelete" should {
-            "batch delete libraries by id" test {
+        describe("BatchDelete") {
+            itShould("batch delete libraries by id") {
                 val library1 = givenLibrary()
                 val library2 = givenLibrary()
                 val library3 = givenLibrary()

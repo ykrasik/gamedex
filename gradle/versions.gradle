@@ -15,10 +15,13 @@ dependencyUpdates.resolutionStrategy {
 
             boolean ignored = [
                 'org.kordamp.ikonli:ikonli-javafx:11.*',
+                'org.kordamp.ikonli:ikonli-javafx:12.*',
                 'org.controlsfx:controlsfx:9.*',
                 'org.controlsfx:controlsfx:11.*',
                 'com.jfoenix:jfoenix:9.*',
-                'com.h2database:h2:1.4.200'
+                'org.fxmisc.richtext:richtextfx:0.10.*',
+                'no.tornado:tornadofx:1.7.*',
+                'com.miguelfonseca.completely:completely-core:0.9.*',
             ].any { regex ->
                 selection.candidate.toString() ==~ regex
             }

@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.Spec
 import com.typesafe.config.ConfigFactory
-import io.kotlintest.matchers.shouldBe
+import io.kotest.matchers.shouldBe
 
 /**
  * User: ykrasik
@@ -34,8 +34,8 @@ class GiantBombProviderContractTest : Spec<GiantBombProviderContractTest.Scope>(
     val account = GiantBombUserAccount(apiKey = System.getProperty("gameDex.giantBomb.apiKey"))
 
     init {
-        "GiantBombProvider" should {
-            "search & retrieve a single search result" test {
+        describe("GiantBombProvider") {
+            itShould("search & retrieve a single search result") {
                 provider.search(name, Platform.Windows, account, offset = 0, limit = 10).results shouldBe listOf(
                     GameProvider.SearchResult(
                         providerGameId = apiUrl,
@@ -49,7 +49,7 @@ class GiantBombProviderContractTest : Spec<GiantBombProviderContractTest.Scope>(
                 )
             }
 
-            "fetch game details" test {
+            itShould("fetch game details") {
                 provider.fetch(apiUrl, Platform.Windows, account) shouldBe GameProvider.FetchResponse(
                     gameData = GameData(
                         name = name,

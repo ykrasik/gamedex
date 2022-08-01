@@ -21,11 +21,10 @@ import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.util.capitalize
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.now
+import io.github.classgraph.ClassGraph
 import kotlinx.coroutines.repackaged.net.bytebuddy.utility.RandomString
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import org.reflections.Reflections
-import org.reflections.scanners.ResourcesScanner
 import java.text.DecimalFormat
 import java.util.*
 
@@ -39,9 +38,11 @@ private object TestResources {
     val genres = javaClass.getResource("genres.txt")!!.readText().lines()
 
     /* These images were all taken from [[igdb.com]] */
-    val images = Reflections("com.gitlab.ykrasik.gamedex.test.images", ResourcesScanner())
-        .getResources { true }
-        .map { this::class.java.getResource("/$it") }
+    val images = ClassGraph()
+        .acceptPackages("com.gitlab.ykrasik.gamedex.test")
+        .scan()
+        .getResourcesWithExtension(".jpg")
+        .urLs
 }
 
 val rnd = Random()
@@ -65,7 +66,9 @@ fun randomName(maxWords: Int = 6): String = randomWords(maxWords).joinToString("
 fun randomParagraph(minWords: Int = 20, maxWords: Int = 100): String =
     randomWords(minWords = minWords, maxWords = maxWords).joinToString(" ").capitalize()
 
-fun randomPath(maxElements: Int = 4, minElements: Int = 1): String = randomWords(minWords = minElements, maxWords = maxElements).joinToString("/")
+fun randomPath(maxElements: Int = 4, minElements: Int = 1): String =
+    randomWords(minWords = minElements, maxWords = maxElements).joinToString("/")
+
 fun randomFile() = randomPath().file
 fun randomUrl() = "http://${randomWords(minWords = 3, maxWords = 3).joinToString(".")}/${randomPath()}".lowercase()
 

@@ -24,7 +24,11 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.JodaLocalDate
-import io.kotlintest.matchers.*
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowAny
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.haveSubstring
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 
@@ -35,8 +39,8 @@ import io.ktor.http.*
  */
 class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
     init {
-        "search" should {
-            "be able to return a single search result" test {
+        describe("search") {
+            itShould("be able to return a single search result") {
                 val query = "query"
                 val result = searchResult(releaseDate = releaseDate)
                 givenSearchResults(result)
@@ -73,7 +77,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 }
             }
 
-            "split search name by whitespace & remove non-word characters" test {
+            itShould("split search name by whitespace & remove non-word characters") {
                 givenSearchResults(searchResult())
 
                 search("name with\tspace & other-characters: yes\nno,   maybe")
@@ -88,13 +92,13 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 }
             }
 
-            "be able to return empty search results" test {
+            itShould("be able to return empty search results") {
                 givenSearchResults()
 
-                search() shouldBe emptyList<GameProvider.SearchResult>()
+                search() shouldBe emptyList()
             }
 
-            "be able to return multiple search results" test {
+            itShould("be able to return multiple search results") {
                 val result1 = searchResult()
                 val result2 = searchResult()
                 givenSearchResults(result1, result2)
@@ -105,86 +109,86 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 }
             }
 
-            "return null description when 'summary' is null" test {
+            itShould("return null description when 'summary' is null") {
                 givenSearchResults(searchResult().copy(summary = null))
 
                 search() should have1SearchResultWhere { description shouldBe null }
             }
 
-            "return null criticScore when 'aggregatedRating' is null, even if 'aggregatedRatingCount' isn't" test {
+            itShould("return null criticScore when 'aggregatedRating' is null, even if 'aggregatedRatingCount' isn't") {
                 givenSearchResults(searchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
 
                 search() should have1SearchResultWhere { criticScore shouldBe null }
             }
 
-            "return null criticScore when 'aggregatedRating' is not null but 'aggregatedRatingCount' is 0" test {
+            itShould("return null criticScore when 'aggregatedRating' is not null but 'aggregatedRatingCount' is 0") {
                 givenSearchResults(searchResult().copy(aggregatedRating = 99.9, aggregatedRatingCount = 0))
 
                 search() should have1SearchResultWhere { criticScore shouldBe null }
             }
 
-            "return null userScore when 'rating' is null, event if 'ratingCount' isn't" test {
+            itShould("return null userScore when 'rating' is null, event if 'ratingCount' isn't") {
                 givenSearchResults(searchResult().copy(rating = null, ratingCount = 1))
 
                 search() should have1SearchResultWhere { userScore shouldBe null }
             }
 
-            "return null userScore when 'rating' is not null but 'ratingCount' is 0" test {
+            itShould("return null userScore when 'rating' is not null but 'ratingCount' is 0") {
                 givenSearchResults(searchResult().copy(rating = 99.9, ratingCount = 0))
 
                 search() should have1SearchResultWhere { userScore shouldBe null }
             }
 
-            "return null releaseDate when 'releaseDates' is null & 'firstReleaseDate' is null" test {
+            itShould("return null releaseDate when 'releaseDates' is null & 'firstReleaseDate' is null") {
                 givenSearchResults(searchResult().copy(releaseDates = null, firstReleaseDate = null))
 
                 search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
-            "return null releaseDate when no releaseDate exists for given platform and 'firstReleaseDate' is null" test {
+            itShould("return null releaseDate when no releaseDate exists for given platform and 'firstReleaseDate' is null") {
                 givenSearchResults(searchResult(releaseDatePlatformId = platformId + 1).copy(firstReleaseDate = null))
 
                 search() should have1SearchResultWhere { releaseDate shouldBe null }
             }
 
-            "return 'firstReleaseDate' as releaseDate when no releaseDate exists for given platform" test {
+            itShould("return 'firstReleaseDate' as releaseDate when no releaseDate exists for given platform") {
                 givenSearchResults(searchResult(releaseDatePlatformId = platformId + 1))
 
                 search() should have1SearchResultWhere { releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd") }
             }
 
-            "return 'firstReleaseDate' as releaseDate when releaseDate is null for given platform" test {
+            itShould("return 'firstReleaseDate' as releaseDate when releaseDate is null for given platform") {
                 givenSearchResults(searchResult(releaseDate = null))
 
                 search() should have1SearchResultWhere { releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd") }
             }
 
-            "return null thumbnailUrl when 'cover.cloudinaryId' is null" test {
+            itShould("return null thumbnailUrl when 'cover.cloudinaryId' is null") {
                 givenSearchResults(searchResult().copy(cover = image(imageId = null)))
 
                 search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
-            "return null thumbnailUrl when 'cover' is null" test {
+            itShould("return null thumbnailUrl when 'cover' is null") {
                 givenSearchResults(searchResult().copy(cover = null))
 
                 search() should have1SearchResultWhere { thumbnailUrl shouldBe null }
             }
 
-            "error cases" should {
-                "throw ClientRequestException on invalid http response status" test {
+            describe("error cases") {
+                itShould("throw ClientRequestException on invalid http response status") {
                     server.anyRequest() willFailWith HttpStatusCode.BadRequest
 
                     val e = shouldThrow<ClientRequestException> {
                         search()
                     }
-                    e.message shouldHave substring(HttpStatusCode.BadRequest.value.toString())
+                    e.message should haveSubstring(HttpStatusCode.BadRequest.value.toString())
                 }
             }
         }
 
-        "fetch" should {
-            "fetch details" test {
+        describe("fetch") {
+            itShould("fetch details") {
                 val id = "gameId"
                 val result = fetchResult(releaseDate = releaseDate)
                 givenFetchResult(result)
@@ -218,95 +222,95 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 }
             }
 
-            "return null description when 'summary' is null" test {
+            itShould("return null description when 'summary' is null") {
                 givenFetchResult(fetchResult().copy(summary = null))
 
                 fetch().gameData.description shouldBe null
             }
 
-            "return null criticScore when 'aggregatedRating' is null, even if 'aggregatedRatingCount' isn't" test {
+            itShould("return null criticScore when 'aggregatedRating' is null, even if 'aggregatedRatingCount' isn't") {
                 givenFetchResult(fetchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
 
                 fetch().gameData.criticScore shouldBe null
             }
 
-            "return null criticScore when 'aggregatedRating' is not null but 'aggregatedRatingCount' is 0" test {
+            itShould("return null criticScore when 'aggregatedRating' is not null but 'aggregatedRatingCount' is 0") {
                 givenFetchResult(fetchResult().copy(aggregatedRating = 99.9, aggregatedRatingCount = 0))
 
                 fetch().gameData.criticScore shouldBe null
             }
 
-            "return null userScore when 'rating' is null, event if 'ratingCount' isn't" test {
+            itShould("return null userScore when 'rating' is null, event if 'ratingCount' isn't") {
                 givenFetchResult(fetchResult().copy(rating = null, ratingCount = 1))
 
                 fetch().gameData.userScore shouldBe null
             }
 
-            "return null userScore when 'rating' is not null but 'ratingCount' is 0" test {
+            itShould("return null userScore when 'rating' is not null but 'ratingCount' is 0") {
                 givenFetchResult(fetchResult().copy(rating = 99.9, ratingCount = 0))
 
                 fetch().gameData.userScore shouldBe null
             }
 
-            "return null releaseDate when 'releaseDates' is null & 'firstReleaseDate' is null" test {
+            itShould("return null releaseDate when 'releaseDates' is null & 'firstReleaseDate' is null") {
                 givenFetchResult(fetchResult().copy(releaseDates = null, firstReleaseDate = null))
 
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "return null releaseDate when no releaseDate exists for given platform and 'firstReleaseDate' is null" test {
+            itShould("return null releaseDate when no releaseDate exists for given platform and 'firstReleaseDate' is null") {
                 givenFetchResult(fetchResult(releaseDatePlatformId = platformId + 1).copy(firstReleaseDate = null))
 
                 fetch().gameData.releaseDate shouldBe null
             }
 
-            "return 'firstReleaseDate' as releaseDate when no releaseDate exists for given platform" test {
+            itShould("return 'firstReleaseDate' as releaseDate when no releaseDate exists for given platform") {
                 givenFetchResult(fetchResult(releaseDatePlatformId = platformId + 1))
 
                 fetch().gameData.releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd")
             }
 
-            "return 'firstReleaseDate' as releaseDate when releaseDate is null for given platform" test {
+            itShould("return 'firstReleaseDate' as releaseDate when releaseDate is null for given platform") {
                 givenFetchResult(fetchResult(releaseDate = null))
 
                 fetch().gameData.releaseDate shouldBe firstReleaseDate.toString("YYYY-MM-dd")
             }
 
-            "return empty genres when 'genres' is null" test {
+            itShould("return empty genres when 'genres' is null") {
                 givenFetchResult(fetchResult().copy(genres = null))
 
                 fetch().gameData.genres shouldBe emptyList<String>()
             }
 
-            "return null thumbnailUrl & posterUrl when 'cover.cloudinaryId' is null" test {
+            itShould("return null thumbnailUrl & posterUrl when 'cover.cloudinaryId' is null") {
                 givenFetchResult(fetchResult().copy(cover = image(imageId = null)))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "return null thumbnailUrl & posterUrl when 'cover' is null" test {
+            itShould("return null thumbnailUrl & posterUrl when 'cover' is null") {
                 givenFetchResult(fetchResult().copy(cover = null))
 
                 fetch().gameData.thumbnailUrl shouldBe null
                 fetch().gameData.posterUrl shouldBe null
             }
 
-            "filter out screenshots with null 'imageId'" test {
+            itShould("filter out screenshots with null 'imageId'") {
                 val image = image()
                 givenFetchResult(fetchResult().copy(screenshots = listOf(image(imageId = null), image)))
 
                 fetch().gameData.screenshotUrls shouldBe listOf(screenshotUrl(image.imageId!!))
             }
 
-            "return empty screenshots when 'screenshots' is null" test {
+            itShould("return empty screenshots when 'screenshots' is null") {
                 givenFetchResult(fetchResult().copy(screenshots = null))
 
                 fetch().gameData.screenshotUrls shouldBe emptyList<String>()
             }
 
-            "error cases" should {
-                "throw IllegalStateException on empty response" test {
+            describe("error cases") {
+                itShould("throw IllegalStateException on empty response") {
                     val id = "gameId"
                     server.anyRequest() willReturnFetch emptyList()
 
@@ -316,7 +320,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                     e.message shouldBe "Not found: IGDB game '$id'!"
                 }
 
-                "throw ClientRequestException on invalid http response status" test {
+                itShould("throw ClientRequestException on invalid http response status") {
                     server.anyRequest() willFailWith HttpStatusCode.BadRequest
 
                     val e = shouldThrow<ClientRequestException> {
@@ -327,8 +331,8 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
             }
         }
 
-        "OAuth token" should {
-            "exchange clientId & clientSecret for an authorization token if there is no previous authorizationToken in the storage" test {
+        describe("OAuth token") {
+            itShould("exchange clientId & clientSecret for an authorization token if there is no previous authorizationToken in the storage") {
                 storage.reset()
                 val newAuthorizationToken = randomString()
                 server.oauthRequest().willReturn(newAuthorizationToken, 10)
@@ -339,7 +343,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 verifyAuthorizationTokenRequested()
             }
 
-            "exchange clientId & clientSecret for an authorization token if there is a previous authorizationToken in the storage but it is expired" test {
+            itShould("exchange clientId & clientSecret for an authorization token if there is a previous authorizationToken in the storage but it is expired") {
                 storage.set(IgdbStorageData(authorizationToken = "oldToken", expiresOn = now))
 
                 val newAuthorizationToken = randomString()
@@ -352,7 +356,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 storage.get()?.authorizationToken shouldBe newAuthorizationToken
             }
 
-            "exchange clientId & clientSecret for an authorization token if there is a previous authorizationToken in the storage but it is almost expired (within expiration buffer time)" test {
+            itShould("exchange clientId & clientSecret for an authorization token if there is a previous authorizationToken in the storage but it is almost expired (within expiration buffer time)") {
                 storage.set(
                     IgdbStorageData(
                         authorizationToken = "oldToken",
@@ -370,7 +374,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 storage.get()?.authorizationToken shouldBe newAuthorizationToken
             }
 
-            "not renew token if previous token wasn't expired" test {
+            itShould("not renew token if previous token wasn't expired") {
                 val authorizationToken = "authorizationToken"
                 storage.set(
                     IgdbStorageData(
@@ -391,7 +395,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 storage.get()?.authorizationToken shouldBe authorizationToken
             }
 
-            "store returned token in storage with correct expiresAt time" test {
+            itShould("store returned token in storage with correct expiresAt time") {
                 storage.reset()
 
                 val newAuthorizationToken = randomString()
@@ -404,7 +408,7 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 storage.get()?.expiresOn shouldBe now.plusSeconds(100)
             }
 
-            "delete stored auth token on error from provider" test {
+            itShould("delete stored auth token on error from provider") {
                 val authorizationToken = "authorizationToken"
                 storage.set(IgdbStorageData(authorizationToken = authorizationToken, expiresOn = now.plusYears(1)))
 
@@ -417,8 +421,8 @@ class IgdbProviderTest : Spec<IgdbProviderTest.Scope>() {
                 storage.get() shouldBe null
             }
 
-            "error cases" should {
-                "throw ClientRequestException on invalid http response status" test {
+            describe("error cases") {
+                itShould("throw ClientRequestException on invalid http response status") {
                     storage.reset()
                     server.oauthRequest() willFailWith HttpStatusCode.BadRequest
 

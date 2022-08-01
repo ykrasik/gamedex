@@ -23,7 +23,11 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.test.*
-import io.kotlintest.matchers.*
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.haveSubstring
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import org.joda.time.DateTime
@@ -36,8 +40,8 @@ import kotlin.random.Random
  */
 class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
     init {
-        "search" should {
-            "be able to return a single search result" test {
+        describe("search") {
+            itShould("be able to return a single search result") {
                 val result = searchResult()
                 server.anySearchRequest().willReturn(listOf(result))
                 givenEmptyFetchResultFor(result)
@@ -63,13 +67,13 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 }
             }
 
-            "be able to return empty search results" test {
+            itShould("be able to return empty search results") {
                 server.anySearchRequest().willReturn(emptyList())
 
-                search() shouldBe emptyList<GameProvider.SearchResult>()
+                search() shouldBe emptyList()
             }
 
-            "be able to return multiple search results" test {
+            itShould("be able to return multiple search results") {
                 val result1 = searchResult()
                 val result2 = searchResult()
                 server.anySearchRequest().willReturn(listOf(result1, result2))
@@ -81,7 +85,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 results[1].name shouldBe result2.name
             }
 
-            "pre-fetch first search result" test {
+            itShould("pre-fetch first search result") {
                 val result1 = searchResult()
                 val result2 = searchResult()
                 server.anySearchRequest().willReturn(listOf(result1, result2))
@@ -115,20 +119,20 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 }
             }
 
-            "error cases" should {
-                "throw ClientRequestException on invalid http response status" test {
+            describe("error cases") {
+                itShould("throw ClientRequestException on invalid http response status") {
                     server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
                     val e = shouldThrow<ClientRequestException> {
                         search()
                     }
-                    e.message shouldHave substring(HttpStatusCode.BadRequest.value.toString())
+                    e.message should haveSubstring(HttpStatusCode.BadRequest.value.toString())
                 }
             }
         }
 
-        "fetch" should {
-            "fetch details" test {
+        describe("fetch") {
+            itShould("fetch details") {
                 val result = fetchResult(releaseDate = releaseDate).copy(name = randomWord(), medianScore = 87.6, numReviews = 2)
                 givenFetchReturns(result)
 
@@ -152,31 +156,31 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 }
             }
 
-            "return null description if 'description' is null" test {
+            itShould("return null description if 'description' is null") {
                 givenFetchReturns(fetchResult().copy(description = null))
 
                 fetch().gameData.description shouldBe null
             }
 
-            "return null description if 'description' is empty" test {
+            itShould("return null description if 'description' is empty") {
                 givenFetchReturns(fetchResult().copy(description = ""))
 
                 fetch().gameData.description shouldBe null
             }
 
-            "return null criticScore if 'averageScore' is -1" test {
+            itShould("return null criticScore if 'averageScore' is -1") {
                 givenFetchReturns(fetchResult().copy(medianScore = -1.0))
 
                 fetch().gameData.criticScore shouldBe null
             }
 
-            "return null criticScore if 'numReviews' is 0" test {
+            itShould("return null criticScore if 'numReviews' is 0") {
                 givenFetchReturns(fetchResult().copy(numReviews = 0))
 
                 fetch().gameData.criticScore shouldBe null
             }
 
-            "return releaseDate from 'Platforms'" test {
+            itShould("return releaseDate from 'Platforms'") {
                 givenFetchReturns(
                     fetchResult().copy(
                         Platforms = listOf(
@@ -191,7 +195,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "1999-08-07"
             }
 
-            "return releaseDate from 'firstReleaseDate' when platform not found in 'Platforms'" test {
+            itShould("return releaseDate from 'firstReleaseDate' when platform not found in 'Platforms'") {
                 givenFetchReturns(
                     fetchResult().copy(
                         Platforms = listOf(
@@ -205,7 +209,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "2019-12-12"
             }
 
-            "return releaseDate from 'firstReleaseDate' when platform is found in 'Platforms', but releaseDate is null" test {
+            itShould("return releaseDate from 'firstReleaseDate' when platform is found in 'Platforms', but releaseDate is null") {
                 givenFetchReturns(
                     fetchResult().copy(
                         Platforms = listOf(
@@ -219,7 +223,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 fetch().gameData.releaseDate shouldBe "2019-12-12"
             }
 
-            "return null releaseDate when platform not found in 'Platforms' and 'firstReleaseDate' is null" test {
+            itShould("return null releaseDate when platform not found in 'Platforms' and 'firstReleaseDate' is null") {
                 givenFetchReturns(
                     fetchResult().copy(
                         Platforms = listOf(
@@ -234,26 +238,26 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
             }
 
             // TODO: Fix these at some point.
-//            "return null thumbnail when 'logoScreenshot' is null" test {
+//            itShould("return null thumbnail when 'logoScreenshot' is null") {
 //                givenFetchReturns(fetchResult().copy(logoScreenshot = image().copy(thumbnail = null)))
 //
 //                fetch().gameData.thumbnailUrl shouldBe null
 //            }
 //
-//            "return null thumbnail when 'logoScreenshot.thumbnail' is null" test {
+//            itShould("return null thumbnail when 'logoScreenshot.thumbnail' is null") {
 //                givenFetchReturns(fetchResult().copy(logoScreenshot = null))
 //
 //                fetch().gameData.thumbnailUrl shouldBe null
 //            }
 
-            "return screenshots only from 'mastheadScreenshot' when 'screenshots' is empty" test {
+            itShould("return screenshots only from 'mastheadScreenshot' when 'screenshots' is empty") {
                 val result = fetchResult().copy(screenshots = emptyList())
                 givenFetchReturns(result)
 
                 fetch().gameData.screenshotUrls shouldBe listOf(screenshotUrl(result.mastheadScreenshot!!))
             }
 
-            "return screenshots only from 'screenshots' when 'mastheadScreenshot' is null" test {
+            itShould("return screenshots only from 'screenshots' when 'mastheadScreenshot' is null") {
                 val result = fetchResult().copy(mastheadScreenshot = null, screenshots = listOf(image(), image()))
                 givenFetchReturns(result)
 
@@ -263,7 +267,7 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 )
             }
 
-            "return screenshots from 'mastheadScreenshot' and 'screenshots' when both are available" test {
+            itShould("return screenshots from 'mastheadScreenshot' and 'screenshots' when both are available") {
                 val result = fetchResult().copy(mastheadScreenshot = image(), screenshots = listOf(image(), image()))
                 givenFetchReturns(result)
 
@@ -274,14 +278,14 @@ class OpenCriticProviderTest : Spec<OpenCriticProviderTest.Scope>() {
                 )
             }
 
-            "return siteUrl as the game name lowercased with all non-word characters replaced by '-'" test {
+            itShould("return siteUrl as the game name lowercased with all non-word characters replaced by '-'") {
                 givenFetchReturns(fetchResult().copy(name = "My Test: GAME naME!# yes."))
 
                 fetch().siteUrl shouldBe "${server.baseUrl}/game/$providerGameId/my-test-game-name-yes-"
             }
 
-            "error cases" should {
-                "throw ClientRequestException on invalid http response status" test {
+            describe("error cases") {
+                itShould("throw ClientRequestException on invalid http response status") {
                     server.aFetchRequest(providerGameId) willFailWith HttpStatusCode.BadRequest
 
                     val e = shouldThrow<ClientRequestException> {

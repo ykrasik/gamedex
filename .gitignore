@@ -114,3 +114,4 @@ cache/*
 *.iss
 db*.json
 dist/
+cache/
