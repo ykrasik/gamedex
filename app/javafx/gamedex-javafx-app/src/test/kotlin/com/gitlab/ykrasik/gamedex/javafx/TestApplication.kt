@@ -24,6 +24,8 @@ import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
 import com.gitlab.ykrasik.gamedex.core.plugin.ClasspathPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.DirectoryPluginScanner
 import com.gitlab.ykrasik.gamedex.core.plugin.PluginManagerImpl
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderStorageFactoryImpl
+import com.gitlab.ykrasik.gamedex.provider.ProviderStorageFactory
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.humanReadable
 import com.google.inject.AbstractModule
@@ -153,5 +155,9 @@ object TestApplication {
         @Provides
         @Singleton
         fun config(): Config = ConfigFactory.load()
+
+        @Provides
+        @Singleton
+        fun providerStorageFactory(): ProviderStorageFactory = ProviderStorageFactoryImpl()
     }
 }

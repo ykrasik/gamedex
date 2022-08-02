@@ -193,7 +193,7 @@ object IgdbProviderTestkitPlugin : DefaultPlugin() {
     override val descriptor = PluginDescriptor(
         id = "provider.igdb.testkit",
         author = "Yevgeny Krasik",
-        version = "0.1.0"
+        version = "0.5.0"
     )
 
     @Provides

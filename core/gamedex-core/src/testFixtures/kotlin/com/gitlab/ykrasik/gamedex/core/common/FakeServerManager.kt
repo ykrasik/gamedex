@@ -38,7 +38,10 @@ class FakeServerManager(fakeServerFactories: List<FakeServerFactory>) : FakeServ
         factory.create(port)
     }
 
-    val providerFakeServers = fakeServers.mapNotNull { it as? GameProviderFakeServer }
+    val providerFakeServers = fakeServers.mapNotNull { it as? GameProviderFakeServer }.let {
+        require(it.isNotEmpty()) { "No game provider fake servers detected!" }
+        it
+    }
 
     override fun setupEnv() {
         fakeServers.forEach { it.setupEnv() }

@@ -22,9 +22,9 @@ import com.gitlab.ykrasik.gamedex.util.capitalize
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.now
 import io.github.classgraph.ClassGraph
-import kotlinx.coroutines.repackaged.net.bytebuddy.utility.RandomString
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
+import java.net.URL
 import java.text.DecimalFormat
 import java.util.*
 
@@ -38,16 +38,17 @@ private object TestResources {
     val genres = javaClass.getResource("genres.txt")!!.readText().lines()
 
     /* These images were all taken from [[igdb.com]] */
-    val images = ClassGraph()
+    val images: List<URL> = ClassGraph()
         .acceptPackages("com.gitlab.ykrasik.gamedex.test")
         .scan()
-        .getResourcesWithExtension(".jpg")
-        .urLs
+        .use { it.getResourcesWithExtension(".jpg").urLs }
 }
 
 val rnd = Random()
 
-fun randomString(length: Int = 8): String = RandomString.make(length)
+fun randomString(length: Int = 8): String = List(length) {
+    (('a'..'z') + ('A'..'Z') + ('0'..'9')).random()
+}.joinToString("")
 
 /**
  * [max] is inclusive.
@@ -84,7 +85,7 @@ fun randomScore() = Score(
 
 fun randomGenre() = TestResources.genres.randomElement()
 
-fun randomImage(): ByteArray = TestResources.images.randomElement()!!.readBytes()
+fun randomImage(): ByteArray = TestResources.images.randomElement().readBytes()
 
 inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
 

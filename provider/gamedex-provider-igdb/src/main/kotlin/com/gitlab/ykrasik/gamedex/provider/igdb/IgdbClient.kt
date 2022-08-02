@@ -188,7 +188,7 @@ open class IgdbClient @Inject constructor(
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    internal data class OAuthResponse(
+    data class OAuthResponse(
         val accessToken: String,
         val expiresIn: Int,
     )

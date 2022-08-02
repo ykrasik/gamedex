@@ -15,14 +15,11 @@ dependencies {
     fullDependency ":app:javafx:gamedex-javafx-view"
 
     testImplementation project(":core:gamedex-core-persistence")
+    testImplementation project(":core:gamedex-core-provider")
 
     pluginProjects().forEach {
-        test.dependsOn it.shadowJar
-        testRuntimeOnly project(path: it.path)
-        testRuntimeOnly project(path: it.path, configuration: 'testArtifacts')
+        testImplementation testFixtures(it)
     }
-
-//    compile bootstrapFx
 }
 
 task copyPluginsDist(type: Copy) {
@@ -69,7 +66,9 @@ task cleanDist(type: Delete) {
 
 clean.finalizedBy cleanDist
 
-task runDemo(dependsOn: 'classes', type: JavaExec) {
+task runDemo(dependsOn: pluginProjects().shadowJar, type: JavaExec) {
     mainClass = 'com.gitlab.ykrasik.gamedex.javafx.TestApplication'
     classpath = sourceSets.test.runtimeClasspath
 }
+
+test.dependsOn pluginProjects().shadowJar

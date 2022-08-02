@@ -21,7 +21,7 @@ shadowJar {
     }
 }
 
-assemble.dependsOn shadowJar
+assemble.finalizedBy shadowJar
 
 task generatePluginJsonFile() {
     def destDir = new File(generatedResources, pluginJsonDir)
@@ -60,7 +60,7 @@ processResources.dependsOn(licenseFormatMain, licenseMain)
 
 dependencies {
     compileOnly project(":gamedex-api")
-    testImplementation project(":gamedex-api")
-    testImplementation project(path: ":gamedex-api", configuration: 'testArtifacts')
-    testImplementation project(path: ":gamedex-api", configuration: 'testDependencies')
+    testFixturesApi testFixtures(project(":gamedex-api"))
 }
+
+test.dependsOn shadowJar

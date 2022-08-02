@@ -143,6 +143,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java-library'
+    apply plugin: 'java-test-fixtures'
     apply plugin: 'kotlin'
     apply plugin: 'maven-publish'
 
@@ -187,8 +188,6 @@ subprojects {
             ]
         }
     }
-    kotlin {
-    }
 
     test {
         useJUnitPlatform()
@@ -199,16 +198,15 @@ subprojects {
 
         systemProperties System.getProperties() + ['gameDex.env': 'dev']
     }
+
+    task cleanOut(type: Delete) {
+        delete new File(project.projectDir, "out")
+    }
+
+    clean.finalizedBy cleanOut
 }
 
 project("gamedex-api") {
-    ext {
-        publishJar = true
-        publishTestKit = true
-    }
-
-    apply from: gradleFile('publication.gradle')
-
     dependencies {
         api ktlin.std
         api ktlin.reflect
@@ -229,31 +227,34 @@ project("gamedex-api") {
         implementation ktor.clientCio
         implementation ktor.clientSerialization
         implementation ktor.clientContentNegotiation
-        implementation ktor.clientJackson
-        implementation ktor.clientLogging
+        api ktor.clientJackson
+        api ktor.clientLogging
 
         api jackson.core
         implementation jackson.kotlin
         implementation jackson.joda
 
-        testImplementation koTest.junit
-        testImplementation koTest.assertions
-        testImplementation mockK
+        testFixturesApi koTest.junit
+        testFixturesApi koTest.assertions
+        testFixturesApi mockK
 
-        testImplementation coroutines.debug
-        testImplementation coroutines.test
+        testFixturesApi coroutines.debug
+        testFixturesApi coroutines.test
 
-        testImplementation wiremock
-        testImplementation ktor.serverCore
-        testImplementation ktor.serverStatusPages
-        testImplementation ktor.serverNetty
-        testImplementation logback
+        testFixturesApi wiremock
+        testFixturesApi ktor.serverCore
+        testFixturesApi ktor.serverStatusPages
+        testFixturesApi ktor.serverNetty
+        testFixturesApi logback
     }
 
-    testSourcesJar {
-        exclude '**/*.jpg'
-        exclude '**/words.txt'
-        exclude '**/genres.txt'
+    publishing {
+        publications {
+            main(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+            }
+        }
     }
 }
 

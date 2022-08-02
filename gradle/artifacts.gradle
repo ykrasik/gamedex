@@ -3,24 +3,8 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
 }
 
-task testJar(type: Jar, dependsOn: testClasses) {
-    archiveAppendix = 'testkit'
-    from sourceSets.test.output
-}
-
-task testSourcesJar(type: Jar) {
-    archiveAppendix = 'testkit'
-    archiveClassifier = 'sources'
-    from sourceSets.test.allSource
-}
-
-configurations {
-    testArtifacts.extendsFrom testRuntime
-    testDependencies.extendsFrom testImplementation
-}
-
-artifacts {
-    testArtifacts testJar
+testFixturesJar {
+    from sourceSets.testFixtures.kotlin
 }
 
 sourceSets {
@@ -38,14 +22,7 @@ ext {
     fullDependency = { String dep ->
         dependencies {
             api project(dep)
-            testImplementation project(path: dep, configuration: 'testArtifacts')
-            testImplementation project(path: dep, configuration: 'testDependencies')
-        }
-    }
-
-    testDependency = { String dep ->
-        dependencies {
-            testImplementation project(path: dep, configuration: 'testDependencies')
+            testFixturesApi testFixtures(project(dep))
         }
     }
 

@@ -38,7 +38,6 @@ import org.joda.time.DateTimeZone
 abstract class Spec<Scope> : DescribeSpec() {
     override fun isolationMode() = IsolationMode.SingleInstance
 
-
     val now = DateTime(10000000).withZone(DateTimeZone.UTC)
     val nowTimestamp = Timestamp(createDate = now, updateDate = now)
 
