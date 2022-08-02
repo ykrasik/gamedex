@@ -1,9 +1,11 @@
 # GameDex
 GameDex is an open source digital game collection management application,
 written in Kotlin and powered by [TornadoFX](https://github.com/edvin/tornadofx) & [JFoenix](https://github.com/jfoenixadmin/JFoenix)
-
+         
 # Download
 You can [download it](https://github.com/ykrasik/gamedex/releases) or [build it](#build-distribution).
+
+[Changelog](./CHANGELOG.MD)
 
 There is currently no tutorial.
 
@@ -29,12 +31,16 @@ Prerequisites: JDK 8 only, does not support any of the later JDKs.
 
 The distribution will be under project root in `dist` folder
 and will contain a standalone copy of your JRE.
-On windows, if you also have InnoSetup installed, it will generate a native windows setup file.
 
 You can copy the distribution anywhere you like, it's portable & self-contained.
+                      
+### Build Distribution with Installer
+`gradlew dist -Pinstaller` on Windows.
 
-# Run Distribution
-On windows: `dist\GameDex\GameDex.exe`
+It will generate a native windows setup file in `app/javafx/gamedex-javafx-app/build/GameDex_{version}.exe`
+
+## Run Distribution
+On windows: `dist\GameDex.exe`
 
 # Run Demo Application
 `gradlew runDemo`
@@ -44,15 +50,16 @@ but you can use it to play around with GameDex without affecting any real world 
 It generates a game database filled with randomly generated games and
 all providers are replaced with fake servers that emulate them.
 
-You can also run the demo application from the IDE - `app\javafx\gamedex-javafx-app\src\test\kotlin\com\gitlab\ykrasik\gamedex\javafx\TestApplication.kt`
+You can also run the demo application from the IDE - `app/javafx/gamedex-javafx-app/src/test/kotlin/com/gitlab/ykrasik/gamedex/javaf/TestApplication.kt`
 
 # Run Tests
 `gradlew test`
 
-For tests to pass, you need to have the following entries in a [gradle.properties file](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) file:
+For tests to pass, you need to have the following entries in a [gradle.properties file](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties):
 ```
 systemProp.gameDex.giantBomb.apiKey={yourApiKey}
-systemProp.gameDex.igdb.apiKey={yourApiKey}
+systemProp.gameDex.igdb.clientId={yourClientId}
+systemProp.gameDex.igdb.clientSecret={yourClientSecret}
 ```
 This is because contract tests for providers require real credentials to work.
 
