@@ -54,9 +54,8 @@ object TestApplication {
     fun main(args: Array<String>) {
         System.setProperty("kotlinx.coroutines.debug", "on")
 
-        if (System.getProperty("gameDex.env") == null) {
-            System.setProperty("gameDex.env", "dev")
-        }
+        System.setProperty("gameDex.env", "dev")
+        System.setProperty("gameDex.provider.skipCredentialValidation", "true")
         System.setProperty("gameDex.persistence.dbUrl", dbUrl)
 
         // Pre-Load test images

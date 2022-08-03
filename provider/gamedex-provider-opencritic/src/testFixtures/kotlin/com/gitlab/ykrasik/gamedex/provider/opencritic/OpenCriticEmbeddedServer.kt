@@ -84,7 +84,7 @@ class OpenCriticFakeServer(port: Int = freePort) : KtorFakeServer(port), GamePro
 
     override fun setupServer(app: Application) = with(app) {
         routing {
-            get("/api/game/search") {
+            get("/api/meta/search") {
                 delay(50, 400)
                 call.respondText(randomSearchResults(), ContentType.Application.Json)
             }

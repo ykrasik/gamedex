@@ -99,7 +99,7 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
                 delay(300, 800)
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Return a different set of images
             }
-            get("{id}") {
+            get("{id}/") {
                 authorized {
                     delay(400, 1400)
                     call.respondText(randomDetailResponse().toMap().toJsonStr(), ContentType.Application.Json)
