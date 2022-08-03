@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.core.view.Presenter
 import com.gitlab.ykrasik.gamedex.core.view.ViewSession
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.findTransform
-import com.gitlab.ykrasik.gamedex.util.replaceWhere
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,15 +43,17 @@ class GameDetailsPresenter @Inject constructor(
     private val eventBus: EventBus,
 ) : Presenter<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : ViewSession() {
+        // FIXME: It turns out that `games` in `gameParams`, even though shows up as an immutable list here, is actually an `ObservableList` at runtime
+        // FIXME: and is mutated outside the scope of this presenter.
         private var gameParams by view.gameParams
 
         init {
             view::currentGameIndex *= view.gameParams.allValues().map { (game, allGames) ->
                 allGames.indexOfFirst { it.id == game.id }
             }
-            view::canViewNextGame *= view.currentGameIndex.map { index ->
+            view::canViewNextGame *= view.currentGameIndex.combine(view.gameParams) { index, gameParams ->
                 IsValid {
-                    check(index + 1 < gameParams.games.size) { "No more games!" }
+                    check(index + 1 < gameParams.value.games.size) { "No more games!" }
                 }
             }
             view::canViewPrevGame *= view.currentGameIndex.map { index ->
@@ -79,7 +81,7 @@ class GameDetailsPresenter @Inject constructor(
                     if (game.id != Game.Null.id) {
                         val upToDateGame = gameService[game.id]
                         if (game != upToDateGame) {
-                            gameParams = gameParams.copy(game = upToDateGame)
+                            setCurrentGame(upToDateGame)
                         }
                     }
                 }
@@ -89,19 +91,29 @@ class GameDetailsPresenter @Inject constructor(
                 if (!isShowing.value) return@forEach
 
                 val updatedGame = e.games.findTransform({ it.second }) { it.id == gameParams.game.id } ?: return@forEach
-                view.gameParams /= ViewGameParams(updatedGame, gameParams.games.replaceWhere(updatedGame) { it.id == gameParams.game.id })
+                setCurrentGame(updatedGame)
             }
+
             eventBus.flowOf<GameEvent.Deleted>().forEach(debugName = "onGameDeleted") { e ->
                 if (!isShowing.value) return@forEach
 
                 if (e.games.any { it.id == gameParams.game.id }) {
-                    hideView()
+                    if (gameParams.games.isNotEmpty()) {
+                        navigate(0)
+                    } else {
+                        hideView()
+                    }
                 }
             }
         }
 
         private fun navigate(offset: Int) {
-            gameParams = gameParams.copy(game = gameParams.games[view.currentGameIndex.value + offset])
+            val games = gameParams.games
+            setCurrentGame(games[(view.currentGameIndex.value + offset).coerceIn(games.indices)])
+        }
+
+        private fun setCurrentGame(game: Game) {
+            gameParams = gameParams.copy(game = game)
         }
 
         private fun hideView() {
