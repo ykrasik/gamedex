@@ -17,9 +17,11 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanOpenFile
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewGameParams
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.util.broadcastFlow
+import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
@@ -63,6 +65,8 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
         action(cancelActions)
     }
 
+    private val gameContextMenu = GameContextMenu(canView = false)
+
     init {
         register()
     }
@@ -92,6 +96,10 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
 //                    this@customListView.prefWidth = cellPrefWidth
 //                }
             }
+
+            state.existingGame?.let {
+                gameContextMenu.install(this) { ViewGameParams(it, emptyList()) }
+            } ?: gameContextMenu.uninstall(this)
         }
 
         var ignoreNextSelectionChange = false

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
 import com.gitlab.ykrasik.gamedex.javafx.control.popOver
+import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,20 +35,27 @@ abstract class InstallableContextMenu<T : Any>(initialData: T) : PresentableView
         popOver { children += root }.apply { isAutoFix = false }
     }
 
-    fun install(node: Node, data: () -> T) {
-//        var contextMenuRequested = false
-        node.addEventHandler(MouseEvent.MOUSE_CLICKED) {
+    private val handler = EventHandler<MouseEvent> {
 //            if (contextMenuRequested) {
-                // On mac, the 'setOnContextMenuRequested' click propagates to this event handler.
+// On mac, the 'setOnContextMenuRequested' click propagates to this event handler.
 //                contextMenuRequested = false
 //            } else {
-                popover.hide()
+        popover.hide()
 //            }
-        }
+    }
+
+    fun install(node: Node, data: () -> T) {
+//        var contextMenuRequested = false
+        node.addEventHandler(MouseEvent.MOUSE_CLICKED, handler)
         node.setOnContextMenuRequested { e ->
 //            contextMenuRequested = true
             this.data.value = data()
             popover.determineArrowLocation(e.screenX, e.screenY).show(node, e.screenX, e.screenY)
         }
+    }
+
+    fun uninstall(node: Node) {
+        node.onContextMenuRequested = null
+        node.removeEventHandler(MouseEvent.MOUSE_CLICKED, handler)
     }
 }

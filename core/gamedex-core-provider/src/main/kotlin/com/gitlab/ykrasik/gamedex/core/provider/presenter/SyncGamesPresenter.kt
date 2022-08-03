@@ -16,12 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.flowOf
+import com.gitlab.ykrasik.gamedex.core.game.GameEvent
 import com.gitlab.ykrasik.gamedex.core.provider.GameSearchEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncPathRequest
@@ -56,6 +59,16 @@ class SyncGamesPresenter @Inject constructor(
             }
             eventBus.flowOf<GameSearchEvent.Updated>().forEach(debugName = "onGameSearchStateUpdated") {
                 onGameSearchStateUpdated(it.state)
+            }
+            eventBus.flowOf<GameEvent.Updated>().forEach(debugName = "onGameUpdated") {
+                if (view.isGameSyncRunning.value) {
+                    onGamesUpdated(it.games.map { it.second })
+                }
+            }
+            eventBus.flowOf<GameEvent.Deleted>().forEach(debugName = "onGameDeleted") {
+                if (view.isGameSyncRunning.value) {
+                    onGamesDeleted(it.games)
+                }
             }
             view.currentState.allValues().forEach(debugName = "onCurrentStateChanged") { currentState ->
                 if (currentState != null) {
@@ -114,6 +127,54 @@ class SyncGamesPresenter @Inject constructor(
                         view.successMessage(message)
                     }
                 }
+            }
+        }
+
+        private fun onGamesUpdated(games: List<Game>) {
+            var numUpdated = 0
+            val newState = view.state.map { state ->
+                if (numUpdated == games.size) {
+                    state
+                } else {
+                    val updatedGame = state.existingGame?.let { existingGame -> games.find { it.id == existingGame.id } }
+                    if (updatedGame != null) {
+                        numUpdated++
+                        val newLibraryPath = if (updatedGame.path != state.libraryPath.path) {
+                            LibraryPath(
+                                updatedGame.library,
+                                updatedGame.path
+                            )
+                        } else {
+                            state.libraryPath
+                        }
+                        state.copy(existingGame = updatedGame, libraryPath = newLibraryPath)
+                    } else {
+                        state
+                    }
+                }
+            }
+            if (numUpdated > 0) {
+                view.state.setAll(newState)
+            }
+        }
+
+        private fun onGamesDeleted(games: List<Game>) {
+            var numDeleted = 0
+            val newState = view.state.mapNotNull { state ->
+                val existingGame = state.existingGame
+                if (existingGame != null && games.any { it.id == existingGame.id }) {
+                    numDeleted++
+                    null
+                } else {
+                    if (numDeleted == 0) {
+                        state
+                    } else {
+                        state.copy(index = state.index - numDeleted)
+                    }
+                }
+            }
+            if (newState.size != view.state.size) {
+                view.state.setAll(newState)
             }
         }
 
@@ -222,7 +283,7 @@ class SyncGamesPresenter @Inject constructor(
                 // This choice can be that the provider is excluded or that it already has a result.
                 // In either case, there are no providers left to sync for this game
                 log.debug("Skipping ${request.libraryPath}, game=${request.existingGame} because all providers have an initial state: " +
-                    providersToSync.map { it to initialHistory.getValue(it).first().choice })
+                        providersToSync.map { it to initialHistory.getValue(it).first().choice })
                 return null
             }
 
