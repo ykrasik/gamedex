@@ -253,6 +253,7 @@ class JavaFxGameDetailsView(
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 action(deleteGameActions) { game.v }
+                localShortcut(this, "delete")
             }
         }
     }

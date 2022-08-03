@@ -64,6 +64,8 @@ class JavaFxTaskView : PresentableView(), TaskView {
         }
 
         cancelButton("Cancel") {
+            isCancelButton = false
+            isFocusTraversable = false
             useMaxWidth = true
             showWhen { isCancellable.property }
             addClass(Style.progressText)

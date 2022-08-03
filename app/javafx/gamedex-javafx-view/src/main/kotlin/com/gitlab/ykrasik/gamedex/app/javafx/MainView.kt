@@ -44,7 +44,6 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import tornadofx.*
@@ -119,6 +118,7 @@ class MainView : PresentableView("GameDex"),
 
     private val mainNavigationButton = stackpane {
         addClass(Style.navigationButton)
+        isFocusTraversable = false
 
         popOverMenu(graphic = Icons.menu) {
 //            navigationButton(gameScreen) {

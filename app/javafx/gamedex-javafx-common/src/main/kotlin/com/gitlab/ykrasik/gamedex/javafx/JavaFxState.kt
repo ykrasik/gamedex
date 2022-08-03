@@ -27,7 +27,6 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.drop
 
 /**
@@ -92,7 +91,12 @@ fun <T, P : Property<T>> Any.viewMutableStateFlow(flow: JavaFxViewMutableStateFl
     viewMutableStateFlow(flow.property, debugName, traceValues)
 
 fun <T, P : Property<T>> Any.viewMutableStateFlow(property: P, debugName: String, traceValues: Boolean = true) =
-    JavaFxViewMutableStateFlow(MutableStateFlow<Value<T>>(property.value.fromView), property, debugName = "${this.javaClass.simpleName}.$debugName", traceValues = traceValues)
+    JavaFxViewMutableStateFlow(
+        MutableStateFlow(property.value.fromView),
+        property,
+        debugName = "${this.javaClass.simpleName}.$debugName",
+        traceValues = traceValues
+    )
 
 open class JavaFxMutableStateFlow<T, P : Property<T>>(
     private val flow: MutableStateFlow<T>,
@@ -135,7 +139,12 @@ fun <T, P : Property<T>> Any.mutableStateFlow(flow: JavaFxMutableStateFlow<T, P>
     mutableStateFlow(flow.property, debugName, traceValues)
 
 fun <T, P : Property<T>> Any.mutableStateFlow(property: P, debugName: String, traceValues: Boolean = true) =
-    JavaFxMutableStateFlow(MutableStateFlow(property.value), property, debugName = "${this.javaClass.simpleName}.$debugName", traceValues = traceValues)
+    JavaFxMutableStateFlow(
+        MutableStateFlow(property.value),
+        property,
+        debugName = "${this.javaClass.simpleName}.$debugName",
+        traceValues = traceValues
+    )
 
 typealias JavaFxObjectMutableStateFlow<T> = JavaFxMutableStateFlow<T, SimpleObjectProperty<T>>
 
@@ -148,4 +157,8 @@ open class JavaFxListMutableStateFlow<T>(
 }
 
 fun <T> Any.mutableStateFlow(initial: List<T>, debugName: String) =
-    JavaFxListMutableStateFlow(MutableStateFlow(initial), SimpleObjectProperty(initial), debugName = "${this.javaClass.simpleName}.$debugName")
+    JavaFxListMutableStateFlow(
+        MutableStateFlow(initial),
+        SimpleObjectProperty(initial),
+        debugName = "${this.javaClass.simpleName}.$debugName"
+    )

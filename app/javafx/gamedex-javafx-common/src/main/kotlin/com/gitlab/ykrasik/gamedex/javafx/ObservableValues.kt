@@ -33,7 +33,6 @@ import javafx.util.StringConverter
 import tornadofx.cleanBind
 import tornadofx.observable
 import tornadofx.onChange
-import java.util.concurrent.Callable
 
 /**
  * User: ykrasik
@@ -52,7 +51,7 @@ inline fun <T, R> ObservableValue<T>.map(crossinline f: (T) -> R): ObjectPropert
 }
 
 inline fun <T> ObservableValue<T>.typeSafeOnChange(crossinline op: (T) -> Unit): ChangeListener<T> {
-    val listener = ChangeListener<T> { _, _, newValue -> op(newValue) }
+    val listener = ChangeListener { _, _, newValue -> op(newValue) }
     addListener(listener)
     return listener
 }
@@ -64,13 +63,13 @@ inline fun <T> ObservableValue<T>.onInvalidated(crossinline op: (T) -> Unit): In
 }
 
 inline fun <T, R> ObservableValue<T>.binding(crossinline op: (T) -> R): ObjectBinding<R> =
-    Bindings.createObjectBinding(Callable { op(value) }, this)
+    Bindings.createObjectBinding({ op(value) }, this)
 
 inline fun <T> ObservableValue<T>.typesafeBooleanBinding(crossinline op: (T) -> Boolean): BooleanBinding =
-    Bindings.createBooleanBinding(Callable { op(value) }, this)
+    Bindings.createBooleanBinding({ op(value) }, this)
 
 inline fun <T> ObservableValue<T>.typesafeStringBinding(crossinline op: (T) -> String): StringBinding =
-    Bindings.createStringBinding(Callable { op(value) }, this)
+    Bindings.createStringBinding({ op(value) }, this)
 
 fun <T> ObservableValue<out Collection<T>>.asObservableList(): ObservableList<T> {
     val list = value.toMutableList().observable()

@@ -21,12 +21,14 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.asPercent
 import com.jfoenix.controls.*
 import javafx.beans.property.BooleanProperty
+import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.Scene
 import javafx.scene.control.ListView
 import javafx.scene.layout.*
 import javafx.scene.shape.Rectangle
@@ -163,6 +165,7 @@ inline fun Fieldset.horizontalField(text: String? = null, forceLabelIndent: Bool
 inline fun EventTarget.jfxTabPane(op: JFXTabPane.() -> Unit = {}): JFXTabPane =
     opcr(this, JFXTabPane()) {
         doNotConsumeMouseEvents()
+        isFocusTraversable = false
         op()
     }
 
@@ -194,5 +197,20 @@ inline fun <T> EventTarget.jfxTreeView(op: JFXTreeView<T>.() -> Unit): JFXTreeVi
 inline fun EventTarget.codeArea(op: CodeArea.() -> Unit = {}): CodeArea =
     opcr(this, CodeArea(), op)
 
-inline fun <T> EventTarget.virtualizedScrollPane(content: T, op: VirtualizedScrollPane<T>.() -> Unit): VirtualizedScrollPane<T> where T : Node, T : Virtualized =
+inline fun <T> EventTarget.virtualizedScrollPane(
+    content: T,
+    op: VirtualizedScrollPane<T>.() -> Unit
+): VirtualizedScrollPane<T> where T : Node, T : Virtualized =
     opcr(this, VirtualizedScrollPane<T>(content), op)
+
+fun Node.requestFocusWhenReady() {
+    val listener = object : ChangeListener<Scene> {
+        override fun changed(observable: ObservableValue<out Scene>?, oldValue: Scene?, newValue: Scene?) {
+            if (newValue != null) {
+                requestFocus()
+                observable!!.removeListener(this)
+            }
+        }
+    }
+    sceneProperty().addListener(listener)
+}

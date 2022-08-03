@@ -29,6 +29,7 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.or
+import com.jfoenix.controls.JFXButton
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.HBox
@@ -59,7 +60,8 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val canAcceptSearchResult = mutableStateFlow(IsValid.valid, debugName = "canAcceptSearchResult")
     override val canExcludeSearchResult = mutableStateFlow(IsValid.valid, debugName = "canExcludeSearchResult")
 
-    override val canToggleFilterPreviouslyDiscardedResults = mutableStateFlow(IsValid.valid, debugName = "canToggleFilterPreviouslyDiscardedResults")
+    override val canToggleFilterPreviouslyDiscardedResults =
+        mutableStateFlow(IsValid.valid, debugName = "canToggleFilterPreviouslyDiscardedResults")
     override val isFilterPreviouslyDiscardedResults = viewMutableStateFlow(false, debugName = "isFilterPreviouslyDiscardedResults")
 
     override val isAllowSmartChooseResults = mutableStateFlow(false, debugName = "isAllowSmartChooseResults")
@@ -70,6 +72,9 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
 
     override val canShowMoreResults = mutableStateFlow(IsValid.valid, debugName = "canShowMoreResults")
     override val showMoreResultsActions = broadcastFlow<Unit>()
+
+    lateinit var cancelButton: JFXButton
+    lateinit var skipButton: JFXButton
 
     private val resultsView = prettyListView(searchResults.list) {
         vgrow = Priority.ALWAYS
@@ -124,6 +129,10 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
         selectedSearchResult.onChange {
             resultsView.selectionModel.select(it)
         }
+
+        state.onChange {
+            cancelButton.requestFocus()
+        }
     }
 
     override val root = vbox(spacing = 10) {
@@ -132,7 +141,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
         // Buttons
         prettyToolbar {
             enableWhen(canChangeState, wrapInErrorTooltip = false)
-            cancelButton("Cancel") {
+            cancelButton = cancelButton("Cancel") {
                 action(choiceActions) { GameSearchState.ProviderSearch.Choice.Cancel }
             }
             spacer()
@@ -143,7 +152,7 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                 action(choiceActions) { GameSearchState.ProviderSearch.Choice.Exclude }
             }
             gap()
-            excludeButton {
+            skipButton = excludeButton {
                 graphic = Icons.redo
                 textProperty().bind(currentProviderId.typesafeStringBinding { "Skip $it" })
                 tooltip(currentProviderId.typesafeStringBinding { "Skip syncing this path with $it this time" })
@@ -201,14 +210,17 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                                             tooltip("$providerId has an accepted result.")
                                             Icons.accept
                                         }
+
                                         is GameSearchState.ProviderSearch.Choice.Skip -> {
                                             tooltip("$providerId was skipped.")
                                             Icons.redo
                                         }
+
                                         is GameSearchState.ProviderSearch.Choice.Exclude -> {
                                             tooltip("$providerId was excluded.")
                                             Icons.warning
                                         }
+
                                         else -> null
                                     }
                                     if (choiceIcon != null) {

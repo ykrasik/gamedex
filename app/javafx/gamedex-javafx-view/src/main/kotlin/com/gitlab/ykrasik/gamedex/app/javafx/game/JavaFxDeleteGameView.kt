@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.gap
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
+import com.gitlab.ykrasik.gamedex.javafx.localShortcut
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.typesafeStringBinding
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
@@ -44,7 +45,9 @@ class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGame
 
     override val root = buildAreYouSure {
         defaultHbox {
-            jfxCheckBox(fromFileSystem.property, "From File System")
+            jfxCheckBox(fromFileSystem.property, "From File System") {
+                localShortcut(this, "delete")
+            }
             gap(10)
             label(game.property.typesafeStringBinding { it.path.toString() })
         }

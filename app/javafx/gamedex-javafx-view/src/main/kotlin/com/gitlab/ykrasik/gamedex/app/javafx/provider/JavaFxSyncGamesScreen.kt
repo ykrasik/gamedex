@@ -62,6 +62,7 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
 
     override val customNavigationButton = dangerButton("Stop", graphic = Icons.stop) {
         isCancelButton = false
+        isFocusTraversable = false
         action(cancelActions)
     }
 
@@ -69,6 +70,8 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
 
     init {
         register()
+
+        localShortcut(providerSearchView.cancelButton, "esc")
     }
 
     private val paths = prettyListView(state) {
