@@ -54,7 +54,7 @@ class SyncGamePresenter @Inject constructor(
 
         private suspend fun syncGame() {
             view.canSyncGame.assert()
-            syncGameService.syncGame(view.game.v)
+            syncGameService.syncGame(view.game.v, syncOnlyMissingProviders = true)
         }
     }
 }

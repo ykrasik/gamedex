@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface SyncGameService {
     val isGameSyncRunning: StateFlow<Boolean>
 
-    suspend fun syncGame(game: Game)
+    suspend fun syncGame(game: Game, syncOnlyMissingProviders: Boolean)
 
     fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean): Task<List<SyncPathRequest>>
 

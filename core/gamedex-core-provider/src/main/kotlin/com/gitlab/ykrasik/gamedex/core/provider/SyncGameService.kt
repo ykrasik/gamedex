@@ -51,19 +51,24 @@ class SyncGameServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun syncGame(game: Game) = syncGames(listOf(toRequest(game, emptyList())), isAllowSmartChooseResults = false)
+    override suspend fun syncGame(game: Game, syncOnlyMissingProviders: Boolean) =
+        syncGames(
+            listOf(toRequest(game, if (syncOnlyMissingProviders) game.getMissingProviders() else emptyList())),
+            isAllowSmartChooseResults = false
+        )
 
-    override fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean) = task("Detecting games with missing providers...") {
-        val games = filterService.filter(gameService.games, filter).asSequence()
-            .map { it to it.getMissingProviders() }
-            .filter { (_, missingProviders) -> missingProviders.isNotEmpty() }
-            .map { (game, missingProviders) -> game to missingProviders.takeIf { syncOnlyMissingProviders }.orEmpty() }
-            .toList()
-            .sortedBy { (game, _) -> game.path }
+    override fun detectGamesWithMissingProviders(filter: Filter, syncOnlyMissingProviders: Boolean) =
+        task("Detecting games with missing providers...") {
+            val games = filterService.filter(gameService.games, filter)
+                .map { it to it.getMissingProviders() }
+                .filter { (_, missingProviders) -> missingProviders.isNotEmpty() }
+                .map { (game, missingProviders) -> game to missingProviders.takeIf { syncOnlyMissingProviders }.orEmpty() }
+                .toList()
+                .sortedBy { (game, _) -> game.path }
 
-        successMessage = { "${games.size} games." }
-        games.map { (game, missingProviders) -> toRequest(game, missingProviders) }
-    }
+            successMessage = { "${games.size} games." }
+            games.map { (game, missingProviders) -> toRequest(game, missingProviders) }
+        }
 
     private fun toRequest(game: Game, providersToSync: List<ProviderId>) = SyncPathRequest(
         libraryPath = LibraryPath(game.library, game.path),

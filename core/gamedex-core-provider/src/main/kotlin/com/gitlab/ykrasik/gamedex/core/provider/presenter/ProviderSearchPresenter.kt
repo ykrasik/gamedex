@@ -61,9 +61,16 @@ class ProviderSearchPresenter @Inject constructor(
 
             view::changeProviderActions.forEach { onChangeProvider(it) }
             view::choiceActions.forEach { onChoice(it, isUserAction = true) }
-            view::canSearchCurrentQuery *= view.canChangeState.combine(view.query.allValues()) { canChangeState, query ->
+            view::canSearchCurrentQuery *= combine(
+                view.canChangeState,
+                view.query.allValues(),
+                view.state
+            ) { canChangeState, query, state ->
+                val currentProviderSearch = state.currentProviderSearch
+                val isPresetValue = currentProviderSearch?.choice is GameSearchState.ProviderSearch.Choice.Preset
+                val isSameQuery = currentProviderSearch?.query == query
                 canChangeState and IsValid {
-                    check(query != state.currentProviderSearch?.query) { "Same query!" }
+                    check(isPresetValue || !isSameQuery) { "Same query!" }
                 }
             }
             view::canAcceptSearchResult *= view.canChangeState.combine(view.selectedSearchResult.allValues()) { canChangeState, selectedResult ->
@@ -86,7 +93,8 @@ class ProviderSearchPresenter @Inject constructor(
                 view.canSmartChooseResult /= isAllowSmartChooseResults
                 view.canChangeState /= IsValid.valid
                 val initialProvider = state.currentProvider ?: state.nextPossibleProviderWithoutChoice ?: state.providerOrder.first()
-                val query = state.lastSearchFor(initialProvider)?.query ?: fileSystemService.analyzeFolderName(state.libraryPath.path.name).processedName
+                val query = state.lastSearchFor(initialProvider)?.query
+                    ?: fileSystemService.analyzeFolderName(state.libraryPath.path.name).processedName
                 changeProviderAndQuery(initialProvider, query)
             } else {
                 // We can also re-visit an already completed state.
@@ -122,7 +130,8 @@ class ProviderSearchPresenter @Inject constructor(
         private suspend fun changeProviderAndQuery(providerId: ProviderId, query: String) {
             updateProvider(providerId)
 
-            val previousSearch = state.historyFor(providerId).findLast { it.query == query }
+            val previousSearch =
+                state.historyFor(providerId).findLast { it.query == query && it.choice !is GameSearchState.ProviderSearch.Choice.Preset }
             if (previousSearch != null) {
                 // We have results for this search in the history. Re-add this search as the latest in the history and display it.
                 val searchToAdd = previousSearch.copy(choice = null)
@@ -145,7 +154,7 @@ class ProviderSearchPresenter @Inject constructor(
                 )
             )
             val results = response.results
-            val canShowMoreResults = response.canShowMoreResults ?: results.size == limit
+            val canShowMoreResults = response.canShowMoreResults ?: (results.size == limit)
             val currentSearch = if (offset == 0) {
                 GameSearchState.ProviderSearch(
                     provider = provider,
@@ -178,28 +187,35 @@ class ProviderSearchPresenter @Inject constructor(
             var nextQuery = ""
             var shouldAdvanceToNextProvider = true
             var shouldCancel = false
+            var isRefreshPreset = false
             when (choice) {
                 is GameSearchState.ProviderSearch.Choice.Accept -> {
                     if (isUserAction) view.canAcceptSearchResult.assert()
                     view.canSmartChooseResult /= view.isAllowSmartChooseResults.value
                     nextQuery = choice.result.name
                 }
+
                 is GameSearchState.ProviderSearch.Choice.NewSearch -> {
                     if (isUserAction) view.canSearchCurrentQuery.assert()
                     view.canSmartChooseResult /= false
                     nextQuery = choice.newQuery
                     shouldAdvanceToNextProvider = false
+                    isRefreshPreset = view.state.value.currentProviderSearch?.choice is GameSearchState.ProviderSearch.Choice.Preset
                 }
+
                 is GameSearchState.ProviderSearch.Choice.Skip -> {
                     nextQuery = lastGoodQuery
                 }
+
                 is GameSearchState.ProviderSearch.Choice.Exclude -> {
                     if (isUserAction) view.canExcludeSearchResult.assert()
                     nextQuery = lastGoodQuery
                 }
+
                 is GameSearchState.ProviderSearch.Choice.Cancel -> {
                     shouldCancel = true
                 }
+
                 else -> error("Invalid choice: $choice")
             }
 
@@ -212,7 +228,12 @@ class ProviderSearchPresenter @Inject constructor(
                 } else {
                     // There's already a result for this provider, which means this is an attempt to replace the existing result.
                     // Add a new history entry with the new choice.
-                    modifyCurrentProviderHistory { this + newSearch }
+                    if (!isRefreshPreset) {
+                        modifyCurrentProviderHistory { this + newSearch }
+                    } else {
+                        // Don't add a new history entry when refreshing a preset result, as it will be created by code that runs later.
+                        state
+                    }
                 }
                 if (shouldCancel) {
                     stateWithChoice.copy(status = GameSearchState.Status.Cancelled)
@@ -272,7 +293,8 @@ class ProviderSearchPresenter @Inject constructor(
 
         private fun onIsFilterPreviouslyDiscardedResultsChanged(isFilterPreviouslyDiscardedResults: Boolean) {
             view.canToggleFilterPreviouslyDiscardedResults.assert()
-            val currentSearch = checkNotNull(state.currentProviderSearch) { "Cannot toggle isFilterPreviouslyDiscardedResults without results!" }
+            val currentSearch =
+                checkNotNull(state.currentProviderSearch) { "Cannot toggle isFilterPreviouslyDiscardedResults without results!" }
             setSearchResults(currentSearch, isFilterPreviouslyDiscardedResults)
             view.selectedSearchResult /= (currentSearch.choice as? GameSearchState.ProviderSearch.Choice.Accept)?.result
         }
@@ -284,9 +306,11 @@ class ProviderSearchPresenter @Inject constructor(
                         .filter { it.query != result.query && it.choice != null }
                         .flatMap { it.results.asSequence() }
                 }
-                val acceptedResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>().map { (_, choice) -> choice.result }
+                val acceptedResults =
+                    state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>().map { (_, choice) -> choice.result }
                 val presetResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Preset>().map { (_, choice) -> choice.result }
-                val previouslyDiscardedResults = (resultsWithoutQuery - acceptedResults - presetResults).map { it.name to it.releaseDate }.toSet()
+                val previouslyDiscardedResults =
+                    (resultsWithoutQuery.toSet() - acceptedResults - presetResults).map { it.name to it.releaseDate }
                 result.results.filter { (it.name to it.releaseDate) !in previouslyDiscardedResults }
             } else {
                 result.results
@@ -313,8 +337,10 @@ class ProviderSearchPresenter @Inject constructor(
             // Copy preset results to providerData, overwriting any existing data.
             state.choicesOfType<GameSearchState.ProviderSearch.Choice.Preset>().associateByTo(providerData, { it.first }) { it.second.data }
 
-            val acceptedResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>().map { (providerId, choice) -> providerId to choice.result }
-            val excludedProviders = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Exclude>().map { (providerId, _) -> providerId }.toList()
+            val acceptedResults = state.choicesOfType<GameSearchState.ProviderSearch.Choice.Accept>()
+                .map { (providerId, choice) -> providerId to choice.result }
+            val excludedProviders =
+                state.choicesOfType<GameSearchState.ProviderSearch.Choice.Exclude>().map { (providerId, _) -> providerId }.toList()
 
             val providerHeadersToFetch = acceptedResults
                 .map { (providerId, result) -> ProviderHeader(providerId, result.providerGameId) }
@@ -375,7 +401,8 @@ class ProviderSearchPresenter @Inject constructor(
                 releaseDate = fetchResult.gameData.releaseDate,
                 criticScore = fetchResult.gameData.criticScore,
                 userScore = fetchResult.gameData.userScore,
-                thumbnailUrl = fetchResult.gameData.thumbnailUrl ?: fetchResult.gameData.posterUrl ?: fetchResult.gameData.screenshotUrls.firstOrNull()
+                thumbnailUrl = fetchResult.gameData.thumbnailUrl ?: fetchResult.gameData.posterUrl
+                ?: fetchResult.gameData.screenshotUrls.firstOrNull()
             )
             view.searchResults /= view.searchResults.value.replace(searchResult, updatedSearchResult)
             modifyState {
