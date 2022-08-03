@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.util.toUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.awt.Desktop
+import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,9 +46,13 @@ class BrowseUrlPresenter @Inject constructor(
                 if (settingsRepo.useInternalBrowser.value) {
                     viewService.showAndHide(ViewManager::showBrowserView, ViewManager::hide, url)
                 } else {
-                    // FIXME: This logic belongs to the view
                     launch(Dispatchers.IO) {
-                        Desktop.getDesktop().browse(url.toUrl().toURI())
+                        val customBrowserCommand = settingsRepo.customBrowserCommand.value
+                        if (customBrowserCommand.isBlank()) {
+                            Desktop.getDesktop().browse(url.toUrl().toURI())
+                        } else {
+                            Runtime.getRuntime().exec((customBrowserCommand.split(Pattern.compile("\\s+")) + url).toTypedArray())
+                        }
                     }
                 }
             }

@@ -25,4 +25,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ViewMutableStateFlow
  */
 interface GeneralSettingsView {
     val useInternalBrowser: ViewMutableStateFlow<Boolean>
+    val customBrowserCommand: ViewMutableStateFlow<String>
 }

@@ -35,6 +35,7 @@ class GeneralSettingsPresenter @Inject constructor(
     override fun present(view: GeneralSettingsView) = object : ViewSession() {
         init {
             view::useInternalBrowser.bindBidirectional(settingsRepo.useInternalBrowser)
+            view::customBrowserCommand.bindBidirectional(settingsRepo.customBrowserCommand)
         }
     }
 }

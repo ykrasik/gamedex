@@ -33,6 +33,7 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
         val exportDbDirectory: File,
         val logFilterLevel: LogLevel,
         val useInternalBrowser: Boolean,
+        val customBrowserCommand: String,
         val searchResultLimit: Int,
     )
 
@@ -42,6 +43,7 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
             exportDbDirectory = File("."),
             logFilterLevel = LogLevel.Info,
             useInternalBrowser = true,
+            customBrowserCommand = "",
             searchResultLimit = 10
         )
     }
@@ -50,5 +52,6 @@ class GeneralSettingsRepository @Inject constructor(repo: SettingsRepository) {
     val exportDbDirectory = storage.biMap(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
     val logFilterLevel = storage.biMap(Data::logFilterLevel) { copy(logFilterLevel = it) }
     val useInternalBrowser = storage.biMap(Data::useInternalBrowser) { copy(useInternalBrowser = it) }
+    val customBrowserCommand = storage.biMap(Data::customBrowserCommand) { copy(customBrowserCommand = it) }
     val searchResultLimit = storage.biMap(Data::searchResultLimit) { copy(searchResultLimit = it) }
 }

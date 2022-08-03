@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.api.settings.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
+import com.gitlab.ykrasik.gamedex.javafx.control.showWhen
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.javafx.viewMutableStateFlow
@@ -32,10 +34,16 @@ import tornadofx.form
  */
 class JavaFxGeneralSettingsView : PresentableTabView("General", Icons.tune), GeneralSettingsView {
     override val useInternalBrowser = viewMutableStateFlow(true, debugName = "useInternalBrowser")
+    override val customBrowserCommand = viewMutableStateFlow("", debugName = "customBrowserCommand")
 
     override val root = form {
         fieldset {
             horizontalField("Use Internal Browser") { jfxCheckBox(useInternalBrowser.property) }
+            horizontalField("Custom External Browser Command") {
+                showWhen { useInternalBrowser.property.not() }
+                jfxTextField(customBrowserCommand.property, promptText = "For example (Windows): \"cmd /c start chrome --incognito\"") {
+                }
+            }
         }
     }
 
