@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.provider.opencritic
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.util.httpClient
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -66,7 +65,6 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
         val relation: String
     )
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class FetchResult(
         val id: Int,
         val name: String,
@@ -93,7 +91,6 @@ open class OpenCriticClient @Inject constructor(private val config: OpenCriticCo
         val name: String,
     )
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class Platform(
         val id: Int,
         val shortName: String,

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -32,14 +32,15 @@ import kotlin.reflect.KClass
  * Date: 08/10/2016
  * Time: 09:21
  */
-val objectMapper: ObjectMapper = jacksonObjectMapper()
-    .registerModule(JodaModule())
-    .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-    .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
-//    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+val objectMapper: ObjectMapper = jacksonMapperBuilder()
+    .addModule(JodaModule())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+    .enable(MapperFeature.PROPAGATE_TRANSIENT_MARKER)
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
-    .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+    .visibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+    .visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+    .build()
 
 private val prettyWriter = objectMapper.writerWithDefaultPrettyPrinter()
 

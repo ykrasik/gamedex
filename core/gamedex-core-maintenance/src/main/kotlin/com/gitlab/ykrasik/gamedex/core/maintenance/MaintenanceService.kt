@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -104,13 +104,14 @@ class MaintenanceServiceImpl @Inject constructor(
 ) : MaintenanceService {
     private val log = logger()
 
-    private val objectMapper = jacksonObjectMapper()
-        .registerModule(JodaModule())
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
-        .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
-        .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+    private val objectMapper = jacksonMapperBuilder()
+        .addModule(JodaModule())
+        .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)
+        .visibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+        .visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+        .build()
 
     private val jaroWinkler = JaroWinkler()
 

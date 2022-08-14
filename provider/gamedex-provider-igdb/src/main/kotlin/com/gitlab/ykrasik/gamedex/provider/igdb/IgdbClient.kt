@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
@@ -145,14 +144,12 @@ open class IgdbClient @Inject constructor(
     ) : SharedSearchFetchFields
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class ReleaseDate(
         val platform: Int,
         val date: Long?,
     )
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class FetchResult(
         val url: String,
         override val name: String,
@@ -181,13 +178,11 @@ open class IgdbClient @Inject constructor(
     }
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val imageId: String?,
     )
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class OAuthResponse(
         val accessToken: String,
         val expiresIn: Int,

@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
@@ -91,7 +90,6 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     }
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class SearchResponse(
         val statusCode: Status,
         val results: List<SearchResult>,
@@ -112,7 +110,6 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     ) : HasReleaseDate
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class FetchResponse(
         val statusCode: Status,
 
@@ -138,13 +135,11 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     ) : HasReleaseDate
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class Genre(
         val name: String,
     )
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val thumbUrl: String,
         val superUrl: String,
