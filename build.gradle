@@ -2,8 +2,6 @@ import groovy.json.JsonOutput
 
 buildscript {
     ext {
-        javaMaxHeap = '3g'
-
         ktlin = [:].with {
             v = '1.7.10'
             majorV = '1.7'

@@ -35,6 +35,7 @@ class Main : App(JavaFxPreloaderView::class, GameDexStyle::class) {
         fun main(args: Array<String>) {
             System.setProperty("kotlinx.coroutines.debug", "on")
 
+            Thread.currentThread().contextClassLoader = Main::class.java.classLoader
             launch<Main>(args)
         }
     }

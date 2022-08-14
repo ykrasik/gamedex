@@ -1,6 +1,5 @@
 apply plugin: 'application'
 
-applicationDefaultJvmArgs = ["-Xmx$javaMaxHeap", "-XX:+UseConcMarkSweepGC", "-XX:+HeapDumpOnOutOfMemoryError", "-server"]
 executableDir = ''
 mainClassName = "com.gitlab.ykrasik.gamedex.javafx.Main"
 
@@ -29,9 +28,10 @@ task copyPluginsDist(type: Copy) {
 
 javapackager {
     mainClass = mainClassName
-    additionalResources = copyPluginsDist.outputs.files.files.asList()
+    additionalResources = copyPluginsDist.outputs.files.files.asList() +
+            new File(project.projectDir, "assets/GameDex.l4j.ini")
     bundleJre = true
-    jrePath = new File(System.properties['java.home'])
+    jrePath = new File(System.properties["java.home"])
     generateInstaller = project.hasProperty("installer")
 
     name = "GameDex"
@@ -39,9 +39,13 @@ javapackager {
     description = "GameDex"
     organizationName = "Yevgeny Krasik"
     url = "https://github.com/ykrasik/gamedex"
-    vmArgs = applicationDefaultJvmArgs
 
     winConfig {
+        exeCreationTool = 'why'
+
+        fileVersion = project.version
+        productVersion = project.version
+
         generateSetup = true
         generateMsi = false
 
@@ -55,7 +59,14 @@ javapackager {
 
 project.tasks.getByName("package").dependsOn copyPluginsDist
 
-task dist(type: Copy, dependsOn: 'package') {
+// TODO: Temp hack until javapackager is released with the 'why' version where this is fixed.
+task copyReleaseHack(type: Copy) {
+    from new File(System.properties["java.home"], "../release")
+    into new File(project.buildDir, "GameDex/jre")
+}
+project.tasks.getByName("package").finalizedBy copyReleaseHack
+
+task dist(type: Copy, dependsOn: ['package', copyReleaseHack]) {
     from new File(project.buildDir, "GameDex")
     into new File(project.rootDir, "dist")
 }
