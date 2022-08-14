@@ -152,7 +152,7 @@ class JavaFxLogView : PresentableView("Log", Icons.book),
         if (!level.v.canLog(entry)) return
 
         val (startIndex, endIndex) = entriesToPositions.remove(entry.id)!!
-        textArea.deleteText(startIndex - totalRemoved, endIndex - totalRemoved)
+        textArea.deleteText(startIndex - totalRemoved, (endIndex - totalRemoved).coerceAtMost(textArea.length))
         totalRemoved += endIndex - startIndex
     }
 
