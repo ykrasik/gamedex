@@ -100,7 +100,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     fun youTubeGameplayUrl(game: Game): String = youTubeGameplayUrl(game.name, game.platform)
 }
 
-private val noImage = JavaFxCommonOps::class.java.getResource("no-image-available.png").readBytes().toImage()
+private val noImage = JavaFxCommonOps::class.java.getResource("no-image-available.png")!!.readBytes().toImage()
 
 val JavaFxImage.isNoImage: Boolean get() = this === noImage
 val ObservableValue<JavaFxImage>.isNoImage: Boolean get() = value.isNoImage

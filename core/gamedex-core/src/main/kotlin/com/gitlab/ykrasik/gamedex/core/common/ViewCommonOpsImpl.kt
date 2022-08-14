@@ -49,7 +49,7 @@ class ViewCommonOpsImpl @Inject constructor(
     override val providerLogos = gameProviderService.logos
 
     override fun youTubeGameplayUrl(name: String, platform: Platform): String {
-        val search = URLEncoder.encode("$name gameplay $platform", "utf-8")
+        val search = URLEncoder.encode("$name gameplay${if (platform === Platform.Android) " $platform" else ""}", "utf-8")
         return "${config.youTubeBaseUrl}/results?search_query=$search"
     }
 }
