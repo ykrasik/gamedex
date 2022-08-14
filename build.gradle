@@ -35,7 +35,7 @@ buildscript {
 
         guava = [group: 'com.google.guava', name: 'guava', version: '31.1-jre']
 
-        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.10.14']
+        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.11.0']
 
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
@@ -50,7 +50,7 @@ buildscript {
         // Newer versions of H2 are slower when importing a 2k+ items db...
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
         exposed = [:].with {
-            v = '0.38.2'
+            v = '0.39.2'
             core = [group: 'org.jetbrains.exposed', name: 'exposed-core', version: v]
             dao = [group: 'org.jetbrains.exposed', name: 'exposed-dao', version: v]
             jdbc = [group: 'org.jetbrains.exposed', name: 'exposed-jdbc', version: v]
@@ -77,7 +77,7 @@ buildscript {
         stringSimilarity = [group: 'info.debatty', name: 'java-string-similarity', version: '2.0.0']
 
         koTest = [:].with {
-            v = '5.4.1'
+            v = '5.4.2'
             junit = [group: 'io.kotest', name: 'kotest-runner-junit5', version: v]
             assertions = [group: 'io.kotest', name: 'kotest-assertions-core', version: v]
             delegate
@@ -85,7 +85,7 @@ buildscript {
         mockK = [group: 'io.mockk', name: 'mockk', version: '1.12.5']
 
         ktor = [:].with {
-            v = '2.0.3'
+            v = '2.1.0'
             serverCore = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             serverStatusPages = [group: 'io.ktor', name: 'ktor-server-status-pages', version: v]
             serverNetty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
