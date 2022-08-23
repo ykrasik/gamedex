@@ -59,14 +59,7 @@ javapackager {
 
 project.tasks.getByName("package").dependsOn copyPluginsDist
 
-// TODO: Temp hack until javapackager is released with the 'why' version where this is fixed.
-task copyReleaseHack(type: Copy) {
-    from new File(System.properties["java.home"], "../release")
-    into new File(project.buildDir, "GameDex/jre")
-}
-project.tasks.getByName("package").finalizedBy copyReleaseHack
-
-task dist(type: Copy, dependsOn: ['package', copyReleaseHack]) {
+task dist(type: Copy, dependsOn: 'package') {
     from new File(project.buildDir, "GameDex")
     into new File(project.rootDir, "dist")
 }

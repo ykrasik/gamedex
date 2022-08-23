@@ -24,6 +24,8 @@ import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.ImplementedBy
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTimeZone
 import javax.inject.Inject

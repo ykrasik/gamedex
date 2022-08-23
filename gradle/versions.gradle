@@ -19,9 +19,11 @@ dependencyUpdates.resolutionStrategy {
                 'org.controlsfx:controlsfx:9.*',
                 'org.controlsfx:controlsfx:11.*',
                 'com.jfoenix:jfoenix:9.*',
-                'org.fxmisc.richtext:richtextfx:0.10.*',
-                'no.tornado:tornadofx:1.7.*',
+                'org.fxmisc.richtext:richtextfx:0.*',
+                'no.tornado:tornadofx:1.*',
                 'com.miguelfonseca.completely:completely-core:0.9.*',
+                'ch.qos.logback:logback-classic:1.4.*',
+                'com.h2database:h2:2.*',
             ].any { regex ->
                 selection.candidate.toString() ==~ regex
             }

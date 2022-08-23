@@ -3,8 +3,8 @@ import groovy.json.JsonOutput
 buildscript {
     ext {
         ktlin = [:].with {
-            v = '1.7.10'
-            majorV = '1.7'
+            v = '1.8.10'
+            majorV = '1.8'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
             delegate
@@ -20,27 +20,29 @@ buildscript {
         }
 
         guice = [group: 'com.google.inject', name: 'guice', version: '5.1.0']
-        classGraph = [group: 'io.github.classgraph', name: 'classgraph', version: '4.8.149']
+        classGraph = [group: 'io.github.classgraph', name: 'classgraph', version: '4.8.156']
 
         slf4j = [:].with {
-            v = '1.7.36'
+            v = '2.0.6'
             api = [group: 'org.slf4j', name: 'slf4j-api', version: v]
             julBridge = [group: 'org.slf4j', name: 'jul-to-slf4j', version: v]
             delegate
         }
-        logback = [group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.11']
+
+        // This is the highest version of logback which supports JDK 8.
+        logback = [group: 'ch.qos.logback', name: 'logback-classic', version: '1.3.5']
 
         typesafeConfig = [group: 'com.typesafe', name: 'config', version: '1.4.2']
-        config4k = [group: 'io.github.config4k', name: 'config4k', version: '0.4.2']
+        config4k = [group: 'io.github.config4k', name: 'config4k', version: '0.5.0']
 
         guava = [group: 'com.google.guava', name: 'guava', version: '31.1-jre']
 
-        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.11.0']
+        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.12.2']
 
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
         jackson = [:].with {
-            v = '2.13.3'
+            v = '2.14.2'
             core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
             kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
             joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: v]
@@ -50,7 +52,7 @@ buildscript {
         // Newer versions of H2 are slower when importing a 2k+ items db...
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
         exposed = [:].with {
-            v = '0.39.2'
+            v = '0.41.1'
             core = [group: 'org.jetbrains.exposed', name: 'exposed-core', version: v]
             dao = [group: 'org.jetbrains.exposed', name: 'exposed-dao', version: v]
             jdbc = [group: 'org.jetbrains.exposed', name: 'exposed-jdbc', version: v]
@@ -61,6 +63,8 @@ buildscript {
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.18']
         jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.10']
+
+        // This is the highest version of TornadoFx which doesn't break the build.
         tornadoFx = [group: 'no.tornado', name: 'tornadofx', version: '1.7.18']
         ikonli = [:].with {
             v = '2.6.0'
@@ -69,6 +73,8 @@ buildscript {
             materialDesign = [group: 'org.kordamp.ikonli', name: 'ikonli-materialdesign-pack', version: v]
             delegate
         }
+
+        // This is the highest version of RichTextFx which supports JDK 8.
         richTextFx = [group: 'org.fxmisc.richtext', name: 'richtextfx', version: '0.10.8']
 //        bootstrapFx = [group: 'org.kordamp.bootstrapfx', name: 'bootstrapfx-core', version: '0.2.2']
 
@@ -77,15 +83,15 @@ buildscript {
         stringSimilarity = [group: 'info.debatty', name: 'java-string-similarity', version: '2.0.0']
 
         koTest = [:].with {
-            v = '5.4.2'
+            v = '5.5.5'
             junit = [group: 'io.kotest', name: 'kotest-runner-junit5', version: v]
             assertions = [group: 'io.kotest', name: 'kotest-assertions-core', version: v]
             delegate
         }
-        mockK = [group: 'io.mockk', name: 'mockk', version: '1.12.5']
+        mockK = [group: 'io.mockk', name: 'mockk', version: '1.13.4']
 
         ktor = [:].with {
-            v = '2.1.0'
+            v = '2.2.4'
             serverCore = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             serverStatusPages = [group: 'io.ktor', name: 'ktor-server-status-pages', version: v]
             serverNetty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
@@ -110,13 +116,15 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${ktlin.v}"
-        classpath "io.github.fvarrui:javapackager:1.6.7"
+        classpath "io.github.fvarrui:javapackager:1.7.0"
     }
 }
 
 plugins {
     id 'com.github.hierynomus.license-base' version '0.16.1'
-    id 'com.github.ben-manes.versions' version '0.42.0'
+    id 'com.github.ben-manes.versions' version '0.46.0'
+
+    // This is the highest version of Shadow which supports Gradle 7.
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 

@@ -45,7 +45,7 @@ class IgdbProviderContractTest : Spec<IgdbProviderContractTest.Scope>() {
         describe("IgdbProvider") {
             itShould("search & retrieve a single search result") {
                 val results = provider.search(name, Platform.Windows, account, offset = 0, limit = 10).results
-                results should haveSize(1)
+                results should haveSize(10)
 
                 val result = results.first()
                 result shouldBe GameProvider.SearchResult(
@@ -86,8 +86,8 @@ class IgdbProviderContractTest : Spec<IgdbProviderContractTest.Scope>() {
         val releaseDate = "2016-08-12"
         val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 43)
         val Score?.verifiedUserScore get() = assertScore(min = 65, max = 75, numReviews = 169)
-        val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/co4xe0.jpg"
-        val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/co4xe0.jpg"
+        val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/co5j66.jpg"
+        val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/co5j66.jpg"
         val url = "https://www.igdb.com/games/no-man-s-sky"
         val description =
             "Inspired by the adventure and imagination that we love from classic science-fiction, No Man's Sky presents you with a galaxy to explore, filled with unique planets and lifeforms, and constant danger and action.\n" +
