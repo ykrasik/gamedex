@@ -1,5 +1,23 @@
 # Change Log
 
+## [0.5.0] 2023-03-09
+* Major version upgrades for all libraries
+* Use javapackager Gradle plugin instead of javafx-gradle-plugin, use 'why' for bundling on Windows
+* Support detection & fixing of renamed / moved games as part of cleanup
+* Adjust to latest OpenCritic changes
+* Introduce automatic retries on provider server errors (5xx)
+* Add a context menu to the Sync Games screen for existing games - can now edit/delete games right from that screen
+* Allow specifying a command for opening an external browser when clicking on any link
+* Sync only missing providers by default when re-syncing an existing game
+* Also allow refreshing the preset result when re-syncing
+* When deleting a game from the Game Details view, navigate to the next or prev game instead of immediately closing the view
+* Add keybinds to actions:
+  - 'esc' to cancel during provider search
+  - 'delete' to delete from game details screen
+* Limit poster size in Game Details View to be half the height of the screen, but it still goes off the screen sometimes...
+* Only add the platform to the youtube search query if the platform is 'Android'
+* Fix occasional out-of-bounds error in log view
+
 ## [0.4.1] 2020-11-21
 * IGDB: Migrate to V4 API
 * Upgrade embedded JRE version to 1.8.0_271
@@ -39,7 +57,7 @@
 #### Bugfixes
 * Catch errors thrown while calculating FileTree
 * Catch errors thrown while bulk updating games
-* Fix filter, sort & displayType popOver arrow to always be Top Left 
+* Fix filter, sort & displayType popOver arrow to always be Top Left
 * Fix uncaught exception in RenameMove dialog when a communication error with the file system occurs
 * Fix uncaught exception when excluding or skipping all providers in a provider sync operation
 * Fix uncaught exception when cancelling bulk provider update Also update games by their update date, in increasing order.
@@ -48,7 +66,7 @@
 * IGDB: Add missing genres (Visual Novel, Card & Board Game, MOBA)
 * Fix issue with cached image extensions sometimes having characters that are illegal in a file name
 
-## [0.3.0] 2019-07-18 
+## [0.3.0] 2019-07-18
 This release is NOT BACKWARDS COMPATIBLE with 0.2.0, there were internal changes to the database structure.
 * Redesign windows - windows will now darken the content underneath them
 * Redesign game details view - it now shows the game poster, screenshots & file tree
@@ -63,7 +81,7 @@ This release is NOT BACKWARDS COMPATIBLE with 0.2.0, there were internal changes
 * Removed reports - List View & Saved Filters achieve the same purpose
 * Duplicates Report & Folder Name Diff are now separate screens accessible as maintenance tasks instead of being filters
 * Folder Name Diff can now ignore diffs if only a single provider reports
- it as a diff
+  it as a diff
 * 'And' & 'Or' filters can now take multiple children instead of just 2
 * Add a File Name filter
 * Replace Null Critic Score & Null User Score filters with setting the target score to be less than 0 on the respective filters
@@ -83,7 +101,7 @@ This release is NOT BACKWARDS COMPATIBLE with 0.2.0, there were internal changes
 * Store all images in a single folder cache/images
 * Reduce image in-memory cache size to 20 - it was taking a lot of memory without giving any benefit
 
-## [0.2.0] 2019-04-03 
+## [0.2.0] 2019-04-03
 * Added a plugin system - plugins have their own classLoader & injector
 * Implemented providers as plugins
 
